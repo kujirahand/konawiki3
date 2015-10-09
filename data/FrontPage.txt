@@ -2,7 +2,7 @@
 
 Konawiki3 is wiki clone application.
 
-** Konawiki3 is simple
+** Konawiki3 is simple3
 
 It is a simple wiki.
 

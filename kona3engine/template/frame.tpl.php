@@ -53,6 +53,5 @@ $page_name_ = "<a href='$page_href'>{$page_title_}</a>";
   <div class="info"><?php echo kona3getSysInfo() ?></div>
 </div>
 <!-- footer.end -->
-<pre><?php print_r($kona3conf);  ?>
 </body>
 </html>
