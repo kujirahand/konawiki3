@@ -2,19 +2,24 @@
 /**
  * KonaWiki3
  */
+define("KONA3_SYSTEM_VERSION", "0.1");
+
+// charset
 mb_internal_encoding("UTF-8");
 mb_detect_encoding("UTF-8,SJIS,EUC-JP,JIS,ASCII");
 ini_set('default_charset', 'UTF-8');
 header("Content-Type: text/html; charset=UTF-8");
+
+// session
 session_start();
 
 // global
 global $kona3conf;
 $kona3conf = array();
 
-// -------------------- 
+// --------------------
 // main
-// -------------------- 
+// --------------------
 // load conf
 setDefConfig();
 // include library
@@ -26,13 +31,13 @@ kona3parseURI();
 // execute
 kona3execute();
 
-// -------------------- 
-// Initialize config 
-// -------------------- 
+// --------------------
+// Initialize config
+// --------------------
 function setDefConfig() {
   global $kona3conf;
-  
-  // global setting  
+
+  // global setting
   defC("KONA3_WIKI_TITLE",     "Konwwiki3");
   defC("KONA3_WIKI_FRONTPAGE", "FrontPage");
   defC("KONA3_WIKI_PRIVATE",   true);
@@ -51,7 +56,7 @@ function setDefConfig() {
   $kona3conf["title"]       = KONA3_WIKI_TITLE;
   $kona3conf["privateMode"] = KONA3_WIKI_PRIVATE;
   $kona3conf["FrontPage"]   = KONA3_WIKI_FRONTPAGE;
-  
+
   // users
   $users = array();
   $users_a = explode(",", KONA3_WIKI_USERS);
@@ -90,8 +95,3 @@ function defC($key, $def = null) {
     define($key, $def);
   }
 }
-
-
-
-
-

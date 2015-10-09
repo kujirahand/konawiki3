@@ -1,37 +1,53 @@
 <?php /* template */
 global $kona3conf;
-$title = $kona3conf["title"];
-$tlink = kona3getPageURL($kona3conf["FrontPage"]);
-$title_link = "<a href='$tlink'>".kona3text2html($title)."</a>";
+
+// Parameters
+if (empty($page_title)) $page_title = "?";
+if (empty($page_body))  $page_body = "page_body is empty";
+
+$wiki_title_ = htmlspecialchars($kona3conf['title'], ENT_QUOTES);
+$page_title_ = htmlspecialchars($page_title, ENT_QUOTES);
+$logo_href = kona3getPageURL(KONA3_WIKI_FRONTPAGE);
+$page_href = kona3getPageURL($page_title);
+
+// check FrontPage
+if ($page_title == KONA3_WIKI_FRONTPAGE) {
+  // FrontPage
+  $head_title = "{$wiki_title_}";
+} else {
+  // normal page
+  $head_title = "{$page_title}-{$wiki_title_}";
+}
+//
+$logo_title_ = "<a href='$logo_href'>{$wiki_title_}</a>";
+$page_name_ = "<a href='$page_href'>{$page_title_}</a>";
 
 ?>
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title><?php echo $title ?></title>
+  <title><?php echo $head_title ?></title>
   <link rel="stylesheet" href="skin/def/kona3.css" type="text/css">
  </head>
 <body>
 
 <!-- header.begin -->
 <div id="wikiheader">
-  <div id="wikititle"><?php echo $title_link  ?></div>
+  <div id="wikititle">
+    <?php echo $logo_title_ ?>
+    <span id="pagename">&gt; <?php echo $page_name_ ?></span>
+  </div>
 </div>
 <!-- header.end -->
 
-<div id="wikicontent">
-  <div id="wikibody">
-  <?php echo $frame_body ?>
-  </div>
-  <nav id="wikimenu">
-  <?php echo $menu ?>
-  </nav>
-</div>
+<!-- wikibody.begin -->
+<div id="wikiframe"><?php echo $wikibody ?></div>
+<!-- wikibody.end -->
 
 <!-- footer.begin -->
 <div id="wikifooter">
-  <a href="">Konawiki3</a>
+  <a href="http://kujirahand.com/konawiki/">Konawiki3 v.<?php echo KONA3_SYSTEM_VERSION ?></a>
 </div>
 <!-- footer.end -->
 

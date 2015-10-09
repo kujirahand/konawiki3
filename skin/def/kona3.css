@@ -1,13 +1,7 @@
 /** Konawiki3 css */
-
-/** for markup */
-
 /* vim:set expandtab ts=4 : */
-/**
- * konawiki.css for default skin
- */
 
-/** common setting */ 
+/** common setting */
 * {
     margin:0px;
     padding:0px;
@@ -28,33 +22,52 @@ div.underline {
 
 
 /** layout */
-
 body {
-    width: 100%;
+  width: 100%;
+  color: black;
+  background-color: white;
 }
 
 #wikiheader
 {
-    width:100%;
+  width: 980px;
+  padding: 4px;
+  margin: 0 auto 6px;
+  text-align:left;
 }
+#wikifooter {
+  padding: 12px;
+  width: 980px;
+  margin: 0 auto 6px;
+  border-top: solid 1px #E0e0FF;
+  text-align:center;
+  font-size: 0.6em;
+}
+#wikiframe {
+  padding: 4px;
+  width: 980px;
+  margin: 0 auto 6px;
+  border-top: solid 1px #E0e0FF;
+  text-align:left;
+  font-size: 1em;
+}
+
+/** for header */
 #wikititle {
-    padding: 20px;
-    font-size: 1.5em;
-    font-weight: bold;
-    border-bottom: 1px solid #90a0ff;
-    width: 960px;
-    margin-bottom: 10px;
+  font-size: 1.5em;
+  font-weight: bold;
+  padding: 12px;
 }
-#wikicontent { /* TOTAL */
-    position: relative;
-    width: 980px;
+#pagename {
+  font-size: 0.8em;
+  font-weight: normal;
 }
 
 #wikibody {
-    width: 690px; //730-40
-    font-size   : 1em;
-    line-height : 1.4em;
-    padding: 20px;
+  width: 690px; //730-40
+  font-size   : 1em;
+  line-height : 1.4em;
+  padding: 20px;
 }
 
 #wikimenu {
@@ -77,14 +90,6 @@ body {
     float:right;
 }
 
-#wikifooter {
-    padding: 4px;
-    width: 980px;
-    margin: 0 auto 6px;
-    border-top: solid 1px #E0e0FF;
-    text-align:center;
-    font-size: 0.6em;
-}
 
 #wikimessage {
   width: 1000px;
@@ -94,19 +99,6 @@ body {
 
 /** wikiheader */
 
-#wikiheader .headerpad
-{
-    margin-top: 8px;
-    margin-bottom: 6px;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 0px;
-    width: 980px;
-    border-radius: 10px;
-    -webkit-border-radius: 10px;
-    background-color: #f0f0fa; 
-    border-bottom: solid 1px #d0d0FF;
-}
 #wikiheader .logo
 {
     float:left;
@@ -174,21 +166,21 @@ body {
     margin: 0px auto 4px auto;
     border-top: 1px solid #c0c0cc;
 }
-.navibar ul    { 
-    list-style: none; 
-    padding: 2px 12px; 
+.navibar ul    {
+    list-style: none;
+    padding: 2px 12px;
 }
-.navibar ul li { 
-    float: left; 
-    padding-right: 12px; 
+.navibar ul li {
+    float: left;
+    padding-right: 12px;
 }
 
 
-#wikimenu ul    { 
-    list-style: none; 
-    padding: 2px 12px; 
+#wikimenu ul    {
+    list-style: none;
+    padding: 2px 12px;
 }
-#wikimenu ul li { 
+#wikimenu ul li {
 }
 #wikimenu h1,h2,h3 {
     font-size: 1.0em;
@@ -1142,6 +1134,3 @@ hr {
     margin-top: 10px;
     margin-bottom: 20px;
 }
-
-
-

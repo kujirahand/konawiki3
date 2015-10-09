@@ -144,6 +144,7 @@ function kona3getPageURL($page = "", $action = "", $stat = "", $paramStr = "") {
   if ($page == "") $page = $kona3conf["page"];
   $page_ = urlencode($page);
   if ($action == "") $action = $kona3conf["action"];
+  if ($action == "show") $action = "";
   $action_ = urlencode($action);
   if ($stat == "") $stat = isset($kona3conf["stat"]) ? $kona3conf["stat"] : "";
   $stat_ = urlencode($stat);
@@ -153,7 +154,11 @@ function kona3getPageURL($page = "", $action = "", $stat = "", $paramStr = "") {
     $base = substr($base, 0, strlen($base) - 1);
   }
   $script = $kona3conf["scriptname"];
-  $url = "{$base}/{$script}?{$page_}";
+  if ($page == KONA3_WIKI_FRONTPAGE) {
+    $url = "{$base}/";
+  } else {
+    $url = "{$base}/{$script}?{$page_}";
+  }
   //
   if ($action != "") {
     $url .= "&".$action_;
@@ -179,9 +184,3 @@ function kona3getWikiName($filename) {
   $f = preg_replace("#\.txt$#", "", $f);
   return $f;
 }
-
-
-
-
-
-

@@ -1,9 +1,11 @@
-<?php /* template */ 
+<?php /* template */
 
-$frame_body = <<< __EOS__
-<div>
-$body
-</div>
-__EOS__;
+global $kona3conf;
+
+$wikibody = <<<EOS
+<div id="wikibody">{$page_body}</div>
+<div id="wikimenu"><nav>{$wiki_menu}</nav></div>
+EOS;
+
+// $page_title $page_body $wiki_menu
 include 'frame.tpl.php';
-
