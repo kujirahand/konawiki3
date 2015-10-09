@@ -2,7 +2,17 @@
 /**
  * konawiki3 main library
  */
+require_once 'kona3login.inc.php';
+
 if (get_magic_quotes_gpc()){ un_magic_quotes(); }
+
+function kona3param($key, $def = NULL) {
+  if (isset($_REQUEST[$key])) {
+    return $_REQUEST[$key];
+  } else {
+    return $def;
+  }
+}
 
 function kona3parseURI() {
   // (ex) /path/index.php?PageName&Action&Status&p1=***&p2=***
@@ -58,12 +68,13 @@ function kona3execute() {
   $action = $kona3conf["action"];
   $actionFile = kona3getEngineFName("action", $action);
   $actionFunc = "kona3_action_$action";
+  $page = $kona3conf['page'];
   if (!file_exists($actionFile)) {
-    kona3error("Invalid Action", "Invalid Action"); exit;
+    kona3error($page, "Invalid Action `$action`"); exit;
   }
   include_once($actionFile);
   if (!function_exists($actionFunc)) {
-    kona3error("System Error", "Action(function) not found."); exit;
+    kona3error($page, "[System Error] Action not found."); exit;
   }
   call_user_func($actionFunc);
 }
@@ -110,8 +121,19 @@ function kona3getWikiUrl($wikiname) {
 
 // show error page
 function kona3error($title, $msg) {
-  echo "<h1>".kona3text2html($title)."</h1>";
-  echo "<div>".kona3text2html($msg)."</div>";
+  $err = "<div class='error'>$msg</div>";
+  kona3template("message", array(
+    'page_title' => kona3text2html($title),
+    'page_body'  => $err,
+  ));
+  exit;
+}
+function kona3showMessage($title, $msg) {
+  $body = "<div class='message'>$msg</div>";
+  kona3template("message", array(
+    'page_title' => kona3text2html($title),
+    'page_body'  => $body,
+  ));
   exit;
 }
 
@@ -143,10 +165,8 @@ function kona3getPageURL($page = "", $action = "", $stat = "", $paramStr = "") {
   global $kona3conf;
   if ($page == "") $page = $kona3conf["page"];
   $page_ = urlencode($page);
-  if ($action == "") $action = $kona3conf["action"];
-  if ($action == "show") $action = "";
+  if ($action == "") $action = "show";
   $action_ = urlencode($action);
-  if ($stat == "") $stat = isset($kona3conf["stat"]) ? $kona3conf["stat"] : "";
   $stat_ = urlencode($stat);
   //
   $base = $kona3conf["baseurl"];
@@ -154,8 +174,9 @@ function kona3getPageURL($page = "", $action = "", $stat = "", $paramStr = "") {
     $base = substr($base, 0, strlen($base) - 1);
   }
   $script = $kona3conf["scriptname"];
-  if ($page == KONA3_WIKI_FRONTPAGE) {
+  if ($page == KONA3_WIKI_FRONTPAGE && $action == "show") {
     $url = "{$base}/";
+    $action = "";
   } else {
     $url = "{$base}/{$script}?{$page_}";
   }
@@ -184,3 +205,47 @@ function kona3getWikiName($filename) {
   $f = preg_replace("#\.txt$#", "", $f);
   return $f;
 }
+
+function kona3getSysInfo() {
+  $href = "http://kujirahand.com/konawiki/";
+  $ver  = KONA3_SYSTEM_VERSION;
+  return "<a href=\"$href\">Konawiki3 v.{$ver}</a>";
+}
+
+function kona3getMenu() {
+  global $kona3conf;
+  $page = $kona3conf['page'];
+  //
+  $new_uri = kona3getPageURL($page, 'new');
+  $edit_uri = kona3getPageURL($page, 'edit');
+  $login_uri = kona3getPageURL($page, 'login');
+  $logout_uri = kona3getPageURL($page, 'logout');
+  $search_uri = kona3getPageURL($page, 'search');
+  //
+  $list = array();
+  //
+  if (!kona3isLogin()) {
+    $list[] = array('login', $login_uri);
+    $list[] = array('-','-');
+  } else {
+    $list[] = array('logout', $logout_uri);
+    $list[] = array('-','-');
+    $list[] = array('new', $new_uri);
+    $list[] = array('edit', $edit_uri);
+  }
+  $list[] = array('search', $search_uri);
+
+  // make link
+  $ha = array();
+  foreach ($list as $it) {
+    $label = $it[0];
+    $href  = $it[1];
+    if ($href != "-") {
+      $ha[] = "[<a href=\"$href\">$label</a>]";
+    } else {
+      $ha[] = " - ";
+    }
+  }
+  return implode(" ", $ha);
+}
+

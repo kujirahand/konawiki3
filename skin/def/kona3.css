@@ -41,7 +41,6 @@ body {
   margin: 0 auto 6px;
   border-top: solid 1px #E0e0FF;
   text-align:center;
-  font-size: 0.6em;
 }
 #wikiframe {
   padding: 4px;
@@ -52,7 +51,7 @@ body {
   font-size: 1em;
 }
 
-/** for header */
+/* for header */
 #wikititle {
   font-size: 1.5em;
   font-weight: bold;
@@ -63,12 +62,14 @@ body {
   font-weight: normal;
 }
 
+/* for body */
 #wikibody {
   width: 690px; /* 730-40 */
   font-size   : 1em;
   line-height : 1.4em;
   padding: 20px;
   float:left;
+  border-right: dashed 1px #e0e0ff;
 }
 
 #wikimenu {
@@ -77,8 +78,26 @@ body {
     padding: 10px;
     float: right;
     top: 0px;
-    border-left: dashed 1px #e0e0ff;
 }
+
+#wikimessage {
+  width: 950px; /* 960 - 40 */
+  text-align: left;
+  padding: 20px;
+}
+
+/* for footer */
+#wikifooter .info > a {
+  font-size: 0.6em;
+  text-decoration: none;
+  color: gray;
+}
+#wikifooter .footer_menu {
+  font-size: 0.6em;
+  text-align: right;
+}
+
+
 
 #wikinavi { /* LEFT side menu */
     width : 230px;
@@ -90,13 +109,6 @@ body {
     width: 170px;
     height: 100%;
     float:right;
-}
-
-
-#wikimessage {
-  width: 1000px;
-  margin: 0 auto 6px;
-  text-align: left;
 }
 
 /** wikiheader */
@@ -498,7 +510,6 @@ body {
     font-weight: bold;
     margin: 20px 0px 15px 0px;
     padding: 10px 10px 10px 8px;
-    width:100%;
     border-top: solid 6px #AAAAF0;
     background-color: #f0faff;
 }
@@ -1136,3 +1147,26 @@ hr {
     margin-top: 10px;
     margin-bottom: 20px;
 }
+
+/* edit */
+#wikiedit {
+  background-color: #fff0f0;
+  padding: 12px;
+  text-align: center;
+}
+#wikiedit input[type="submit"] {
+  padding: 12px;
+  margin: 2px;
+  font-size: 1.2em;
+}
+#edit_txt {
+  padding: 8px;
+  font-size: 1em;
+  line-height: 1.5em;
+  width: 600px;
+  height: 400px;
+}
+
+
+
+

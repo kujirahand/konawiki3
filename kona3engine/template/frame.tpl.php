@@ -1,21 +1,23 @@
-<?php /* template */
+<?php
+/** frame template */
 global $kona3conf;
 
 // Parameters
 if (empty($page_title)) $page_title = "?";
 if (empty($page_body))  $page_body = "page_body is empty";
 
-$wiki_title_ = htmlspecialchars($kona3conf['title'], ENT_QUOTES);
-$page_title_ = htmlspecialchars($page_title, ENT_QUOTES);
+$wiki_title_ = kona3text2html($kona3conf['title']);
+$page_title_ = Kona3text2html($page_title);
+
 $logo_href = kona3getPageURL(KONA3_WIKI_FRONTPAGE);
 $page_href = kona3getPageURL($page_title);
 
-// check FrontPage
+// Is FrontPage?
 if ($page_title == KONA3_WIKI_FRONTPAGE) {
   // FrontPage
   $head_title = "{$wiki_title_}";
 } else {
-  // normal page
+  // Normal page
   $head_title = "{$page_title}-{$wiki_title_}";
 }
 //
@@ -47,9 +49,10 @@ $page_name_ = "<a href='$page_href'>{$page_title_}</a>";
 
 <!-- footer.begin -->
 <div id="wikifooter">
-  <a href="http://kujirahand.com/konawiki/">Konawiki3 v.<?php echo KONA3_SYSTEM_VERSION ?></a>
+  <div class="footer_menu"><?php echo kona3getMenu() ?></div>
+  <div class="info"><?php echo kona3getSysInfo() ?></div>
 </div>
 <!-- footer.end -->
-
+<pre><?php print_r($kona3conf);  ?>
 </body>
 </html>

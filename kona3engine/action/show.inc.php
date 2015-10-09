@@ -10,17 +10,23 @@ function kona3_action_show() {
   $page_h = htmlspecialchars($page);
   $fname = kona3getWikiFile($page);
   if (!file_exists($fname)) {
-    kona3error("404 page not found", "Sorry, page not found");
+    kona3error($page, "Sorry, page `$page` not found.");
     exit;
   }
   // body
   $txt = @file_get_contents($fname);
   $txt = konawiki_parser_convert($txt);
-  // ---
-  $menufile = @kona3getWikiFile("MenuBar");
-  $menu = file_get_contents($menufile);
-  $menuhtml = konawiki_parser_convert($menu);
-  //
+
+  // menu
+  $menufile = kona3getWikiFile("MenuBar");
+  if (file_exists($menufile)) {
+    $menu = @file_get_contents($menufile);
+    $menuhtml = konawiki_parser_convert($menu);
+  } else {
+    $menuhtml = "";
+  }
+
+  // show
   kona3template('show', array(
     "page_title" => kona3text2html($page),
     "page_body"  => $txt,
