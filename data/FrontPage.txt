@@ -1,1 +1,11 @@
+* About Konawiki3
+
 Konawiki3 is wiki clone application.
+
+** Konawiki3 is simple
+
+It is a simple wiki.
+
+** Text file
+
+All data file is text file.
