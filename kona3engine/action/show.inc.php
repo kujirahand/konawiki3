@@ -10,7 +10,12 @@ function kona3_action_show() {
   $page_h = htmlspecialchars($page);
   $fname = kona3getWikiFile($page);
   if (!file_exists($fname)) {
-    kona3error($page, "Sorry, page `$page` not found.");
+    if (kona3isLogin()) {
+      $url = kona3getPageURL($page, "edit");
+      header("Location: $url");
+    } else {
+      kona3error($page, "Sorry, Page Not Found.");
+    }
     exit;
   }
   // body

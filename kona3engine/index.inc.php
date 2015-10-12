@@ -42,11 +42,13 @@ function setDefConfig() {
   defC("KONA3_WIKI_FRONTPAGE", "FrontPage");
   defC("KONA3_WIKI_PRIVATE",   true);
   defC("KONA3_WIKI_USERS",     "kona3:pass3,kona2:pass2");
-  // global dir
+  defC("KONA3_WIKI_SKIN",      "def");
+    // global dir
   defC("KONA3_DIR_PUBLIC",     dirname(dirname(__FILE__)));
   defC("KONA3_DIR_ENGINE",     dirname(__FILE__));
   defC("KONA3_DIR_DATA",       KONA3_DIR_PUBLIC."/data");
   defC("KONA3_DIR_ATTACH",     KONA3_DIR_PUBLIC."/attach");
+  defC("KONA3_DIR_SKIN",       KONA3_DIR_PUBLIC."/skin");
   defC("KONA3_DIR_CACHE",      KONA3_DIR_PUBLIC."/cache");
   //
   defC("KONA3_URI_ATTACH",     "./attach");

@@ -11,7 +11,9 @@ function kona3_action_new() {
 
   $res = "";
   if ($am == "new") {
-    $res = "TODO";
+    $url = kona3getPageURL($key, "edit");
+    header("Location: $url");
+    exit;
   }
   
   $key_ = kona3text2html($key);

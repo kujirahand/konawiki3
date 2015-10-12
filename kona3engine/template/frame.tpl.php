@@ -30,7 +30,7 @@ $page_name_ = "<a href='$page_href'>{$page_title_}</a>";
 <head>
   <meta charset="UTF-8">
   <title><?php echo $head_title ?></title>
-  <link rel="stylesheet" href="skin/def/kona3.css" type="text/css">
+  <link rel="stylesheet" href="index.php?kona3.css&skin" type="text/css">
  </head>
 <body>
 
