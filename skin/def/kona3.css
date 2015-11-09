@@ -1148,6 +1148,17 @@ hr {
     margin-bottom: 20px;
 }
 
+strong.strong1 {
+  text-decoration: underline;
+  background-color: yellow;
+  font-weight: bold;
+}
+strong.strong2 {
+  text-decoration: underline;
+  background-color: aqua;
+  font-weight: bold;
+}
+
 /* edit */
 #wikiedit {
   background-color: #fff0f0;

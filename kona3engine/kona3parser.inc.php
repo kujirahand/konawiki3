@@ -498,12 +498,20 @@ function __konawiki_parser_tohtml(&$text, $level)
             }
             continue;
         }
-        // strong
+        // strong1
         if ($c2 == "''") {
             $text = substr($text, 2);
             $s = konawiki_parser_token($text, "''");
             $str = konawiki_parser_tohtml($s);
-            $result .= "<strong>$str</strong>";
+            $result .= "<strong class='strong1'>$str</strong>";
+            continue;
+        }
+        // strong2
+        if ($c2 == "``") {
+            $text = substr($text, 2);
+            $s = konawiki_parser_token($text, "``");
+            $str = konawiki_parser_tohtml($s);
+            $result .= "<strong class='strong2'>$str</strong>";
             continue;
         }
         // url
