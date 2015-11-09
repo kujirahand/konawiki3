@@ -570,7 +570,7 @@ body {
 #wikibody div.column {
     margin: 12px 24px 24px 24px;
     padding: 8px;
-    background: #f9f9f9 no-repeat 8px 4px;
+    background: white no-repeat 8px 4px;
     border: solid 1px lightsteelblue;
     color: #666666;
 }
@@ -1177,7 +1177,3 @@ strong.strong2 {
   width: 600px;
   height: 400px;
 }
-
-
-
-

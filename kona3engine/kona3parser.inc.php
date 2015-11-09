@@ -56,7 +56,7 @@ function konawiki_parser_parse($text)
     $h3_mark2 = '△';
     $h4_mark1 = '▼';
     $h4_mark2 = '▽';
-     
+
     // main loop
     $tokens = array();
     while ( $text != "") {
@@ -149,7 +149,6 @@ function konawiki_parser_parse($text)
         }
         // SOURCE BLOCK
         else if ($c == "{" && substr($text, 0, 3) == "{{{") {
-            konawiki_parser_getStr($text, 3); // skip {{{
             $tokens[] = konawiki_parser_sourceBlock($text);
         }
         else { // plain block
@@ -187,7 +186,7 @@ function konawiki_parser_render($tokens, $flag_isContents = TRUE)
     if ($flag_isContents) {
         $html = '<div class="contents">'."\n";
     }
-	
+
     $index = 0;
     while($index < count($tokens)) {
         $value = $tokens[$index++];
@@ -254,7 +253,7 @@ function konawiki_parser_render($tokens, $flag_isContents = TRUE)
                 $img = konawiki_resourceurl()."/img/sub.png";
                 $html .= "<div class='conflictsub'><img src='$img'>$text</div>".$eol;
             }
-            
+
         }
         else if ($cmd == "resmark") {
             $s = konawiki_parser_tohtml($text)."<br/>\n";
@@ -284,7 +283,7 @@ function konawiki_parser_render_hx(&$value)
 {
     global $konawiki_headers, $eol;
     if (empty($konawiki_headers)) $konawiki_headers = array();
-    
+
     $level_from = 1;
     $level = $value["level"];
     $i = $level + ($level_from - 1);
@@ -574,7 +573,7 @@ function konawiki_parser_tosource_block($src)
         // Call plugin function
         $pinfo = konawiki_parser_getPlugin($pname);
         $path = $pinfo['file'];
-        $func = $pinfo['func'];        
+        $func = $pinfo['func'];
         if (file_exists($path)) {
             include_once($path);
             if (is_callable($func)) {
@@ -614,7 +613,7 @@ function konawiki_parser_makeWikiLink($name)
     $link     = ""; // link
     $wikiname = ""; // wikiname
     $wikilink = TRUE;
-    
+
     // [[xxx:xxxx]]
     if (strpos($name, ":") === FALSE) { // simple ?
         // [[wikiname]]
@@ -645,10 +644,10 @@ function konawiki_parser_makeWikiLink($name)
             $wikilink = TRUE;
         }
     }
-    
+
     // wikipage exists ?
     if ($wikilink === TRUE) {
-        // TODO: check extra tag 
+        // TODO: check extra tag
     }
     return "<a href='$link'>$caption</a>";
 }
@@ -705,7 +704,7 @@ function konawiki_parser_plugins(&$text, $flag)
     	$line = mb_substr($line, 1);
     	$res["params"] = explode("～", $line);
     }
-    
+
     // check plugins
     konawiki_parser_pluginInit($word, $res);
     return $res;
@@ -764,35 +763,24 @@ function konawiki_parser_getPlugin($pname)
  */
 function konawiki_parser_sourceBlock(&$text)
 {
-    $nest = 1;
-    $src = "";
     $eol = konawiki_public("EOL");
-    while ($text != "") {
-        $c = mb_substr($text, 0, 1);
-        // {{{
-        if ($c == '{' && substr($text, 0, 3) === '{{{') {
-                $src .= '{{{';
-                $text = substr($text, 3);
-                $nest++;
-                continue;
-        }
-        // }}}
-        if ($c == '}' && substr($text, 0, 3) === '}}}') {
-                $text = substr($text, 3);
-                $nest--;
-                if ($nest <= 0) { break; }
-                continue;
-        }
-        // other
-        $line = konawiki_parser_token($text, $eol);
-        $src .= $line.$eol;
-    }
+    // get source mark begin
+    preg_match('#^(\{+)#', $text, $m);
+    $mark = $m[1];
+    $mark_len = strlen($mark);
+    konawiki_parser_getStr($text, $mark_len); // skip "{{{"
+    // create end mark
+    $endmark = "";
+    for ($i = 1; $i <= $mark_len; $i++) { $endmark .= '}'; }
+    $endmark .= $eol;
+    $src = konawiki_parser_token($text, $endmark);
+    //
     return array("cmd"=>"block", "text"=>$src);
 }
 
 function konawiki_public($key, $def = "") {
   global $konawiki_data;
-  return isset($konawiki_data[$key]) ? 
+  return isset($konawiki_data[$key]) ?
     $konawiki_data[$key] : $def;
 }
 function konawiki_addPublic($key, $val) {
@@ -803,5 +791,3 @@ function konawiki_param($key, $def = "") {
   global $kona3conf;
   return isset($kona3conf[$key]) ? $kona3conf[$key] : $def;
 }
-
-
