@@ -20,6 +20,7 @@ function kona3_action_show() {
   }
   // body
   $txt = @file_get_contents($fname);
+  $cnt_txt = mb_strlen($txt);
   $txt = konawiki_parser_convert($txt);
 
   // menu
@@ -35,6 +36,7 @@ function kona3_action_show() {
   kona3template('show', array(
     "page_title" => kona3text2html($page),
     "page_body"  => $txt,
+    "cnt_txt"    => $cnt_txt,
     "wiki_menu"  => $menuhtml
   ));
 }

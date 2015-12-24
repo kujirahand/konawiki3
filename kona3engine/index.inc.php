@@ -79,6 +79,9 @@ function setDefConfig() {
   $kona3conf["url.attach"]  = KONA3_URI_ATTACH;
   $kona3conf["url.data"]    = KONA3_URI_DATA;
 
+  // options
+  defC("KONA3_PARTS_COUNTCHAR", true);
+
   // check
   $url_data = $kona3conf["url.data"];
   if (substr($url_data, strlen($url_data) - 1, 1) == '/') {
