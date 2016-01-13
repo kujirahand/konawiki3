@@ -30,6 +30,11 @@ $page_name_ = "<a href='$page_href'>{$page_title_}</a>";
 <head>
   <meta charset="UTF-8">
   <title><?php echo $head_title ?></title>
+  <!-- for kindle html -->
+  <style>
+    .strong  { text-decoration: underline; font-weight:bold; }
+    .strong2 { text-decoration: underline; }
+  </style>
   <link rel="stylesheet" href="index.php?kona3.css&skin" type="text/css">
  </head>
 <body>
