@@ -81,6 +81,8 @@ function setDefConfig() {
 
   // options
   defC("KONA3_PARTS_COUNTCHAR", true);
+  defC("KONA3_NOANCHOR", false);
+  $kona3conf["noanchor"] = KONA3_NOANCHOR;
 
   // check
   $url_data = $kona3conf["url.data"];
