@@ -11,7 +11,14 @@ function kona3plugins_filecode_execute($args) {
   }
   $url = kona3getWikiUrl($name);
   $txt = @file_get_contents($fname);
-  $htm = kona3text2html(trim($txt));
+  if (preg_match('#\.php$#', $fname)) {
+    $txt = trim($txt);
+    $htm = highlight_string($txt, true);
+    // <pre>するので不必要な改行を削除
+    $htm = preg_replace('#[\r\n]#', '', $htm);
+  } else {
+    $htm = kona3text2html(trim($txt));
+  }
   $name_ = htmlspecialchars($name, ENT_QUOTES);
   $code =
     "<div class='filecode'>".
