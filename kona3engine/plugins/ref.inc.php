@@ -38,7 +38,7 @@ function kona3plugins_ref_execute($args) {
     }
   }
   // Is image?
-  if (preg_match('/\.(png|jpg|jpeg|gif|bmp|ico)$/', $url)) {
+  if (preg_match('/\.(png|jpg|jpeg|gif|bmp|ico|svg)$/', $url)) {
     $caph = "<div class='memo'>".kona3text2html($caption)."</div>";
     $code = "<div>".
             "<div><a href='$url'><img src='$url'{$size}></a></div>".
