@@ -45,6 +45,7 @@ function kona3plugins_ref_execute($args) {
             (($caption != "") ? $caph : "").
             "</div>";
   } else {
+    if ($caption == "") $caption = $url;
     $code = "<div><a href='$url'>$caption</a></div>";
   }
   return $code;
