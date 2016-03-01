@@ -1,7 +1,23 @@
 <?php
 
+/**
+ * [usage] #countpage(path, ignore=key1:key2:key3:key4...)
+ */
 function kona3plugins_countpages_execute($args) {
   global $kona3conf;
+  $pattern = "";
+  $ignore = [];
+  foreach ($args as $a) {
+    if ($pattern == "") {
+      $pattern = $a;
+      continue;
+    }
+    if (substr($a,0,7) == "ignore=") {
+      $a = substr($a, 7);
+      $ignore = explode(":", $a);
+      continue;
+    }
+  }
   $path = $kona3conf["path.data"];
   $cnt_txt = 0;
   $cnt_src = 0;
@@ -9,7 +25,23 @@ function kona3plugins_countpages_execute($args) {
   $cnt_code = 0;
   $files = enum_files($path, "#\.txt$#");
   //
+  $pattern = str_replace('*', '', $pattern);
   foreach($files as $f) {
+    // check $pattern
+    $apath = str_replace($path, '', $f);
+    if (substr($apath, 0, 1) == '/') {
+      $apath = substr($apath, 1);
+    }
+    if (substr($apath, 0, strlen($pattern)) != $pattern) continue;
+    // check $ignore
+    if (count($ignore) > 0) {
+      $flg = FALSE;
+      foreach ($ignore as $ig) {
+        if (strpos($apath, $ig) !== FALSE) { $flg = TRUE; break; }
+      }
+      if ($flg) continue;
+    }
+    // Count file
     $txt = @file_get_contents($f);
     $c = mb_strlen($txt);
     $cnt_txt += $c;
