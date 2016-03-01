@@ -23,7 +23,14 @@ function kona3plugins_countpages_execute($args) {
   $cnt_src = 0;
   $cnt_file = 0;
   $cnt_code = 0;
-  $files = enum_files($path, "#\.txt$#");
+  //
+  $txt  = enum_files($path, "#\.txt$#");
+  // $php  = enum_files($path, "#\.php$#");
+  // $js   = enum_files($path, "#\.js$#");
+  // $html = enum_files($path, "#\.html$#");
+  // $html = [];
+  //
+  $files = $txt;
   //
   $pattern = str_replace('*', '', $pattern);
   foreach($files as $f) {
@@ -70,11 +77,11 @@ function kona3plugins_countpages_execute($args) {
   $cnt_txt_f = number_format($cnt_txt);
   $page_txt = floor($cnt_txt / 1000);
   return
-    "<span>".
-    "<b>合計 {$cnt_f}字</b>, {$page_f}ページ".
-    "&nbsp;(テキストのみ:{$cnt_txt_f}字, {$page_txt}ページ)".
-    "&nbsp;ファイル数:{$cnt_file}, ソース数: {$cnt_code}".
-    "</span>";
+    "<div><span>".
+    "<b>合計 {$cnt_f}字</b>, {$page_f}p&nbsp;".
+    "(text:{$cnt_txt_f}字, {$page_txt}p)".
+    "(file:{$cnt_file}, include:{$cnt_code})".
+    "</span></div>";
 }
 
 function enum_files($dir, $pat = NULL) {
