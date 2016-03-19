@@ -24,6 +24,20 @@ if ($page_title == KONA3_WIKI_FRONTPAGE) {
 $logo_title_ = "<a href='$logo_href'>{$wiki_title_}</a>";
 $page_name_ = "<a href='$page_href'>{$page_title_}</a>";
 
+// javascript file
+$js = "";
+if ($kona3conf['js']) {
+  foreach($kona3conf['js'] as $j) {
+    $js .= "<script type=\"text/javascript\" src=\"$j\"></script>\n";
+  }
+}
+// header info
+$head_tags = "";
+if ($kona3conf['header.tags']) {
+  foreach($kona3conf['header.tags'] as $tag) {
+    $head_tags .= $tag."\n";
+  }
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -31,6 +45,8 @@ $page_name_ = "<a href='$page_href'>{$page_title_}</a>";
   <meta charset="UTF-8">
   <title><?php echo $head_title ?></title>
   <link rel="stylesheet" href="index.php?kona3.css&skin" type="text/css">
+  <?php echo $head_tags ?>
+  <?php echo $js ?>
   <!-- for kindle html -->
   <style>
     .strong  { text-decoration: underline; font-weight:bold; }

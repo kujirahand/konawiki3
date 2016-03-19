@@ -49,10 +49,12 @@ function setDefConfig() {
   defC("KONA3_DIR_DATA",       KONA3_DIR_PUBLIC."/data");
   defC("KONA3_DIR_ATTACH",     KONA3_DIR_PUBLIC."/attach");
   defC("KONA3_DIR_SKIN",       KONA3_DIR_PUBLIC."/skin");
+  defC("KONA3_DIR_PUB",        KONA3_DIR_PUBLIC."/pub");
   defC("KONA3_DIR_CACHE",      KONA3_DIR_PUBLIC."/cache");
   //
   defC("KONA3_URI_ATTACH",     "./attach");
   defC("KONA3_URI_DATA",       "./data");
+  defC("KONA3_URI_PUB",        "./pub");
 
   // global setting
   $kona3conf["title"]       = KONA3_WIKI_TITLE;
@@ -78,11 +80,14 @@ function setDefConfig() {
   $kona3conf["path.cache"]  = KONA3_DIR_CACHE;
   $kona3conf["url.attach"]  = KONA3_URI_ATTACH;
   $kona3conf["url.data"]    = KONA3_URI_DATA;
+  $kona3conf["url.pub"]     = KONA3_URI_PUB;
 
   // options
   defC("KONA3_PARTS_COUNTCHAR", true);
   defC("KONA3_NOANCHOR", false);
   $kona3conf["noanchor"] = KONA3_NOANCHOR;
+  $kona3conf["js"] = array(); // javascript files
+  $kona3conf["header.tags"] = array(); // additional header 
 
   // check
   $url_data = $kona3conf["url.data"];
