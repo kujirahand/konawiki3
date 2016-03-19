@@ -867,6 +867,20 @@ div.code {
 	letter-spacing: 0;
 }
 
+.mathjax {
+	margin: 4px;
+	padding: 6px;
+	width: 100%;
+	overflow: auto;
+	background-color: white;
+	border: solid 1px lightsteelblue;
+	font-size: 15px;
+	font-family: monospace;
+	color: #333333;
+	letter-spacing: 0;
+}
+
+
 /** source code */
 pre.code {
 	margin: 4px 0;

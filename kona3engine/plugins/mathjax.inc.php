@@ -28,7 +28,7 @@ function kona3plugins_mathjax_execute($args) {
 </script>
 EOS;
   }
-  return "<div class='code mathjax'>\\[[[\n{$text}\n\\]]]\n</div>";
+  return "<div class='mathjax'>\\[[[\n{$text}\n\\]]]\n</div>";
 }
 
 
