@@ -857,7 +857,6 @@ ul.topnavi a {
 div.code {
 	margin: 0;
 	padding: 4px;
-	width: 100%;
 	overflow: auto;
 	background-color: #f0f0ff;
 	border: solid 1px lightsteelblue;
@@ -870,7 +869,6 @@ div.code {
 .mathjax {
 	margin: 4px;
 	padding: 6px;
-	width: 100%;
 	overflow: auto;
 	background-color: white;
 	border: solid 1px lightsteelblue;
