@@ -880,14 +880,17 @@ div.code {
 
 
 /** source code */
-pre.code {
+pre {
+	background-color: #fffff0;
+	border: solid 1px lightsteelblue;
 	margin: 4px 0;
 	padding: 4px;
 	overflow: auto;
-	background-color: #fffff0;
-	border: solid 1px lightsteelblue;
 	font-size: 15px;
 	color: #333333;
+}
+
+pre.code {
 	letter-spacing: 0;
   /* 等幅フォント */
   font-family: "Menlo", "Courier", "monospace", "ＭＳ ゴシック";

@@ -94,7 +94,7 @@ function kona3getPName($pname) {
 }
 
 // wikiname to filename
-function kona3getWikiFile($wikiname, $autoExt = true) {
+function kona3getWikiFile($wikiname, $autoExt = true, $ext = '.txt') {
   global $kona3conf;
   $path_data = $kona3conf["path.data"];
   $paths = explode("/", $wikiname);
@@ -103,7 +103,7 @@ function kona3getWikiFile($wikiname, $autoExt = true) {
     $rpath[] = urlencode($p);
   }
   $res = $path_data . "/" . implode("/", $rpath);
-  if ($autoExt) $res .= ".txt";
+  if ($autoExt) $res .= $ext;
   return $res;
 }
 
