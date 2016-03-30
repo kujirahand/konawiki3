@@ -97,6 +97,9 @@ function kona3getPName($pname) {
 function kona3getWikiFile($wikiname, $autoExt = true, $ext = '.txt') {
   global $kona3conf;
   $path_data = $kona3conf["path.data"];
+  
+  // make path
+  $wikiname = kona3getRelativePath($wikiname);
   $paths = explode("/", $wikiname);
   $rpath = array();
   foreach ($paths as $p) {
@@ -111,6 +114,7 @@ function kona3getWikiFile($wikiname, $autoExt = true, $ext = '.txt') {
 function kona3getWikiUrl($wikiname) {
   global $kona3conf;
   $path_url = $kona3conf["url.data"];
+  $wikiname = kona3getRelativePath($wikiname);
   $paths = explode("/", $wikiname);
   $rpath = array();
   foreach ($paths as $p) {
@@ -118,6 +122,27 @@ function kona3getWikiUrl($wikiname) {
   }
   return $path_url . "/" . implode("/", $rpath);
 }
+
+// relative path from path.data
+function kona3getRelativePath($wikiname) {
+  global $kona3conf;
+  $path_data = $kona3conf["path.data"];
+  
+  // check "file:/path/to/file"
+  if (substr($wikiname, 0, 5) == 'file:') {
+    $wikiname = substr($wikiname, 5);
+    $len = strlen($path_data);
+    if (substr($wikiname, 0, $len) === $path_data) {
+      $wikiname = substr($wikiname, $len);
+      if (substr($wikiname, 0, 1) == '/') {
+        $wikiname = substr($wikiname, 1);
+      }
+    }
+  }
+
+  return $wikiname;
+}
+
 
 // show error page
 function kona3error($title, $msg) {
