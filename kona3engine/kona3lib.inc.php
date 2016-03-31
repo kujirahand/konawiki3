@@ -227,7 +227,9 @@ function kona3getWikiName($filename) {
   global $kona3conf;
   $path_data = $kona3conf["path.data"].'/';
   $f = str_replace($path_data, "", $filename);
-  $f = preg_replace("#\.txt$#", "", $f);
+  if (preg_match('#(.+)\.(txt|md)$#', $f, $m)) {
+    $f = $m[1];
+  }
   return $f;
 }
 

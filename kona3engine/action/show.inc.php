@@ -10,31 +10,38 @@ function kona3_action_show() {
   $page_h = htmlspecialchars($page);
   // wiki file (text)
   $fname = kona3getWikiFile($page);
-  if (!file_exists($fname)) {
+  // wiki file eixsits?
+  $ext = "txt";
+  $wiki_live = file_exists($fname);
+  if (!$wiki_live) {
     // mark down
     $fname = kona3getWikiFile($page, TRUE, '.md');
-    if (!file_exists($fname)) {
-      if (kona3isLogin()) {
-        $url = kona3getPageURL($page, "edit");
-        header("Location: $url");
-      } else {
-        kona3error($page, "Sorry, Page Not Found.");
+    $wiki_live = file_exists($fname);
+    if ($wiki_live) {
+      $ext = "md";
+    } else {
+      $fname = kona3getWikiFile($page, FALSE);
+      $wiki_live = file_exists($fname);
+      if (preg_match('#\.([a-z]+)$#', $fname, $m)) {
+        $ext = $m[1];
       }
-      exit;
     }
   }
   // body
-  $txt = @file_get_contents($fname);
-  $cnt_txt = mb_strlen($txt);
-  $ext = "txt";
-  if (preg_match('#\.(md|txt)$#', $fname, $m)) {
-    $ext = $m[1];
+  if ($wiki_live) {
+    $txt = @file_get_contents($fname);
+  } else {
+    $updir = dirname($page);
+    $txt = "*** $page\n\n".
+           "Not Found\n\n". 
+           "#ls()\n";
   }
   // convert
+  $cnt_txt = mb_strlen($txt);
   if ($ext == "txt") {
-    $txt = konawiki_parser_convert($txt);
+    $page_body = konawiki_parser_convert($txt);
   } else if ($ext == "md") {
-    $txt = _markdown_convert($txt);
+    $page_body = _markdown_convert($txt);
   } else {
     kona3error($page, "Sorry, System Error."); exit;
   }
@@ -51,7 +58,7 @@ function kona3_action_show() {
   // show
   kona3template('show', array(
     "page_title" => kona3text2html($page),
-    "page_body"  => $txt,
+    "page_body"  => $page_body,
     "cnt_txt"    => $cnt_txt,
     "wiki_menu"  => $menuhtml
   ));
