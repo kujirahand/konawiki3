@@ -38,9 +38,11 @@ if ($kona3conf['header.tags']) {
     $head_tags .= $tag."\n";
   }
 }
+
+$language = $kona3conf["language"];
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="<?php echo $language ?>">
 <head>
   <meta charset="UTF-8">
   <title><?php echo $head_title ?></title>
@@ -49,6 +51,7 @@ if ($kona3conf['header.tags']) {
   <?php echo $js ?>
   <!-- for kindle html -->
   <style>
+    strong  { text-decoration: underline; font-weight:bold; }
     .strong  { text-decoration: underline; font-weight:bold; }
     .strong2 { text-decoration: underline; }
     .resmark { margin-left: 1em; }

@@ -60,6 +60,7 @@ function setDefConfig() {
   $kona3conf["title"]       = KONA3_WIKI_TITLE;
   $kona3conf["privateMode"] = KONA3_WIKI_PRIVATE;
   $kona3conf["FrontPage"]   = KONA3_WIKI_FRONTPAGE;
+  $kona3conf["language"]    = 'ja';
 
   // users
   $users = array();
