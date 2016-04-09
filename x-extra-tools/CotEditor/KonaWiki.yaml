@@ -1,0 +1,41 @@
+extensions:
+- keyString: "txt"
+outlineMenu:
+- beginString: "^(■|\\*).+"
+  bold: true
+- beginString: "^(▲|\\*{3})(.+)"
+  keyString: "　　▲ $1"
+- beginString: "^(●|\\*\\*)(.+)"
+  keyString: "　● $1"
+  bold: true
+comments:
+- beginString: "''"
+  endString: "''"
+- beginString: "``"
+  endString: "``"
+metadata:
+  author: "kujirahand"
+  license: "Same as CotEditor"
+  lastModified: "2015-04-09"
+  version: "1.0"
+numbers: []
+commands:
+- beginString: "^\\>"
+  endString: "\\n"
+  regularExpression: true
+values: []
+keywords:
+- beginString: "^(■|●|▲)"
+  endString: "\\n"
+  regularExpression: true
+- beginString: "^\\*+"
+  regularExpression: true
+  endString: "\\n"
+strings:
+- beginString: "^\\{{3}"
+  regularExpression: true
+  endString: "^\\}{3}"
+commentDelimiters:
+  inlineDelimiter: "#"
+characters: []
+completions: []
