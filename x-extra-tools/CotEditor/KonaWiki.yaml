@@ -1,12 +1,14 @@
 extensions:
 - keyString: "txt"
 outlineMenu:
-- beginString: "^(■|\\*).+"
+- beginString: "^(■|\\*)(.+)"
   bold: true
+  keyString: "■ $2"
 - beginString: "^(▲|\\*{3})(.+)"
-  keyString: "　　▲ $1"
+  keyString: "　　▲ $2"
+  italic: true
 - beginString: "^(●|\\*\\*)(.+)"
-  keyString: "　● $1"
+  keyString: "　● $2"
   bold: true
 comments:
 - beginString: "''"
@@ -21,20 +23,20 @@ metadata:
 numbers: []
 commands:
 - beginString: "^\\>"
-  endString: "\\n"
   regularExpression: true
+  endString: "\\n"
 values: []
 keywords:
 - beginString: "^(■|●|▲)"
-  endString: "\\n"
   regularExpression: true
+  endString: "\\n"
 - beginString: "^\\*+"
-  regularExpression: true
   endString: "\\n"
+  regularExpression: true
 strings:
 - beginString: "^\\{{3}"
-  regularExpression: true
   endString: "^\\}{3}"
+  regularExpression: true
 commentDelimiters:
   inlineDelimiter: "#"
 characters: []
