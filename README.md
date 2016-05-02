@@ -8,14 +8,32 @@ Konawiki --- http://kujirahand.com/konawiki/
 
 It is very simple PHP wiki engine.
 
-``
+```
 * header
 
 text text text text
 
+** header2
+
+table:
+
 | table | test
 | aaa | bbb
-``
+
+list:
+
+- item1
+- item2
+- item3
+
+code:
+
+{{{#code(js)
+console.log('hello');
+}}}
+
+
+```
 
 ## Mark down also can use
 
