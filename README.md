@@ -1,10 +1,10 @@
 # konawiki3
 
-Wiki clone
-
-Konawiki --- http://kujirahand.com/konawiki/
+ - Wiki clone
+ - Konawiki --- http://kujirahand.com/konawiki/
 
 ## Konawiki3 is simple.
+
 
 It is very simple PHP wiki engine.
 
@@ -31,9 +31,12 @@ code:
 {{{#code(js)
 console.log('hello');
 }}}
-
-
 ```
+
+## How to use
+
+
+
 
 ## Mark down also can use
 

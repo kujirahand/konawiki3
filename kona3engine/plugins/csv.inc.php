@@ -1,20 +1,59 @@
 <?php
-
-function kona3plugins_csv_execute($args) {
-  $html = "";
-  $text = trim(array_shift($args));
-  $lines = explode("\n", $text);
-  foreach ($lines as $line) {
-    $line = trim($line);
-    if ($line == "") continue;
-    $cells = explode(",", $line);
-    $html .= "<tr>";
-    foreach ($cells as $cell) {
-      $html .= "<td>".kona3text2html($cell)."</td>";
+/**
+ * - [書式] {{{#csv([noheader][flag=xxx]) データ }}}
+ * - [引数]
+ * -- noheader ... 一行目をヘッダとしない
+ * -- flag=xxx ... 区切り文字
+ * -- データ ... カンマ区切りのCSVデータを指定する
+*/
+function kona3plugins_csv_execute($params) {
+    if (!$params) return "";
+    
+    $noheader = FALSE;
+    $csv = "";
+    $delimiter = ",";
+    foreach ($params as $s) {
+        if ($s == "noheader") {
+            $noheader = TRUE;
+            continue;
+        }
+        if (preg_match('#flag\=(.+)#', $s, $m)) {
+          $delimiter = $m[1];
+          continue;
+        }
+        $csv = $s;
+        break;
     }
-    $html .= "</tr>";
-  }
-  return "<table>".$html."</table>";
+    
+    $html = "<table>\n";
+    $lines = explode("\n", trim($csv));
+    // header
+    if ($noheader == FALSE) {
+        $line = array_shift($lines);
+        $cols = explode($delimiter, $line);
+        $html .= "<tr>";
+        foreach ($cols as $col) {
+            $col = trim($col);
+            $col = kona3text2html($col);
+            $html .= "<th>{$col}</th>";
+        }
+        $html .= "</tr>\n";
+    }
+    // csv body
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if (!$line) continue;
+        $cols = explode($delimiter, $line);
+        $html .= "<tr>";
+        foreach ($cols as $col) {
+            $col = trim($col);
+            $col = kona3text2html($col);
+            $html .= "<td>$col</td>";
+        }
+        $html .= "</tr>\n";
+    }
+    $html .= "</table>\n";
+    return $html;
 }
 
 
