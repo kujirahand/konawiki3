@@ -186,6 +186,12 @@ function strip_text_slashes($arg) {
   return $arg;
 }
 
+function kona3getPage() {
+  global $kona3conf;
+  $page = $kona3conf["page"];
+  return $page;
+}
+
 function kona3getPageURL($page = "", $action = "", $stat = "", $paramStr = "") {
   global $kona3conf;
   if ($page == "") $page = $kona3conf["page"];
@@ -275,4 +281,15 @@ function kona3getMenu() {
   }
   return implode(" ", $ha);
 }
+
+$kona3db = null;
+function kona3getDB() {
+  global $kona3db;
+  global $kona3conf;
+  if (!is_null($kona3db)) return $kona3db;
+  $kona3db = new PDO($kona3conf['dsn']);
+  $kona3db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+  return $kona3db;
+}
+
 

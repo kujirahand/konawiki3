@@ -55,12 +55,15 @@ function setDefConfig() {
   defC("KONA3_URI_ATTACH",     "./attach");
   defC("KONA3_URI_DATA",       "./data");
   defC("KONA3_URI_PUB",        "./pub");
+  defC("KONA3_DSN",            "sqlite:data/data.sqlite");
+  defC("KONA3_ALLPAGE_FOOTER", "");
 
   // global setting
   $kona3conf["title"]       = KONA3_WIKI_TITLE;
   $kona3conf["privateMode"] = KONA3_WIKI_PRIVATE;
   $kona3conf["FrontPage"]   = KONA3_WIKI_FRONTPAGE;
   $kona3conf["language"]    = 'ja';
+  $kona3conf["allpage.footer"] = KONA3_ALLPAGE_FOOTER;
 
   // users
   $users = array();
@@ -89,6 +92,7 @@ function setDefConfig() {
   $kona3conf["noanchor"] = KONA3_NOANCHOR;
   $kona3conf["js"] = array(); // javascript files
   $kona3conf["header.tags"] = array(); // additional header 
+  $kona3conf["dsn"] = KONA3_DSN;
 
   // check
   $url_data = $kona3conf["url.data"];

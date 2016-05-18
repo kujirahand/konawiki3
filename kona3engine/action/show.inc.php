@@ -36,6 +36,7 @@ function kona3_action_show() {
            "Not Found\n\n". 
            "#ls()\n";
   }
+
   // convert
   $cnt_txt = mb_strlen($txt);
   if ($ext == "txt") {
@@ -44,6 +45,11 @@ function kona3_action_show() {
     $page_body = _markdown_convert($txt);
   } else {
     kona3error($page, "Sorry, System Error."); exit;
+  }
+  // every page
+  if (isset($kona3conf['allpage.footer'])) {
+    $footer = konawiki_parser_convert($kona3conf['allpage.footer']);
+    $page_body .= "<hr>".$footer;
   }
 
   // menu
