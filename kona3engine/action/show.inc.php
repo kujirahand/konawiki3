@@ -47,7 +47,7 @@ function kona3_action_show() {
     kona3error($page, "Sorry, System Error."); exit;
   }
   // every page
-  if (isset($kona3conf['allpage.footer'])) {
+  if (!empty($kona3conf['allpage.footer'])) {
     $footer = konawiki_parser_convert($kona3conf['allpage.footer']);
     $page_body .= "<hr>".$footer;
   }
