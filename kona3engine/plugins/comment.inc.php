@@ -38,31 +38,32 @@ function kona3plugins_comment_execute($params) {
     'LIMIT 300');
   $stmt->execute(array(intval($bbs_id)));
   $logs = $stmt->fetchAll();
-  if (!$logs) {
-    $logs = [["comment_id"=>0, "name"=>"","body"=>"no log", "mtime"=>0]];
-  }
   $html = "<div class='comments'>";
-  $html .= "<p>Comment:</p><table>";
-  $index = "index.php?".urlencode($page)."&plugin&name=comment&";
-  foreach ($logs as $row) {
-    $id = $row["comment_id"];
-    $name = htmlentities($row['name']);
-    $body = htmlentities($row['body']);
-    $body = str_replace("\n", "<br>", $body);
-    $body = str_replace(" ", "&nbsp;", $body);
-    $body = preg_replace('#\&gt;(\d+)#', '<a href="#comment_id_$1">&gt;$1</a>', $body);
-    $mtime = ($row['mtime'] == 0) ? "-" : date("Y-m-d H:i", $row['mtime']);
-    
-    $del = "<a href='{$index}m=del&id=$id'>del</a>";
-    $html .= 
-        "<tr>".
-        "<td style='vertical-align:top'>".
-          "<a name='comment_id_{$id}'>($id)</a> $name</td>".
-        "<td>$body<br>".
-          "<span class='memo'>($mtime) [$del]</span></td>".
-        "</tr>";
+  if (!$logs) {
+    $html .= "";
+  } else {
+    $html .= "<p class='memo'>Comment:</p><table>";
+    $index = "index.php?".urlencode($page)."&plugin&name=comment&";
+    foreach ($logs as $row) {
+      $id = $row["comment_id"];
+      $name = htmlentities($row['name']);
+      $body = htmlentities($row['body']);
+      $body = str_replace("\n", "<br>", $body);
+      $body = str_replace(" ", "&nbsp;", $body);
+      $body = preg_replace('#\&gt;(\d+)#', '<a href="#comment_id_$1">&gt;$1</a>', $body);
+      $mtime = ($row['mtime'] == 0) ? "-" : date("Y-m-d H:i", $row['mtime']);
+      
+      $del = "<a href='{$index}m=del&id=$id'>del</a>";
+      $html .= 
+          "<tr>".
+          "<td style='vertical-align:top'>".
+            "<a name='comment_id_{$id}'>($id)</a> $name</td>".
+          "<td>$body<br>".
+            "<span class='memo'>($mtime) [$del]</span></td>".
+          "</tr>";
+    }
+    $html .= "</table>";
   }
-  $html .= "</table>";
   $action = "index.php?".urlencode($page)."&plugin&name=comment";
   $def_name = isset($_SESSION['name']) ? $_SESSION['name'] : '';
   $def_pw   = isset($_SESSION['password']) ? $_SESSION['password'] : '';
@@ -70,7 +71,7 @@ function kona3plugins_comment_execute($params) {
     <form action="$action" method="post">
     <input type="hidden" name="m" value="write">
     <input type="hidden" name="bbs_id" value="$bbs_id">
-    <p>Form:</p>
+    <p class="memo">Comment Form:</p>
     <table>
       <tr><th>name</th>
         <td><input type="text" name="name" value="$def_name"></td></tr>
@@ -180,10 +181,10 @@ function kona3plugins_comment_getBbsId($pdo, $name) {
   $stmt = $pdo->prepare('SELECT * FROM comment_bbsid WHERE name=?');
   $stmt->execute(array($name));
   $r = $stmt->fetch();
-  if (empty($r['bbs_id'])) { // not exists
+  if (!isset($r['bbs_id'])) { // not exists
     $ins = $pdo->prepare('INSERT INTO comment_bbsid(name)VALUES(?)');
     $ins->execute(array($name));
-    $id = $ins->lastInsertId();
+    $id = $pdo->lastInsertId();
   } else {
     $id = $r["bbs_id"];
   }
