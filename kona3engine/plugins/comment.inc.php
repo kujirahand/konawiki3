@@ -3,7 +3,7 @@
  * - [書式] #comment(id=bbsid,type=***) 
  * - [引数]
  * -- id=*** ... 掲示板のID
- * -- type=*** ... 掲示板のタイプ(adminで管理モード)
+ * -- type=*** ... 掲示板のタイプ(allで全部表示)
 */
 function kona3plugins_comment_execute($params) {
   global $kona3conf;
@@ -30,8 +30,11 @@ function kona3plugins_comment_execute($params) {
   }
   // check table exists?
   kona3plugins_comment_init_db($pdo);
-  $bbs_id = kona3plugins_comment_getBbsId($pdo, $bbsid);
+  if ($type == "all") {
+    return _at_all($pdo);
+  }
   // create log
+  $bbs_id = kona3plugins_comment_getBbsId($pdo, $bbsid);
   $stmt = $pdo->prepare('SELECT * FROM comment_list '.
     'WHERE bbs_id=? '.
     'ORDER BY comment_id ASC '.
@@ -192,5 +195,29 @@ function kona3plugins_comment_getBbsId($pdo, $name) {
 }
 
 
+function _at_all($pdo) {
+  $q = $pdo->query('SELECT * FROM comment_bbsid');
+  $allbbs = $q->fetchAll();
+  $html = "<h3>All Comments</h3>";
+  foreach ($allbbs as $row) {
+    $bbs_id = $row["bbs_id"];
+    $bbs_name = htmlentities($row["name"]);
+    $link = kona3getPageURL($row["name"]);
+    $html .= "<h4><a href='$link'>$bbs_name</a></h4>";
+    $stmt = $pdo->prepare('SELECT * FROM comment_list WHERE bbs_id=? ORDER BY comment_id DESC LIMIT 30'); // 最新の30件
+    $stmt->execute(array($bbs_id));
+    $list = $stmt->fetchAll();
+    if (!$list) continue;
+    $html .= "<ul>";
+    foreach ($list as $row) {
+      $name = htmlentities($row["name"]);
+      $body = htmlentities(mb_substr($row["body"],0, 100));
+      $mtime = date("m-d H:i", $row["mtime"]);
+      $html .= "<li>$name - $body <span class='memo'>($mtime)</span></li>";
+    }
+    $html .= "</ul>";
+  }
+  return $html;
+}
 
 

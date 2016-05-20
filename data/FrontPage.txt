@@ -18,3 +18,5 @@ All wiki data file is text file.
 
 Please login first. And push [edit] link.
 
+#comment(type=all)
+
