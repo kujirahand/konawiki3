@@ -3,7 +3,7 @@
  * - [書式] #comment(id=bbsid,type=***) 
  * - [引数]
  * -- id=*** ... 掲示板のID
- * -- type=*** ... 掲示板のタイプ(allで全部表示)
+ * -- type=*** ... 掲示板のタイプ(allで全部表示/todoでTODOのもの)
 */
 function kona3plugins_comment_execute($params) {
   global $kona3conf;
@@ -31,7 +31,9 @@ function kona3plugins_comment_execute($params) {
   // check table exists?
   kona3plugins_comment_init_db($pdo);
   if ($type == "all") {
-    return _at_all($pdo);
+    return _at_all($pdo, 'all');
+  } else if ($type == "todo") {
+    return _at_all($pdo, 'todo');
   }
   // create log
   $bbs_id = kona3plugins_comment_getBbsId($pdo, $bbsid);
@@ -57,12 +59,19 @@ function kona3plugins_comment_execute($params) {
       $mtime = ($row['mtime'] == 0) ? "-" : date("Y-m-d H:i", $row['mtime']);
       
       $del = "<a href='{$index}m=del&id=$id'>del</a>";
+      $todo_v = $row['todo'];
+      $todolink = $index."m=todo&id=$id&v=";
+      if ($todo_v == 0) { // done
+        $todo = "<a href='{$todolink}1'>done</a>";
+      } else {
+        $todo = "<a href='{$todolink}0'>todo</a>";
+      }
       $html .= 
           "<tr>".
           "<td style='vertical-align:top'>".
             "<a name='comment_id_{$id}'>($id)</a> $name</td>".
           "<td>$body<br>".
-            "<span class='memo'>($mtime) [$del]</span></td>".
+            "<span class='memo'>($mtime) [$del] [$todo]</span></td>".
           "</tr>";
     }
     $html .= "</table>";
@@ -79,7 +88,7 @@ function kona3plugins_comment_execute($params) {
       <tr><th>name</th>
         <td><input type="text" name="name" value="$def_name"></td></tr>
       <tr><th>body</th>
-        <td><textarea name="body" rows=4 cols="40"></textarea><br>
+        <td><textarea name="body" rows=4 cols="80"></textarea><br>
           <span class="memo">&gt;1 &gt;2 ...</span></td></tr>
       <tr><th>password</th>
         <td><input type="password" name="pw" value="$def_pw"></td></tr>
@@ -90,6 +99,7 @@ EOS;
   return $html;
 }
 
+// when url = index.php?(page)&plugin
 function kona3plugins_comment_action() {
   global $kona3conf;
   $page = kona3getPage();
@@ -110,7 +120,7 @@ function kona3plugins_comment_action() {
       "<input type='hidden' name='m' value='del2'>".
       "<input type='hidden' name='id' value='$id'>".
       "<p>Really delete (id=$id)?</p>".
-      "<p>Delete Key: <input type='password' name='pw' value='$key'>".
+      "<p>password: <input type='password' name='pw' value='$key'>".
       " <input type='submit' value='Delete'></p>".
       "</form>";
     kona3error($page, $del); exit;
@@ -128,6 +138,19 @@ function kona3plugins_comment_action() {
       header('location: index.php?'.urlencode($page));
       exit;
     }
+  }
+  if ($m == "todo") {
+    $id = intval(@$_REQUEST['id']);
+    if ($id < 0) kona3error($page, "no id");
+    $v = isset($_REQUEST['v']) ? intval($_REQUEST['v']) : -1;
+    if ($v < 0) kona3error($page, "no v param");
+    $pdo = kona3getDB();
+    $stmt = $pdo->prepare(
+      'UPDATE comment_list SET todo=? '.
+      '  WHERE comment_id=?');
+    $stmt->execute(array($v, $id));
+    $v = ($v == 1) ? "todo" : "done";
+    kona3error($page, "ok comment_id=$id change to $v");
   }
   kona3error($page, 'Invalid mode'); exit;
 }
@@ -167,7 +190,8 @@ function kona3plugins_comment_init_db($pdo) {
       name TEXT DEFAULT 'no name',
       body TEXT DEFAULT '',
       delkey TEXT DEFAULT '',
-      res_id INTEGER DEFAULT -1,
+      res_id INTEGER DEFAULT 0,
+      todo INTEGER DEFAULT 1, /* 0:done 1:to do */  
       ctime INTEGER,
       mtime INTEGER
     );
@@ -195,25 +219,38 @@ function kona3plugins_comment_getBbsId($pdo, $name) {
 }
 
 
-function _at_all($pdo) {
+function _at_all($pdo, $type) {
+  $page = kona3getPage();
   $q = $pdo->query('SELECT * FROM comment_bbsid');
   $allbbs = $q->fetchAll();
-  $html = "<h3>All Comments</h3>";
+  $html = "<h3>Comments (type=$type)</h3>";
   foreach ($allbbs as $row) {
     $bbs_id = $row["bbs_id"];
     $bbs_name = htmlentities($row["name"]);
     $link = kona3getPageURL($row["name"]);
-    $html .= "<h4><a href='$link'>$bbs_name</a></h4>";
-    $stmt = $pdo->prepare('SELECT * FROM comment_list WHERE bbs_id=? ORDER BY comment_id DESC LIMIT 30'); // 最新の30件
+    $where = "";
+    if ($type == "todo") {
+      $where = " AND todo=1";
+    }
+    $stmt = $pdo->prepare(
+      "SELECT * FROM comment_list ".
+      "  WHERE bbs_id=? $where ".
+      "  ORDER BY comment_id DESC ".
+      "  LIMIT 30"); // 最新の30件
     $stmt->execute(array($bbs_id));
     $list = $stmt->fetchAll();
-    if (!$list) continue;
+    if (count($list) == 0) continue;
+    $html .= "<h4><a href='$link'>$bbs_name</a></h4>";
     $html .= "<ul>";
+    $index = "index.php?".urlencode($page)."&plugin&name=comment";
     foreach ($list as $row) {
+      $id = $row["comment_id"];
       $name = htmlentities($row["name"]);
       $body = htmlentities(mb_substr($row["body"],0, 100));
       $mtime = date("m-d H:i", $row["mtime"]);
-      $html .= "<li>$name - $body <span class='memo'>($mtime)</span></li>";
+      $todolink = $index."&m=todo&v=0&id=$id";
+      $todo = ($row["todo"] == 0) ? "" : "(<a href='$todolink'>todo</a>)";
+      $html .= "<li>$name - $body <span class='memo'>($mtime){$todo}</span></li>";
     }
     $html .= "</ul>";
   }

@@ -10,13 +10,25 @@ It is a simple wiki.
 
 All data file is text file.
 
-test
-
-All wiki data file is text file.
-
 ** Usage
 
 Please login first. And push [edit] link.
 
+** Easy to link
+
+{{{
+- [[link]]
+}}}
+
+- [[link]]
+
+** Plugins
+
+all comments:
+
 #comment(type=all)
+
+todo comments:
+
+#comment(type=todo)
 
