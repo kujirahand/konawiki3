@@ -1,14 +1,15 @@
 <?php
 /**
- * - [書式] {{{#csv([noheader][flag=xxx]) データ }}}
+ * - [書式] {{{#csv([noheader][flag=xxx][cell=xxx]) データ }}}
  * - [引数]
  * -- noheader ... 一行目をヘッダとしない
  * -- flag=xxx ... 区切り文字
- * -- データ ... カンマ区切りのCSVデータを指定する
+ * -- cell=xxx ... セルの変換(wiki|text) wikiでwiki記法をパース/デフォルトはwiki
+ * -- データ ... CSVデータを指定する
 */
 function kona3plugins_csv_execute($params) {
     if (!$params) return "";
-    
+    $cell = "wiki";
     $noheader = FALSE;
     $csv = "";
     $delimiter = ",";
@@ -19,6 +20,10 @@ function kona3plugins_csv_execute($params) {
         }
         if (preg_match('#flag\=(.+)#', $s, $m)) {
           $delimiter = $m[1];
+          continue;
+        }
+        if (preg_match('#wiki\=(.+)#', $s, $m)) {
+          $cell = $m[1];
           continue;
         }
         $csv = $s;
@@ -34,7 +39,13 @@ function kona3plugins_csv_execute($params) {
         $html .= "<tr>";
         foreach ($cols as $col) {
             $col = trim($col);
-            $col = kona3text2html($col);
+            if ($cell == 'text') {
+                $col = kona3text2html($col);
+            } else if ($cell == 'wiki') {
+                $col = konawiki_parser_convert($col, FALSE);
+            } else {
+                $col = kona3text2html($col);
+            }
             $html .= "<th>{$col}</th>";
         }
         $html .= "</tr>\n";
