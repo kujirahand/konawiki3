@@ -9,7 +9,7 @@
 */
 function kona3plugins_csv_execute($params) {
     if (!$params) return "";
-    $cell = "wiki";
+    $cellType = "wiki";
     $noheader = FALSE;
     $csv = "";
     $delimiter = ",";
@@ -23,7 +23,7 @@ function kona3plugins_csv_execute($params) {
           continue;
         }
         if (preg_match('#wiki\=(.+)#', $s, $m)) {
-          $cell = $m[1];
+          $cellType = $m[1];
           continue;
         }
         $csv = $s;
@@ -39,13 +39,7 @@ function kona3plugins_csv_execute($params) {
         $html .= "<tr>";
         foreach ($cols as $col) {
             $col = trim($col);
-            if ($cell == 'text') {
-                $col = kona3text2html($col);
-            } else if ($cell == 'wiki') {
-                $col = konawiki_parser_convert($col, FALSE);
-            } else {
-                $col = kona3text2html($col);
-            }
+            $col = _cell($col, $cellType);
             $html .= "<th>{$col}</th>";
         }
         $html .= "</tr>\n";
@@ -58,7 +52,7 @@ function kona3plugins_csv_execute($params) {
         $html .= "<tr>";
         foreach ($cols as $col) {
             $col = trim($col);
-            $col = kona3text2html($col);
+            $col = _cell($col, $cellType);
             $html .= "<td>$col</td>";
         }
         $html .= "</tr>\n";
@@ -66,5 +60,15 @@ function kona3plugins_csv_execute($params) {
     $html .= "</table>\n";
     return $html;
 }
+
+function _cell($cell, $type) {
+  if ($type == 'wiki') {
+    $cell = konawiki_parser_convert($cell, FALSE);
+    return $cell;
+  }
+  $cell = kona3text2html($cell);
+  return $cell;
+}
+
 
 
