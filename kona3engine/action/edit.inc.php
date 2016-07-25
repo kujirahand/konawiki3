@@ -31,7 +31,9 @@ function kona3_action_edit() {
       header("location:$jump");
       echo "ok, saved.";
     } else {
-      $msg = "<div class='error'>Sorry, conflict. Failed to save.</div>";
+      $msg = "<div class='error'>Sorry, ".
+          "Conflict editing. Failed to save. ".
+          " Please reload page and edit again.</div>";
       $txt = kona3_make_diff($edit_txt, $txt);
     }
   }
