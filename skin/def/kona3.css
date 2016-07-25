@@ -1178,17 +1178,20 @@ strong.strong2 {
 #wikiedit {
   background-color: #fff0f0;
   padding: 12px;
-  text-align: center;
+  text-align: left;
 }
 #wikiedit input[type="submit"] {
   padding: 12px;
   margin: 2px;
   font-size: 1.2em;
 }
-#edit_txt {
+textarea#edit_txt {
   padding: 8px;
   font-size: 1em;
   line-height: 1.5em;
   width: 600px;
   height: 400px;
 }
+
+
+

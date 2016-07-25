@@ -33,7 +33,7 @@ function kona3_action_edit() {
     } else {
       $msg = "<div class='error'>Sorry, ".
           "Conflict editing. Failed to save. ".
-          " Please reload page and edit again.</div>";
+          " Please check page and save again.</div>";
       $txt = kona3_make_diff($edit_txt, $txt);
     }
   }
