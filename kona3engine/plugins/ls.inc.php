@@ -6,8 +6,10 @@ function kona3plugins_ls_execute($args) {
   $page = $kona3conf['page'];
   $fname = kona3getWikiFile($page);
   $dir = dirname($fname);
+  // get all files
   $files = glob($dir."/*");
   sort($files);
+  
   # filter
   $pat = array_shift($args);
   if ($pat != null) {
@@ -17,9 +19,14 @@ function kona3plugins_ls_execute($args) {
     }
     $files = $res;
   }
+
   $code = "<ul>";
   foreach ($files as $f) {
-    if (is_dir($f)) continue;
+    // directory --- check index
+    if (is_dir($f)) {
+      $f .= "/index.txt";
+      if (!file_exists($f)) continue;
+    }
     $name = kona3getWikiName($f);
     $url = kona3getPageURL($name);
     $name = htmlentities($name);

@@ -3,6 +3,7 @@
 global $kona3conf;
 
 $wikibody = <<<EOS
+<!-- editor -->
 <div id="wikimessage">
   <div id="wikiedit">
     {$msg}
@@ -19,7 +20,7 @@ $wikibody = <<<EOS
   </div>
 </div>
 <div style="clear:both;"></div>
-
+<script type="text/javascript" src=""></script>
 EOS;
 
 // $page_title $page_body $wiki_menu
