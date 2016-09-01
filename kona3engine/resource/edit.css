@@ -1,0 +1,61 @@
+/* css */
+
+#wikiframe {
+  margin:0;
+  padding:0;
+}
+
+#wikimessage {
+  margin:0;
+  padding:4px;
+  background-color: #fff0f0;
+}
+
+#wikiedit {
+  margin:0;
+  padding:8px;
+}
+
+#wikiedit textarea {
+  margin: 0px;
+  padding: 8px;
+  font-size: 1em;
+}
+
+#wikiedit input#save_ajax_btn {
+  font-size: 12px;
+  border: 1px solid gray;
+  color: black;
+  padding: 8px;
+  background-color: #f0f0f0;
+  text-decoration: none;
+  width: 170px;
+}
+#wikiedit input[type="submit"]#save_btn {
+  font-size: 12px;
+  border: 1px solid gray;
+  color: black;
+  padding: 8px;
+  background-color: #f0f0f0;
+  text-decoration: none; 
+}
+
+#wikiedit .info {
+  background-color: white;
+  color: gray;
+  font-size: 10px;
+}
+
+#func_area {
+  border: 1px dashed #f0c0c0;
+  margin-top: 24px;
+  padding: 12px;
+}
+#recover_div a {
+  font-size: 12px;
+  border: 1px solid gray;
+  color: black;
+  padding: 8px;
+  background-color: #f0f0f0;
+  text-decoration: none; 
+}

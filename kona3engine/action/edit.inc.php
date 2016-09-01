@@ -19,6 +19,7 @@ function kona3_action_edit() {
   
   $action = kona3getPageURL($page, "edit");
   $a_mode = kona3param('a_mode', '');
+  $i_mode = kona3param('i_mode', 'form'); // ajax
 
   if ($a_mode == "trywrite") {
     $a_hash_frm = kona3param('a_hash', '');
@@ -27,10 +28,24 @@ function kona3_action_edit() {
     if ($a_hash_frm == $a_hash) {
       // save
       file_put_contents($fname, $edit_txt);
+      // result
+      if ($i_mode == "ajax") {
+        echo json_encode(array(
+          'result' => 'ok',
+          'a_hash' => hash('sha256', $edit_txt),
+        ));
+        exit;
+      }
       $jump = kona3getPageURL($page);
       header("location:$jump");
       echo "ok, saved.";
     } else {
+      if ($i_mode == "ajax") {
+        echo json_encode(array(
+          'result' => 'ng',
+          'reason' => 'Conflict editing, Please submit and check.',
+        ));
+      }
       $msg = "<div class='error'>Sorry, ".
           "Conflict editing. Failed to save. ".
           " Please check page and save again.</div>";
