@@ -2,7 +2,12 @@
 window.addEventListener('load', edit_init, false);
 function qs(id) { return document.querySelector(id); }
 
-var STORAGE_KEY = 'konawiki3backup';
+// detect storage key
+var href = location.href;
+href = href.replace(/\?.*$/, '');
+href = href.replace('index.php', '');
+href = href.replace(/(http|https)\:\/\//, '');
+var STORAGE_KEY = 'kona3:' + href;
 
 function edit_init() {
   // event
