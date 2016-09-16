@@ -26,13 +26,14 @@ function kona3_action_resource() {
   // output
   $ext = strtolower($ext);
   $ctype = "text/plain";
-  if ($ext == ".css") $ctype = "text/css";
-  else if ($ext == ".js") $ctype = "text/javascript";
-  //
-  header("Content-Type: $ctype");
-  //
-  $s = @file_get_contents($file);
-  echo $s;
+       if ($ext == ".css") $ctype = "text/css";
+  else if ($ext == ".js" ) $ctype = "text/javascript";
+  else if ($ext == ".json") $ctype = "application/json";
+  else if ($ext == ".png") $ctype = "image/png";
+  // 
+  header("Content-Type: ".$ctype);
+  header('Content-Length: '.filesize($file));
+  readfile($file);
 }
 
 

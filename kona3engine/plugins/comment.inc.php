@@ -60,12 +60,8 @@ function kona3plugins_comment_execute($params) {
       
       $del = "<a href='{$index}m=del&id=$id'>del</a>";
       $todo_v = $row['todo'];
-      $todolink = $index."m=todo&id=$id&v=";
-      if ($todo_v == 0) { // done
-        $todo = "<a href='{$todolink}1'>done</a>";
-      } else {
-        $todo = "<a href='{$todolink}0'>todo</a>";
-      }
+      $todo_l = ($todo_v == 0) ? "done" : "todo";
+      $todo = "<a onclick='chtodo(event,$id)'>$todo_l</a>";
       $html .= 
           "<tr>".
           "<td style='vertical-align:top'>".
@@ -79,6 +75,7 @@ function kona3plugins_comment_execute($params) {
   $action = "index.php?".urlencode($page)."&plugin&name=comment";
   $def_name = isset($_SESSION['name']) ? $_SESSION['name'] : '';
   $def_pw   = isset($_SESSION['password']) ? $_SESSION['password'] : '';
+  $script = _todo_script();
   $html .= <<< EOS
     <form action="$action" method="post">
     <input type="hidden" name="m" value="write">
@@ -94,24 +91,50 @@ function kona3plugins_comment_execute($params) {
         <td><input type="password" name="pw" value="$def_pw"></td></tr>
       <tr><th></th><td><input type="submit" value="POST"></td></tr>
     </table>
+    </div><!-- /comment -->
+{$script}\n
 EOS;
-  $html .= "</div><!-- /comment -->";
   return $html;
+}
+
+function _err($title, $msg) {
+  global $output_format;
+  if ($output_format == 'json') {
+    echo json_encode(array(
+      "result" => "fail",
+      "reason" => $title,
+      "descripton" => $msg,
+    ));
+    exit;
+  }
+  kona3error($title, $msg);
+}
+function _ok($title, $msg) {
+  global $output_format;
+  if ($output_format == 'json') {
+    echo json_encode(array(
+      "result" => "ok",
+      "description" => $msg,
+    ));
+    exit;
+  }
+  kona3error($title, $msg);
 }
 
 // when url = index.php?(page)&plugin
 function kona3plugins_comment_action() {
-  global $kona3conf;
+  global $kona3conf, $output_format;
   $page = kona3getPage();
-  $m = isset($_REQUEST['m']) ? $_REQUEST['m'] : '';
+  $m   = kona3param("m", "");
+  $output_format = kona3param("fmt", ""); 
   $is_login = kona3isLogin();
-  if ($m == "") {
-    kona3error($page, 'No mode'); exit;
-  }
+  if ($m == "") _err($page, 'No Mode in Comment'); 
+  // write comment
   if ($m == "write") {
     kona3plugins_comment_action_write($page);
     return;
   }
+  // delete comment (1/2)
   if ($m == "del") {
     $id = intval(@$_REQUEST['id']);
     if ($id <= 0) kona3error($page, 'no id');
@@ -123,8 +146,9 @@ function kona3plugins_comment_action() {
       "<p>password: <input type='password' name='pw' value='$key'>".
       " <input type='submit' value='Delete'></p>".
       "</form>";
-    kona3error($page, $del); exit;
+    _err($page, $del); exit;
   }
+  // delete comment (2/2)
   if ($m == "del2") {
     $id = intval(@$_REQUEST['id']);
     $pw = isset($_REQUEST['pw']) ? $_REQUEST['pw'] : '';
@@ -135,10 +159,12 @@ function kona3plugins_comment_action() {
     $row = $stmt->fetch();
     if ($row['delkey'] === $pw || $is_login) {
       $pdo->exec("DELETE FROM comment_list WHERE comment_id=$id");
+      if ($output_format == "json") _ok($page, "deleted");
       header('location: index.php?'.urlencode($page));
       exit;
     }
   }
+  // set todo
   if ($m == "todo") {
     $id = intval(@$_REQUEST['id']);
     if ($id < 0) kona3error($page, "no id");
@@ -150,12 +176,14 @@ function kona3plugins_comment_action() {
       '  WHERE comment_id=?');
     $stmt->execute(array($v, $id));
     $v = ($v == 1) ? "todo" : "done";
-    kona3error($page, "ok comment_id=$id change to $v");
+    _ok($page, "ok comment_id=$id change to $v"); exit;
   }
-  kona3error($page, 'Invalid mode'); exit;
+  // else
+  _err($page, 'Invalid mode'); exit;
 }
 
 function kona3plugins_comment_action_write($page) {
+  global $output_format;
   $bbs_id = isset($_POST['bbs_id']) ? $_POST['bbs_id'] : '';
   $name = isset($_POST['name']) ? $_POST['name'] : '';
   $body = isset($_POST['body']) ? $_POST['body'] : '';
@@ -164,7 +192,7 @@ function kona3plugins_comment_action_write($page) {
   //
   $bbs_id = intval($bbs_id);
   if ($body == '' || $bbs_id <= 0) {
-    kona3error($page, 'Invalid data'); exit;
+    _err($page, 'Invalid data'); exit;
   }
   if ($name == '') $name = 'no name';
   $pdo = kona3getDB();
@@ -176,6 +204,9 @@ function kona3plugins_comment_action_write($page) {
   $r = $stmt->execute($a);
   $_SESSION['name'] = $name;
   $_SESSION['password'] = $pw;
+  
+  // show result
+  if ($output_format == "json") _ok($page, "inserted"); 
   // jump
   header("location: index.php?".urlencode($page));
 }
@@ -256,5 +287,36 @@ function _at_all($pdo, $type) {
   }
   return $html;
 }
+
+function _todo_script() {
+  global $kona3conf;
+  $page = $kona3conf['page'];
+  $action = "index.php?".urlencode($page)."&plugin&name=comment";
+  kona3use_jquery();
+  $script = <<< 'EOS'
+function chtodo(event, id) {
+  var e = event.target;
+  var v = (e.innerHTML == "todo") ? 1 : 0;
+  cv = (v == 0) ? 1 : 0;
+  var para = {"m": "todo", "id": id, "v": cv, "fmt": "json"};
+  $.post(comment_api, para, function(data){
+    var o = JSON.parse(data);
+    if (o["result"] == "ok") {
+      e.innerHTML = (cv == 0) ? "done": "todo";
+    } else {
+      alert("error:" + o["reason"]);
+    }
+  });
+}
+EOS;
+  $script = <<< EOS
+<script type="text/javascript">
+var comment_api = "$action";
+{$script}
+</script>
+EOS;
+  return $script;
+}
+
 
 

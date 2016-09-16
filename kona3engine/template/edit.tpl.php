@@ -30,16 +30,9 @@ $wikibody = <<<EOS
 EOS;
 
 // include script
-$kona3conf['header.tags'][] = <<< EOS
-<script type="text/javascript" 
-         src="index.php?jquery-3.1.0.min.js&resource"></script>
-<script type="text/javascript" 
-         src="index.php?edit.js&resource"></script>
-<link rel="stylesheet" type="text/css" 
-      href="index.php?edit.css&resource">
-EOS;
-
-
+kona3use_jquery();
+$kona3conf['js'][] = 'index.php?edit.js&resource';
+$kona3conf['css'][] = 'index.php?edit.css&resource';
 
 // $page_title $page_body $wiki_menu
 include 'frame.tpl.php';

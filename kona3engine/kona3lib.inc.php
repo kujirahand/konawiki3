@@ -292,4 +292,11 @@ function kona3getDB() {
   return $kona3db;
 }
 
+function kona3use_jquery() {
+  global $kona3conf;
+  $kona3conf['js'][] = "index.php?jquery-3.1.0.min.js&resource";
+}
+
+
+
 

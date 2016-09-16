@@ -24,12 +24,13 @@ function edit_init() {
 
   $('#save_ajax_btn').click(function(){
     var action = $("#wikiedit form").attr('action');
+    var text = $('#edit_txt').val();
     $.post(action,
       {
         'i_mode': 'ajax',
         'a_mode': 'trywrite',
         'a_hash': $('#a_hash').val(),
-        'edit_txt': $('#edit_txt').val()
+        'edit_txt': text
       },
       function(msg) {
         var result = msg["result"];
@@ -41,7 +42,8 @@ function edit_init() {
           $("#edit_info").html("[error]" + msg['reason']);
           return;
         }
-        $("#edit_info").html('saved --- ' + msg["a_hash"]);
+        $("#edit_info").html('saved --- ' + msg["a_hash"] + 
+            " --- " + text.length + "字");
         $('#a_hash').val(msg["a_hash"]);
       },
       "json");
