@@ -61,7 +61,7 @@ function kona3plugins_comment_execute($params) {
       $del = "<a href='{$index}m=del&id=$id'>del</a>";
       $todo_v = $row['todo'];
       $todo_l = ($todo_v == 0) ? "done" : "todo";
-      $todo = "<a onclick='chtodo(event,$id)'>$todo_l</a>";
+      $todo = "<a class='$todo_l' onclick='chtodo(event,$id)'>$todo_l</a>";
       $html .= 
           "<tr>".
           "<td style='vertical-align:top'>".
@@ -279,17 +279,24 @@ function _at_all($pdo, $type) {
       $name = htmlentities($row["name"]);
       $body = htmlentities(mb_substr($row["body"],0, 100));
       $mtime = date("m-d H:i", $row["mtime"]);
-      $todolink = $index."&m=todo&v=0&id=$id";
-      $todo = ($row["todo"] == 0) ? "" : "(<a href='$todolink'>todo</a>)";
+      $todo_v = $row["todo"];
+      $todo_l = ($todo_v == 0) ? "done" : "todo";
+      $todo = "(<a class='$todo_l' onclick='chtodo(event,$id,$todo_v)'>$todo_l</a>)";
       $html .= "<li>$name - $body <span class='memo'>($mtime){$todo}</span></li>";
     }
     $html .= "</ul>";
   }
+  $html .= _todo_script();
   return $html;
 }
 
 function _todo_script() {
   global $kona3conf;
+  // do not use double
+  global $kona3_todo_script;
+  if ($kona3_comment_todo_script === TRUE) return "";
+  $kona3_comment_todo_script =TRUE;
+  //
   $page = $kona3conf['page'];
   $action = "index.php?".urlencode($page)."&plugin&name=comment";
   kona3use_jquery();
@@ -303,6 +310,7 @@ function chtodo(event, id) {
     var o = JSON.parse(data);
     if (o["result"] == "ok") {
       e.innerHTML = (cv == 0) ? "done": "todo";
+      $(e).attr('class', (cv == 1) ? 'todo' : 'done');
     } else {
       alert("error:" + o["reason"]);
     }
