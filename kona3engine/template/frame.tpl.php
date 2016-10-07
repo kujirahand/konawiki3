@@ -54,6 +54,7 @@ $language = $kona3conf["language"];
 <html lang="<?php echo $language ?>">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width">
   <title><?php echo $head_title ?></title>
 
 <link rel="stylesheet" href="index.php?kona3.css&skin" type="text/css">
@@ -90,3 +91,5 @@ $language = $kona3conf["language"];
 <!-- footer.end -->
 </body>
 </html>
+
+

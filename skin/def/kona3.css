@@ -28,6 +28,7 @@ body {
   background-color: white;
 }
 
+
 #wikiheader
 {
   width: 980px;
@@ -50,6 +51,7 @@ body {
   text-align:left;
   font-size: 1em;
 }
+
 
 /* for header */
 #wikititle {
@@ -674,6 +676,46 @@ body {
 
 #wikibody div.comment {
 }
+#wikibody div.comment_box {
+    margin-left: 8px;
+}
+#wikibody div.comment_post {
+    border-left: 4px solid #c0c0ff;
+    padding-left: 8px;
+    padding-top: 4px;
+    border-top: 1px solid #f0f0f0;
+    margin-top: 4px;
+    font-size: 0.8em;
+}
+#wikibody div.comment_title {
+    border-bottom: 1px dashed #d0d0ff;
+}
+#wikibody div.comment_body {
+    padding-top: 4px;
+    padding-left: 15px;
+}
+#wikibody div.comment_form {
+    margin-left: 8px;
+    border: 1px solid #c0c0ff;
+}
+#wikibody div.comment_form p {
+    padding-left: 12px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    margin: 4px;
+    font-size: 0.8em;
+    background-color: #f0f0ff;
+}
+#wikibody div.comment_form label {
+    font-size: 0.5em;
+    color: #606060;
+}
+#wikibody div.comment_form textarea {
+    width: 90%;
+}
+#wikibody #comment_form_open_btn {
+    font-size: 0.7em;
+}
 
 #wikibody div.body {
     text-align: left;
@@ -1194,4 +1236,14 @@ textarea#edit_txt {
 }
 
 
+
+
+
+
+@media screen and (max-width: 320px) {
+    #wikiheader { width: 320px; }
+    #wikifooter { width: 320px; }
+    #wikiframe  { width: 320px; }
+    #wikibody   { width: 320px; }
+}
 

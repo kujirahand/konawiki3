@@ -47,7 +47,7 @@ function kona3plugins_comment_execute($params) {
   if (!$logs) {
     $html .= "";
   } else {
-    $html .= "<p class='memo'>Comment:</p><table>";
+    $html .= "<p class='memo'>Comment:</p><div class='comment_box'>";
     $index = "index.php?".urlencode($page)."&plugin&name=comment&";
     foreach ($logs as $row) {
       $id = $row["comment_id"];
@@ -63,34 +63,46 @@ function kona3plugins_comment_execute($params) {
       $todo_l = ($todo_v == 0) ? "done" : "todo";
       $todo = "<a class='$todo_l' onclick='chtodo(event,$id)'>$todo_l</a>";
       $html .= 
-          "<tr>".
-          "<td style='vertical-align:top'>".
-            "<a name='comment_id_{$id}'>($id)</a> $name</td>".
-          "<td>$body<br>".
-            "<span class='memo'>($mtime) [$del] [$todo]</span></td>".
-          "</tr>";
+          "<div class='comment_post'>".
+            "<div class='comment_title'><a name='comment_id_{$id}'>($id)</a> $name</div>".
+            "<div class='comment_body'>$body --- ".
+            "<span class='memo'>($mtime) [$del] [$todo]</span></div>".
+          "</div>";
     }
-    $html .= "</table>";
+    $html .= "</div>";
   }
   $action = "index.php?".urlencode($page)."&plugin&name=comment";
   $def_name = isset($_SESSION['name']) ? $_SESSION['name'] : '';
   $def_pw   = isset($_SESSION['password']) ? $_SESSION['password'] : '';
   $script = _todo_script();
   $html .= <<< EOS
-    <form action="$action" method="post">
-    <input type="hidden" name="m" value="write">
-    <input type="hidden" name="bbs_id" value="$bbs_id">
-    <p class="memo">Comment Form:</p>
-    <table>
-      <tr><th>name</th>
-        <td><input type="text" name="name" value="$def_name"></td></tr>
-      <tr><th>body</th>
-        <td><textarea name="body" rows=4 cols="80"></textarea><br>
-          <span class="memo">&gt;1 &gt;2 ...</span></td></tr>
-      <tr><th>password</th>
-        <td><input type="password" name="pw" value="$def_pw"></td></tr>
-      <tr><th></th><td><input type="submit" value="POST"></td></tr>
-    </table>
+    <div id="comment_form_box">
+      <form action="$action" method="post">
+      <input type="hidden" name="m" value="write">
+      <input type="hidden" name="bbs_id" value="$bbs_id">
+      <p class="memo">Comment Form:</p>
+      <div class="comment_form">
+        <p>
+          <label for="name">name:</label><br>
+          <input id="name" type="text" name="name" value="$def_name">
+        </p>
+        <p>
+          <label for="body">body:</label><br>
+          <textarea id="body" name="body" rows="4" cols="50"></textarea><br>
+          <span class="memo">&gt;1 &gt;2 ...</span>
+        </p>
+        <p>
+          <label for="password">password</label><br>
+          <input type="password" name="pw" value="$def_pw">
+        </p>
+        <p>
+          <input type="submit" value="POST">
+        </p>
+      </div>
+      </form>
+    </div><!-- /comment_form_box -->
+    <div><a href="#" id="comment_form_open_btn" onclick='comment_form_open()'>
+      → post comment</a></div>
     </div><!-- /comment -->
 {$script}\n
 EOS;
@@ -315,6 +327,14 @@ function chtodo(event, id) {
       alert("error:" + o["reason"]);
     }
   });
+}
+// close form
+$(document).ready(function() {
+  $("#comment_form_box").hide();
+});
+function comment_form_open() {
+  $("#comment_form_box").show();
+  $("#comment_form_open_btn").hide();
 }
 EOS;
   $script = <<< EOS
