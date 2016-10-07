@@ -1070,7 +1070,7 @@ div.beta {
  * wikiedtior
  */
 #wikieditor {
-    width: 1000px;
+    width: 980px;
     margin: 0px auto;
     text-align: left;
     font-size:1.0em;
@@ -1234,16 +1234,19 @@ textarea#edit_txt {
   width: 600px;
   height: 400px;
 }
-
-
-
-
-
+input#edit_info {
+  width: 90%;
+  background-color: #fff0f0;
+}
 
 @media screen and (max-width: 320px) {
     #wikiheader { width: 320px; }
     #wikifooter { width: 320px; }
     #wikiframe  { width: 320px; }
     #wikibody   { width: 320px; }
+    #wikiedit   { width: 320px; }
+    #wikimessage { width: 320px; }
+    #wikieditor { width: 320px; }
+    textarea#edit_txt { width: 300px; height: 200px; }
 }
 

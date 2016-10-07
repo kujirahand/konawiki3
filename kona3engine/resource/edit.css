@@ -29,10 +29,11 @@
   padding: 8px;
   background-color: #f0f0f0;
   text-decoration: none;
-  width: 170px;
+  width: 180px;
 }
 #wikiedit input[type="submit"]#save_btn {
   font-size: 12px;
+  width: 120px;
   border: 1px solid gray;
   color: black;
   padding: 8px;

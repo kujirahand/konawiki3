@@ -26,13 +26,13 @@ function edit_init() {
     if (c == 13) { // ENTER
       var text = edit_txt.value;
       localStorage[STORAGE_KEY] = text;
-      $('#edit_info').html('localStorage.saved len=' + text.length);
+      $('#edit_info').val('localStorage.saved len=' + text.length);
     }
     // console.log(e.keyCode);
   }, false);
 
   $('#save_ajax_btn').click(save_ajax);
-  $('#outline_btn').click(change_outline);
+  // $('#outline_btn').click(change_outline);
   
   // recover_div
   if (localStorage[STORAGE_KEY] !== undefined) {
@@ -61,14 +61,14 @@ function save_ajax() {
     }
     var result = msg["result"];
     if (!result) {
-      $("#edit_info").html("Sorry request failed.");
+      $("#edit_info").val("Sorry request failed.");
       return;
     }
     if (result == "ng") {
-      $("#edit_info").html("[error]" + msg['reason']);
+      $("#edit_info").val("[error]" + msg['reason']);
       return;
     }
-    $("#edit_info").html('saved --- ' + msg["a_hash"] + 
+    $("#edit_info").val('saved --- ' + msg["a_hash"] + 
         " --- " + text.length + "字");
     $('#a_hash').val(msg["a_hash"]);
   })
