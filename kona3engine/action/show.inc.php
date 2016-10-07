@@ -8,6 +8,15 @@ function kona3_action_show() {
   global $kona3conf;
   $page = $kona3conf["page"];
   $page_h = htmlspecialchars($page);
+  
+  // check login
+  if ($kona3conf["wiki.private"]) {
+    if (!kona3isLogin()) {
+      $url = kona3getPageURL($page, "login");
+      kona3error($page, "Private mode. <a href='$url'>Please login.</a>"); exit;
+    }
+  }
+
   // wiki file (text)
   $fname = kona3getWikiFile($page);
   // wiki file eixsits?

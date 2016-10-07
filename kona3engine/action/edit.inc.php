@@ -7,6 +7,21 @@ function kona3_action_edit() {
   global $kona3conf;
 
   $page = $kona3conf["page"];
+  $action = kona3getPageURL($page, "edit");
+  $a_mode = kona3param('a_mode', '');
+  $i_mode = kona3param('i_mode', 'form'); // ajax
+
+  // check permission
+  if (!kona3isLogin()) {
+    if ($i_mode == "ajax") {
+      echo json_encode(array('result'=>'ng', 'reason'=>'no login')); exit;
+    } else {
+      $url = kona3getPageURL($page, 'login');
+      kona3error($page, "<a href='$url'>Please login.</a>"); exit;
+    }
+  }
+
+
   $fname = kona3getWikiFile($page);
   $msg = "";
 
@@ -15,11 +30,7 @@ function kona3_action_edit() {
   if (file_exists($fname)) {
     $txt = @file_get_contents($fname);
   }
-  $a_hash = hash('sha256', $txt);
-  
-  $action = kona3getPageURL($page, "edit");
-  $a_mode = kona3param('a_mode', '');
-  $i_mode = kona3param('i_mode', 'form'); // ajax
+  $a_hash = hash('sha256', $txt); 
 
   if ($a_mode == "trywrite") {
     $a_hash_frm = kona3param('a_hash', '');

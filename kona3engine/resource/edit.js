@@ -108,7 +108,7 @@ function outline_build() {
   for (var i = 0; i < lines.length; i++) {
     var line = document.createElement('div');
     var cmd = lines[i];
-    line.innerHTML = lines[i];
+    line.innerHTML = text2html(lines[i]);
     line.contentEditable = true;
     var ch = cmd.substr(0, 1);
     if (ch == "-") {
@@ -127,10 +127,23 @@ function outline_to_text() {
   if (outline_lines.length == 0) return;
   var text = [];
   for (var i = 0; i < outline_lines.length; i++) {
-    text.push(outline_lines[i].innerHTML);
+    text.push(html2text(outline_lines[i].innerHTML));
   }
   $('#edit_txt').val(text.join("\n"));
   outline_lines = [];
+}
+
+function text2html(s) {
+  s = s.replace(/\&/g, '&amp;');
+  s = s.replace(/\</g, '&lt;');
+  s = s.replace(/\>/g, '&gt;');
+  return s;
+}
+function html2text(s) {
+  s = s.replace(/\&gt\;/g, '>');
+  s = s.replace(/\&lt\;/g, '<');
+  s = s.replace(/\&amp\;/g, '&');
+  return s;
 }
 
 

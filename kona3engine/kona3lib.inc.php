@@ -240,9 +240,12 @@ function kona3getWikiName($filename) {
 }
 
 function kona3getSysInfo() {
+  global $kona3conf;
   $href = "http://kujirahand.com/konawiki/";
   $ver  = KONA3_SYSTEM_VERSION;
-  return "<a href=\"$href\">Konawiki3 v.{$ver}</a>";
+  $opt = "";
+  if ($kona3conf["wiki.private"]) $opt = "(private)";
+  return "<a href=\"$href\">Konawiki3 v.{$ver}{$opt}</a>";
 }
 
 function kona3getMenu() {

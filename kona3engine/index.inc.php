@@ -61,10 +61,10 @@ function setDefConfig() {
   //
 
   // global setting
-  $kona3conf["title"]       = KONA3_WIKI_TITLE;
-  $kona3conf["privateMode"] = KONA3_WIKI_PRIVATE;
-  $kona3conf["FrontPage"]   = KONA3_WIKI_FRONTPAGE;
-  $kona3conf["language"]    = 'ja';
+  $kona3conf["title"]          = KONA3_WIKI_TITLE;
+  $kona3conf["wiki.private"]   = KONA3_WIKI_PRIVATE;
+  $kona3conf["FrontPage"]      = KONA3_WIKI_FRONTPAGE;
+  $kona3conf["language"]       = 'ja';
   $kona3conf["allpage.footer"] = KONA3_ALLPAGE_FOOTER;
 
   // users
@@ -101,7 +101,6 @@ function setDefConfig() {
   if (substr($url_data, strlen($url_data) - 1, 1) == '/') {
     $kona3conf["url.data"] = substr($url_data, 0, strlen($url_data) - 1);
   }
-
 }
 
 // get value from array with default value
