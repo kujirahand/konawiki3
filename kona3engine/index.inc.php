@@ -59,10 +59,10 @@ function setDefConfig() {
   defC("KONA3_ALLPAGE_FOOTER", "");
 
   // global setting
-  $kona3conf["title"]       = KONA3_WIKI_TITLE;
-  $kona3conf["privateMode"] = KONA3_WIKI_PRIVATE;
-  $kona3conf["FrontPage"]   = KONA3_WIKI_FRONTPAGE;
-  $kona3conf["language"]    = 'ja';
+  $kona3conf["title"]          = KONA3_WIKI_TITLE;
+  $kona3conf["wiki.private"]   = KONA3_WIKI_PRIVATE;
+  $kona3conf["FrontPage"]      = KONA3_WIKI_FRONTPAGE;
+  $kona3conf["language"]       = 'ja';
   $kona3conf["allpage.footer"] = KONA3_ALLPAGE_FOOTER;
 
   // users
