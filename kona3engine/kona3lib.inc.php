@@ -244,8 +244,11 @@ function kona3getSysInfo() {
   $href = "http://kujirahand.com/konawiki/";
   $ver  = KONA3_SYSTEM_VERSION;
   $opt = "";
-  if ($kona3conf["wiki.private"]) $opt = "(private)";
-  return "<a href=\"$href\">Konawiki3 v.{$ver}{$opt}</a>";
+  if ($kona3conf["wiki.private"]) $opt .= "(private)";
+  return
+    "<span class='konawiki3copyright'>".
+    "<a href=\"$href\">Konawiki3 v.{$ver}</a>".
+    "{$opt}</span>";
 }
 
 function kona3getMenu() {
