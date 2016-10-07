@@ -4,7 +4,7 @@ include_once dirname(dirname(__FILE__)).'/kona3lib.inc.php';
 include_once dirname(dirname(__FILE__)).'/kona3parser.inc.php';
 
 function kona3_action_edit() {
-  global $kona3conf;
+  global $kona3conf, $page;
 
   $page = $kona3conf["page"];
   $action = kona3getPageURL($page, "edit");
@@ -13,14 +13,10 @@ function kona3_action_edit() {
 
   // check permission
   if (!kona3isLogin()) {
-    if ($i_mode == "ajax") {
-      echo json_encode(array('result'=>'ng', 'reason'=>'no login')); exit;
-    } else {
-      $url = kona3getPageURL($page, 'login');
-      kona3error($page, "<a href='$url'>Please login.</a>"); exit;
-    }
+    $url = kona3getPageURL($page, 'login');
+    kona3_edit_err("<a href='$url'>Please login</a>", $i_mode);
+    exit;
   }
-
 
   $fname = kona3getWikiFile($page);
   $msg = "";
@@ -38,7 +34,11 @@ function kona3_action_edit() {
     // check hash
     if ($a_hash_frm == $a_hash) {
       // save
-      file_put_contents($fname, $edit_txt);
+      if (!is_writable($fname)) {
+        kona3_edit_err('Could not write file.', $i_mode);
+        exit;
+      }
+      file_put_contents($fname, $edit_txt);      
       // result
       if ($i_mode == "ajax") {
         echo json_encode(array(
@@ -52,10 +52,8 @@ function kona3_action_edit() {
       echo "ok, saved.";
     } else {
       if ($i_mode == "ajax") {
-        echo json_encode(array(
-          'result' => 'ng',
-          'reason' => 'Conflict editing, Please submit and check.',
-        ));
+        kona3_edit_err("Conflict editing, Please submit and check.");
+        exit;
       }
       $msg = "<div class='error'>Sorry, ".
           "Conflict editing. Failed to save. ".
@@ -73,6 +71,7 @@ function kona3_action_edit() {
     "msg" => $msg,
   ));
 }
+
 
 function kona3_make_diff($text_a, $text_b) {
   $lines_a = explode("\n", $text_a);
@@ -97,7 +96,7 @@ function kona3_make_diff($text_a, $text_b) {
       continue;
     }
     if ($b === NULL) {
-      $res[] = '>< '.$a;
+      $res[] = '<< '.$a;
       $ia++;
       continue;
     }
@@ -108,7 +107,17 @@ function kona3_make_diff($text_a, $text_b) {
   return implode("\n", $res);
 }
 
-
+function kona3_edit_err($msg, $method = "web") {
+  global $page;
+  if ($method == "ajax") {
+    echo json_encode(array(
+      'result' => 'ng',
+      'reason' => $msg,
+    ));
+  } else {
+    kona3error($page, $msg);
+  }
+}
 
 
 

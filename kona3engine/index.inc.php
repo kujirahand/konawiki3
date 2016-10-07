@@ -40,10 +40,10 @@ function setDefConfig() {
   // global setting
   defC("KONA3_WIKI_TITLE",     "Konwwiki3");
   defC("KONA3_WIKI_FRONTPAGE", "FrontPage");
-  defC("KONA3_WIKI_PRIVATE",   true);
+  defC("KONA3_WIKI_PRIVATE",   false);
   defC("KONA3_WIKI_USERS",     "kona3:pass3,kona2:pass2");
   defC("KONA3_WIKI_SKIN",      "def");
-    // global dir
+  // global dir
   defC("KONA3_DIR_PUBLIC",     dirname(dirname(__FILE__)));
   defC("KONA3_DIR_ENGINE",     dirname(__FILE__));
   defC("KONA3_DIR_DATA",       KONA3_DIR_PUBLIC."/data");
@@ -56,8 +56,10 @@ function setDefConfig() {
   defC("KONA3_URI_ATTACH",     "./attach");
   defC("KONA3_URI_DATA",       "./data");
   defC("KONA3_URI_PUB",        "./pub");
-  defC("KONA3_DSN",            "sqlite:data/data.sqlite");
+  // option
+  defC("KONA3_DSN",            "sqlite:".KONA3_DIR_PRIVATE."/data.sqlite");
   defC("KONA3_ALLPAGE_FOOTER", "");
+  defC("KONA3_PLUGIN_DISALLOW", ""); // delimitter=","
   //
 
   // global setting
@@ -95,6 +97,14 @@ function setDefConfig() {
   $kona3conf["js"] = array(); // javascript files
   $kona3conf["header.tags"] = array(); // additional header 
   $kona3conf["dsn"] = KONA3_DSN;
+
+  // plugin diallow
+  $pd = array();
+  $a = explode(",", KONA3_PLUGIN_DISALLOW);
+  foreach ($a as $name) {
+    $pd[$name] = TRUE;
+  }
+  $kona3conf["plugin.disallow"] = $pd;
 
   // check
   $url_data = $kona3conf["url.data"];
