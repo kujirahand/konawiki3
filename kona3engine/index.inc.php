@@ -2,7 +2,7 @@
 /**
  * KonaWiki3
  */
-define("KONA3_SYSTEM_VERSION", "0.1");
+define("KONA3_SYSTEM_VERSION", "0.2");
 
 // charset
 mb_internal_encoding("UTF-8");
@@ -47,6 +47,7 @@ function setDefConfig() {
   defC("KONA3_DIR_PUBLIC",     dirname(dirname(__FILE__)));
   defC("KONA3_DIR_ENGINE",     dirname(__FILE__));
   defC("KONA3_DIR_DATA",       KONA3_DIR_PUBLIC."/data");
+  defC("KONA3_DIR_PRIVATE",    KONA3_DIR_PUBLIC."/private");
   defC("KONA3_DIR_ATTACH",     KONA3_DIR_PUBLIC."/attach");
   defC("KONA3_DIR_SKIN",       KONA3_DIR_PUBLIC."/skin");
   defC("KONA3_DIR_PUB",        KONA3_DIR_PUBLIC."/pub");
@@ -57,6 +58,7 @@ function setDefConfig() {
   defC("KONA3_URI_PUB",        "./pub");
   defC("KONA3_DSN",            "sqlite:data/data.sqlite");
   defC("KONA3_ALLPAGE_FOOTER", "");
+  //
 
   // global setting
   $kona3conf["title"]          = KONA3_WIKI_TITLE;

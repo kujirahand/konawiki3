@@ -1,4 +1,6 @@
 kona3engine/vendor
+private/
+data/
 .DS_Store
 
 

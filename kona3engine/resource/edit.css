@@ -59,3 +59,18 @@
   background-color: #f0f0f0;
   text-decoration: none; 
 }
+#auto_save_label {
+  font-size:12px;
+    color: gray;
+}
+
+#wikiedit input#outline_btn {
+  font-size: 12px;
+  border: 1px solid gray;
+  color: black;
+  padding: 8px;
+  background-color: #f0f0f0;
+  text-decoration: none;
+  width: 100px;
+}
+

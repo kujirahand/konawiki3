@@ -35,12 +35,14 @@ console.log('hello');
 
 ## How to use
 
+TODO
 
 
 
-## Mark down also can use
+## Mark down support --- if you want
 
-It also can write with mark down.
+- Limitted support, Mark down also can write.
+- It also can write with mark down.
 
 When you want to write mark down, you should execute command:
 
