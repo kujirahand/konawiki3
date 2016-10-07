@@ -58,6 +58,7 @@ function setDefConfig() {
   defC("KONA3_URI_PUB",        "./pub");
   defC("KONA3_DSN",            "sqlite:data/data.sqlite");
   defC("KONA3_ALLPAGE_FOOTER", "");
+  //
 
   // global setting
   $kona3conf["title"]       = KONA3_WIKI_TITLE;

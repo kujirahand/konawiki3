@@ -16,9 +16,11 @@ var STORAGE_KEY = 'kona3:' + href;
 function edit_init() {
   // event
   var edit_txt = qs('#edit_txt');
+  /*
   edit_txt.addEventListener('change', function(e) {
     if ($("#auto_save").val() == "auto_save") save_ajax();
   });
+  */
   edit_txt.addEventListener('keydown', function(e) {
     var c = e.keyCode;
     if (c == 13) { // ENTER
