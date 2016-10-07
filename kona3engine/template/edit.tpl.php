@@ -19,12 +19,12 @@ $wikibody = <<<EOS
         <input id="save_ajax_btn" type="button" value="Save">
         <input id="save_btn" type="submit" value="Save &amp; show">
         <!--
-        <input id="auto_save" type="checkbox" value="auto_save" checked>
-        <label id="auto_save_label" for="auto_save">auto save</label> 
-        <input id="outline_btn" type="button" value="Outline"> 
+          <input id="auto_save" type="checkbox" value="auto_save" checked>
+          <label id="auto_save_label" for="auto_save">auto save</label> 
+          <input id="outline_btn" type="button" value="Outline"> 
         -->
       </div>
-      <div><input type="text"  id="edit_info" class="info"></span></div>
+      <div><input type="text" id="edit_info" class="info" readonly></div>
       <div id="func_area">
         <div id="recover_div"></div>
       </div>

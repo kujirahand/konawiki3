@@ -7,8 +7,10 @@
 
 #wikimessage {
   margin:0;
-  padding:4px;
+  padding:0;
   background-color: #fff0f0;
+  border: none;
+  width: 100%;
 }
 
 #wikiedit {
@@ -73,5 +75,11 @@
   background-color: #f0f0f0;
   text-decoration: none;
   width: 100px;
+}
+
+#wikiedit #edit_info {
+  background-color: #fff0ff;
+  border: 1px solid #f0f0f0;
+  width: 90%;
 }
 
