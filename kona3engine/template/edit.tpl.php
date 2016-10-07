@@ -8,6 +8,7 @@ $wikibody = <<<EOS
 <div id="wikimessage">
   <div id="wikiedit">
     <div class="edit_msg">{$msg}</div>
+    <div id="outline_div"></div>
     <form method="post" action="$action">
       <input type="hidden" name="a_mode" value="trywrite">
       <input type="hidden" id="a_hash" name="a_hash" value="$a_hash">
@@ -17,6 +18,9 @@ $wikibody = <<<EOS
       <div>
         <input id="save_ajax_btn" type="button" value="Save">
         <input id="save_btn" type="submit" value="Save &amp; show">
+        <input id="auto_save" type="checkbox" value="auto_save" checked>
+        <label id="auto_save_label" for="auto_save">auto save</label>
+        <input id="outline_btn" type="button" value="Outline">
       </div>
       <div><span id="edit_info" class="info"></span></div>
       <div id="func_area">
