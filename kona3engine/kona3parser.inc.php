@@ -162,6 +162,7 @@ function konawiki_parser_parse($text)
                 if (substr($text, 0, strlen($eol)) === $eol) break;
                 // command ?
                 $c = substr($text, 0, 1);
+                if ($c == '') continue;
                 if (strpos("*-+# \t\{",$c) === FALSE) {
                     continue;
                 } else {
