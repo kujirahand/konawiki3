@@ -1239,6 +1239,12 @@ input#edit_info {
   background-color: #fff0f0;
 }
 
+span.konawiki3copyright a {
+    font-size: 0.6em;
+    text-decoration: none;
+    color: #99AABB;
+}
+
 @media screen and (max-width: 320px) {
     #wikiheader { width: 320px; }
     #wikifooter { width: 320px; }
