@@ -34,9 +34,16 @@ function kona3_action_edit() {
     // check hash
     if ($a_hash_frm == $a_hash) {
       // save
-      if (!is_writable($fname)) {
-        kona3_edit_err('Could not write file.', $i_mode);
-        exit;
+      if (file_exists($fname)) {
+        if (!is_writable($fname)) {
+          kona3_edit_err('Could not write file.', $i_mode);
+          exit;
+        }
+      } else {
+        if (!is_writable(dirname($fname))) {
+          kona3_edit_err('Could not write file.', $i_mode);
+          exit;
+        }
       }
       file_put_contents($fname, $edit_txt);      
       // result
