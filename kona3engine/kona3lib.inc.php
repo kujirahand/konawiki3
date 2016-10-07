@@ -300,7 +300,10 @@ function kona3getDB() {
 
 function kona3use_jquery() {
   global $kona3conf;
-  $kona3conf['js'][] = "index.php?jquery-3.1.0.min.js&resource";
+  // raw:
+  // $kona3conf['js'][] = "index.php?jquery-3.1.0.min.js&resource";
+  // ajax:
+  $kona3conf['js'][] = "https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js";
 }
 
 
