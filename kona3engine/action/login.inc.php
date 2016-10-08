@@ -30,24 +30,19 @@ function kona3_action_login() {
   
   // show form
   $form = <<<EOS
-<div>
+<div id="loginform">
   {$msg}
   <form method="post" action="$action">
   <input type="hidden" name="a_mode" value="trylogin">
-  <table>
-    <tr>
-      <th>User name:</th>
-      <td><input type="text" name="a_user"></th>
-    </tr>
-    <tr>
-      <th>Password:</th>
-      <td><input type="password" name="a_pw"></td>
-    </tr>
-    <tr>
-      <th></th>
-      <td><input type="submit" value="Login"></th>
-    </tr>
-  </table>
+  <p>
+    <label for="user">User:</label><br>
+    <input id="user" type="text" name="a_user">
+  </p>
+  <p>
+    <label for="pass">Password:</label><br>
+    <input id="pass" type="password" name="a_pw">
+  </p>
+  <p><input type="submit" value="Login"></p>
   </form>
 </div>
 EOS;

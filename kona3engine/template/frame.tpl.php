@@ -85,7 +85,7 @@ $language = $kona3conf["language"];
 
 <!-- footer.begin -->
 <div id="wikifooter">
-  <div class="footer_menu"><?php echo kona3getMenu() ?></div>
+  <div class="footer_menu"><span><?php echo kona3getMenu() ?></span></div>
   <div class="info"><?php echo kona3getSysInfo() ?></div>
 </div>
 <!-- footer.end -->

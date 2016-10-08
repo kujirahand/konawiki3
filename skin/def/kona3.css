@@ -89,6 +89,10 @@ body {
 }
 
 /* for footer */
+#wikifooter > div.info {
+  margin-top: 12px;
+  padding: 24px;
+}
 #wikifooter .info > a {
   font-size: 0.6em;
   text-decoration: none;
@@ -97,8 +101,12 @@ body {
 #wikifooter .footer_menu {
   font-size: 0.6em;
   text-align: right;
+  padding: 12px;
 }
-
+#wikifooter .footer_menu > span {
+  background-color: #f0f0f0;
+  padding: 12px;
+}
 
 
 #wikinavi { /* LEFT side menu */
@@ -1245,14 +1253,36 @@ span.konawiki3copyright a {
     color: #99AABB;
 }
 
-@media screen and (max-width: 320px) {
-    #wikiheader { width: 320px; }
-    #wikifooter { width: 320px; }
-    #wikiframe  { width: 320px; }
-    #wikibody   { width: 320px; }
-    #wikiedit   { width: 320px; }
-    #wikimessage { width: 320px; }
-    #wikieditor { width: 320px; }
-    textarea#edit_txt { width: 300px; height: 200px; }
+#loginform {
+  background-color: #f0f0ff;
+  padding: 20px; margin: 8px;
+  border-left: 10px solid #C0C0FF;
+}
+#loginform input {
+  font-size: 16px;
+}
+#loginform input[type=submit] {
+  border: 1px solid #9090FF;
+  background-color: #F0F0F0;
+  padding: 12px;
+}
+
+@media screen and (max-width: 480px),
+       screen and (max-width: 320px) {
+    #wikiheader { width: 480px; }
+    #wikifooter { width: 480px; }
+    #wikiframe  { width: 480px; }
+    #wikititle { font-size:30px; }
+    #wikibody   { width: 480px; font-size:30px; line-height:45px; }
+    #wikibody h2 { font-size:30px; }
+    #wikibody h3, #wikibody h4 { font-size: 28px; }
+    #wikiedit   { width: 480px; }
+    #wikimessage { width: 480px; }
+    #wikieditor { width: 480px; }
+    textarea#edit_txt { width: 460px; height: 200px; font-size: 40px; line-height: 40px; }
+    #wikifooter > div.footer_menu { font-size: 24px; text-align:center; }
+    #wikifooter a { font-size: 20px; }
+    #loginform { font-size: 28px; }
+    #loginform input { font-size: 28px; }
 }
 
