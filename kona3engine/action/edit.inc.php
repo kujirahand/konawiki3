@@ -9,7 +9,7 @@ function kona3_action_edit() {
   $page = $kona3conf["page"];
   $action = kona3getPageURL($page, "edit");
   $a_mode = kona3param('a_mode', '');
-  $i_mode = kona3param('i_mode', 'form'); // ajax
+  $i_mode = kona3param('i_mode', 'form'); // or ajax
 
   // check permission
   if (!kona3isLogin()) {
@@ -18,55 +18,18 @@ function kona3_action_edit() {
     exit;
   }
 
-  $fname = kona3getWikiFile($page);
-  $msg = "";
-
   // load body
   $txt = "";
+  $fname = kona3getWikiFile($page);
   if (file_exists($fname)) {
     $txt = @file_get_contents($fname);
   }
   $a_hash = hash('sha256', $txt); 
 
   if ($a_mode == "trywrite") {
-    $a_hash_frm = kona3param('a_hash', '');
-    $edit_txt = kona3param('edit_txt', '');
-    // check hash
-    if ($a_hash_frm == $a_hash) {
-      // save
-      if (file_exists($fname)) {
-        if (!is_writable($fname)) {
-          kona3_edit_err('Could not write file.', $i_mode);
-          exit;
-        }
-      } else {
-        if (!is_writable(dirname($fname))) {
-          kona3_edit_err('Could not write file.', $i_mode);
-          exit;
-        }
-      }
-      file_put_contents($fname, $edit_txt);      
-      // result
-      if ($i_mode == "ajax") {
-        echo json_encode(array(
-          'result' => 'ok',
-          'a_hash' => hash('sha256', $edit_txt),
-        ));
-        exit;
-      }
-      $jump = kona3getPageURL($page);
-      header("location:$jump");
-      echo "ok, saved.";
-    } else {
-      if ($i_mode == "ajax") {
-        kona3_edit_err("Conflict editing, Please submit and check.");
-        exit;
-      }
-      $msg = "<div class='error'>Sorry, ".
-          "Conflict editing. Failed to save. ".
-          " Please check page and save again.</div>";
-      $txt = kona3_make_diff($edit_txt, $txt);
-    }
+    $msg = kona3_trywrite($txt, $a_hash, $i_mode);
+  } else {
+    $msg = "";
   }
 
   // show
@@ -125,6 +88,79 @@ function kona3_edit_err($msg, $method = "web") {
     kona3error($page, $msg);
   }
 }
+
+function kona3_conflict($edit_txt, &$txt, $i_mode) {
+  if ($i_mode == "ajax") {
+    kona3_edit_err("Conflict editing, Please submit and check.", $i_mode);
+    exit;
+  }
+  $msg = 
+      "<div class='error'>Sorry, Conflict editing. Failed to save. ".
+      "Please check page and save again.</div>";
+  $txt = kona3_make_diff($edit_txt, $txt);
+  return $msg;
+}
+
+function kona3_trywrite(&$txt, &$a_hash, $i_mode) {
+  global $kona3conf, $page;
+
+  $edit_txt = kona3param('edit_txt', '');
+  $a_hash_frm = kona3param('a_hash', '');
+  $fname = kona3getWikiFile($page);
+  
+  // check hash
+  if ($a_hash_frm !== $a_hash) { // conflict
+    return kona3_conflict($edit_txt, $txt, $i_mode);
+  }
+  // save
+  if (file_exists($fname)) {
+    if (!is_writable($fname)) {
+      kona3_edit_err('Could not write file.', $i_mode);
+      exit;
+    }
+  } else {
+    $dirname = dirname($fname);
+    if (file_exists($dirname)) {
+      if (!is_writable(dirname($fname))) {
+        kona3_edit_err('Could not write file. Permission denied.', $i_mode);
+        exit;
+      }
+    } else {
+      // auto mkdir ?
+      $data_dir = $kona3conf['path.data'];
+      $max_level = $kona3conf['path.max.mkdir'];
+      if ($data_dir != substr($dirname, 0, strlen($data_dir))) {
+        kona3_edit_err('Invalid File Path.', $i_mode); exit;
+      }
+      $dirname2 = substr($dirname, strlen($data_dir) + 1);
+      $cnt = count(explode("/", $dirname2));
+      if ($cnt <= $max_level) { // 3 level directories
+        $b = mkdir($dirname, 0777, TRUE);
+        if (!$b) {
+          kona3_edit_err('mkdir failed, could not use "/"', $i_mode); exit;
+        }
+      } else {
+        kona3_edit_err(
+          "Invalid Wiki Name (not allow use '/' over $max_level times)", 
+          $i_mode); exit;
+      }
+    }
+  }
+  file_put_contents($fname, $edit_txt);      
+  // result
+  if ($i_mode == "ajax") {
+    echo json_encode(array(
+      'result' => 'ok',
+      'a_hash' => hash('sha256', $edit_txt),
+    ));
+    exit;
+  }
+  $jump = kona3getPageURL($page);
+  header("location:$jump");
+  echo "ok, saved.";
+}
+
+
 
 
 

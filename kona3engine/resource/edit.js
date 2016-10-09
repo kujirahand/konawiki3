@@ -16,28 +16,30 @@ var STORAGE_KEY = 'kona3:' + href;
 function edit_init() {
   // event
   var edit_txt = qs('#edit_txt');
-  /*
-  edit_txt.addEventListener('change', function(e) {
-    if ($("#auto_save").val() == "auto_save") save_ajax();
-  });
-  */
   edit_txt.addEventListener('keydown', function(e) {
     var c = e.keyCode;
     if (c == 13) { // ENTER
       var text = edit_txt.value;
       localStorage[STORAGE_KEY] = text;
-      $('#edit_info').val('localStorage.saved len=' + text.length);
+      $('#edit_info').val('text.len=' + text.length);
     }
     // console.log(e.keyCode);
   }, false);
 
   $('#save_ajax_btn').click(save_ajax);
   // $('#outline_btn').click(change_outline);
+  $(window).keydown(function(e) {
+    // shortcut Ctrl+S
+    if ((e.metaKey || e.ctrlKey) && e.keyCode == 83) {
+      save_ajax();
+      e.preventDefault();
+      return false;
+    }
+  });
   
   // recover_div
   if (localStorage[STORAGE_KEY] !== undefined) {
-    $('#recover_div').html(
-      '<a href="#edit_txt" onclick="edit_recover()">Recover last text</a>');
+    // recover?
   }
 }
 
@@ -61,15 +63,16 @@ function save_ajax() {
     }
     var result = msg["result"];
     if (!result) {
-      $("#edit_info").val("Sorry request failed.");
+      $("#edit_info").val("Sorry request failed." + msg['reason']);
       return;
     }
     if (result == "ng") {
-      $("#edit_info").val("[error]" + msg['reason']);
+      $("#edit_info").val("[error] " + msg['reason']);
       return;
     }
-    $("#edit_info").val('saved --- ' + msg["a_hash"] + 
-        " --- " + text.length + "字");
+    $("#edit_info").val(
+      '[saved] ' + text.length + '字 ' +
+      msg["a_hash"]);
     $('#a_hash').val(msg["a_hash"]);
   })
   .fail(function(xhr, status, error){

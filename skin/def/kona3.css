@@ -1224,29 +1224,6 @@ strong.strong2 {
   font-weight: bold;
 }
 
-/* edit */
-#wikiedit {
-  background-color: #fff0f0;
-  padding: 12px;
-  text-align: left;
-}
-#wikiedit input[type="submit"] {
-  padding: 12px;
-  margin: 2px;
-  font-size: 1.2em;
-}
-textarea#edit_txt {
-  padding: 8px;
-  font-size: 1em;
-  line-height: 1.5em;
-  width: 600px;
-  height: 400px;
-}
-input#edit_info {
-  width: 90%;
-  background-color: #fff0f0;
-}
-
 span.konawiki3copyright a {
     font-size: 0.6em;
     text-decoration: none;

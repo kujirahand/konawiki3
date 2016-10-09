@@ -3,25 +3,36 @@
 #wikiframe {
   margin:0;
   padding:0;
+  width:100%;
+}
+#wikiheader {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+#wikifooter {
+  margin:0; padding:0;
+  width:100%;
 }
 
 #wikimessage {
+  width: 100%;
   margin:0;
   padding:0;
-  background-color: #fff0f0;
-  border: none;
-  width: 100%;
 }
 
 #wikiedit {
-  margin:0;
   padding:8px;
+  margin:0px;
+  background-color: #f0f0ff;
 }
 
 #wikiedit textarea {
   margin: 0px;
-  padding: 8px;
+  padding: 1%;
   font-size: 1em;
+  width: 98%;
+  height: 300px;
 }
 
 #wikiedit input#save_ajax_btn {
@@ -78,8 +89,16 @@
 }
 
 #wikiedit #edit_info {
-  background-color: #fff0ff;
-  border: 1px solid #f0f0f0;
-  width: 90%;
+  background-color: #f0f0ff;
+  border: 1px dashed #ffc0c0;
+  margin-top: 8px;
+  padding:0.5%;
+  font-size: 0.8em;
+  width: 99%;
+}
+
+#wikiedit .desc {
+  font-size: 0.8em;
+  color: gray;
 }
 

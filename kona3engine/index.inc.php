@@ -89,6 +89,7 @@ function setDefConfig() {
   $kona3conf["url.attach"]  = KONA3_URI_ATTACH;
   $kona3conf["url.data"]    = KONA3_URI_DATA;
   $kona3conf["url.pub"]     = KONA3_URI_PUB;
+  $kona3conf["path.max.mkdir"] = 3; // max level dir under path.data (disallow = 0)
 
   // options
   defC("KONA3_PARTS_COUNTCHAR", true);
