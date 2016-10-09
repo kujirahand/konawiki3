@@ -1,8 +1,8 @@
-
 # FOR SiteGuard Tags
+<IfModule siteguard_module>
 SiteGuard_User_ExcludeSig url-php-phpcgi2
 SiteGuard_User_ExcludeSig xss-tag-1
 SiteGuard_User_ExcludeSig xss-tag-filter
 SiteGuard_User_ExcludeSig xss-try-1
-#
+</IfModule>
 
