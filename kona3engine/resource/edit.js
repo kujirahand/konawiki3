@@ -18,11 +18,15 @@ function edit_init() {
   var edit_txt = qs('#edit_txt');
   edit_txt.addEventListener('keydown', function(e) {
     var c = e.keyCode;
+    if (37 <= c && c <= 40) {
+      return;
+    }
     if (c == 13) { // ENTER
       var text = edit_txt.value;
       localStorage[STORAGE_KEY] = text;
       $('#edit_info').val('text.len=' + text.length);
     }
+    use_beforeunload(true);
     // console.log(e.keyCode);
   }, false);
 
@@ -36,12 +40,28 @@ function edit_init() {
       return false;
     }
   });
-  
   // recover_div
   if (localStorage[STORAGE_KEY] !== undefined) {
     // recover?
   }
 }
+
+var use_unload_flag = false;
+function use_beforeunload(b) {
+  if (use_unload_flag == b) return;
+  if (b) {
+    $(window).on('beforeunload', function() {
+      return "Finish editing?";
+    });
+    $('form').on('submit', function() {
+      $(window).off('beforeunload');
+    });
+  } else {
+    $(window).off('beforeunload');
+  }
+  use_unload_flag = b;
+}
+
 
 function save_ajax() {
   var action = $("#wikiedit form").attr('action');
@@ -74,6 +94,7 @@ function save_ajax() {
       '[saved] ' + text.length + '字 ' +
       msg["a_hash"]);
     $('#a_hash').val(msg["a_hash"]);
+    use_beforeunload(false);
   })
   .fail(function(xhr, status, error){
     $("#edit_info").html("Sorry request failed." + error);
