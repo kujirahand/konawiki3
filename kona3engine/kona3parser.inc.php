@@ -13,7 +13,6 @@ if (empty($konawiki_parser_depth)) {
     $konawiki_parser_depth = 0;
 }
 
-
 function konawiki_parser_convert($text, $flag_isContents = TRUE)
 {
     global $konawiki_parser_depth;
@@ -98,11 +97,12 @@ function konawiki_parser_parse($text)
         }
         // LIST <ul>
         else if ($c == '-' || $c == $ul_mark1 || $c == $ul_mark2) {
-            $level = konawiki_parser_count_level2($text, array("-","・","　"));
-            if ($level >= 4) {
+            if (preg_match('#^(-{2,})\n#', $text, $m)) {
+                $text = substr($text, strlen($m[0]));
                 konawiki_parser_skipEOL($text);
                 $tokens[] = array("cmd"=>"hr", "text"=>"", "level"=>$level);
             } else {
+                $level = konawiki_parser_count_level2($text, array("-","・","　"));
                 konawiki_parser_skipSpace($text);
                 $tokens[] = array("cmd"=>"-", "text"=>konawiki_parser_token($text, $eol), "level"=>$level);
             }
@@ -700,10 +700,10 @@ function konawiki_parser_plugins(&$text, $flag)
       // todo
     }
     else if ($c == "～") {
-    	$eol = konawiki_public("EOL");
-    	$line = konawiki_parser_token($text, $eol);
-    	$line = mb_substr($line, 1);
-    	$res["params"] = explode("～", $line);
+        $eol = konawiki_public("EOL");
+        $line = konawiki_parser_token($text, $eol);
+        $line = mb_substr($line, 1);
+        $res["params"] = explode("～", $line);
     }
 
     // check plugins
@@ -822,3 +822,5 @@ function konawiki_param($key, $def = "") {
   global $kona3conf;
   return isset($kona3conf[$key]) ? $kona3conf[$key] : $def;
 }
+
+/* vim:set expandtab ts=2 sw=2: */
