@@ -3,11 +3,12 @@
 global $kona3conf;
 
 if (KONA3_PARTS_COUNTCHAR) {
+  $menu = kona3getMenu(); 
   $cnt_txt = number_format($cnt_txt);
   $parts_countchar = 
     "<div style='font-size:8px; text-align:right; ".
     " padding:8px; margin: 8px; background-color:#f0f0ff; '>".
-    "Char Count: $cnt_txt - </div>";
+    "$menu - CH=$cnt_txt</div>";
   $page_body = $parts_countchar . $page_body . $parts_countchar;
 }
 
