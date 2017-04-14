@@ -4,12 +4,17 @@ function kona3plugins_ls_execute($args) {
   global $kona3conf;
 
   $page = $kona3conf['page'];
-  $fname = kona3getWikiFile($page);
-  $dir = dirname($fname);
+  $fname = kona3getWikiFile($page, '');
+  // dir?
+  if (is_dir($fname)) {
+    $dir = $fname;
+  } else {
+    $dir = dirname($fname);
+  }
   // get all files
   $files = glob($dir."/*");
   sort($files);
-  
+
   # filter
   $pat = array_shift($args);
   if ($pat != null) {
@@ -35,6 +40,3 @@ function kona3plugins_ls_execute($args) {
   $code .= "</ul>\n";
   return $code;
 }
-
-
-

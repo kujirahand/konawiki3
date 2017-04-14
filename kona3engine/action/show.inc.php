@@ -21,16 +21,16 @@ function kona3_action_show() {
   $fname = kona3getWikiFile($page);
   // wiki file eixsits?
   $ext = "txt";
-  $wiki_live = file_exists($fname);
+  $wiki_live = file_exists($fname) && !is_dir($fname);
   if (!$wiki_live) {
     // mark down
     $fname = kona3getWikiFile($page, TRUE, '.md');
-    $wiki_live = file_exists($fname);
+    $wiki_live = file_exists($fname) && !is_dir($fname);
     if ($wiki_live) {
       $ext = "md";
     } else {
       $fname = kona3getWikiFile($page, FALSE);
-      $wiki_live = file_exists($fname);
+      $wiki_live = file_exists($fname) && !is_dir($fname);
       if (preg_match('#\.([a-z]+)$#', $fname, $m)) {
         $ext = $m[1];
       }

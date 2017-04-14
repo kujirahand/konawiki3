@@ -22,8 +22,23 @@ if ($page_title == KONA3_WIKI_FRONTPAGE) {
 }
 //
 $logo_title_ = "<a href='$logo_href'>{$wiki_title_}</a>";
-$page_name_ = "<a href='$page_href'>{$page_title_}</a>";
 
+// if has directories
+if (strpos($page_title, '/') >= 0) {
+  $titles = explode('/', $page_title);
+  $title_a = array();
+  $title_links = array();
+  foreach ($titles as $title) {
+    $title_a[] = $title;
+    $name = implode('/', $title_a);
+    $name_html = kona3text2html($title);
+    $name_link = kona3getPageURL($name);
+    $title_links[] = "<a href='$name_link'>$name_html</a>";
+  }
+  $page_name_ = implode('/', $title_links);
+} else {
+  $page_name_ = "<a href='$page_href'>{$page_title_}</a>";
+}
 // js & css & header tags
 $js = "";
 if (isset($kona3conf['js'])) {
