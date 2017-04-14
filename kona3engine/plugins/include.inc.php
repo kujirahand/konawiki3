@@ -1,7 +1,9 @@
 <?php
 
 /**
- * [USAGE] #include(pagename|pagenamelist)
+ * [USAGE] #include(pagename_list)
+ * - inlucde other pages
+ * - (ex) {{{#include(LF)name1(LF)name2(LF)name3(LF)}}}
  */
 
 include_once dirname(dirname(__FILE__)).'/kona3parser.inc.php';
@@ -13,6 +15,8 @@ function kona3plugins_include_execute($args) {
   $txtlist = array();
 
   foreach($files as $name) {
+    $name = trim($name);
+    if ($name == "") continue;
     $b = kona3plugins_include_file($name, $html);
     $txtlist[] = $html;
   }
