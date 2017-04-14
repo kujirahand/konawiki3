@@ -4,7 +4,7 @@ function kona3plugins_ls_execute($args) {
   global $kona3conf;
 
   $page = $kona3conf['page'];
-  $fname = kona3getWikiFile($page, '');
+  $fname = kona3getWikiFile($page, false);
   // dir?
   if (is_dir($fname)) {
     $dir = $fname;
@@ -30,6 +30,9 @@ function kona3plugins_ls_execute($args) {
     $name = kona3getWikiName($f);
     $url = kona3getPageURL($name);
     $name = htmlentities($name);
+    if (is_dir($f)) {
+      $name = "&lt;$name&gt;"; 
+    }
     $code .= "<li><a href='$url'>$name</a></li>\n";
   }
   $code .= "</ul>\n";

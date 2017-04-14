@@ -32,11 +32,14 @@ function kona3_action_show() {
       $txt = "#ref($page,width=400,*$page)\n".$txt;
     }
     // directory?
+    else if ($ext == '__dir__') {
+      $txt = "*** Directory: $page\n\n#ls()\n";
+    }
     else if ($ext == '') {
       $txt = "not found.\n".$txt;
     }
     else {
-      $txt = "*** file: $page\n#ref($page)\n".$txt;
+      $txt = "*** file: [$ext] $page\n#ref($page)\n".$txt;
     }
     $ext = "txt";
   }
@@ -75,12 +78,6 @@ function kona3_action_show() {
 }
 
 function kona3show_detect_file($page, &$fname, &$ext) {
-  // is dir?
-  $ext = '';
-  $fname = kona3getWikiFile($page, false);
-  if (is_dir($fname)) {
-    return false;
-  }
 
   // wiki file (text)
   $ext = 'txt';
@@ -92,9 +89,17 @@ function kona3show_detect_file($page, &$fname, &$ext) {
   $fname = kona3getWikiFile($page, $ext);
   if (file_exists($fname)) return true;
 
+  // is dir?
+  $ext = '';
+  $fname = kona3getWikiFile($page, false);
+  if (is_dir($fname)) {
+    $ext = '__dir__';
+    return false;
+  }
+
   // make link
   $fname = kona3getWikiFile($page, false);
-  if (preg_match('#([a-z0-9]+)$#', $fname, $m)) {
+  if (preg_match('#\.([a-z0-9]+)$#', $fname, $m)) {
     $ext = $m[1];
   } else {
     $ext = '';
