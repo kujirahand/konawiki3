@@ -27,11 +27,6 @@ function kona3plugins_ls_execute($args) {
 
   $code = "<ul>";
   foreach ($files as $f) {
-    // directory --- check index
-    if (is_dir($f)) {
-      $f .= "/index.txt";
-      if (!file_exists($f)) continue;
-    }
     $name = kona3getWikiName($f);
     $url = kona3getPageURL($name);
     $name = htmlentities($name);

@@ -19,8 +19,19 @@ function kona3plugins_ref_execute($args) {
       $link = substr($arg, 1);
       continue;
     }
+    // width x height
     if (preg_match("#(\d+)x(\d+)#", $arg, $m)) {
       $size = " width='{$m[1]}' height='{$m[2]}'";
+      continue;
+    }
+    // width=xx
+    if (preg_match("#width=(\d+)#", $arg, $m)) {
+      $size = " width='{$m[1]}'";
+      continue;
+    }
+    // height=xx
+    if (preg_match("#height=(\d+)#", $arg, $m)) {
+      $size = " height='{$m[1]}'";
       continue;
     }
   }
