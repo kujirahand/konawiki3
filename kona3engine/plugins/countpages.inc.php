@@ -2,6 +2,7 @@
 
 /**
  * [usage] #countpage(path, ignore=key1:key2:key3:key4...)
+ * count text char length
  */
 function kona3plugins_countpages_execute($args) {
   global $kona3conf;
@@ -12,27 +13,23 @@ function kona3plugins_countpages_execute($args) {
       $pattern = $a;
       continue;
     }
-    if (substr($a,0,7) == "ignore=") {
-      $a = substr($a, 7);
-      $ignore = explode(":", $a);
+    if (preg_match('#ignore\=([a-zA-Z0-9_\-]+)#', $a, $m)) {
+      $ignore = explode(":", $m[1]);
+      foreach ($ignore as &$r) {
+        $r = trim($r);
+      }
       continue;
     }
   }
-  $path = $kona3conf["path.data"];
+  $path = rtrim($kona3conf["path.data"], '/');
   $cnt_txt = 0;
   $cnt_src = 0;
   $cnt_file = 0;
   $cnt_code = 0;
   //
-  $txt  = enum_files($path, "#\.txt$#");
-  // $php  = enum_files($path, "#\.php$#");
-  // $js   = enum_files($path, "#\.js$#");
-  // $html = enum_files($path, "#\.html$#");
-  // $html = [];
-  //
-  $files = $txt;
-  //
   $pattern = str_replace('*', '', $pattern);
+  $files = glob_files("$path/$pattern", '.txt', $ignore);
+  //
   foreach($files as $f) {
     // check $pattern
     $apath = str_replace($path, '', $f);
@@ -40,14 +37,6 @@ function kona3plugins_countpages_execute($args) {
       $apath = substr($apath, 1);
     }
     if (substr($apath, 0, strlen($pattern)) != $pattern) continue;
-    // check $ignore
-    if (count($ignore) > 0) {
-      $flg = FALSE;
-      foreach ($ignore as $ig) {
-        if (strpos($apath, $ig) !== FALSE) { $flg = TRUE; break; }
-      }
-      if ($flg) continue;
-    }
     // Count file
     $txt = @file_get_contents($f);
     $c = mb_strlen($txt);
@@ -82,6 +71,33 @@ function kona3plugins_countpages_execute($args) {
     "(text:{$cnt_txt_f}字, {$page_txt}p)".
     "(file:{$cnt_file}, include:{$cnt_code})".
     "</span></div>";
+}
+
+function glob_files($dir, $pat = "", $ignore = []) {
+  $list = array();
+  $dir = rtrim($dir, '/'); // chomp '/'
+  $files = glob("$dir/*");
+  foreach ($files as $file) {
+    if ($file == "." || $file == "..") continue;
+    $name = basename($file);
+    if ($ignore) {
+      if (array_search($name, $ignore) !== false) {
+        continue;        
+      }
+    }
+    if (is_dir($file)) {
+      $files2 = glob_files($file, $pat, $ignore);
+      $list = array_merge($list, $files2);
+      continue;
+    }
+    $n = strlen($pat);
+    $ext = substr($file, strlen($file) - $n, $n);
+    if ($ext === $pat) {
+      $list[] = $file;
+      continue;
+    }
+  }
+  return $list;
 }
 
 function enum_files($dir, $pat = NULL) {
