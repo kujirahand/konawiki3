@@ -29,8 +29,16 @@ function kona3plugins_ref_execute($args) {
       $size = " width='{$m[1]}'";
       continue;
     }
+    if (preg_match("#w=(\d+)#", $arg, $m)) {
+      $size = " width='{$m[1]}'";
+      continue;
+    }
     // height=xx
     if (preg_match("#height=(\d+)#", $arg, $m)) {
+      $size = " height='{$m[1]}'";
+      continue;
+    }
+    if (preg_match("#h=(\d+)#", $arg, $m)) {
       $size = " height='{$m[1]}'";
       continue;
     }
