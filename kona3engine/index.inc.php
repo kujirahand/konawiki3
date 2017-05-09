@@ -96,7 +96,7 @@ function setDefConfig() {
   defC("KONA3_NOANCHOR", false);
   $kona3conf["noanchor"] = KONA3_NOANCHOR;
   $kona3conf["js"] = array(); // javascript files
-  $kona3conf["header.tags"] = array(); // additional header 
+  $kona3conf["header.tags"] = array(); // additional header
   $kona3conf["dsn"] = KONA3_DSN;
 
   // plugin diallow
