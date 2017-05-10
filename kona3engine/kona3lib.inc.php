@@ -165,7 +165,12 @@ function kona3showMessage($title, $msg) {
 function kona3template($name, $params) {
   global $kona3conf;
   extract($params);
-  $file = $kona3conf['path.engine']."/template/{$name}.tpl.php";
+  // check skin dir
+  $file = KONA3_DIR_SKIN.'/'.KONA3_WIKI_SKIN.'/'.$name.'.tpl.php';
+  if (!file_exists($file)) {
+    // normal template
+    $file = $kona3conf['path.engine']."/template/{$name}.tpl.php";
+  }
   include($file);
 }
 

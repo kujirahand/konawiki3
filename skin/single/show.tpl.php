@@ -1,4 +1,4 @@
-<?php /* template */
+<?php
 
 global $kona3conf;
 
@@ -12,18 +12,8 @@ if (KONA3_PARTS_COUNTCHAR) {
   $page_body = $parts_countchar . $page_body . $parts_countchar;
 }
 
-// menubar
-$menubar = '';
-$menufile = kona3getWikiFile("MenuBar");
-if (file_exists($menufile)) {
-  $menu = @file_get_contents($menufile);
-  $menubar = konawiki_parser_convert($menu);
-} 
-
-// contents
 $wikibody = <<<EOS
 <div id="wikibody">{$page_body}</div>
-<div id="wikimenu"><nav>{$menubar}</nav></div>
 <div style="clear:both;"></div>
 EOS;
 

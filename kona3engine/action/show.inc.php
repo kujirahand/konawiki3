@@ -53,19 +53,11 @@ function kona3_action_show() {
   } else {
     kona3error($page, "Sorry, System Error."); exit;
   }
+
   // every page
   if (!empty($kona3conf['allpage.footer'])) {
     $footer = konawiki_parser_convert($kona3conf['allpage.footer']);
     $page_body .= "<hr>".$footer;
-  }
-
-  // menu
-  $menufile = kona3getWikiFile("MenuBar");
-  if (file_exists($menufile)) {
-    $menu = @file_get_contents($menufile);
-    $menuhtml = konawiki_parser_convert($menu);
-  } else {
-    $menuhtml = "";
   }
 
   // show
@@ -73,7 +65,6 @@ function kona3_action_show() {
     "page_title" => kona3text2html($page),
     "page_body"  => $page_body,
     "cnt_txt"    => $cnt_txt,
-    "wiki_menu"  => $menuhtml
   ));
 }
 
