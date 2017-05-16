@@ -73,8 +73,10 @@ function setDefConfig() {
   $users = array();
   $users_a = explode(",", KONA3_WIKI_USERS);
   foreach ($users_a as $r) {
-    $ra = explode(":", trim($r)."::");
-    $users[$ra[0]] = $ra[1];
+    $ra = explode(":", trim($r), 2);
+    if (count($ra) == 2) {
+      $users[$ra[0]] = $ra[1];
+    }
   }
   $kona3conf["users"] = $users;
 
