@@ -1,5 +1,11 @@
 <?php
 include_once dirname(dirname(__FILE__)).'/kona3lib.inc.php';
+// $kona3conf['search.exclude'] に検索除外対象ディレクトリを記述可能
+global $_search_exclude;
+$_search_exclude = empty($kona3conf['search.exclude']) 
+    ? array('vendor', 'node_modules') 
+    : $kona3konf['search.exclude']; 
+
 
 function kona3_action_search() {
   global $kona3conf;
@@ -47,11 +53,14 @@ EOS;
 
 function kona3search($key, &$result, $dir) {
   global $kona3conf;
+  global $_search_exclude;
   if ($key == "") return;
   $flist = glob($dir.'/*');
   foreach ($flist as $f) {
     if ($f == "." || $f == "..") continue;
     if (is_dir($f)) {
+      $dirname = basename($f);
+      if (array_search($dirname, $_search_exclude)) continue;
       kona3search($key, $result, $f);
       continue;
     }
