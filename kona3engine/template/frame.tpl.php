@@ -86,12 +86,14 @@ $language = $kona3conf["language"];
 <body>
 
 <!-- header.begin -->
+<?php if (empty($_GET['print']) || !$_GET['print']): ?>
 <div id="wikiheader">
   <div id="wikititle">
     <?php echo $logo_title_ ?>
     <span id="pagename">&gt; <?php echo $page_name_ ?></span>
   </div>
 </div>
+<?php endif; ?>
 <!-- header.end -->
 
 <!-- wikibody.begin -->
@@ -100,8 +102,10 @@ $language = $kona3conf["language"];
 
 <!-- footer.begin -->
 <div id="wikifooter">
+  <?php if (empty($_GET['print']) || !$_GET['print']): ?>
   <div class="footer_menu"><span><?php echo kona3getMenu() ?></span></div>
   <div class="info"><?php echo kona3getSysInfo() ?></div>
+  <?php endif; ?>
 </div>
 <!-- footer.end -->
 </body>

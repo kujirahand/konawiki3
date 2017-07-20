@@ -2,7 +2,8 @@
 
 global $kona3conf;
 
-if (KONA3_PARTS_COUNTCHAR) {
+$print_mode = isset($_GET['print']) ? $_GET['print'] : false;
+if (KONA3_PARTS_COUNTCHAR && !$print_mode) {
   $menu = kona3getMenu(); 
   $cnt_txt = number_format($cnt_txt);
   $parts_countchar = 

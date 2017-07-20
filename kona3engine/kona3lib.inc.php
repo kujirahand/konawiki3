@@ -265,6 +265,7 @@ function kona3getMenu() {
   $login_uri = kona3getPageURL($page, 'login');
   $logout_uri = kona3getPageURL($page, 'logout');
   $search_uri = kona3getPageURL($page, 'search');
+  $print_uri = kona3getPageURL($page, 'show', '', 'print=1');
   //
   $list = array();
   //
@@ -276,6 +277,7 @@ function kona3getMenu() {
     $list[] = array('-','-');
     $list[] = array('new', $new_uri);
     $list[] = array('edit', $edit_uri);
+    $list[] = array('print', $print_uri);
   }
   $list[] = array('search', $search_uri);
 
