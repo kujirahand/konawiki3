@@ -247,12 +247,10 @@ function konawiki_parser_render($tokens, $flag_isContents = TRUE)
             $text = htmlspecialchars($text);
             if (trim($text) == "") { $text = "&nbsp;"; }
             if ($value["flag"] == "[+]") {
-                $img = konawiki_resourceurl()."/img/add.png";
-                $html .= "<div class='conflictadd'><img src='$img'>$text</div>".$eol;
+                $html .= "<div class='conflictadd'>+ $text</div>".$eol;
             }
             else { //if ($value["flag"] == "[-]") {
-                $img = konawiki_resourceurl()."/img/sub.png";
-                $html .= "<div class='conflictsub'><img src='$img'>$text</div>".$eol;
+                $html .= "<div class='conflictsub'>- $text</div>".$eol;
             }
 
         }
