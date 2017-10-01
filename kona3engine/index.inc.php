@@ -2,7 +2,7 @@
 /**
  * KonaWiki3
  */
-define("KONA3_SYSTEM_VERSION", "0.2");
+define("KONA3_SYSTEM_VERSION", "3.0.2");
 
 // charset
 mb_internal_encoding("UTF-8");
