@@ -3,7 +3,6 @@
 function kona3plugins_ref_execute($args) {
   global $kona3conf;
   $page = kona3getPage();
-  print_r($page);
   // get args
   $size = "";
   $caption = "";
