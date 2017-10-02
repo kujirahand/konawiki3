@@ -776,7 +776,6 @@ function konawiki_parser_getPlugin($pname)
     $path = '';
     $disallow = TRUE;
   }
-
   return array(
     "file" => $path,
     "init" => "kona3plugins_{$func}_init",

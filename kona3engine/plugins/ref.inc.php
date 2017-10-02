@@ -2,6 +2,8 @@
 
 function kona3plugins_ref_execute($args) {
   global $kona3conf;
+  $page = kona3getPage();
+  print_r($page);
   // get args
   $size = "";
   $caption = "";
@@ -49,6 +51,14 @@ function kona3plugins_ref_execute($args) {
     $f = $kona3conf["path.attach"]."/".urlencode($url);
     if (file_exists($f)) {
       $url = $kona3conf["url.attach"]."/".urlencode($url);
+    } else {
+      // Is this file in same directory?
+      if (strpos($page, "/") != FALSE) {
+        $f = $kona3conf["path.data"]."/".dirname($page)."/".urldecode($url);
+        if (file_exists) {
+          $url = $kona3conf["url.data"]."/".dirname($page)."/".urlencode($url);
+        }
+      }
     }
     // data
     $f = kona3getWikiFile($url, false);
