@@ -46,6 +46,8 @@ function kona3plugins_ref_execute($args) {
   }
   // make link
   if (!preg_match("#^http#", $url)) {
+    // Disallow up dir!!
+    $url = str_replace('..', '', $url);
     // attach
     $f = $kona3conf["path.attach"]."/".urlencode($url);
     if (file_exists($f)) {
@@ -53,9 +55,10 @@ function kona3plugins_ref_execute($args) {
     } else {
       // Is this file in same directory?
       if (strpos($page, "/") != FALSE) {
-        $f = $kona3conf["path.data"]."/".dirname($page)."/".urldecode($url);
-        if (file_exists) {
-          $url = $kona3conf["url.data"]."/".dirname($page)."/".urlencode($url);
+        $url2 = dirname($page)."/".urldecode($url);
+        $f = $kona3conf["path.data"]."/".$url2;
+        if (file_exists($f)) {
+          $url = $kona3conf["url.data"]."/".$url2;
         }
       }
     }
