@@ -55,6 +55,8 @@ function konawiki_parser_parse($text)
     $h3_mark2 = '△';
     $h4_mark1 = '▼';
     $h4_mark2 = '▽';
+    //
+    $level = 0;
 
     // main loop
     $tokens = array();
