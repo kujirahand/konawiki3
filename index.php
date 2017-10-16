@@ -10,7 +10,7 @@ if (file_exists($config_file)) {
 } else {
   // set config
   define("KONA3_WIKI_TITLE", "Konawiki3");
-  define("KONA3_WIKI_USERS", "kona3:pass3:3,kona2:pass2"); # admin users
+  define("KONA3_WIKI_USERS", "kona3:pass3,kona2:pass2"); # admin users
   define("KONA3_WIKI_PRIVATE", true); # true or false
   define("KONA3_DIR_ENGINE", dirname(__FILE__).'/kona3engine');
   define("KONA3_DIR_DATA", dirname(__FILE__).'/data');

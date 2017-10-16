@@ -47,7 +47,7 @@ function kona3plugins_comment_execute($params) {
   if (!$logs) {
     $html .= "";
   } else {
-    $html .= "<p class='memo'>Comment:</p><div class='comment_box'>";
+    $html .= "<p class='memo'><a name='CommentBox'>Comment:</a></p><div class='comment_box'>";
     $index = "index.php?".urlencode($page)."&plugin&name=comment&";
     foreach ($logs as $row) {
       $id = $row["comment_id"];
@@ -80,7 +80,7 @@ function kona3plugins_comment_execute($params) {
       <form action="$action" method="post">
       <input type="hidden" name="m" value="write">
       <input type="hidden" name="bbs_id" value="$bbs_id">
-      <p class="memo">Comment Form:</p>
+      <p class="memo"><a name="CommentBoxForm">Comment Form:</a></p>
       <div class="comment_form">
         <p>
           <label for="name">name:</label><br>
@@ -101,7 +101,7 @@ function kona3plugins_comment_execute($params) {
       </div>
       </form>
     </div><!-- /comment_form_box -->
-    <div><a href="#" id="comment_form_open_btn" onclick='comment_form_open()'>
+    <div><a href="#CommentBoxForm" id="comment_form_open_btn" onclick='comment_form_open()'>
       → post comment</a></div>
     </div><!-- /comment -->
 {$script}\n
@@ -283,7 +283,7 @@ function _at_all($pdo, $type) {
     $stmt->execute(array($bbs_id));
     $list = $stmt->fetchAll();
     if (count($list) == 0) continue;
-    $html .= "<h4><a href='$link'>$bbs_name</a></h4>";
+    $html .= "<h4><a href='$link#CommentBox'>$bbs_name</a></h4>";
     $html .= "<ul>";
     $index = "index.php?".urlencode($page)."&plugin&name=comment";
     foreach ($list as $row) {
@@ -294,7 +294,11 @@ function _at_all($pdo, $type) {
       $todo_v = $row["todo"];
       $todo_l = ($todo_v == 0) ? "done" : "todo";
       $todo = "(<a class='$todo_l' onclick='chtodo(event,$id,$todo_v)'>$todo_l</a>)";
-      $html .= "<li>$name - $body <span class='memo'>($mtime){$todo}</span></li>";
+      $html .= "<li>".
+        "<a href='{$link}#comment_id_{$id}'>($id)</a>".
+        "$name - $body ".
+        "<span class='memo'>$mtime {$todo}</span>".
+        "</li>\n";
     }
     $html .= "</ul>";
   }
