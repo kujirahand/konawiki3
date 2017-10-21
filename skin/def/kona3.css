@@ -431,6 +431,10 @@ body {
 	padding-top: 10px;
 	padding-left: 30px;
 }
+.red {
+  color: red;
+  font-weight: bold;
+}
 #wikibody .conflictadd {
 	background-color: #FF8888;
 	color: white;
