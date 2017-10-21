@@ -514,8 +514,21 @@ function __konawiki_parser_tohtml(&$text, $level)
             $result .= "<strong class='strong2'>$str</strong>";
             continue;
         }
+        if ($c2 == '%%') {
+            $text = substr($text, 2);
+            $s = konawiki_parser_token($text, "%%");
+            $str = konawiki_parser_tohtml($s);
+            $result .= "<span class='red'>$str</span>";
+            continue;
+        }
         // url
         if (preg_match('@^(http|https|ftp)\://[\w\d\.\#\$\%\&\(\)\-\=\_\~\^\|\,\.\/\?\+\!\[\]\@]+@', $text, $m) > 0) {
+            $result .= konawiki_parser_makeUriLink($m[0]);
+            $text = substr($text, strlen($m[0]));
+            continue;
+        }
+        // mailto
+        if (preg_match('/^(mailto)\:[\w\d\.\#\$\%\&\-\=\_\~\^\.\/\?\+\@]+/', $text, $m) > 0) {
             $result .= konawiki_parser_makeUriLink($m[0]);
             $text = substr($text, strlen($m[0]));
             continue;
