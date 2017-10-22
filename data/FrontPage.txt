@@ -1,3 +1,8 @@
+~
+~
+#comment
+
+
 * About Konawiki3
 
 Konawiki3 is wiki clone application.
