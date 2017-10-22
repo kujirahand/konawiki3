@@ -56,6 +56,8 @@ function konawiki_parser_parse($text)
     $h4_mark1 = '▼';
     $h4_mark2 = '▽';
     //
+    $para_br = konawiki_param('para_enabled_br', true);
+    //
     $level = 0;
 
     // main loop
@@ -156,20 +158,27 @@ function konawiki_parser_parse($text)
         else { // plain block
             $plain = "";
             while ($text != "") {
+                // get line
                 $line = konawiki_parser_token($text, $eol);
-                $eos  = substr($line, strlen($line) - 1, 1);
-                $plain .= $line;
-                if ($eos == "~") { $plain .= $eol; }
-                // eol ?
-                if (substr($text, 0, strlen($eol)) === $eol) break;
-                // command ?
+                // last 1char
+                $last = substr($line, strlen($line) - 1, 1);
+                if ($last == '~') {
+                  $plan .= $line.$eol;
+                  continue;
+                }
+                // 段落内の改行を有効にする(option)
+                if ($para_br) {
+                  $plain .= $line.'~'.$eol;
+                } else {
+                  $plan .= $line.$eol;
+                }
+                // end of paragraph?
+                if (substr($text, 0, strlen($eol)) === $eol) continue;
+                // check next command
                 $c = substr($text, 0, 1);
                 if ($c == '') continue;
-                if (strpos("*-+# \t\{",$c) === FALSE) {
-                    continue;
-                } else {
-                    break;
-                }
+                // has next command?
+                if (strpos("■●▲▼*-+# \t\{",$c) !== FALSE) break;
             }
             $tokens[] = array("cmd"=>"plain","text"=>$plain);
             konawiki_parser_skipEOL($text);
@@ -757,18 +766,18 @@ function konawiki_parser_render_plugin($value)
 {
   $pname  = $value['text'];
   $params = $value['params'];
-  
+
   $info = konawiki_parser_getPlugin($pname);
   $func = $info['func'];
   $res = "[Plugin Error:".kona3text2html($pname)."($func)]";
 
-  // check    
+  // check
   if ($info['disallow']) {
     $res = "[Plugin Error:".kona3text2html($pname)."]";
     return $res;
   }
 
-  // execute 
+  // execute
   if (is_callable($func)) {
     $res = @call_user_func($func, $params);
   }
@@ -779,7 +788,7 @@ function konawiki_parser_getPlugin($pname)
 {
   global $kona3conf;
   $uname = urlencode($pname);
-  
+
   // path
   $path  = $kona3conf["path.engine"]."/plugins/$uname.inc.php";
   $func  = str_replace("%", "_", $uname);

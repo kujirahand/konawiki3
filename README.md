@@ -5,7 +5,6 @@
 
 ## Konawiki3 is simple.
 
-
 It is very simple PHP wiki engine.
 
 ```
@@ -33,22 +32,35 @@ console.log('hello');
 }}}
 ```
 
-## How to use
-
-TODO
-
-
-
-## Mark down support --- if you want
-
-- Limitted support, Mark down also can write.
-- It also can write with mark down.
-
-When you want to write mark down, you should execute command:
+## 日本語構文のサポート
 
 ```
+■大見出し
+
+text text text text
+
+●中見出し
+
+text text text text
+
+▲小見出し
+
+text text text text
+
+リスト
+
+・item1
+・item2
+・item3
+```
+
+## Mark down support
+
+- Mark down also can write.
+- When you want to use Mark down, file name "xxx.md"
+
+```
+# install mark down component
 $ cd kona3engine
 $ composer install
 ```
-
-
