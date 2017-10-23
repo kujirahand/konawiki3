@@ -210,7 +210,7 @@ function kona3getPageURL($page = "", $action = "", $stat = "", $paramStr = "") {
     $base = substr($base, 0, strlen($base) - 1);
   }
   $script = $kona3conf["scriptname"];
-  if ($page == KONA3_WIKI_FRONTPAGE && $action == "show") {
+  if ($page == KONA3_WIKI_FRONTPAGE && $action == "show" && $paramStr == '') {
     $url = "{$base}/";
     $action = "";
   } else {
