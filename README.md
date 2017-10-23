@@ -1,7 +1,7 @@
 # konawiki3
 
  - Wiki clone
- - Konawiki --- http://kujirahand.com/konawiki/
+ - Konawiki --- http://kujirahand.com/konawiki3/
 
 ## Konawiki3 is simple.
 
