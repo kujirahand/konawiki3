@@ -4,7 +4,6 @@ function kona3plugins_filecode_execute($args) {
   global $kona3conf;
   $name = array_shift($args);
   $fname = kona3getWikiFile($name, false);
-  echo "[$fname]";
   if (!file_exists($fname)) {
     $page = kona3getPage();
     $dir = dirname($page);
