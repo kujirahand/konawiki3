@@ -4,10 +4,17 @@ function kona3plugins_filecode_execute($args) {
   global $kona3conf;
   $name = array_shift($args);
   $fname = kona3getWikiFile($name, false);
+  echo "[$fname]";
   if (!file_exists($fname)) {
-    return "<div class='error'>Not Exists:".
-      kona3text2html($name).
-      "</div>";
+    $page = kona3getPage();
+    $dir = dirname($page);
+    if ($dir != '') $dir = $name = $dir.'/'.$name;
+    $fname = kona3getWikiFile($name, false);
+    if (!file_exists($fname)) {
+      return "<div class='error'>Not Exists:".
+        kona3text2html($name).
+        "</div>";
+    }
   }
   $url = kona3getWikiUrl($name);
   $txt = @file_get_contents($fname);
