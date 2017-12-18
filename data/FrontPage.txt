@@ -1,13 +1,3 @@
-~
-~
-#comment
-
-{{{#html
-data = [[0, 1]] 
-}}}
-
-
-
 * About Konawiki3
 
 Konawiki3 is wiki clone application.
@@ -30,15 +20,7 @@ Please login first. And push [edit] link.
 - [[link]]
 }}}
 
-- [[link]]
-
 ** Plugins
 
-all comments:
-
-#comment(type=all)
-
-todo comments:
-
-#comment(type=todo)
+#comment
 
