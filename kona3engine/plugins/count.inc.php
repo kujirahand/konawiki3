@@ -1,5 +1,19 @@
 <?php
+/** count plugin
 
+[USAGE] with ID
+{{{#count(id=xxx)
+abcdefg
+abcdefg
+}}}
+
+[USAGE] no ID
+{{{#count
+abcdefg
+abcdefg
+}}}
+
+ */
 function kona3plugins_count_execute($args) {
   $text = "";
   $id = "null";
