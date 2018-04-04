@@ -6,7 +6,7 @@ function kona3plugins_count_execute($args) {
   while ($args) {
     $line = trim(array_shift($args));
     if (preg_match('/^id\=(\w+)/', $line, $m)) {
-      $id = $m;
+      $id = $m[1];
     } else {
       $text = $line;
     }
@@ -18,7 +18,7 @@ function kona3plugins_count_execute($args) {
   // length
   $s = "{$len}B";
   if ($mlen != $len) $s .= ",{$mlen}字";
-  return "<span>{$html}<span class='memo'>({$s})</span></span>"; 
+  return "<span data-id='$id'>{$html}<span class='memo'>({$s})</span></span>"; 
 }
 
 
