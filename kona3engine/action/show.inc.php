@@ -28,7 +28,7 @@ function kona3_action_show() {
     $txt = "*** ls\n\n".
            "#ls()\n";
     // image
-    if ($ext === 'png' || $ext === 'jpg' || $ext === 'jpeg' || $ext == 'gif') {
+    if ($ext === '.png' || $ext === '.jpg' || $ext === '.jpeg' || $ext == '.gif') {
       $txt = "#ref($page,width=400,*$page)\n".$txt;
     }
     // directory?
@@ -41,14 +41,14 @@ function kona3_action_show() {
     else {
       $txt = "*** file: [$ext] $page\n#ref($page)\n".$txt;
     }
-    $ext = "txt";
+    $ext = ".txt";
   }
 
   // convert
   $cnt_txt = mb_strlen($txt);
-  if ($ext == "txt") {
+  if ($ext == ".txt") {
     $page_body = konawiki_parser_convert($txt);
-  } else if ($ext == "md") {
+  } else if ($ext == ".md") {
     $page_body = kona3show_markdown_convert($txt);
   } else {
     kona3error($page, "Sorry, System Error."); exit;
@@ -69,33 +69,33 @@ function kona3_action_show() {
 }
 
 function kona3show_detect_file($page, &$fname, &$ext) {
-
-  // wiki file (text)
-  $ext = 'txt';
-  $fname = kona3getWikiFile($page, $ext);
-  if (file_exists($fname)) return true;
-
-  // markdown
-  $ext = 'md';
-  $fname = kona3getWikiFile($page, $ext);
-  if (file_exists($fname)) return true;
+  // check file types
+  $ext_list = ['.txt', '.md', '.png', '.jpg', '.jpeg'];
+  foreach ($ext_list as $ext) {
+    // encode uri
+    $fname = kona3getWikiFile($page, TRUE, $ext, TRUE);
+    if (file_exists($fname)) return TRUE;
+    // no encode uri
+    $fname = kona3getWikiFile($page, TRUE, $ext, FALSE);
+    if (file_exists($fname)) return TRUE;
+  }
 
   // is dir?
   $ext = '';
-  $fname = kona3getWikiFile($page, false);
+  $fname = kona3getWikiFile($page, FALSE);
   if (is_dir($fname)) {
     $ext = '__dir__';
-    return false;
+    return FALSE;
   }
 
   // make link
-  $fname = kona3getWikiFile($page, false);
+  $fname = kona3getWikiFile($page, TRUE);
   if (preg_match('#\.([a-z0-9]+)$#', $fname, $m)) {
     $ext = $m[1];
   } else {
     $ext = '';
   }
-  return false;
+  return FALSE;
 }
 
 function kona3show_markdown_convert($txt) {
