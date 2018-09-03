@@ -24,7 +24,7 @@ function edit_init() {
     if (c == 13) { // ENTER
       var text = edit_txt.value;
       localStorage[STORAGE_KEY] = text;
-      $('#edit_info').val('text.len=' + text.length);
+      countText();
     }
     use_beforeunload(true);
     // console.log(e.keyCode);
@@ -90,9 +90,8 @@ function save_ajax() {
       $("#edit_info").val("[error] " + msg['reason']);
       return;
     }
-    $("#edit_info").val(
-      '[saved] ' + text.length + '字 ' +
-      msg["a_hash"]);
+    countText();
+    $("#edit_info").val('[saved] ' + msg["a_hash"]);
     $('#a_hash').val(msg["a_hash"]);
     use_beforeunload(false);
   })
@@ -101,6 +100,38 @@ function save_ajax() {
   });
 }
 
+function countText() {
+  var s = ''
+  var txt = $("#edit_txt").val()
+  // total
+  s += 'total(' + txt.length + ') '
+  // id
+  while (txt) {
+    var i = txt.indexOf('{{{#count')
+    if (i < 0) break;
+    // trim head
+    txt = txt.substr(i + 9)
+    var id = '*'
+    var ts = ''
+    var ti = txt.indexOf('(id=')
+    var ei = 0
+    if (ti == 0) { // with id
+      txt = txt.substr(ti);
+      var m = txt.match(/id=(.+)\)/);
+      if (m) id = m[1];
+      ei = txt.indexOf('}}}')
+      ts = txt.substr(0, ei);
+      ts = ts.split("\n").slice(1).join("")
+      txt = txt.substr(ei + 3);
+    } else {
+      ei = txt.indexOf('}}}')
+      ts = txt.substr(0, ei);
+      ts = ts.split("\n").join("")
+    }
+    s += id + '(' + ts.length + ') '
+  }
+  $("#edit_counter").val(s);
+}
 
 function edit_recover() {
   var r = confirm('Really recover text?');

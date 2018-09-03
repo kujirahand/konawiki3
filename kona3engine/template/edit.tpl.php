@@ -19,7 +19,12 @@ $wikibody = <<<EOS
         <input id="save_ajax_btn" type="button" value="Save">
         <input id="save_btn" type="submit" value="Save &amp; show">
       </div>
-      <div><input type="text" id="edit_info" class="info" readonly></div>
+      <div>
+        <input type="text" id="edit_info" class="info" readonly>
+      </div>
+      <div>
+        <input type="text" id="edit_counter" class="info" readonly>
+      </div>
     </form>
     <br>
     <div class="desc">
