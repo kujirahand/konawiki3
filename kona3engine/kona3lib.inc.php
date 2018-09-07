@@ -122,7 +122,8 @@ function kona3getWikiUrl($wikiname) {
   foreach ($paths as $p) {
     $rpath[] = urlencode($p);
   }
-  return $path_url . "/" . implode("/", $rpath);
+  $base = $path_url . ($path_url != '') ? '/' : '';
+  return $base . implode("/", $rpath);
 }
 
 // relative path from path.data

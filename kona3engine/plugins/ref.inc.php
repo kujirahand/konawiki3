@@ -58,7 +58,11 @@ function kona3plugins_ref_execute($args) {
         $url2 = dirname($page)."/".urldecode($url);
         $f = $kona3conf["path.data"]."/".$url2;
         if (file_exists($f)) {
-          $url = $kona3conf["url.data"]."/".$url2;
+          if ($kona3conf["url.data"] == '') {
+            $url = $url2;
+          } else {
+            $url = $kona3conf["url.data"]."/".$url2;
+          }
         }
       }
     }
