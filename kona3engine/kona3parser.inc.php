@@ -166,7 +166,7 @@ function konawiki_parser_parse($text)
                   $plain .= $line.$eol;
                 } else {
                   // 段落内の改行を有効にする(option)
-                  if ($para_br) {
+                  if ($para_br && strlen($text) > 1) { // 行末なら改行を入れない
                     $plain .= $line.'~'.$eol;
                   } else {
                     $plain .= $line.$eol;
