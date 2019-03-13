@@ -109,8 +109,10 @@ function countText() {
   while (txt) {
     var i = txt.indexOf('{{{#count')
     if (i < 0) break;
-    // trim head
-    txt = txt.substr(i + 9)
+    // trim left side
+    txt = txt.substr(i)
+    txt = txt.replace(/^\{+\#(countbox|count)/, '')
+    // count
     var id = '*'
     var ts = ''
     var ti = txt.indexOf('(id=')
