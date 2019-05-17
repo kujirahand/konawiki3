@@ -15,6 +15,20 @@ function kona3_action_new() {
     header("Location: $url");
     exit;
   }
+
+  // init
+  if ($key =='' && strpos($page, '/') !== false) {
+    $key = dirname($page).'/';
+  }
+  
+  // System Menu?
+  $res .= "<ul>\n";
+  $menus = ["FrontPage", "MenuBar", "SideBar", date("Y/m")];
+  foreach ($menus as $m) {
+    $url = kona3getPageURL($m, "edit");
+    $res .= "<li><a href='$url'>$m</a></li>\n";
+  }
+  $res .= "</ul>\n";
   
   $key_ = kona3text2html($key);
 
@@ -23,7 +37,7 @@ function kona3_action_new() {
 <div>
   <form method="post" action="$action">
     <input type="hidden" name="a_mode" value="new">
-    <input type="text" name="a_key" value="$key_">
+    <input type="text" name="a_key" value="$key_" size="40">
     <input type="submit" value="New">
   </form>
 </div>
