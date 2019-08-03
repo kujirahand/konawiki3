@@ -12,6 +12,14 @@ if (KONA3_PARTS_COUNTCHAR) {
   $page_body = $parts_countchar . $page_body . $parts_countchar;
 }
 
+if (kona3isLogin()) {
+  if (defined('KONA3_SHOW_DATA_DIR') && KONA3_SHOW_DATA_DIR) {
+    $path = $page_file;
+    $page_body .= "<div id='kona3_show_data_dir'>".
+      "file: <input type='' value='$path' readonly/></div>";
+  }
+}
+
 // menubar
 $menubar = '';
 $menufile = kona3getWikiFile("MenuBar");
@@ -27,6 +35,7 @@ $wikibody = <<<EOS
 {$menubar}
 <div style="clear:both;"></div>
 EOS;
+
 
 include $kona3conf['path.engine'].'/template/frame.tpl.php';
 

@@ -38,7 +38,7 @@ function kona3_action_new() {
   <form method="post" action="$action">
     <input type="hidden" name="a_mode" value="new">
     <input type="text" name="a_key" value="$key_" size="40">
-    <input type="submit" value="New">
+    <input type="submit" value="Edit">
   </form>
 </div>
 <div>

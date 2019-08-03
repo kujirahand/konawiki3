@@ -1133,6 +1133,18 @@ span.konawiki3copyright a {
 	background-color: #F0F0F0;
 	padding: 12px;
 }
+#kona3_show_data_dir {
+  text-align: right;
+  font-size: 9px;
+  color: #9090ff;
+  padding-right: 10px;
+}
+#kona3_show_data_dir input {
+  width: 50%;
+  background-color: #f9f9f9;
+  color: #9090ff;
+  padding: 6px;
+}
 @media screen and (max-width: 800px) {
 	#wikiheader {
 		width: 100%;

@@ -65,6 +65,7 @@ function kona3_action_show() {
     "page_title" => kona3text2html($page),
     "page_body"  => $page_body,
     "cnt_txt"    => $cnt_txt,
+    "page_file"  => $fname
   ));
 }
 

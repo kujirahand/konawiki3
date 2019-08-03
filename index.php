@@ -18,6 +18,7 @@ if (file_exists($config_file)) {
   define("KONA3_DSN", "sqlite:".KONA3_DIR_PRIVATE."/data.sqlite");
   define("KONA3_ALLPAGE_FOOTER", "#comment");
   define("KONA3_WIKI_SKIN", "def");
+  define("KONA3_SHOW_DATA_DIR", True);
 }
 
 // Include kona3engine/index.inc.php
