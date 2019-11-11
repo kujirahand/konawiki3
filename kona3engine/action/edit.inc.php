@@ -14,7 +14,11 @@ function kona3_action_edit() {
   // check permission
   if (!kona3isLogin()) {
     $url = kona3getPageURL($page, 'login');
-    kona3_edit_err("<a href='$url'>Please login</a>", $i_mode);
+    $msg = "<a href=\"$url\">Please login.</a>";
+    if ($i_mode == 'ajax') {
+      $msg = "Please login.";
+    }
+    kona3_edit_err($msg, $i_mode);
     exit;
   }
 

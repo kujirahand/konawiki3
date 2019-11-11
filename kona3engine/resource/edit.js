@@ -87,6 +87,7 @@ function save_ajax() {
       return;
     }
     if (result == "ng") {
+      console.log(msg);
       $("#edit_info").val("[error] " + msg['reason']);
       return;
     }
