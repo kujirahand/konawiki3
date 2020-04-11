@@ -106,8 +106,11 @@ function kona3_conflict($edit_txt, &$txt, $i_mode) {
 }
 
 function kona3_trywrite(&$txt, &$a_hash, $i_mode) {
+  require_once dirname(dirname(__FILE__)) . '/vendor/autoload.php';
   global $kona3conf, $page;
 
+  $branch = $kona3conf["git.branch"];
+  $remote_repository = $kona3conf["git.remote_repository"];
   $edit_txt = kona3param('edit_txt', '');
   $a_hash_frm = kona3param('a_hash', '');
   $fname = kona3getWikiFile($page);
@@ -150,7 +153,18 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode) {
       }
     }
   }
-  file_put_contents($fname, $edit_txt);      
+  file_put_contents($fname, $edit_txt);
+
+  $repo = new Cz\Git\GitRepository(dirname($fname));
+
+  if ($repo->getCurrentBranchName() != $branch) {
+    $repo->checkout($branch);
+  }
+
+  $repo->addFile($fname);
+  $repo->commit("Update $page from Konawiki3");
+  $repo->push($remote_repository, array($branch));
+
   // result
   if ($i_mode == "ajax") {
     echo json_encode(array(

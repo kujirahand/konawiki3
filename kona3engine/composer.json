@@ -1,5 +1,6 @@
 {
     "require": {
-        "cebe/markdown": "^1.2"
+        "cebe/markdown": "^1.2",
+        "czproject/git-php": "^3.17"
     }
 }
