@@ -40,7 +40,7 @@ function konawiki_getRawTokens()
 function konawiki_parser_parse($text)
 {
     // convert CRLF to LF
-    $text = preg_replace('#(\r\n|\r)#',"\n", $text);
+    $text = preg_replace('#(\r\n|\r)#',"\n", $text)."\n";
     konawiki_addPublic('EOL', "\n");
     konawiki_addPublic('raw_text', $text);
     $eol = konawiki_public("EOL");

@@ -100,7 +100,7 @@ function setDefConfig() {
   $kona3conf["para_enabled_br"] = true;
 
   // git
-  $kona3conf["git.enabled"] = !is_null(shell_exec("which git")) && KONA3_GIT_ENABLED;
+  $kona3conf["git.enabled"] = KONA3_GIT_ENABLED;
 
   if ($kona3conf["git.enabled"]) {
       $kona3conf["git.branch"] = KONA3_GIT_BRANCH;
