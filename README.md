@@ -70,8 +70,12 @@ $ composer install
 You can commit and push wiki diffs to your Git repository.
 
 ```
+# clone your git repository in data/
 $ cd data
 $ git remote add git@github.com:hoge/fuga.git
+
+# install git library and change settings
 $ cd ../kona3engine
+$ composer install
 $ sed -i -e 's/defC("KONA3_GIT_ENABLED", false);/defC("KONA3_GIT_ENABLED", true);/g' index.inc.php
 ```
