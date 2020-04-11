@@ -53,6 +53,7 @@ function setDefConfig() {
   defC("KONA3_DIR_PUB",        KONA3_DIR_PUBLIC."/pub");
   defC("KONA3_DIR_CACHE",      KONA3_DIR_PUBLIC."/cache");
   // git
+  defC("KONA3_GIT_ENABLED", false);
   defC("KONA3_GIT_BRANCH", "master");
   defC("KONA3_GIT_REMOTE_REPOSITORY", "origin");
   //
@@ -98,8 +99,12 @@ function setDefConfig() {
   $kona3conf["para_enabled_br"] = true;
 
   // git
-  $kona3conf["git.branch"] = KONA3_GIT_BRANCH;
-  $kona3conf["git.remote_repository"] = KONA3_GIT_REMOTE_REPOSITORY;
+  $kona3conf["git.enabled"] = KONA3_GIT_ENABLED;
+
+  if ($kona3conf["git.enabled"]) {
+      $kona3conf["git.branch"] = KONA3_GIT_BRANCH;
+      $kona3conf["git.remote_repository"] = KONA3_GIT_REMOTE_REPOSITORY;
+  }
 
   // options
   defC("KONA3_PARTS_COUNTCHAR", true);
