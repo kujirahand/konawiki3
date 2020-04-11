@@ -54,7 +54,12 @@ text text text text
 ・item3
 ```
 
-## Mark down support
+# Install Konawiki3
+
+- 1. Install WebServer and PHP5 or PHP7
+- 2. ``cp tmp-konawiki3.ini.php konawiki3.ini.php``
+
+## (Option) Mark down support
 
 - Mark down also can write.
 - When you want to use Mark down, file name "xxx.md"
@@ -77,5 +82,13 @@ $ git remote add origin git@github.com:hoge/fuga.git
 # install git library and change settings
 $ cd ../kona3engine
 $ composer install
+```
+
+And set ``KONA3_GIT_ENABLED`` to TRUE in ``konawiki3.ini.php`` or ``kona3engine/index.inc.php``.
+
+```
 $ sed -i -e 's/defC("KONA3_GIT_ENABLED", false);/defC("KONA3_GIT_ENABLED", true);/g' index.inc.php
 ```
+
+
+

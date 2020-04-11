@@ -2,24 +2,19 @@
 // ----------------------------------------------------
 // konawiki3 index
 // ----------------------------------------------------
+define('KONA3_FILE_CONFIG', 'konawiki3.ini.php');
 
-// when you use config file
-$config_file = dirname(__FILE__).'/konawiki3.ini.php';
-if (file_exists($config_file)) {
-  require_once($config_file);
-} else {
-  // set config
-  define("KONA3_WIKI_TITLE", "Konawiki3");
-  define("KONA3_WIKI_USERS", "kona3:pass3,kona2:pass2"); # admin users
-  define("KONA3_WIKI_PRIVATE", true); # true or false
-  define("KONA3_DIR_ENGINE", dirname(__FILE__).'/kona3engine');
-  define("KONA3_DIR_DATA", dirname(__FILE__).'/data');
-  define("KONA3_DIR_PRIVATE", dirname(__FILE__).'/private');
-  define("KONA3_DSN", "sqlite:".KONA3_DIR_PRIVATE."/data.sqlite");
-  define("KONA3_ALLPAGE_FOOTER", "#comment");
-  define("KONA3_WIKI_SKIN", "def");
-  define("KONA3_SHOW_DATA_DIR", True);
+// Check config file
+$file_config = dirname(__FILE__).'/'.KONA3_FILE_CONFIG;
+if (!file_exists($file_config)) {
+  $url = 'http://kujirahand.com/konawiki3/index.php?install';
+  echo "<html><body><h1>";
+  echo "<a href='$url'>Please install.</a>";
+  echo "</h1></body></html>";
+  exit;
 }
+// Read config
+require_once($file_config);
 
 // Include kona3engine/index.inc.php
 $engine_index = "kona3engine/index.inc.php";
@@ -27,4 +22,5 @@ if (defined("KONA3_DIR_ENGINE")) {
   $engine_index = KONA3_DIR_ENGINE."/index.inc.php";
 }
 require_once($engine_index);
+
 
