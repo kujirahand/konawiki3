@@ -79,16 +79,7 @@ You can commit and push wiki diffs to your git repository.
 $ cd data
 $ git remote add origin git@github.com:hoge/fuga.git
 
-# install git library and change settings
+# run setup script
 $ cd ../kona3engine
-$ composer install
+$ bash enable_git_support.sh
 ```
-
-And set ``KONA3_GIT_ENABLED`` to TRUE in ``konawiki3.ini.php`` or ``kona3engine/index.inc.php``.
-
-```
-$ sed -i -e 's/defC("KONA3_GIT_ENABLED", false);/defC("KONA3_GIT_ENABLED", true);/g' index.inc.php
-```
-
-
-
