@@ -64,3 +64,18 @@ text text text text
 $ cd kona3engine
 $ composer install
 ```
+
+## Git support
+
+You can commit and push wiki diffs to your git repository.
+
+```
+# set your remote repository in data/
+$ cd data
+$ git remote add origin git@github.com:hoge/fuga.git
+
+# install git library and change settings
+$ cd ../kona3engine
+$ composer install
+$ sed -i -e 's/defC("KONA3_GIT_ENABLED", false);/defC("KONA3_GIT_ENABLED", true);/g' index.inc.php
+```
