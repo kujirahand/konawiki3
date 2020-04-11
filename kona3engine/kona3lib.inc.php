@@ -94,9 +94,13 @@ function kona3getPName($pname) {
 }
 
 // wikiname to filename
-function kona3getWikiFile($wikiname, $autoExt = true, $ext = '.txt', $encode = TRUE) {
+function kona3getWikiFile($wikiname, $autoExt = true, $ext = '.txt', $force_encode = FALSE) {
   global $kona3conf;
   $path_data = $kona3conf["path.data"];
+  
+  // encode
+  $ecode = $kona3conf['enc.pagename'];
+  if ($force_encode) { $encode = $force_encode; }
   
   // make path
   $wikiname = kona3getRelativePath($wikiname);

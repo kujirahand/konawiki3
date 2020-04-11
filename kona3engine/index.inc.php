@@ -64,6 +64,7 @@ function setDefConfig() {
   defC("KONA3_DSN",            "sqlite:".KONA3_DIR_PRIVATE."/data.sqlite");
   defC("KONA3_ALLPAGE_FOOTER", "");
   defC("KONA3_PLUGIN_DISALLOW", ""); // delimitter=","
+  defC("KONA3_ENC_PAGENAME", FALSE);
   //
 
   // global setting
@@ -113,6 +114,7 @@ function setDefConfig() {
   $kona3conf["js"] = array(); // javascript files
   $kona3conf["header.tags"] = array(); // additional header
   $kona3conf["dsn"] = KONA3_DSN;
+  $kona3conf["enc.pagename"] = KONA3_ENC_PAGENAME;
 
   // plugin diallow
   $pd = array();
