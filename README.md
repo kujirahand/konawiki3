@@ -67,7 +67,7 @@ $ composer install
 
 ## Git support
 
-You can commit and push wiki diffs to your Git repository.
+You can commit and push wiki diffs to your git repository.
 
 ```
 # clone your git repository in data/
