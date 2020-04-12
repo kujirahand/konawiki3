@@ -99,7 +99,7 @@ function kona3getWikiFile($wikiname, $autoExt = true, $ext = '.txt', $force_enco
   $path_data = $kona3conf["path.data"];
   
   // encode
-  $ecode = $kona3conf['enc.pagename'];
+  $encode = $kona3conf['enc.pagename'];
   if ($force_encode) { $encode = $force_encode; }
   
   // make path
