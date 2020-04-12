@@ -58,6 +58,12 @@ function use_beforeunload(b) {
   use_unload_flag = b;
 }
 
+function temporarily_save() {
+  const edit_txt = qs('#edit_txt');
+  localStorage[STORAGE_KEY] = edit_txt.value;
+  countText();
+}
+
 function countText() {
   var s = ''
   var txt = $("#edit_txt").val()
@@ -161,8 +167,4 @@ function html2text(s) {
   return s;
 }
 
-function temporarily_save() {
-  const edit_txt = qs('#edit_txt');
-  localStorage[STORAGE_KEY] = edit_txt.value;
-  countText();
-}
+
