@@ -103,7 +103,7 @@ function edit_recover() {
   var r = confirm('Really recover text?');
   if (!r) return false;
   var edit_txt = qs('#edit_txt');
-  edit_txt.value = localStorage[STORAGE_KEY]; 
+  edit_txt.value = localStorage[STORAGE_KEY];
 }
 
 function change_outline() {
@@ -166,5 +166,6 @@ function html2text(s) {
   s = s.replace(/\&amp\;/g, '&');
   return s;
 }
+
 
 
