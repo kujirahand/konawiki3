@@ -54,18 +54,16 @@ text text text text
 ・item3
 ```
 
-# Install Konawiki3
+# How to install Konawiki3
 
 - 1. Install WebServer and PHP5 or PHP7
 - 2. ``cp tmp-konawiki3.ini.php konawiki3.ini.php``
 
-## (Option) Mark down support
+## Install Library
 
-- Mark down also can write.
-- When you want to use Mark down, file name "xxx.md"
+- 3. Execute commands
 
 ```
-# install mark down component
 $ cd kona3engine
 $ composer install
 ```
