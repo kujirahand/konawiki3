@@ -22,22 +22,18 @@ function edit_init() {
       return;
     }
     if (c == 13) { // ENTER
-      var text = edit_txt.value;
-      localStorage[STORAGE_KEY] = text;
-      countText();
+      temporarily_save();
     }
     use_beforeunload(true);
     // console.log(e.keyCode);
   }, false);
 
-  $('#save_ajax_btn').click(save_ajax);
+  $('#temporarily_save_btn').click(temporarily_save);
   // $('#outline_btn').click(change_outline);
   $(window).keydown(function(e) {
     // shortcut Ctrl+S
     if ((e.metaKey || e.ctrlKey) && e.keyCode == 83) {
-      save_ajax();
-      e.preventDefault();
-      return false;
+      temporarily_save();
     }
   });
   // recover_div
@@ -62,43 +58,10 @@ function use_beforeunload(b) {
   use_unload_flag = b;
 }
 
-
-function save_ajax() {
-  var action = $("#wikiedit form").attr('action');
-  var text = $('#edit_txt').val();
-  $.post(action,
-  {
-      'i_mode': 'ajax',
-      'a_mode': 'trywrite',
-      'a_hash': $('#a_hash').val(),
-      'edit_txt': text
-  })
-  .done(function(msg) {
-    if (typeof(msg) == 'string') {
-      try {
-        msg = JSON.parse(msg);
-      } catch (e) {
-        msg = {"result":false, "reason":msg};
-      }
-    }
-    var result = msg["result"];
-    if (!result) {
-      $("#edit_info").val("Sorry request failed." + msg['reason']);
-      return;
-    }
-    if (result == "ng") {
-      console.log(msg);
-      $("#edit_info").val("[error] " + msg['reason']);
-      return;
-    }
-    countText();
-    $("#edit_info").val('[saved] ' + msg["a_hash"]);
-    $('#a_hash').val(msg["a_hash"]);
-    use_beforeunload(false);
-  })
-  .fail(function(xhr, status, error){
-    $("#edit_info").html("Sorry request failed." + error);
-  });
+function temporarily_save() {
+  const edit_txt = qs('#edit_txt');
+  localStorage[STORAGE_KEY] = edit_txt.value;
+  countText();
 }
 
 function countText() {
@@ -140,7 +103,7 @@ function edit_recover() {
   var r = confirm('Really recover text?');
   if (!r) return false;
   var edit_txt = qs('#edit_txt');
-  edit_txt.value = localStorage[STORAGE_KEY]; 
+  edit_txt.value = localStorage[STORAGE_KEY];
 }
 
 function change_outline() {

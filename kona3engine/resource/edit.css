@@ -35,7 +35,7 @@
   height: 300px;
 }
 
-#wikiedit input#save_ajax_btn {
+#wikiedit input#temporarily_save_btn {
   font-size: 12px;
   border: 1px solid gray;
   color: black;

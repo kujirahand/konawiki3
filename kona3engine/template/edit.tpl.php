@@ -16,7 +16,7 @@ $wikibody = <<<EOS
         <textarea id="edit_txt" name="edit_txt">{$page_body}</textarea>
       </div>
       <div>
-        <input id="save_ajax_btn" type="button" value="Save">
+        <input id="temporarily_save_btn" type="button" value="Save temporarily">
         <input id="save_btn" type="submit" value="Save &amp; show">
       </div>
       <div>
