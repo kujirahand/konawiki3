@@ -19,15 +19,19 @@ function kona3_action_skin() {
   }
   $skin = KONA3_WIKI_SKIN;
   $skin_dir = KONA3_DIR_SKIN;
+  $res_dir = KONA3_DIR_RESOURCE;
   
   // check skin dir
   $path = "$skin_dir/$skin/$fname";
   if (!file_exists($path)) {
     $path = "$skin_dir/def/$fname";
     if (!file_exists($path)) {
-      header('HTTP/1.0 404 Not Found');
-      echo "File not found.";
-      exit;
+      $path = "$res_dir/$fname";
+      if (!file_exists($path)) {
+        header('HTTP/1.0 404 Not Found');
+        echo "File not found.";
+        exit;
+      }
     }
   }
   // output

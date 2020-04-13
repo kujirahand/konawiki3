@@ -1,7 +1,7 @@
 <?php /* template */
 
 global $kona3conf;
-$print_mode = isset($_GET['print']) ? $_GET['print'] : false;
+
 if (KONA3_PARTS_COUNTCHAR) {
   $menu = kona3getMenu(); 
   $cnt_txt = number_format($cnt_txt);
@@ -29,13 +29,20 @@ if (file_exists($menufile)) {
   $menubar = "<div id=\"wikimenu\"><nav>{$menubar}</nav></div>";
 }
 
-// contents
-$wikibody = <<<EOS
-<div id="wikibody">{$page_body}</div>
-{$menubar}
+// --- BODY ---
+include_once dirname(__FILE__).'/parts_header.tpl.php';
+echo <<<EOS
+<div id="wikibody">
+  <div class="pure-g">
+    <div class="pure-u-1 pure-u-md-19-24">
+    {$page_body}
+    </div>
+    <div class="pure-u-1 pure-u-md-5-24">
+    {$menubar}
+    </div>
+  </div><!-- /.pure-g -->
+</div>
 <div style="clear:both;"></div>
 EOS;
-
-
-include $kona3conf['path.engine'].'/template/frame.tpl.php';
+include_once dirname(__FILE__).'/parts_footer.tpl.php';
 

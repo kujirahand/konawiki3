@@ -315,7 +315,6 @@ function _todo_script() {
   //
   $page = $kona3conf['page'];
   $action = "index.php?".urlencode($page)."&plugin&name=comment";
-  kona3use_jquery();
   $script = <<< 'EOS'
 function chtodo(event, id) {
   var e = event.target;

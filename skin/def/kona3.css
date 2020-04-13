@@ -23,27 +23,32 @@ body {
 	background-color: white;
 }
 #wikiheader {
-	width: 980px;
-	padding: 4px;
-	margin: 0 auto 6px;
+	max-width: 768px;
+	padding: 0px;
+	margin: 0 auto;
 	text-align: left;
+  border-bottom: 1px solid silver;
 }
 #wikifooter {
 	padding: 12px;
-	width: 980px;
-	margin: 0 auto 6px;
+	max-width: 768px;
+	margin: 0 auto;
 	border-top: solid 1px #E0e0FF;
 	text-align: center;
 }
 #wikiframe {
 	padding: 4px;
-	width: 980px;
+	width: 768px;
 	margin: 0 auto 6px;
 	border-top: solid 1px #E0e0FF;
 	text-align: left;
 	font-size: 1em;
 }
+
 /* for header */
+.header_pad {
+  padding: 8px;
+}
 
 #wikititle {
 	font-size: 1.5em;
@@ -54,26 +59,24 @@ body {
 	font-size: 0.8em;
 	font-weight: normal;
 }
-/* for body */
 
+/* for body */
 #wikibody {
-	width: 690px;
-	/* 730-40 */
-	
+	max-width: 768px;
+	margin: 0 auto;
 	font-size: 1em;
 	line-height: 1.4em;
 	padding: 20px;
-	float: left;
-	border-right: dashed 1px #e0e0ff;
 }
 #wikimenu {
-	width: 210px;
-	/* 960 - 730 - 20 */
-	
 	height: 100%;
-	padding: 10px;
-	float: right;
+	padding: 0px;
 	top: 0px;
+}
+
+#wikimenu .contents {
+	padding:0;
+	margin: 0;
 }
 #wikimessage {
 	width: 950px;
@@ -182,9 +185,13 @@ body {
 }
 #wikimenu ul {
 	list-style: none;
-	padding: 2px 12px;
+	padding: 2px 8px;
 }
-#wikimenu ul li {} #wikimenu h1, h2, h3 {
+#wikimenu .contents ul li {
+	margin: 0;
+	padding: 2px 6px;
+}
+#wikimenu h1, h2, h3 {
 	font-size: 1.0em;
 	background-color: #f0f0ff;
 }
@@ -1145,107 +1152,5 @@ span.konawiki3copyright a {
   color: #9090ff;
   padding: 6px;
 }
-@media screen and (max-width: 800px) {
-	#wikiheader {
-		width: 100%;
-	}
-	#wikifooter {
-		width: 100%;
-	}
-	#wikiframe {
-		width: 100%;
-	}
-	#wikibody {
-		width: 90%;
-	}
-}
-@media screen and (max-width: 480px), screen and (max-width: 320px) {
-	#wikiheader {
-		width: 480px;
-	}
-	#wikifooter {
-		width: 480px;
-	}
-	#wikiframe {
-		width: 480px;
-	}
-	#wikititle {
-		font-size: 30px;
-	}
-	#wikibody {
-		width: 480px;
-		font-size: 30px;
-		line-height: 45px;
-	}
-	#wikibody h2 {
-		font-size: 30px;
-	}
-	#wikibody h3, #wikibody h4 {
-		font-size: 28px;
-	}
-	#wikiedit {
-		width: 480px;
-	}
-	#wikimessage {
-		width: 480px;
-	}
-	#wikieditor {
-		width: 480px;
-	}
-	textarea#edit_txt {
-		height: 200px;
-		font-size: 24px;
-		line-height: 24px;
-	}
-	#wikifooter > div.footer_menu {
-		font-size: 24px;
-		text-align: center;
-	}
-	#wikifooter a {
-		font-size: 20px;
-	}
-	#loginform {
-		font-size: 28px;
-	}
-	#loginform input {
-		font-size: 28px;
-	}
-	#wikimenu {
-		font-size: 24px;
-		line-height: 35px;
-		background-color: #f0f0ff;
-		border-right: 9px solid #9090ff;
-	}
-}
-@media screen and (max-width: 320px) {
-	#wikiheader {
-		width: 320px;
-	}
-	#wikifooter {
-		width: 320px;
-	}
-	#wikiframe {
-		width: 320px;
-	}
-	#wikibody {
-		width: 320px;
-		font-size: 24px;
-		line-height: 35px;
-	}
-	#wikiedit {
-		width: 320px;
-	}
-	#wikimessage {
-		width: 320px;
-	}
-	#wikieditor {
-		width: 320px;
-	}
-	textarea#edit_txt {
-		width: 300px;
-		height: 180px;
-		font-size: 20px;
-		line-height: 20px;
-	}
-}
+
 /* vim:set expandtab ts=2 st=2 : */

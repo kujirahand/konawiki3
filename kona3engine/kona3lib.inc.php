@@ -211,19 +211,17 @@ function kona3getPageURL($page = "", $action = "", $stat = "", $paramStr = "") {
   if ($action == "") $action = "show";
   $action_ = urlencode($action);
   $stat_ = urlencode($stat);
-  //
-  $base = $kona3conf["baseurl"];
-  if (substr($base, strlen($base) - 1, 1) == "/") {
-    $base = substr($base, 0, strlen($base) - 1);
+  
+  // 基本URLを構築
+  $url_index = $kona3conf["url.index"];
+  $url = "{$url_index}?{$page_}";
+  
+  // FrontPageならオプションを削る
+  if ($page == KONA3_WIKI_FRONTPAGE && $action == "show" && $stat == "" && $paramStr == '') {
+    return $url_index;
   }
-  $script = $kona3conf["scriptname"];
-  if ($page == KONA3_WIKI_FRONTPAGE && $action == "show" && $paramStr == '') {
-    $url = "{$base}/";
-    $action = "";
-  } else {
-    $url = "{$base}/{$script}?{$page_}";
-  }
-  //
+  
+  // パラメータを追加
   if ($action != "") {
     $url .= "&".$action_;
   }
@@ -234,6 +232,34 @@ function kona3getPageURL($page = "", $action = "", $stat = "", $paramStr = "") {
     $url .= "&".$paramStr;
   }
   return $url;
+}
+
+function kona3getResourceURL($file, $use_mtime = FALSE) {
+  global $kona3conf;
+  $path_resource = KONA3_DIR_RESOURCE;
+  $path = "{$path_resource}/$file";
+  if ($use_mtime && file_exists($path)) {
+    $mtime = filemtime($path);
+    return kona3getPageURL($file, "resource", "", "m=$mtime");
+  }
+  return kona3getPageURL($file, "resource");
+}
+
+function kona3getSkinURL($file, $use_mtime = FALSE) {
+  global $kona3conf;
+  $skin = KONA3_WIKI_SKIN;
+  $path_skin = $kona3conf['path.skin'];
+  $path = "{$path_skin}/{$skin}/{$file}";
+  // skinディレクトリにファイルがなければresourceを探す
+  if (!file_exists($path)) {
+    return kona3getResourceURL($file, $use_mtime);
+  }
+  // mtimeをつけて出力?
+  if ($use_mtime && file_exists($path)) {
+    $mtime = filemtime($path);
+    return kona3getPageURL($file, "skin", "", "m=$mtime");
+  }
+  return kona3getPageURL($file, "skin");
 }
 
 function kona3text2html($text) {
@@ -312,12 +338,21 @@ function kona3getDB() {
   return $kona3db;
 }
 
-function kona3use_jquery() {
-  global $kona3conf;
-  // raw:
-  // $kona3conf['js'][] = "index.php?jquery-3.1.0.min.js&resource";
-  // ajax:
-  $kona3conf['js'][] = "https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js";
+// localize
+$lang_data = null;
+function lang($msg) {
+  global $lang_data;
+  // メッセージデータを読み込み
+  if (!$lang_data) {
+    $lang = KONA3_LANG;
+    $langfile = KONA3_DIR_LANG."/$lang.inc.php";
+    include_once($langfile); // $lang_data
+  }
+  // 値を取得
+  if (isset($lang_data[$msg])) {
+    return $lang_data[$msg];
+  }
+  return $msg;
 }
 
 

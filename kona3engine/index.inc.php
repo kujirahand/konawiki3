@@ -20,12 +20,12 @@ $kona3conf = array();
 // --------------------
 // main
 // --------------------
-// load conf
-setDefConfig();
 // include library
 $path_engine = dirname(__FILE__); // this directory is engine dir
 require_once $path_engine . '/kona3lib.inc.php';
 
+// load conf
+setDefConfig();
 // parse url
 kona3parseURI();
 // execute
@@ -43,6 +43,7 @@ function setDefConfig() {
   defC("KONA3_WIKI_PRIVATE",   false);
   defC("KONA3_WIKI_USERS",     "kona3:pass3,kona2:pass2");
   defC("KONA3_WIKI_SKIN",      "def");
+  defC("KONA3_LANG",           "ja");
   // global dir
   defC("KONA3_DIR_PUBLIC",     dirname(dirname(__FILE__)));
   defC("KONA3_DIR_ENGINE",     dirname(__FILE__));
@@ -52,11 +53,14 @@ function setDefConfig() {
   defC("KONA3_DIR_SKIN",       KONA3_DIR_PUBLIC."/skin");
   defC("KONA3_DIR_PUB",        KONA3_DIR_PUBLIC."/pub");
   defC("KONA3_DIR_CACHE",      KONA3_DIR_PUBLIC."/cache");
+  defC("KONA3_DIR_TEMPLATE",   KONA3_DIR_ENGINE."/template");
+  defC("KONA3_DIR_RESOURCE",   KONA3_DIR_ENGINE."/resource");
+  defC("KONA3_DIR_LANG",       KONA3_DIR_ENGINE."/lang");
   // git
   defC("KONA3_GIT_ENABLED", false);
   defC("KONA3_GIT_BRANCH", "master");
   defC("KONA3_GIT_REMOTE_REPOSITORY", "origin");
-  //
+  // uri
   defC("KONA3_URI_ATTACH",     "./attach");
   defC("KONA3_URI_DATA",       "./data");
   defC("KONA3_URI_PUB",        "./pub");
@@ -65,13 +69,16 @@ function setDefConfig() {
   defC("KONA3_ALLPAGE_FOOTER", "");
   defC("KONA3_PLUGIN_DISALLOW", ""); // delimitter=","
   defC("KONA3_ENC_PAGENAME", FALSE);
-  //
+  defC("KONA3_PARTS_COUNTCHAR", true);
+  defC("KONA3_NOANCHOR", false);
+  // files
+  defC("KONA3_FILES_JS", ''); // (ex) a.js, b.js, c.js
+  defC("KONA3_FILES_CSS", ''); // (ex) a.css, b.css c.css
 
   // global setting
   $kona3conf["title"]          = KONA3_WIKI_TITLE;
   $kona3conf["wiki.private"]   = KONA3_WIKI_PRIVATE;
   $kona3conf["FrontPage"]      = KONA3_WIKI_FRONTPAGE;
-  $kona3conf["language"]       = 'ja';
   $kona3conf["allpage.footer"] = KONA3_ALLPAGE_FOOTER;
 
   // users
@@ -84,19 +91,26 @@ function setDefConfig() {
     }
   }
   $kona3conf["users"] = $users;
-
+  
   // path
   $base    = dirname(__FILE__);
   $baseurl = ".";
-  $kona3conf["path.pub"]    = KONA3_DIR_PUBLIC;
-  $kona3conf["path.engine"] = KONA3_DIR_ENGINE;
-  $kona3conf["path.data"]   = KONA3_DIR_DATA;
-  $kona3conf["path.attach"] = KONA3_DIR_ATTACH;
-  $kona3conf["path.cache"]  = KONA3_DIR_CACHE;
+  $kona3conf["path.pub"]      = KONA3_DIR_PUBLIC;
+  $kona3conf["path.engine"]   = KONA3_DIR_ENGINE;
+  $kona3conf["path.data"]     = KONA3_DIR_DATA;
+  $kona3conf["path.attach"]   = KONA3_DIR_ATTACH;
+  $kona3conf["path.cache"]    = KONA3_DIR_CACHE;
+  // URL
+  $scheme = $_SERVER['REQUEST_SCHEME'];
+  $host = $_SERVER['HTTP_HOST'];
+  $script = $_SERVER['SCRIPT_NAME'];
+  $kona3conf["url.index"]   = "{$scheme}://{$host}{$script}";
   $kona3conf["url.attach"]  = KONA3_URI_ATTACH;
   $kona3conf["url.data"]    = KONA3_URI_DATA;
   $kona3conf["url.pub"]     = KONA3_URI_PUB;
+  $kona3conf["path.skin"]   = KONA3_DIR_SKIN;
   $kona3conf["path.max.mkdir"] = 3; // max level dir under path.data (disallow = 0)
+  $kona3conf["scriptname"] = 'index.php';
   $kona3conf["para_enabled_br"] = true;
 
   // git
@@ -108,14 +122,33 @@ function setDefConfig() {
   }
 
   // options
-  defC("KONA3_PARTS_COUNTCHAR", true);
-  defC("KONA3_NOANCHOR", false);
   $kona3conf["noanchor"] = KONA3_NOANCHOR;
-  $kona3conf["js"] = array(); // javascript files
   $kona3conf["header.tags"] = array(); // additional header
   $kona3conf["dsn"] = KONA3_DSN;
   $kona3conf["enc.pagename"] = KONA3_ENC_PAGENAME;
-
+  // javascript files
+  $kona3conf["js"] = array(
+    kona3getResourceURL('jquery-3.4.1.min.js'),
+  );
+  if (KONA3_FILES_JS != '') {
+    $files = explode(',', KONA3_FILES_JS);
+    foreach ($files as $f) {
+      $kona3conf["js"][] = trim($f);
+    }
+  }
+  // css files
+  $kona3conf["css"] = array(
+    kona3getResourceURL('pure-min.css'),
+    kona3getResourceURL('grids-responsive-min.css'),
+    kona3getSkinURL('drawer.css', TRUE),
+    kona3getSkinURL('kona3.css', TRUE),
+  );
+  if (KONA3_FILES_CSS != '') {
+    $files = explode(',', KONA3_FILES_CSS);
+    foreach ($files as $f) {
+      $kona3conf["css"][] = trim($f);
+    }
+  }
   // plugin diallow
   $pd = array();
   $a = explode(",", KONA3_PLUGIN_DISALLOW);

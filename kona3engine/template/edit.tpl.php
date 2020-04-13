@@ -40,7 +40,6 @@ $wikibody = <<<EOS
 EOS;
 
 // include script
-kona3use_jquery();
 $kona3conf['js'][] = 'index.php?edit.js&resource';
 $kona3conf['css'][] = 'index.php?edit.css&resource';
 
