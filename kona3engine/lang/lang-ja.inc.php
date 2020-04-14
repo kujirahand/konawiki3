@@ -18,5 +18,7 @@ $lang_data = [
   'Close' => '閉じる',
   'Success to logout.' => 'ログアウトしました。',
   'Add' => '追加',
+  'Save temp' => '一時保存',
+  'Save &amp; Show' => '保存して表示',
 ];
 

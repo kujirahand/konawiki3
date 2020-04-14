@@ -1,6 +1,7 @@
 <?php
 // allpage.footer
-if (!empty($kona3conf['allpage.footer'])) {
+$allpage = '';
+if (!empty($kona3conf['allpage.footer']) && $action == 'show') {
   $allpage = konawiki_parser_convert($kona3conf['allpage.footer']);
 }
 
@@ -22,10 +23,11 @@ if (kona3isLogin() && KONA3_SHOW_DATA_DIR) {
 
 <!-- footer.begin -->
 <div id="wikifooter">
+  <?php if ($allpage != ''): ?>
   <div id="allpage_footer">
     <?php echo $allpage; ?>
   </div><!-- end of #allpage_footer -->
-
+  <?php endif; ?>
   <div style="clear:both;"></div>
 
   <div class="footer_menu">

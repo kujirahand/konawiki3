@@ -70,10 +70,10 @@ if (isset($kona3conf['header.tags'])) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- include files -->
+<?php echo $head_tags.$js.$css ?>
 <title><?php echo $head_title ?></title>
 
-<!-- include files -->
-<?php echo $js . $css . $head_tags ?>
 </head>
 <body>
 

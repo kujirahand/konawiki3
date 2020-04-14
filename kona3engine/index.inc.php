@@ -72,6 +72,7 @@ function setDefConfig() {
   defC("KONA3_PARTS_COUNTCHAR", TRUE);
   defC("KONA3_NOANCHOR", FALSE);
   defC("KONA3_SHOW_DATA_DIR", TRUE);
+  defC("KONA3_ANALYTICS", '');
   // git
   defC("KONA3_GIT_ENABLED", FALSE);
   defC("KONA3_GIT_BRANCH", "master");
@@ -154,6 +155,9 @@ function setDefConfig() {
     foreach ($files as $f) {
       $kona3conf["css"][] = trim($f);
     }
+  }
+  if (KONA3_ANALYTICS != '') {
+    $kona3conf['header.tags'][] = KONA3_ANALYTICS;
   }
   // plugin diallow
   $pd = array();

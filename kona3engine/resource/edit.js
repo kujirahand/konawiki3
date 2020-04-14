@@ -34,6 +34,7 @@ function edit_init() {
     // shortcut Ctrl+S
     if ((e.metaKey || e.ctrlKey) && e.keyCode == 83) {
       temporarily_save();
+      e.preventDefault();
     }
   });
   // recover_div

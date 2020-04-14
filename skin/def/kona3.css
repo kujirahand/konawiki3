@@ -785,10 +785,12 @@
 	display:block;
 }
 
-#wikimenu h1,h2,h3
+#wikimenu h1,#wikimenu h2,#wikimenu h3
 {
 	background-color:#f0f0ff;
 	font-size:1em;
+	margin: 18px 0px 0px 0px;
+	padding: 8px;
 }
 
 #wikimessage

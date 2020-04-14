@@ -49,9 +49,6 @@ function kona3plugins_comment_execute($params) {
   return <<<__EOS__
 <!-- #comment plugin -->
 <div class="plugin_comment">
-  <div class='plugin_title'>
-    <a name='CommentBox'>#comment</a>
-  </div>
   <div class='comment_box'>
     {$html_comments}
   </div><!-- end of .comment_box -->
@@ -84,6 +81,11 @@ function _renderCommentList($page, $logs) {
     $todo_l = ($todo_v == 0) ? "done" : "todo";
     $todo = "<a class='$todo_l' onclick='chtodo(event,$id)'>$todo_l</a>";
     $html .= <<<__EOS__
+<!-- title -->
+<div class='plugin_title'>
+  <a name='CommentBox'>#comment</a>
+</div>
+<!-- logs -->
 <div class='comment_log'>
   <div class='comment_title'>
     <a name='comment_id_{$id}'>($id)</a> $name
