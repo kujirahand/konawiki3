@@ -21,13 +21,7 @@ if (kona3isLogin()) {
 }
 
 // menubar
-$menubar = '';
-$menufile = kona3getWikiFile("MenuBar");
-if (file_exists($menufile)) {
-  $menu = @file_get_contents($menufile);
-  $menubar = konawiki_parser_convert($menu);
-  $menubar = "<div id=\"wikimenu\"><nav>{$menubar}</nav></div>";
-}
+$menubar = kona3getWikiPage("MenuBar");
 
 // --- BODY ---
 include_once dirname(__FILE__).'/parts_header.tpl.php';
@@ -38,7 +32,9 @@ echo <<<EOS
     {$page_body}
     </div>
     <div class="pure-u-1 pure-u-md-5-24">
-    {$menubar}
+      <div id="wikimenu">
+      {$menubar}
+      </div>
     </div>
   </div><!-- /.pure-g -->
 </div>

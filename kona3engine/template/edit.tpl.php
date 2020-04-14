@@ -3,7 +3,7 @@
 global $kona3conf;
 
 // body
-$wikibody = <<<EOS
+$page_body = <<<EOS
 <!-- editor -->
 <div id="wikimessage">
   <div id="wikiedit">

@@ -23,7 +23,7 @@ function kona3_action_new() {
   
   // System Menu?
   $res .= "<ul>\n";
-  $menus = ["FrontPage", "MenuBar", "SideBar", date("Y/m")];
+  $menus = ["FrontPage", "MenuBar", "GlobalBar", "SideBar", date("Y/m")];
   foreach ($menus as $m) {
     $url = kona3getPageURL($m, "edit");
     $res .= "<li><a href='$url'>$m</a></li>\n";
@@ -33,12 +33,15 @@ function kona3_action_new() {
   $key_ = kona3text2html($key);
 
   // show form
+  $m_edit = lang('Edit');
   $form = <<<EOS
 <div>
-  <form method="post" action="$action">
+  <form
+    class="pure-form" 
+    method="post" action="$action">
     <input type="hidden" name="a_mode" value="new">
     <input type="text" name="a_key" value="$key_" size="40">
-    <input type="submit" value="Edit">
+    <input class="pure-button" type="submit" value="$m_edit">
   </form>
 </div>
 <div>

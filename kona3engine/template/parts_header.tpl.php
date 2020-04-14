@@ -64,11 +64,10 @@ if (isset($kona3conf['header.tags'])) {
     $head_tags .= $tag."\n";
   }
 }
-$language = KONA3_LANG;
 
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo $language ?>">
+<html lang="<?php echo KONA3_LANG ?>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -87,3 +86,22 @@ $language = KONA3_LANG;
   </div>
 </div></div><!-- end of wikiheader -->
 <!-- header.end -->
+
+<!-- drawer.begin -->
+<div id="drawer_wrapper">
+  <!-- ハンバーガーメニュー -->
+  <div id="hamburger_icon">
+        <span class="yum"></span>
+        <span class="yum"></span>
+        <span class="yum"></span>
+    <!-- 飛び出すメニュー -->
+    <nav class="menuitems">
+      <?php echo kona3getMenu('list') ?>
+      <ul><li></li></ul>
+      <?php echo kona3getWikiPage('GlobalBar', '') ?>
+    </nav>
+  </div>
+  <!-- 透明な背景ウィンドウ(閉じる専用) -->
+  <div id="drawer_background"></div>
+</div>
+<!-- drawer.end -->

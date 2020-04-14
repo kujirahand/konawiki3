@@ -129,13 +129,8 @@ function setDefConfig() {
   // javascript files
   $kona3conf["js"] = array(
     kona3getResourceURL('jquery-3.4.1.min.js'),
+    kona3getSkinURL('drawer.js', TRUE),
   );
-  if (KONA3_FILES_JS != '') {
-    $files = explode(',', KONA3_FILES_JS);
-    foreach ($files as $f) {
-      $kona3conf["js"][] = trim($f);
-    }
-  }
   // css files
   $kona3conf["css"] = array(
     kona3getResourceURL('pure-min.css'),
@@ -143,6 +138,12 @@ function setDefConfig() {
     kona3getSkinURL('drawer.css', TRUE),
     kona3getSkinURL('kona3.css', TRUE),
   );
+  if (KONA3_FILES_JS != '') {
+    $files = explode(',', KONA3_FILES_JS);
+    foreach ($files as $f) {
+      $kona3conf["js"][] = trim($f);
+    }
+  }
   if (KONA3_FILES_CSS != '') {
     $files = explode(',', KONA3_FILES_CSS);
     foreach ($files as $f) {

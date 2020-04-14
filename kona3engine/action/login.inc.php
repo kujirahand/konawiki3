@@ -18,31 +18,35 @@ function kona3_action_login() {
     if (isset($users[$user]) && $users[$user] == $pw) {
       // ok
       $editLink = kona3getPageURL($page, 'edit');
-      $msg = "<a href='$editLink'>Success to login.</a>";
+      $m_success = lang('Success to login.');
+      $msg = "<a href='$editLink'>$m_success</a>";
       kona3login();
       kona3showMessage($page, $msg);
       exit;
     } else {
       // ng
-      $msg = '<div class="error">Invalid User or Password.</div>';
+      $m_invalid = lang('Invalid User or Password.');
+      $msg = "<div class=\"error\">$m_invalid</div>";
     }
   }
   
   // show form
+  $m_user = lang('User');
+  $m_pass = lang('Password');
+  $m_login = lang('Login');
   $form = <<<EOS
 <div id="loginform">
   {$msg}
-  <form method="post" action="$action">
-  <input type="hidden" name="a_mode" value="trylogin">
-  <p>
-    <label for="user">User:</label><br>
+  <form
+    class="pure-form pure-form-stacked" 
+    method="post" action="$action">
+    <input type="hidden" name="a_mode" value="trylogin">
+    <label for="user">$m_user:</label>
     <input id="user" type="text" name="a_user">
-  </p>
-  <p>
-    <label for="pass">Password:</label><br>
+    <label for="pass">$m_pass:</label>
     <input id="pass" type="password" name="a_pw">
-  </p>
-  <p><input type="submit" value="Login"></p>
+    <input class="pure-button pure-button-primary"
+      type="submit" value="$m_login">
   </form>
 </div>
 EOS;

@@ -2,8 +2,12 @@
 
 global $kona3conf;
 
-$wikibody = <<<EOS
-<div id="wikimessage">{$page_body}</div>
+$page_body = <<<EOS
+<div id="wikimessage">
+  <div class="box">
+    {$page_body}
+  </div>
+</div>
 <div style="clear:both;"></div>
 EOS;
 

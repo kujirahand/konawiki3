@@ -13,7 +13,12 @@ function kona3_action_show() {
   if ($kona3conf["wiki.private"]) {
     if (!kona3isLogin()) {
       $url = kona3getPageURL($page, "login");
-      kona3error($page, "Private mode. <a href='$url'>Please login.</a>"); exit;
+      $msg_private = lang('Private Mode');
+      $msg_please_login = lang('Please login.');
+      kona3error(
+        $page, 
+        "$msg_private <a href='$url'>$msg_please_login.</a>");
+      exit;
     }
   }
 

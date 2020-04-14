@@ -130,6 +130,19 @@ function kona3getWikiUrl($wikiname) {
   return $base . implode("/", $rpath);
 }
 
+// get wiki data
+function kona3getWikiPage($wikiname, $def = '') {
+  require_once dirname(__FILE__).'/kona3parser.inc.php';
+  $file = kona3getWikiFile($wikiname);
+  if (file_exists($file)) {
+    $text = @file_get_contents($file);
+    $html = konawiki_parser_convert($text);
+    return $html; 
+  }
+  return $def;
+}
+
+
 // relative path from path.data
 function kona3getRelativePath($wikiname) {
   global $kona3conf;
@@ -289,7 +302,7 @@ function kona3getSysInfo() {
     "{$opt}</span>";
 }
 
-function kona3getMenu() {
+function kona3getMenuArray() {
   global $kona3conf;
   $page = $kona3conf['page'];
   //
@@ -298,34 +311,54 @@ function kona3getMenu() {
   $login_uri = kona3getPageURL($page, 'login');
   $logout_uri = kona3getPageURL($page, 'logout');
   $search_uri = kona3getPageURL($page, 'search');
-  $print_uri = kona3getPageURL($page, 'show', '', 'print=1');
   //
   $list = array();
   //
   if (!kona3isLogin()) {
-    $list[] = array('login', $login_uri);
-    $list[] = array('-','-');
+    $list[] = array(lang('Search'), $search_uri);
+    $list[] = array(lang('Login'), $login_uri);
   } else {
-    $list[] = array('logout', $logout_uri);
+    $list[] = array(lang('Search'), $search_uri);
     $list[] = array('-','-');
-    $list[] = array('new', $new_uri);
-    $list[] = array('edit', $edit_uri);
-    $list[] = array('print', $print_uri);
+    $list[] = array(lang('New'), $new_uri);
+    $list[] = array(lang('Edit'), $edit_uri);
+    $list[] = array('-','-');
+    $list[] = array(lang('Logout'), $logout_uri);
+    $list[] = array('-','-');
   }
-  $list[] = array('search', $search_uri);
+  return $list;
+}
 
-  // make link
-  $ha = array();
-  foreach ($list as $it) {
-    $label = $it[0];
-    $href  = $it[1];
-    if ($href != "-") {
-      $ha[] = "[<a href=\"$href\">$label</a>]";
-    } else {
-      $ha[] = " - ";
+function kona3getMenu($type='bar') {
+  $list = kona3getMenuArray();
+  // render
+  if ($type == 'bar') {
+    $ha = array();
+    foreach ($list as $it) {
+      $label = $it[0];
+      $href  = $it[1];
+      if ($href != "-") {
+        $ha[] = "<a class='pure-button' href=\"$href\">$label</a>";
+      } else {
+        $ha[] = " - ";
+      }
     }
+    return implode(" ", $ha);
   }
-  return implode(" ", $ha);
+  if ($type == 'list') {
+    $ha = array();
+    foreach ($list as $it) {
+      $label = $it[0];
+      $href  = $it[1];
+      if ($href != "-") {
+        $ha[] = "<li><a href=\"$href\">$label</a></li>";
+      } else {
+        $ha[] = "<li></li>";
+      }
+    }
+    return '<ul>'.implode("", $ha).'</ul>';
+  }
+  return '--no-type--';
 }
 
 $kona3db = null;
@@ -345,8 +378,8 @@ function lang($msg) {
   // メッセージデータを読み込み
   if (!$lang_data) {
     $lang = KONA3_LANG;
-    $langfile = KONA3_DIR_LANG."/$lang.inc.php";
-    include_once($langfile); // $lang_data
+    $langfile = KONA3_DIR_LANG."/lang-$lang.inc.php";
+    @include_once($langfile); // $lang_data
   }
   // 値を取得
   if (isset($lang_data[$msg])) {

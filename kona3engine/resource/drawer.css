@@ -1,4 +1,6 @@
-#wrapper nav {
+/* hamburger menu v0.1 */
+
+#drawer_wrapper nav {
     position: fixed;
     top: 0;
     right: -300px;
@@ -9,41 +11,34 @@
     background:#333;
     font-size: 14px;
     box-sizing: border-box;
-    z-index: 2;
+    z-index: 98;
 }
-#wrapper nav.global-navi ul li {
+#drawer_wrapper nav.menuitems ul li {
     display:block;
     padding: 8px 28px;
     border-bottom: 1px dotted #555;
     background-color: #444;
+    color: silver;
 }
-#wrapper nav.global-navi ul li a {
+#drawer_wrapper nav.menuitems ul li a {
     text-decoration: none;
     color: #ddd;
     width: 99%;
     display:block;
 }
-#wrapper ul.counter {
-    padding: 0;
-    margin: 0;
-}
-#wrapper #btn-gnavi li.counter_disp {
-    color: white;
-    font-weight: normal;
-}
-#wrapper #btn-gnavi {
+#drawer_wrapper #hamburger_icon {
     position: fixed;
     top: 20px;
     right: 20px;
     width: 30px;
     height: 24px;
-    z-index: 3;
+    z-index: 99;
     box-sizing: border-box;
     cursor: pointer;
     -webkit-transition: all 400ms;
     transition: all 400ms
 }
-#wrapper #btn-gnavi span {
+#drawer_wrapper #hamburger_icon span.yum {
     position: absolute;
     width: 30px;
     height: 4px;
@@ -52,22 +47,22 @@
     -webkit-transition: all 400ms;
     transition: all 400ms
 }
-#wrapper #btn-gnavi span:nth-child(1) {
+#drawer_wrapper #hamburger_icon span:nth-child(1) {
     top: 0;
 }
-#wrapper #btn-gnavi span:nth-child(2) {
+#drawer_wrapper #hamburger_icon span:nth-child(2) {
     top: 10px;
 }
-#wrapper #btn-gnavi span:nth-child(3) {
+#drawer_wrapper #hamburger_icon span:nth-child(3) {
     top: 20px;
 }
-#wrapper #btn-gnavi.open span {
+#drawer_wrapper #hamburger_icon.open span {
     background: #fff;
 }
-#wrapper #btn-gnavi.open span {
+#drawer_wrapper #hamburger_icon.open span {
     width: 24px;;
 }
-#wrapper .contents section p {
+#drawer_wrapper .contents section p {
     position: absolute;
     top: 50%;
     width: 30%;
@@ -75,25 +70,17 @@
     font-size: 20px;
     color: #fff;
 }
-#wrapper .contents section:nth-child(odd) p {
+#drawer_wrapper .contents section:nth-child(odd) p {
     left: 10%
 }
-#wrapper .contents section:nth-child(even) p {
+#drawer_wrapper .contents section:nth-child(even) p {
     right: 10%
 }
-#closeWindow {
+#drawer_background {
+    z-index: 97;
     position: fixed;
     background-color: rgba(0,0,0,0.5);
     display: none;
 }
-
-.counter_memo {
-    font-size: 11px;
-    color: silver;
-}
-
-
-
-
 
 

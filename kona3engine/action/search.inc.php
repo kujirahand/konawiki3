@@ -32,12 +32,13 @@ function kona3_action_search() {
   $key_ = kona3text2html($key);
 
   // show form
+  $m_search = lang('Search');
   $form = <<<EOS
 <div>
-  <form method="post" action="$action">
+  <form class="pure-form" method="post" action="$action">
     <input type="hidden" name="a_mode" value="search">
     <input type="text" name="a_key" value="$key_">
-    <input type="submit" value="Search">
+    <input class="pure-button pure-button-primary" type="submit" value="$m_search">
   </form>
 </div>
 <div>
