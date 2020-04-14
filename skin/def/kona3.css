@@ -616,46 +616,7 @@ body {
 	padding: 8px;
 	margin: 0px;
 }
-#wikibody div.comment {} #wikibody div.comment_box {
-	margin-left: 8px;
-}
-#wikibody div.comment_post {
-	border-left: 4px solid #c0c0ff;
-	padding-left: 8px;
-	padding-top: 4px;
-	border-top: 1px solid #f0f0f0;
-	margin-top: 4px;
-	font-size: 0.8em;
-}
-#wikibody div.comment_title {
-	border-bottom: 1px dashed #d0d0ff;
-}
-#wikibody div.comment_body {
-	padding-top: 4px;
-	padding-left: 15px;
-}
-#wikibody div.comment_form {
-	margin-left: 8px;
-	border: 1px solid #c0c0ff;
-}
-#wikibody div.comment_form p {
-	padding-left: 12px;
-	padding-top: 4px;
-	padding-bottom: 4px;
-	margin: 4px;
-	font-size: 0.8em;
-	background-color: #f0f0ff;
-}
-#wikibody div.comment_form label {
-	font-size: 0.5em;
-	color: #606060;
-}
-#wikibody div.comment_form textarea {
-	width: 90%;
-}
-#wikibody #comment_form_open_btn {
-	font-size: 0.7em;
-}
+
 #wikibody div.body {
 	text-align: left;
 	width: 100%;
@@ -1158,6 +1119,53 @@ span.konawiki3copyright a {
   background-color: #f9f9f9;
   color: #9090ff;
   padding: 6px;
+}
+
+#allpage_footer {
+	text-align: left;
+	font-size: 0.8em;
+}
+
+
+/* #comment plugins */
+.plugin_comment {
+	margin:0;
+	padding:0 8px 0 10px;
+}
+.plugin_comment .memo {
+	color: #666;
+}
+.plugin_comment .comment_log {
+	border-left: 4px solid silver;
+	margin: 4px;
+	padding: 4px;
+}
+.plugin_comment .comment_log .comment_title {
+	border-bottom: 1px dotted silver;
+	padding: 4px;
+	font-size: 0.8em;
+}
+.plugin_comment .comment_log .comment_body {
+	padding: 4px;
+	font-size: 0.8em;
+}
+.plugin_comment .memo {
+	color: #666;
+}
+.plugin_comment .comment_close_bar {
+	background-color: #eee;
+	color: #666;
+	text-align: right;
+	border-top: 1px solid silver;
+	border-left: 1px solid silver;
+}
+.plugin_comment form {
+	padding: 8px;
+	border-left: 1px solid silver;
+	border-bottom: 1px solid silver;
+}
+.plugin_comment form label {
+	font-size: 0.7em;
 }
 
 /* vim:set expandtab ts=2 st=2 : */

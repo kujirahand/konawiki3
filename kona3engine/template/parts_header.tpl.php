@@ -1,5 +1,4 @@
 <?php
-/** frame template */
 global $kona3conf;
 
 // Parameters
@@ -96,7 +95,7 @@ if (isset($kona3conf['header.tags'])) {
         <span class="yum"></span>
     <!-- 飛び出すメニュー -->
     <nav class="menuitems">
-      <?php echo kona3getMenu('list') ?>
+      <?php echo kona3getCtrlMenu('list') ?>
       <ul><li></li></ul>
       <?php echo kona3getWikiPage('GlobalBar', '') ?>
     </nav>
@@ -105,3 +104,5 @@ if (isset($kona3conf['header.tags'])) {
   <div id="drawer_background"></div>
 </div>
 <!-- drawer.end -->
+
+

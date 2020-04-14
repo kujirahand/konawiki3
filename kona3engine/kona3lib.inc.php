@@ -302,7 +302,7 @@ function kona3getSysInfo() {
     "{$opt}</span>";
 }
 
-function kona3getMenuArray() {
+function kona3getCtrlMenuArray($type) {
   global $kona3conf;
   $page = $kona3conf['page'];
   //
@@ -316,7 +316,9 @@ function kona3getMenuArray() {
   //
   if (!kona3isLogin()) {
     $list[] = array(lang('Search'), $search_uri);
-    $list[] = array(lang('Login'), $login_uri);
+    if ($type == "bar") {
+      $list[] = array(lang('Login'), $login_uri);
+    }
   } else {
     $list[] = array(lang('Search'), $search_uri);
     $list[] = array('-','-');
@@ -328,8 +330,8 @@ function kona3getMenuArray() {
   return $list;
 }
 
-function kona3getMenu($type='bar') {
-  $list = kona3getMenuArray();
+function kona3getCtrlMenu($type='bar') {
+  $list = kona3getCtrlMenuArray($type);
   // render
   if ($type == 'bar') {
     $ha = array();

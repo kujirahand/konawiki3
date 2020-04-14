@@ -36,7 +36,11 @@ kona3execute();
 // --------------------
 function setDefConfig() {
   global $kona3conf;
-
+  // [方針]
+  // 基本的にdefineで定数定義するのはテンプレートに反映しないデータ
+  // テンプレート内で使うデータを $kona3conf に移し替える
+  // $kona3confの値はテンプレート表示時に値が展開されるため
+  // 
   // global setting
   defC("KONA3_WIKI_TITLE",     "Konwwiki3");
   defC("KONA3_WIKI_FRONTPAGE", "FrontPage");
@@ -56,10 +60,6 @@ function setDefConfig() {
   defC("KONA3_DIR_TEMPLATE",   KONA3_DIR_ENGINE."/template");
   defC("KONA3_DIR_RESOURCE",   KONA3_DIR_ENGINE."/resource");
   defC("KONA3_DIR_LANG",       KONA3_DIR_ENGINE."/lang");
-  // git
-  defC("KONA3_GIT_ENABLED", false);
-  defC("KONA3_GIT_BRANCH", "master");
-  defC("KONA3_GIT_REMOTE_REPOSITORY", "origin");
   // uri
   defC("KONA3_URI_ATTACH",     "./attach");
   defC("KONA3_URI_DATA",       "./data");
@@ -69,8 +69,13 @@ function setDefConfig() {
   defC("KONA3_ALLPAGE_FOOTER", "");
   defC("KONA3_PLUGIN_DISALLOW", ""); // delimitter=","
   defC("KONA3_ENC_PAGENAME", FALSE);
-  defC("KONA3_PARTS_COUNTCHAR", true);
-  defC("KONA3_NOANCHOR", false);
+  defC("KONA3_PARTS_COUNTCHAR", TRUE);
+  defC("KONA3_NOANCHOR", FALSE);
+  defC("KONA3_SHOW_DATA_DIR", TRUE);
+  // git
+  defC("KONA3_GIT_ENABLED", FALSE);
+  defC("KONA3_GIT_BRANCH", "master");
+  defC("KONA3_GIT_REMOTE_REPOSITORY", "origin");
   // files
   defC("KONA3_FILES_JS", ''); // (ex) a.js, b.js, c.js
   defC("KONA3_FILES_CSS", ''); // (ex) a.css, b.css c.css

@@ -35,7 +35,7 @@ function kona3plugins_comment_execute($params) {
   } else if ($type == "todo") {
     return _at_all($pdo, 'todo');
   }
-  // create log
+  // select logs
   $bbs_id = kona3plugins_comment_getBbsId($pdo, $bbsid);
   $stmt = $pdo->prepare('SELECT * FROM comment_list '.
     'WHERE bbs_id=? '.
@@ -43,71 +43,94 @@ function kona3plugins_comment_execute($params) {
     'LIMIT 300');
   $stmt->execute(array(intval($bbs_id)));
   $logs = $stmt->fetchAll();
-  $html = "<div class='comments'>";
-  if (!$logs) {
-    $html .= "";
-  } else {
-    $html .= "<p class='memo'><a name='CommentBox'>Comment:</a></p><div class='comment_box'>";
-    $index = "index.php?".urlencode($page)."&plugin&name=comment&";
-    foreach ($logs as $row) {
-      $id = $row["comment_id"];
-      $name = htmlentities($row['name']);
-      $body = htmlentities($row['body']);
-      $body = str_replace("\n", "<br>", $body);
-      $body = str_replace(" ", "&nbsp;", $body);
-      $body = preg_replace('#\&gt;(\d+)#', '<a href="#comment_id_$1">&gt;$1</a>', $body);
-      $mtime = ($row['mtime'] == 0) ? "-" : date("Y-m-d H:i", $row['mtime']);
-      
-      $del = "<a href='{$index}m=del&id=$id'>del</a>";
-      $todo_v = $row['todo'];
-      $todo_l = ($todo_v == 0) ? "done" : "todo";
-      $todo = "<a class='$todo_l' onclick='chtodo(event,$id)'>$todo_l</a>";
-      $html .= 
-          "<div class='comment_post'>".
-            "<div class='comment_title'><a name='comment_id_{$id}'>($id)</a> $name</div>".
-            "<div class='comment_body'>$body --- ".
-            "<span class='memo'>($mtime) [$del] [$todo]</span></div>".
-          "</div>";
-    }
-    $html .= "</div>";
+  // render logs
+  $html_comments = _renderCommentList($page, $logs);
+  $html_form = _renderCommentForm($page, $bbs_id);
+  return <<<__EOS__
+<!-- #comment plugin -->
+<div class="plugin_comment">
+  <p class='memo'><a name='CommentBox'>Comment:</a></p>
+  <div class='comment_box'>
+    {$html_comments}
+  </div><!-- end of .comment_box -->
+  <div class="comments_form">
+    {$html_form}
+  </div>
+</div><!-- end of .plugin_comment -->
+__EOS__;
+}
+
+function _renderCommentList($page, $logs) {
+  if (!$logs) return "";
+  $html = "";
+  $index = kona3getPageURL($page, 'plugin', '', 'name=comment');
+  $index .= "&";
+  foreach ($logs as $row) {
+    $id = $row["comment_id"];
+    $name = htmlentities($row['name']);
+    $body = htmlentities($row['body']);
+    $body = str_replace("\n", "<br>", $body);
+    $body = str_replace(" ", "&nbsp;", $body);
+    $body = preg_replace(
+      '#\&gt;(\d+)#',
+      '<a href="#comment_id_$1">&gt;$1</a>',
+      $body);
+    $mtime = ($row['mtime'] == 0)
+      ? "-" : date("Y-m-d H:i", $row['mtime']);
+    $del = "<a href='{$index}m=del&id=$id'>del</a>";
+    $todo_v = $row['todo'];
+    $todo_l = ($todo_v == 0) ? "done" : "todo";
+    $todo = "<a class='$todo_l' onclick='chtodo(event,$id)'>$todo_l</a>";
+    $html .= 
+        "<div class='comment_log'>".
+          "<div class='comment_title'><a name='comment_id_{$id}'>($id)</a> $name</div>".
+          "<div class='comment_body'>$body --- ".
+          "<span class='memo'>($mtime) [$del] [$todo]</span></div>".
+        "</div><!-- end of .comment_log -->";
   }
-  $action = "index.php?".urlencode($page)."&plugin&name=comment";
+  $html .= "";
+  return $html;
+}
+
+function _renderCommentForm($page, $bbs_id) {
+  $form_action = kona3getPageURL($page, 'plugin', '', 'name=comment');
   $def_name = isset($_SESSION['name']) ? $_SESSION['name'] : '';
   $def_pw   = isset($_SESSION['password']) ? $_SESSION['password'] : '';
   $script = _todo_script();
-  $html .= <<< EOS
-    <div id="comment_form_box">
-      <form action="$action" method="post">
-      <input type="hidden" name="m" value="write">
-      <input type="hidden" name="bbs_id" value="$bbs_id">
-      <p class="memo"><a name="CommentBoxForm">Comment Form:</a></p>
-      <div class="comment_form">
-        <p>
-          <label for="name">name:</label><br>
-          <input id="name" type="text" name="name" value="$def_name">
-        </p>
-        <p>
-          <label for="body">body:</label><br>
-          <textarea id="body" name="body" rows="4" cols="50"></textarea><br>
-          <span class="memo">&gt;1 &gt;2 ...</span>
-        </p>
-        <p>
-          <label for="password">password</label><br>
-          <input type="password" name="pw" value="$def_pw">
-        </p>
-        <p>
-          <input type="submit" value="POST">
-        </p>
-      </div>
-      </form>
-    </div><!-- /comment_form_box -->
-    <div><a href="#CommentBoxForm" id="comment_form_open_btn" onclick='comment_form_open()'>
-      → post comment</a></div>
-    </div><!-- /comment -->
+  $msg_post_comment = lang('Post Comment');
+  $msg_close = lang('Close');
+  return <<< EOS
+<div class="comment_form_box">
+  <!-- close bar -->
+  <div class="comment_close_bar">
+    <a href="#CommentBoxForm"
+      class="comment_form_close_btn"
+      onclick='comment_form_close()'>[{$msg_close}]</a>
+  </div>
+  <!-- comment form -->
+  <form action="$form_action" method="post"
+   class="pure-form pure-form-stacked">
+    <input type="hidden" name="m" value="write">
+    <input type="hidden" name="bbs_id" value="$bbs_id">
+    <label for="name">name:</label>
+    <input id="name" type="text" name="name" value="$def_name">
+    <label for="body">body: <span class="memo">(&gt;1 &gt;2 ...)</span></label>
+    <textarea id="body" name="body" rows="4" cols="50"></textarea>
+    <label for="password">password</label>
+    <input type="password" name="pw" value="$def_pw">
+    <input class="pure-button pure-button-primary" type="submit" value="POST">
+  </form>
+</div><!-- /comment_form_box -->
+<div class="msg_post_comment">
+  <a href="#CommentBoxForm"
+   class="comment_form_open_btn"
+   onclick='comment_form_open()'>
+      →{$msg_post_comment}</a>
+</div><!-- end of .msg_post_comment -->
 {$script}\n
 EOS;
-  return $html;
 }
+
 
 function _err($title, $msg) {
   global $output_format;
@@ -333,11 +356,17 @@ function chtodo(event, id) {
 }
 // close form
 $(document).ready(function() {
-  $("#comment_form_box").hide();
+  comment_form_close();
 });
 function comment_form_open() {
-  $("#comment_form_box").show();
-  $("#comment_form_open_btn").hide();
+  $(".comment_form_box").show();
+  $(".comment_form_open_btn").hide();
+  $(".comment_form_close_btn").show();
+}
+function comment_form_close() {
+  $(".comment_form_box").hide();
+  $(".comment_form_open_btn").show();
+  $(".comment_form_close_btn").hide();
 }
 EOS;
   $script = <<< EOS

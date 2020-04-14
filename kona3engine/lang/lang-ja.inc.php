@@ -14,5 +14,7 @@ $lang_data = [
   'Password' => 'パスワード',
   'Invalid User or Password.' => 'ユーザーかパスワードが間違っています。',
   'Success to login.' => 'ログイン成功。',
+  'Post Comment' => 'コメント投稿',
+  'Close' => '閉じる',
 ];
 
