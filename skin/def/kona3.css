@@ -67,16 +67,26 @@ body {
 	font-size: 1em;
 	line-height: 1.4em;
 }
+#wikibody .pad {
+  padding: 0px;
+  margin: 8px;
+}
 #wikimenu {
 	height: 100%;
 	padding: 0px;
 	top: 0px;
 }
-
 #wikimenu .contents {
 	padding:0;
 	margin: 0;
 }
+.ctrl_menu {
+  max-width: 768px;
+  margin: 4px auto;
+  font-size: 0.7em;
+  text-align: right;
+}
+
 #wikimessage {
 	max-width: 760;
 	margin: 0 auto;

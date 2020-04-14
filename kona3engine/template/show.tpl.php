@@ -2,14 +2,11 @@
 
 global $kona3conf;
 
+// get menu
+$ctrl_menu = kona3getMenu();
 if (KONA3_PARTS_COUNTCHAR) {
-  $menu = kona3getMenu(); 
   $cnt_txt = number_format($cnt_txt);
-  $parts_countchar = 
-    "<div style='font-size:8px; text-align:right; ".
-    " padding:8px; margin: 8px; background-color:#f0f0ff; '>".
-    "$menu - CH=$cnt_txt</div>";
-  $page_body = $parts_countchar . $page_body . $parts_countchar;
+  $ctrl_menu .= " - {$cnt_txt}ch";
 }
 
 if (kona3isLogin()) {
@@ -26,6 +23,8 @@ $menubar = kona3getWikiPage("MenuBar");
 // --- BODY ---
 include_once dirname(__FILE__).'/parts_header.tpl.php';
 echo <<<EOS
+<div class="ctrl_menu">{$ctrl_menu}</div>
+
 <div id="wikibody">
   <div class="pure-g">
     <div class="pure-u-1 pure-u-md-19-24">

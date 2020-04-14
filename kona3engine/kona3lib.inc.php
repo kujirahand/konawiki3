@@ -324,7 +324,6 @@ function kona3getMenuArray() {
     $list[] = array(lang('Edit'), $edit_uri);
     $list[] = array('-','-');
     $list[] = array(lang('Logout'), $logout_uri);
-    $list[] = array('-','-');
   }
   return $list;
 }
@@ -358,7 +357,7 @@ function kona3getMenu($type='bar') {
     }
     return '<ul>'.implode("", $ha).'</ul>';
   }
-  return '--no-type--';
+  return '[ctrl_menu-error-no-type--]';
 }
 
 $kona3db = null;
