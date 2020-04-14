@@ -49,7 +49,9 @@ function kona3plugins_comment_execute($params) {
   return <<<__EOS__
 <!-- #comment plugin -->
 <div class="plugin_comment">
-  <p class='memo'><a name='CommentBox'>Comment:</a></p>
+  <div class='plugin_title'>
+    <a name='CommentBox'>#comment</a>
+  </div>
   <div class='comment_box'>
     {$html_comments}
   </div><!-- end of .comment_box -->
@@ -81,12 +83,16 @@ function _renderCommentList($page, $logs) {
     $todo_v = $row['todo'];
     $todo_l = ($todo_v == 0) ? "done" : "todo";
     $todo = "<a class='$todo_l' onclick='chtodo(event,$id)'>$todo_l</a>";
-    $html .= 
-        "<div class='comment_log'>".
-          "<div class='comment_title'><a name='comment_id_{$id}'>($id)</a> $name</div>".
-          "<div class='comment_body'>$body --- ".
-          "<span class='memo'>($mtime) [$del] [$todo]</span></div>".
-        "</div><!-- end of .comment_log -->";
+    $html .= <<<__EOS__
+<div class='comment_log'>
+  <div class='comment_title'>
+    <a name='comment_id_{$id}'>($id)</a> $name
+  </div>
+  <div class='comment_body'>$body --- 
+      <span class='memo'>($mtime) [$del] [$todo]</span>
+  </div>
+</div><!-- end of .comment_log -->
+__EOS__;
   }
   $html .= "";
   return $html;
@@ -99,13 +105,14 @@ function _renderCommentForm($page, $bbs_id) {
   $script = _todo_script();
   $msg_post_comment = lang('Post Comment');
   $msg_close = lang('Close');
+  $msg_post = lang('Add');
   return <<< EOS
 <div class="comment_form_box">
   <!-- close bar -->
   <div class="comment_close_bar">
     <a href="#CommentBoxForm"
-      class="comment_form_close_btn"
-      onclick='comment_form_close()'>[{$msg_close}]</a>
+      class="comment_form_close_btn pure-button"
+      onclick='comment_form_close()'>{$msg_close}</a>
   </div>
   <!-- comment form -->
   <form action="$form_action" method="post"
@@ -118,12 +125,12 @@ function _renderCommentForm($page, $bbs_id) {
     <textarea id="body" name="body" rows="4" cols="50"></textarea>
     <label for="password">password</label>
     <input type="password" name="pw" value="$def_pw">
-    <input class="pure-button pure-button-primary" type="submit" value="POST">
+    <input class="pure-button pure-button-primary" type="submit" value="$msg_post">
   </form>
 </div><!-- /comment_form_box -->
 <div class="msg_post_comment">
   <a href="#CommentBoxForm"
-   class="comment_form_open_btn"
+   class="pure-button comment_form_open_btn"
    onclick='comment_form_open()'>
       →{$msg_post_comment}</a>
 </div><!-- end of .msg_post_comment -->

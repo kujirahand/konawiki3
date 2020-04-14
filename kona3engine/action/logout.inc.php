@@ -7,7 +7,7 @@ function kona3_action_logout() {
   kona3logout();
   kona3showMessage(
     $page,
-    'Success to logout.'
+    lang('Success to logout.')
   );
 }
 

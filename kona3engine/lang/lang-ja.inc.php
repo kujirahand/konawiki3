@@ -16,5 +16,7 @@ $lang_data = [
   'Success to login.' => 'ログイン成功。',
   'Post Comment' => 'コメント投稿',
   'Close' => '閉じる',
+  'Success to logout.' => 'ログアウトしました。',
+  'Add' => '追加',
 ];
 
