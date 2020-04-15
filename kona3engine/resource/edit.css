@@ -35,24 +35,30 @@
   height: 300px;
 }
 
+#wikiedit input#git_save_btn,
 #wikiedit input#temporarily_save_btn {
-  font-size: 12px;
+  font-size: 0.9em;
   border: 1px solid gray;
   color: black;
   padding: 8px;
   background-color: #f0f0f0;
   text-decoration: none;
-  width: 180px;
 }
 
 #wikiedit input[type="submit"]#save_btn {
-  font-size: 12px;
-  width: 120px;
+  font-size: 0.9em;
   border: 1px solid gray;
   color: black;
   padding: 8px;
   background-color: #f0f0f0;
   text-decoration: none; 
+}
+
+#wikiedit .button-short {
+  width: 10em;
+}
+#wikiedit .button-long {
+  width: 16em;
 }
 
 #wikiedit .info {

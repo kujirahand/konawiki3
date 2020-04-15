@@ -43,7 +43,10 @@ function kona3plugins_include_file($name, &$html) {
     return true;
   }
   // else
-  $html = konawiki_parser_convert("- [[$name]] not found");
+  $m_edit = lang('Edit');
+  $url = kona3getPageURL($name, 'edit');
+  $name_html = htmlspecialchars($name);
+  $html = "<a href=\"$url\" class=\"pure-button\">$m_edit: $name_html</a>";
   return false;
 }
 
@@ -53,8 +56,5 @@ function kona3plugins_include_markdown_convert($txt) {
   $txt = $parser->parse($txt);
   return $txt;
 }
-
-
-
 
 

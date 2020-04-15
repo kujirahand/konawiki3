@@ -14,7 +14,7 @@ href = href.replace(/(http|https)\:\/\//, '');
 var STORAGE_KEY = 'kona3:' + href;
 
 function edit_init() {
-  // event
+  // edit event
   var edit_txt = qs('#edit_txt');
   edit_txt.addEventListener('keydown', function(e) {
     var c = e.keyCode;
@@ -28,8 +28,12 @@ function edit_init() {
     // console.log(e.keyCode);
   }, false);
 
+  // set button event
   $('#temporarily_save_btn').click(temporarily_save);
   // $('#outline_btn').click(change_outline);
+  $('#git_save_btn').click(git_save);
+  
+  // shortcut
   $(window).keydown(function(e) {
     // shortcut Ctrl+S
     if ((e.metaKey || e.ctrlKey) && e.keyCode == 83) {
@@ -37,10 +41,6 @@ function edit_init() {
       e.preventDefault();
     }
   });
-  // recover_div
-  if (localStorage[STORAGE_KEY] !== undefined) {
-    // recover?
-  }
 }
 
 var use_unload_flag = false;
@@ -62,7 +62,70 @@ function use_beforeunload(b) {
 function temporarily_save() {
   const edit_txt = qs('#edit_txt');
   localStorage[STORAGE_KEY] = edit_txt.value;
-  countText();
+  save_ajax();
+}
+
+function save_ajax() {
+  $('temporarily_save_btn').prop('disabled', true);
+  go_ajax('trywrite');
+}
+function git_save() {
+  $('git_save_btn').prop('disabled', true);
+  go_ajax('trygit');
+}
+
+
+function go_ajax(a_mode) {
+  var action = $("#wikiedit form").attr('action');
+  var text = $('#edit_txt').val();
+  $.post(action,
+  {
+      'i_mode': 'ajax',
+      'a_mode': a_mode,
+      'a_hash': $('#a_hash').val(),
+      'edit_txt': text
+  })
+  .done(function(msg) {
+    // parse to json
+    if (typeof(msg) == 'string') {
+      try {
+        msg = JSON.parse(msg);
+      } catch (e) {
+        msg = {"result":false, "reason":msg};
+      }
+    }
+    // check result
+    var result = msg["result"];
+    if (result != 'ok') {
+      console.log(msg);
+      $("#edit_info").val("[error] " + msg['reason']);
+      setButtonsDisabled(false);
+      return;
+    }
+    // count
+    countText();
+    // set hash
+    $('#a_hash').val(msg["a_hash"]);
+    $("#edit_info").val('[saved] ' + msg["a_hash"]);
+    use_beforeunload(false);    
+    // effect - flash info field
+    const info = $("#edit_info");
+    const oldColor = info.css('backgroundColor');
+    info.css('backgroundColor', '#ffffc0');
+    setTimeout(function() {
+      info.css('backgroundColor', '#f0f0ff');
+    }, 500);
+    // button
+    setButtonsDisabled(false);
+  })
+  .fail(function(xhr, status, error) {
+    $("#edit_info").html("Sorry request failed." + error);
+  });
+}
+
+function setButtonsDisabled(stat) {
+  $('#git_save_btn').prop('disabled', stat);
+  $('#temporarily_save_btn').prop('disabled', stat);
 }
 
 function countText() {

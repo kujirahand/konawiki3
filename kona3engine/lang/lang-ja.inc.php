@@ -20,5 +20,9 @@ $lang_data = [
   'Add' => '追加',
   'Save temp' => '一時保存',
   'Save &amp; Show' => '保存して表示',
+  'Save to Repo' => '編集履歴に保存',
+  'Conflict editing, Please submit and check.' => 
+    '編集が衝突しました。他のタブで編集していないか確認してみてください。',
+  'Could not write file.' => 'ファイルに書き込みができません。',
 ];
 

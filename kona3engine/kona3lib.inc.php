@@ -320,11 +320,9 @@ function kona3getCtrlMenuArray($type) {
       $list[] = array(lang('Login'), $login_uri);
     }
   } else {
-    $list[] = array(lang('Search'), $search_uri);
-    $list[] = array('-','-');
-    $list[] = array(lang('New'), $new_uri);
     $list[] = array(lang('Edit'), $edit_uri);
-    $list[] = array('-','-');
+    $list[] = array(lang('New'), $new_uri);
+    $list[] = array(lang('Search'), $search_uri);
     $list[] = array(lang('Logout'), $logout_uri);
   }
   return $list;

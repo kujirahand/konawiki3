@@ -31,10 +31,14 @@ function kona3_action_edit() {
   $a_hash = hash('sha256', $txt); 
 
   if ($a_mode == "trywrite") {
-    $msg = kona3_trywrite($txt, $a_hash, $i_mode);
+    $msg = kona3_trywrite($txt, $a_hash, $i_mode, $result);
+  } else if ($a_mode == "trygit") {
+    $msg = kona3_trygit($txt, $a_hash, $i_mode);
   } else {
     $msg = "";
   }
+  // Ajaxならテンプレート出力しない
+  if ($i_mode == 'ajax') return;
 
   // show
   kona3template('edit', array(
@@ -94,25 +98,27 @@ function kona3_edit_err($msg, $method = "web") {
 }
 
 function kona3_conflict($edit_txt, &$txt, $i_mode) {
+  // エラーメッセージ
+  $msg = lang("Conflict editing, Please submit and check.");
+  // ajaxの場合
   if ($i_mode == "ajax") {
-    kona3_edit_err("Conflict editing, Please submit and check.", $i_mode);
-    exit;
+    kona3_edit_err($msg, $i_mode);
+    return $msg;
   }
-  $msg = 
-      "<div class='error'>Sorry, Conflict editing. Failed to save. ".
-      "Please check page and save again.</div>";
+  // formの場合
+  $msg = "<div class='error'>$msg</div>";
   $txt = kona3_make_diff($edit_txt, $txt);
   return $msg;
 }
 
-function kona3_trywrite(&$txt, &$a_hash, $i_mode) {
-  require_once dirname(dirname(__FILE__)) . '/vendor/autoload.php';
+function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
   global $kona3conf, $page;
 
   $edit_txt = kona3param('edit_txt', '');
   $a_hash_frm = kona3param('a_hash', '');
   $fname = kona3getWikiFile($page);
-  
+
+  $result = FALSE;
   // check hash
   if ($a_hash_frm !== $a_hash) { // conflict
     return kona3_conflict($edit_txt, $txt, $i_mode);
@@ -120,15 +126,15 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode) {
   // save
   if (file_exists($fname)) {
     if (!is_writable($fname)) {
-      kona3_edit_err('Could not write file.', $i_mode);
-      exit;
+      kona3_edit_err(lang('Could not write file.'), $i_mode);
+      return "";
     }
   } else {
     $dirname = dirname($fname);
     if (file_exists($dirname)) {
       if (!is_writable(dirname($fname))) {
-        kona3_edit_err('Could not write file. Permission denied.', $i_mode);
-        exit;
+        kona3_edit_err(lang('Could not write file.'), $i_mode);
+        return "";
       }
     } else {
       // auto mkdir ?
@@ -151,20 +157,13 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode) {
       }
     }
   }
-  file_put_contents($fname, $edit_txt);
-
-  if ($kona3conf["git.enabled"]) {
-    $branch = $kona3conf["git.branch"];
-    $remote_repository = $kona3conf["git.remote_repository"];
-    $repo = new Cz\Git\GitRepository(dirname($fname));
-
-    if ($repo->getCurrentBranchName() != $branch) {
-      $repo->checkout($branch);
-    }
-
-    $repo->addFile($fname);
-    $repo->commit("Update $page from Konawiki3");
-    $repo->push($remote_repository, array($branch));
+  // write
+  $bytes = @file_put_contents($fname, $edit_txt);
+  if ($bytes === FALSE) {
+    $msg = lang('Could not write file.');
+    kona3_edit_err($msg, $i_mode);
+    $result = FALSE;
+    return $msg;
   }
 
   // result
@@ -173,14 +172,58 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode) {
       'result' => 'ok',
       'a_hash' => hash('sha256', $edit_txt),
     ));
-    exit;
+    return TRUE;
+  }
+  $jump = kona3getPageURL($page);
+  header("location:$jump");
+  echo "ok, saved.";
+  return TRUE;
+}
+
+function kona3_trygit(&$txt, &$a_hash, $i_mode) {
+  require_once dirname(dirname(__FILE__)) . '/vendor/autoload.php';
+  global $kona3conf, $page;
+
+  $edit_txt = kona3param('edit_txt', '');
+  $a_hash_frm = kona3param('a_hash', '');
+  $fname = kona3getWikiFile($page);
+  
+  // 先に保存
+  kona3_trywrite($txt, $a_hash, $i_mode, $result);
+  if (!$result) {
+    return;
+  }
+  
+  // Gitが有効?
+  if (!$kona3conf["git.enabled"]) {
+    return;
+  }
+  
+  // Git操作
+  $branch = $kona3conf["git.branch"];
+  $remote_repository = $kona3conf["git.remote_repository"];
+  $repo = new Cz\Git\GitRepository(dirname($fname));
+
+  if ($repo->getCurrentBranchName() != $branch) {
+    $repo->checkout($branch);
+  }
+
+  $repo->addFile($fname);
+  $repo->commit("Update $page from Konawiki3");
+  $repo->push($remote_repository, array($branch));
+
+  // result
+  if ($i_mode == "ajax") {
+    echo json_encode(array(
+      'result' => 'ok',
+      'a_hash' => hash('sha256', $edit_txt),
+    ));
+    return;
   }
   $jump = kona3getPageURL($page);
   header("location:$jump");
   echo "ok, saved.";
 }
-
-
 
 
 
