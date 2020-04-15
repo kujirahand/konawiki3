@@ -6,6 +6,7 @@ global $kona3conf;
 $m_save_temp = lang('Save temp');
 $m_save = lang('Save &amp; Show');
 $m_git_save = lang('Save to Repo');
+$m_ls_load = lang('Load from Browser');
 
 // git button
 if ($kona3conf['git.enabled']) {
@@ -45,9 +46,16 @@ $page_body = <<<__EOS__
     </form>
     <br>
     <div class="desc">
-      <div>shortcut</div>
+      <div>Shortcut:</div>
       <ul>
         <li>Ctrl+S ... save</li>
+      </ul>
+    </div>
+    <div class="desc">
+      <div>etc...</div>
+      <ul>
+        <li><input id="ls_load_btn" type="button" class="pure-button"
+             value="$m_ls_load"></li>
       </ul>
     </div>
   </div>

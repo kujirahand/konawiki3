@@ -22,7 +22,7 @@ function edit_init() {
       return;
     }
     if (c == 13) { // ENTER
-      temporarily_save();
+      ls_save();
     }
     use_beforeunload(true);
     // console.log(e.keyCode);
@@ -32,6 +32,7 @@ function edit_init() {
   $('#temporarily_save_btn').click(temporarily_save);
   // $('#outline_btn').click(change_outline);
   $('#git_save_btn').click(git_save);
+  $('#ls_load_btn').click(ls_load);
   
   // shortcut
   $(window).keydown(function(e) {
@@ -59,9 +60,20 @@ function use_beforeunload(b) {
   use_unload_flag = b;
 }
 
-function temporarily_save() {
+function ls_save() {
   const edit_txt = qs('#edit_txt');
   localStorage[STORAGE_KEY] = edit_txt.value;
+}
+
+function ls_load() {
+  if (!localStorage[STORAGE_KEY]) return;
+  if (!confirm('OK?')) return;
+  const edit_txt = qs('#edit_txt');
+  edit_txt.value = localStorage[STORAGE_KEY];
+}
+
+function temporarily_save() {
+  ls_save();
   save_ajax();
 }
 
