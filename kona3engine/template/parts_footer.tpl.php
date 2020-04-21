@@ -1,6 +1,7 @@
 <?php
 // allpage.footer
 $allpage = '';
+if (!isset($action)) { $action = 'show'; }
 if (!empty($kona3conf['allpage.footer']) && $action == 'show') {
   $allpage = konawiki_parser_convert($kona3conf['allpage.footer']);
 }
@@ -8,6 +9,7 @@ if (!empty($kona3conf['allpage.footer']) && $action == 'show') {
 // ctrl_menu
 $ctrl_menu = kona3getCtrlMenu("bar");
 if (KONA3_PARTS_COUNTCHAR) {
+  if (!isset($cnt_txt)) { $cnt_txt = 0; }
   $cnt_txt = number_format($cnt_txt);
   $ctrl_menu .= " - {$cnt_txt}ch";
 }
