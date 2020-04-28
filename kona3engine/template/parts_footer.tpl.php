@@ -16,7 +16,7 @@ if (KONA3_PARTS_COUNTCHAR) {
 
 // KONA3_SHOW_DATA_DIR
 $show_data_dir = "";
-if (kona3isLogin() && KONA3_SHOW_DATA_DIR) {
+if (kona3isLogin() && KONA3_SHOW_DATA_DIR && isset($page_file)) {
   $show_data_dir = $page_file;
 }
 ?>
