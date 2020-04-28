@@ -9,6 +9,7 @@ $m_git_save = lang('Save to Repo');
 $m_ls_load = lang('Load from Browser');
 
 // git button
+$git_button = '';
 if ($kona3conf['git.enabled']) {
   $git_button =<<<__EOS
 <input id="git_save_btn" class="pure-button button-short" 
