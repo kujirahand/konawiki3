@@ -1,15 +1,15 @@
 <?php
-define("SESS_KEY_LOGIN", "konawiki3login");
+define("KONA3_LOGIN_TIME", "konawiki3login");
 
 function kona3login() {
-  $_SESSION[SESS_KEY_LOGIN] = time();
+  $_SESSION[KONA3_LOGIN_TIME] = time();
 }
 function kona3logout() {
-  unset($_SESSION[SESS_KEY_LOGIN]);
+  unset($_SESSION[KONA3_LOGIN_TIME]);
 }
 function kona3isLogin() {
-  if (isset($_SESSION[SESS_KEY_LOGIN])) {
-    $login = intval($_SESSION[SESS_KEY_LOGIN]);
+  if (isset($_SESSION[KONA3_LOGIN_TIME])) {
+    $login = intval($_SESSION[KONA3_LOGIN_TIME]);
     if ($login > 0) return TRUE;
   }
   return FALSE;

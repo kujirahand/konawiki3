@@ -4,8 +4,6 @@
  */
 require_once 'kona3login.inc.php';
 
-if (get_magic_quotes_gpc()){ un_magic_quotes(); }
-
 function kona3param($key, $def = NULL) {
   if (isset($_REQUEST[$key])) {
     return $_REQUEST[$key];
@@ -194,23 +192,6 @@ function kona3template($name, $params) {
   include($file);
 }
 
-// for magic_quotes_gpc
-function un_magic_quotes() {
-  if (get_magic_quotes_gpc()){
-    $_GET       = array_map("strip_text_slashes",$_GET);
-    $_POST      = array_map("strip_text_slashes",$_POST);
-    $_COOKIE    = array_map("strip_text_slashes",$_COOKIE);
-  }
-}
-function strip_text_slashes($arg) {
-  if(!is_array($arg)){
-    $arg = stripslashes($arg);
-  }elseif(is_array($arg)){
-    $arg = array_map("strip_text_slashes",$arg);
-  }
-  return $arg;
-}
-
 function kona3getPage() {
   global $kona3conf;
   $page = $kona3conf["page"];
@@ -292,7 +273,7 @@ function kona3getWikiName($filename) {
 
 function kona3getSysInfo() {
   global $kona3conf;
-  $href = "http://kujirahand.com/konawiki/";
+  $href = "https://kujirahand.com/konawiki/";
   $ver  = KONA3_SYSTEM_VERSION;
   $opt = "";
   if ($kona3conf["wiki.private"]) $opt .= "(private)";
