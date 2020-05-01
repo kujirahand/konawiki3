@@ -358,7 +358,7 @@ function lang($msg) {
   // メッセージデータを読み込み
   if (!$lang_data) {
     $lang = KONA3_LANG;
-    $langfile = KONA3_DIR_LANG."/lang-$lang.inc.php";
+    $langfile = KONA3_DIR_LANG."/$lang.inc.php";
     @include_once($langfile); // $lang_data
   }
   // 値を取得

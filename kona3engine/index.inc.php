@@ -1,8 +1,8 @@
 <?php
 /**
- * KonaWiki3
+ * KonaWiki3 kona3engine/index.inc.php
  */
-define("KONA3_SYSTEM_VERSION", "3.0.2");
+define("KONA3_SYSTEM_VERSION", "3.1.0");
 
 // charset
 mb_internal_encoding("UTF-8");
@@ -21,8 +21,10 @@ $kona3conf = array();
 // main
 // --------------------
 // include library
-$path_engine = dirname(__FILE__); // this directory is engine dir
-require_once $path_engine . '/kona3lib.inc.php';
+require_once __DIR__.'/kona3lib.inc.php';
+require_once __DIR__.'/fw_template_engine.lib.php';
+require_once __DIR__.'/fw_database.lib.php';
+require_once __DIR__.'/fw_etc.lib.php';
 
 // load conf
 setDefConfig();
