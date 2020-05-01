@@ -61,7 +61,12 @@ __EOS__;
 
 function _renderCommentList($page, $logs) {
   if (!$logs) return "";
-  $html = "";
+  $html = <<<__EOS__
+<!-- title -->
+<div class='plugin_title'>
+  <a name='CommentBox'>#comment</a>
+</div>
+__EOS__;
   $index = kona3getPageURL($page, 'plugin', '', 'name=comment');
   $index .= "&";
   foreach ($logs as $row) {
@@ -81,10 +86,6 @@ function _renderCommentList($page, $logs) {
     $todo_l = ($todo_v == 0) ? "done" : "todo";
     $todo = "<a class='$todo_l' onclick='chtodo(event,$id)'>$todo_l</a>";
     $html .= <<<__EOS__
-<!-- title -->
-<div class='plugin_title'>
-  <a name='CommentBox'>#comment</a>
-</div>
 <!-- logs -->
 <div class='comment_log'>
   <div class='comment_title'>

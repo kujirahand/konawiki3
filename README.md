@@ -9,7 +9,7 @@ Konawikiは原稿の執筆やマニュアルの作成に特化したシンプル
 
 ## Konawiki3 is simple.
 
-It is very simple PHP wiki engine.
+It is very simple PHP wiki engine. (Looks like PukiWiki).
 
 ```
 * header
@@ -36,7 +36,9 @@ console.log('hello');
 }}}
 ```
 
-## 日本語構文のサポート
+## 日本語Wiki記法のサポート
+
+Konawiki2に由来する、日本語Wiki記法をサポートしています。
 
 ```
 ■大見出し
@@ -60,16 +62,21 @@ text text text text
 
 # How to install Konawiki3
 
-- 1. Install WebServer and PHP5 or PHP7
-- 2. ``cp tmp-konawiki3.ini.php konawiki3.ini.php``
+- 1. Install WebServer and PHP7
+- 2. Download
+ - ``git clone https://github.com/kujirahand/konawiki3.git``
+- 3. Change Current Directory
+ - ``cd konawiki3``
+- 4. Copy Config file
+ - ``cp tmp-konawiki3.ini.php konawiki3.ini.php``
 
 ## Install Library
 
-- 3. Execute commands
+- 5. Execute commands
 
 ```
-$ cd kona3engine
-$ composer install
+cd kona3engine
+composer install
 ```
 
 ## Git support
