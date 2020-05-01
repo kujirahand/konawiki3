@@ -3,6 +3,10 @@
  - Wiki clone
  - Konawiki --- http://kujirahand.com/konawiki3/
 
+## Konawiki3の目標
+
+Konawikiは原稿の執筆やマニュアルの作成に特化したシンプルなWikiです。Wikiのデータはただのテキストファイルなので、Gitと連携して詳細な差分を取ることもできます。開発者は何年もテキストエディタの代わりにKonawiki3を使用しています。小さくシンプルなKonawikiを使って大きな仕事を成し遂げよう！
+
 ## Konawiki3 is simple.
 
 It is very simple PHP wiki engine.
