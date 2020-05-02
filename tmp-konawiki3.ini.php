@@ -8,13 +8,15 @@ define("KONA3_WIKI_TITLE", "Konawiki3");
 define("KONA3_WIKI_PRIVATE", TRUE); # TRUE or FALSE
 define("KONA3_WIKI_SKIN", "def"); // def/single
 
-// Users
-define("KONA3_WIKI_USERS", "kona3:pass3,kona2:pass2"); # admin users
+// Admin Users "user1:password1,user2:password2"
+define("KONA3_WIKI_USERS", "username:password,username2:password2");
 
 // Directories
-define("KONA3_DIR_ENGINE", dirname(__FILE__).'/kona3engine');
-define("KONA3_DIR_DATA", dirname(__FILE__).'/data');
-define("KONA3_DIR_PRIVATE", dirname(__FILE__).'/private');
+define("KONA3_DIR_ROOT", __DIR__);
+define("KONA3_DIR_ENGINE", __DIR__.'/kona3engine');
+define("KONA3_DIR_DATA", __DIR__.'/data');
+define("KONA3_DIR_PRIVATE", __DIR__.'/private');
+define("KONA3_DIR_CACHE", __DIR__.'/cache');
 // Files
 define("KONA3_DSN", "sqlite:".KONA3_DIR_PRIVATE."/data.sqlite");
 

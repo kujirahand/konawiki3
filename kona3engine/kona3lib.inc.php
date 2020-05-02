@@ -12,7 +12,7 @@ function kona3param($key, $def = NULL) {
   }
 }
 
-function kona3parseURI() {
+function kona3lib_parseURI() {
   // (ex) /path/index.php?PageName&Action&Status&p1=***&p2=***
   // (ex) /path/index.php?page=PageName&action=Action&status=Status
   global $kona3conf;
@@ -61,7 +61,7 @@ function kona3parseURI() {
 }
 
 // execute
-function kona3execute() {
+function kona3lib_execute() {
   global $kona3conf;
   $action = $kona3conf["action"];
   $actionFile = kona3getEngineFName("action", $action);
