@@ -4,4 +4,4 @@ private/
 data/
 .DS_Store
 composer.lock
-
+cache/*
