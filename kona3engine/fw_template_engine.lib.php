@@ -1,7 +1,7 @@
 <?php
 // php7 以降に対応
 define('TEMPLATE_VERSION', 'v1_'.filemtime(__FILE__));
-define('TEMPLATE_USE_CACHE', TRUE);
+define('TEMPLATE_USE_CACHE', FALSE);
 define('TEMPLATE_CACHE_TYPE', 'SAMEFILE'); // SAMEFILE | DATETYPE
 require_once __DIR__.'/fw_template_engine_plugins.lib.php';
 
@@ -21,21 +21,23 @@ function template_render($tpl_filename, $tpl_params) {
   /*
    * [使い方]
    * {{$name}} で変数埋め込み
+   * {{e code}} でeval
+   * {{eval code}} でeval
    * {{$name | filter}} で template_plugins.lib.php の t_filter($name) を実行
-   * {{$name | raw || でHTMLをそのまま表示
+   * {{$name | safe }} でHTMLをそのまま表示
    * {{$name.k1.k2}}だと$name["k1"]["k2"]と展開される
    * {{if cond}}..{{else}}..{{endif}}
    * {{for $values as $key=>$val}}..{{endfor}}
+   * {{"..." | filter}} で文字列をFilterにかける
+   * {{'...' | filter}} で文字列をFilterにかける
    * {{# (comment) }}
    */
   global $DIR_TEMPLATE;
   global $DIR_TEMPLATE_CACHE;
-  global $TEMPLATE_PARAMS;
-
+  global $FW_TEMPLATE_PARAMS;
   // extract variable
-  extract($TEMPLATE_PARAMS);
+  extract($FW_TEMPLATE_PARAMS);
   extract($tpl_params);
-  
   // check template
   $file_template = $DIR_TEMPLATE."/$tpl_filename";
   if (!file_exists($file_template)) {
@@ -61,9 +63,8 @@ function template_render($tpl_filename, $tpl_params) {
   }
   
   // create cache
-  $file_plugins = __DIR__ . '/template_engine_plugins.lib.php';
-  $body = "<?php /*[template_engine.lib.php] ".TEMPLATE_VERSION.
-          "*/ include_once('$file_plugins');";
+  $body = "<?php /*[fw_template_engine.lib.php] ".TEMPLATE_VERSION.
+          "*/";
   $body .= "?>";
   $body .= file_get_contents($file_template);
   $body = preg_replace_callback_array([
@@ -115,6 +116,18 @@ function template_render($tpl_filename, $tpl_params) {
     '#\{\{\s*\$([a-zA-Z0-9_.]+)\s*}}#is' => function (&$m) {
       $key = template_var_name($m[1]);
       return "<?php t_echo(\$$key);?>";
+    },
+    // string with filter {{ "..." | filter }}
+    '#\{\{\s*\"(.*?)\"\s*\|\s*([a-zA-Z0-9_]+)\s*}}#is' => function (&$m) {
+      $str = $m[1];
+      $filter = $m[2];
+      return "<?php t_{$filter}(\"{$str}\");?>";
+    },
+    // string with filter {{ '...' | filter }}
+    '#\{\{\s*\'(.*?)\'\s*\|\s*([a-zA-Z0-9_]+)\s*}}#is' => function (&$m) {
+      $str = $m[1];
+      $filter = $m[2];
+      return "<?php t_{$filter}('{$str}');?>";
     },
     // comment
     '#\{\{\s*\#(.*?)}}#is' => function (&$m) {

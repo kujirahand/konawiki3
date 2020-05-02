@@ -24,19 +24,10 @@ function t_date($v) {
 function t_datetime($v) {
   echo date('Y/m/d H:i', $v);
 }
-// star
-function t_star($v) {
-  $star = '★';
-  if ($v > 5) {
-    echo "👑 {$star}x{$v}";
-    return;
-  }
-  $s = '';
-  for ($i = 0; $i < $v; $i++) {
-    $s .= $star;
-  }
-  echo $s;
+function t_lang($msg) {
+  echo lang($msg);
 }
+
 
 // --- {{{e:xxx}}} ---
 function echo_options($sel_value, $labels, $values) {

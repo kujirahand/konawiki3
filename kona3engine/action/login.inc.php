@@ -51,7 +51,7 @@ function kona3_action_login() {
 </div>
 EOS;
   // show
-  kona3template('message', array(
+  kona3template('message.html', array(
     "page_title" => kona3text2html($page),
     "page_body"  => $form,
   ));

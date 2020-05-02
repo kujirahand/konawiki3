@@ -18,6 +18,8 @@ function kona3conf_setDefConfig() {
   // 基本的にdefineで定数定義するのはテンプレートに反映しないデータ
   // テンプレート内で使うデータを $kona3conf に移し替える
   // $kona3confの値はテンプレート表示時に値が展開されるため
+  // 以下の設定はデフォルトの値
+  // ユーザーごとの個別設定はルートに配置した konawiki3.ini.php に指定
   // 
   // global setting
   defC("KONA3_WIKI_TITLE",     "Konwwiki3");
@@ -27,7 +29,7 @@ function kona3conf_setDefConfig() {
   defC("KONA3_WIKI_SKIN",      "def");
   defC("KONA3_LANG",           "ja");
   // global dir
-  defC("KONA3_DIR_PUBLIC",     dirname(dirname(__FILE__)));
+  defC("KONA3_DIR_PUBLIC",     dirname(__DIR__));
   defC("KONA3_DIR_ENGINE",     dirname(__FILE__));
   defC("KONA3_DIR_DATA",       KONA3_DIR_PUBLIC."/data");
   defC("KONA3_DIR_PRIVATE",    KONA3_DIR_PUBLIC."/private");
@@ -60,11 +62,11 @@ function kona3conf_setDefConfig() {
   defC("KONA3_FILES_CSS", ''); // (ex) a.css, b.css c.css
 
   // global setting
-  $kona3conf["title"]          = KONA3_WIKI_TITLE;
+  $kona3conf["wiki_title"]     = KONA3_WIKI_TITLE;
   $kona3conf["wiki.private"]   = KONA3_WIKI_PRIVATE;
   $kona3conf["FrontPage"]      = KONA3_WIKI_FRONTPAGE;
-  $kona3conf["allpage.footer"] = KONA3_ALLPAGE_FOOTER;
-
+  $kona3conf["allpage_footer"] = KONA3_ALLPAGE_FOOTER;
+  $kona3conf["lang"] = KONA3_LANG;
   // users
   $users = array();
   $users_a = explode(",", KONA3_WIKI_USERS);
@@ -98,8 +100,7 @@ function kona3conf_setDefConfig() {
   $kona3conf["para_enabled_br"] = true;
 
   // git
-  $kona3conf["git.enabled"] = KONA3_GIT_ENABLED;
-
+  $kona3conf["git_enabled"] = $kona3conf["git.enabled"] = KONA3_GIT_ENABLED;
   if ($kona3conf["git.enabled"]) {
       $kona3conf["git.branch"] = KONA3_GIT_BRANCH;
       $kona3conf["git.remote_repository"] = KONA3_GIT_REMOTE_REPOSITORY;
@@ -110,6 +111,7 @@ function kona3conf_setDefConfig() {
   $kona3conf["header.tags"] = array(); // additional header
   $kona3conf["dsn"] = KONA3_DSN;
   $kona3conf["enc.pagename"] = KONA3_ENC_PAGENAME;
+  $kona3conf["show_data_dir"] = KONA3_SHOW_DATA_DIR;
   // javascript files
   $kona3conf["js"] = array(
     kona3getResourceURL('jquery-3.4.1.min.js'),
@@ -150,6 +152,13 @@ function kona3conf_setDefConfig() {
   if (substr($url_data, strlen($url_data) - 1, 1) == '/') {
     $kona3conf["url.data"] = substr($url_data, 0, strlen($url_data) - 1);
   }
+  
+  // Template engine
+  global $DIR_TEMPLATE;
+  global $DIR_TEMPLATE_CACHE;
+  global $FW_TEMPLATE_PARAMS;
+  $DIR_TEMPLATE = KONA3_DIR_TEMPLATE;
+  $DIR_TEMPLATE_CACHE = KONA3_DIR_CACHE;
 }
 
 // get value from array with default value

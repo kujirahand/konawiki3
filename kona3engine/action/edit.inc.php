@@ -39,9 +39,12 @@ function kona3_action_edit() {
   }
   // Ajaxならテンプレート出力しない
   if ($i_mode == 'ajax') return;
+  // include script
+  $kona3conf['js'][] = kona3getResourceURL('edit.js', TRUE);
+  $kona3conf['css'][] = kona3getResourceURL('edit.css', TRUE);
 
   // show
-  kona3template('edit', array(
+  kona3template('edit.html', array(
     "action" => $action,
     "a_hash" => $a_hash,
     "page_title" => kona3text2html($page),

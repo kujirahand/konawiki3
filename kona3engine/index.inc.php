@@ -15,6 +15,7 @@ session_start();
 // library
 require_once __DIR__.'/kona3conf.inc.php';
 require_once __DIR__.'/kona3lib.inc.php';
+require_once __DIR__.'/kona3parser.inc.php';
 // template engine
 require_once __DIR__.'/fw_template_engine.lib.php';
 require_once __DIR__.'/fw_database.lib.php';
@@ -29,4 +30,6 @@ kona3conf_setDefConfig();
 kona3lib_parseURI();
 // execute
 kona3lib_execute();
+
+
 

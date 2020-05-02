@@ -58,6 +58,32 @@ function kona3lib_parseURI() {
     $_SERVER['HTTP_HOST'],
     $script_dir
   );
+  kona3getPageTitleLink();
+}
+function kona3getPageTitleLink() {
+  global $kona3conf;
+
+  $page_title = $page = $kona3conf["page"];
+  $page_title_ = kona3text2html($page_title);
+  $page_url = $kona3conf['page_url'] = kona3getPageURL($page);
+  // if page_title has directories
+  if (strpos($page_title, '/') >= 0) {
+    $titles = explode('/', $page_title);
+    $title_a = array();
+    $title_links = array();
+    foreach ($titles as $title) {
+      $title_a[] = $title;
+      $name = implode('/', $title_a);
+      $name_html = kona3text2html($title);
+      $name_link = kona3getPageURL($name);
+      $title_links[] = "<a href='$name_link'>$name_html</a>";
+    }
+    $page_title_a = implode('/', $title_links);
+  } else {
+    $page_title_a = "<a href='{$page_url}'>{$page_title_}</a>";
+  }
+  $kona3conf['page_title'] = $page_title;
+  $kona3conf['page_title_a'] = $page_title_a;
 }
 
 // execute
@@ -165,7 +191,7 @@ function kona3getRelativePath($wikiname) {
 // show error page
 function kona3error($title, $msg) {
   $err = "<div class='error'>$msg</div>";
-  kona3template("message", array(
+  kona3template("message.html", array(
     'page_title' => kona3text2html($title),
     'page_body'  => $err,
   ));
@@ -173,15 +199,56 @@ function kona3error($title, $msg) {
 }
 function kona3showMessage($title, $msg) {
   $body = "<div class='message'>$msg</div>";
-  kona3template("message", array(
+  kona3template("message.html", array(
     'page_title' => kona3text2html($title),
     'page_body'  => $body,
   ));
   exit;
 }
 
-function kona3template($name, $params) {
+function kona3template_prepare($name, $params) {
   global $kona3conf;
+  // header tags
+  $head_tags = "";
+  if (isset($kona3conf['header.tags'])) {
+    foreach($kona3conf['header.tags'] as $tag) {
+      $head_tags .= $tag."\n";
+    }
+  }
+  $kona3conf['head_tags'] = $head_tags;
+  
+  // css tags
+  $css = "";
+  if (isset($kona3conf['css'])) {
+    $csslist = $kona3conf['css'];
+    $csslist = array_unique($csslist);
+    foreach($csslist as $c) {
+      $css .= "<link rel=\"stylesheet\" type=\"text/css\"\n".
+              " href=\"{$c}\">\n";
+    }
+  }
+  $kona3conf['css_tags'] = $css;
+  
+  // js tags
+  $js = "";
+  if (isset($kona3conf['js'])) {
+    $jslist = $kona3conf['js'];
+    $jslist = array_unique($jslist);
+    foreach($jslist as $j) {
+      $js .= "<script type=\"text/javascript\"\n".
+             " src=\"$j\"></script>\n";
+    }
+  }
+  $kona3conf['js_tags'] = $js;
+}
+
+function kona3template($name, $params) {
+  global $kona3conf, $FW_TEMPLATE_PARAMS;
+  kona3template_prepare($name, $params);
+  $FW_TEMPLATE_PARAMS = $kona3conf;
+  template_render($name, $params);
+  /*
+   * TODO: skin 対応
   extract($params);
   // check skin dir
   $file = KONA3_DIR_SKIN.'/'.KONA3_WIKI_SKIN.'/'.$name.'.tpl.php';
@@ -190,6 +257,7 @@ function kona3template($name, $params) {
     $file = $kona3conf['path.engine']."/template/{$name}.tpl.php";
   }
   include($file);
+   */
 }
 
 function kona3getPage() {

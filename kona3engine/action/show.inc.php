@@ -1,9 +1,6 @@
 <?php
 /** KonaWiki3 show */
 
-include_once dirname(dirname(__FILE__)).'/kona3lib.inc.php';
-include_once dirname(dirname(__FILE__)).'/kona3parser.inc.php';
-
 function kona3_action_show() {
   global $kona3conf;
   $page = $kona3conf["page"];
@@ -59,14 +56,13 @@ function kona3_action_show() {
     kona3error($page, "Sorry, System Error."); exit;
   }
 
-
   // show
-  kona3template('show', array(
-    "page_title" => kona3text2html($page),
+  kona3template('show.html', [
+    "page_title" => $page,
     "page_body"  => $page_body,
     "cnt_txt"    => $cnt_txt,
-    "page_file"  => $fname
-  ));
+    "page_file"  => $fname,
+  ]);
 }
 
 function kona3show_detect_file($page, &$fname, &$ext) {
