@@ -240,6 +240,12 @@ function kona3template_prepare($name, $params) {
     }
   }
   $kona3conf['js_tags'] = $js;
+
+  // FrontPage URL
+  $kona3conf['FrontPage_url'] =
+    kona3getPageURL($kona3conf['FrontPage']);
+  
+  // 
 }
 
 function kona3template($name, $params) {
@@ -247,17 +253,6 @@ function kona3template($name, $params) {
   kona3template_prepare($name, $params);
   $FW_TEMPLATE_PARAMS = $kona3conf;
   template_render($name, $params);
-  /*
-   * TODO: skin 対応
-  extract($params);
-  // check skin dir
-  $file = KONA3_DIR_SKIN.'/'.KONA3_WIKI_SKIN.'/'.$name.'.tpl.php';
-  if (!file_exists($file)) {
-    // normal template
-    $file = $kona3conf['path.engine']."/template/{$name}.tpl.php";
-  }
-  include($file);
-   */
 }
 
 function kona3getPage() {

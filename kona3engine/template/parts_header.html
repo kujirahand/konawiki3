@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="{{$lang}}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- include files -->
+{{ $head_tags | safe }}
+{{ $js_tags | safe }}
+{{ $css_tags | safe }}
+{{ if $page == $FrontPage }}
+<title>{{ $wiki_title }}</title>
+{{ else }}
+<title>{{ $wiki_title }} - {{ $page_title }}</title>
+{{ endif }}
+</head>
+<body>
+<!-- header.begin -->
+<div id="wikiheader"><div class="header_pad">
+  <div id="wikititle">
+    <a href="{{$FrontPage_url}}">{{ $wiki_title }}</a>
+    <span id="pagename">&gt; {{ $page_title_a | safe }}</span>
+  </div>
+</div></div><!-- end of wikiheader -->
+<!-- header.end -->
+
+<!-- drawer.begin -->
+<div id="drawer_wrapper">
+  <!-- ハンバーガーメニュー -->
+  <div id="hamburger_icon">
+        <span class="yum"></span>
+        <span class="yum"></span>
+        <span class="yum"></span>
+    <!-- 飛び出すメニュー -->
+    <nav class="menuitems">
+      {{ e:echo kona3getCtrlMenu('list') }}
+      <ul><li></li></ul>
+      {{ e:echo kona3getWikiPage('GlobalBar', '') }}
+    </nav>
+  </div>
+  <!-- 透明な背景ウィンドウ(閉じる専用) -->
+  <div id="drawer_background"></div>
+</div>
+<!-- drawer.end -->
+

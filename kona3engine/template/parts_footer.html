@@ -1,0 +1,23 @@
+<div style="clear:both;"></div>
+
+<!-- footer.begin -->
+<div id="wikifooter">
+  <div style="clear:both;"></div>
+  
+  <div class="footer_menu">
+    <nav>{{e:echo kona3getCtrlMenu('bar') }}</nav>
+  </div>
+
+  {{ if ($show_data_dir != '') }}
+  <div id="kona3_show_data_dir">
+    <input id="show_data_dir" type="text" 
+     value="{{$show_data_dir}}" readonly>
+  </div>
+  {{ endif }}
+
+  <div class="info">{{e:echo kona3getSysInfo() }}</div>
+</div>
+<!-- footer.end -->
+
+</body>
+</html>

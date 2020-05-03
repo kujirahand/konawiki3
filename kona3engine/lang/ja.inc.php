@@ -24,5 +24,6 @@ $lang_data = [
   'Conflict editing, Please submit and check.' => 
     '編集が衝突しました。他のタブで編集していないか確認してみてください。',
   'Could not write file.' => 'ファイルに書き込みができません。',
+  'Page Not Found.' => 'ページが見当たりません。',
 ];
 

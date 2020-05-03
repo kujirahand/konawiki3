@@ -26,24 +26,7 @@ function kona3_action_show() {
   if ($wiki_live) {
     $txt = @file_get_contents($fname);
   } else {
-    $updir = dirname($page);
-    $txt = "*** ls\n\n".
-           "#ls()\n";
-    // image
-    if ($ext === '.png' || $ext === '.jpg' || $ext === '.jpeg' || $ext == '.gif') {
-      $txt = "#ref($page,width=400,*$page)\n".$txt;
-    }
-    // directory?
-    else if ($ext == '__dir__') {
-      $txt = "*** Directory: $page\n\n#ls()\n";
-    }
-    else if ($ext == '') {
-      $txt = "not found.\n".$txt;
-    }
-    else {
-      $txt = "*** file: [$ext] $page\n#ref($page)\n".$txt;
-    }
-    $ext = ".txt";
+    $txt = kona3show_file_not_found($page, $ext);
   }
 
   // convert
@@ -63,6 +46,23 @@ function kona3_action_show() {
     "cnt_txt"    => $cnt_txt,
     "page_file"  => $fname,
   ]);
+}
+
+function kona3show_file_not_found($page, &$ext) {
+  $updir = dirname($page);
+  $PageNotFound = lang('Page Not Found.');
+  $txt = "* {$page}\n{$PageNotFound}\n";
+  $txt .= "*** ls\n\n".
+         "#ls()\n";
+  // directory?
+  if ($ext == '__dir__') {
+    $txt .= "*** Directory: $page\n\n#ls()\n";
+  }
+  else if ($ext == '') {
+    $txt .= "not found.\n".$txt;
+  }
+  $ext = ".txt";
+  return $txt;
 }
 
 function kona3show_detect_file($page, &$fname, &$ext) {
