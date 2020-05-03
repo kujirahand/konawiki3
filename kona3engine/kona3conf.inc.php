@@ -67,6 +67,13 @@ function kona3conf_setDefConfig() {
   $kona3conf["FrontPage"]      = KONA3_WIKI_FRONTPAGE;
   $kona3conf["allpage_footer"] = KONA3_ALLPAGE_FOOTER;
   $kona3conf["lang"] = KONA3_LANG;
+  
+  // robots
+  if (KONA3_WIKI_PRIVATE) {
+    $kona3conf["robots"] = 'noindex';
+  } else {
+    $kona3conf["robots"] = ''; // or 'index,follow' (デフォルトでは省略すべきとのこと)
+  }
   // users
   $users = array();
   $users_a = explode(",", KONA3_WIKI_USERS);

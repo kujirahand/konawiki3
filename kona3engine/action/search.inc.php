@@ -10,12 +10,11 @@ $_search_exclude = empty($kona3conf['search.exclude'])
 function kona3_action_search() {
   global $kona3conf;
   $page = $kona3conf["page"];
-  $action = kona3getPageURL($page, "search");
-  
+  $action = kona3getPageURL($page, "search");  
   $am   = kona3param('a_mode', '');
   $key  = kona3param('a_key', '');
 
-  $res= '';
+  $res= [];
   if ($am == "search") {
     $result = array();
     $path_data = $kona3conf["path.data"];
@@ -23,32 +22,17 @@ function kona3_action_search() {
     foreach ($result as $f) {
       $path = str_replace("$path_data/", "", $f);
       $path = preg_replace('/\.(txt|md)$/', '', $path);
-      $enc = urlencode($path);
-      $res .= "<li><a href='index.php?$enc'>$path</li>";
-      
+      $url = kona3getPageURL($path);
+      $res[] = ["url" => $url, "name" => $path];
     }
   }
-  if ($res != "") $res = "<ul>$res</ul>\n";
-  $key_ = kona3text2html($key);
-
-  // show form
-  $m_search = lang('Search');
-  $form = <<<EOS
-<div>
-  <form class="pure-form" method="post" action="$action">
-    <input type="hidden" name="a_mode" value="search">
-    <input type="text" name="a_key" value="$key_">
-    <input class="pure-button pure-button-primary" type="submit" value="$m_search">
-  </form>
-</div>
-<div>
-{$res}
-</div>
-EOS;
+  $kona3conf["robots"] = "noindex";
   // show
-  kona3template('message.html', array(
-    "page_title" => kona3text2html($page),
-    "page_body"  => $form,
+  kona3template('search.html', array(
+    "page_title" => $page,
+    "key" => $key,
+    "result" => $res,
+    "action" => $action,
   ));
 }
 

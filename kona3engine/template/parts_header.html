@@ -7,11 +7,14 @@
 {{ $head_tags | safe }}
 {{ $js_tags | safe }}
 {{ $css_tags | safe }}
+<!-- title -->
 {{ if $page == $FrontPage }}
 <title>{{ $wiki_title }}</title>
 {{ else }}
 <title>{{ $wiki_title }} - {{ $page_title }}</title>
 {{ endif }}
+<!-- meta -->
+{{if $robots != ''}}<meta name="robots" content="{{$robots}}">{{endif}}
 </head>
 <body>
 <!-- header.begin -->

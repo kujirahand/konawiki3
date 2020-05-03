@@ -5,6 +5,7 @@ function kona3_action_logout() {
   global $kona3conf;
   $page = $kona3conf["page"];
   kona3logout();
+  $kona3conf["robots"] = "noindex";
   kona3showMessage(
     $page,
     lang('Success to logout.')
