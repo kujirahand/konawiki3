@@ -47,8 +47,8 @@ function kona3_action_edit() {
   kona3template('edit.html', array(
     "action" => $action,
     "a_hash" => $a_hash,
-    "page_title" => kona3text2html($page),
-    "page_body"  => kona3text2html($txt),
+    "page_title" => $page,
+    "edit_txt"  => $txt,
     "msg" => $msg,
   ));
 }
