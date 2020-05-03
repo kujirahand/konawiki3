@@ -1,0 +1,25 @@
+{{ include parts_header.html }}
+
+<div id="wikimessage">
+  <div class="box">
+    <!-- form -->
+    <div>
+      <form class="pure-form" method="post" action="{{$action}}">
+        <input type="hidden" name="a_mode" value="search">
+        <input type="text" name="a_key" value="{{$key}}">
+        <input class="pure-button pure-button-primary" 
+          type="submit"  value="{{'Search' | lang}}">
+      </form>
+    </div>
+    <!-- result -->
+    <div><ul>
+    {{for $result as $f}}
+      <li><a href="{{$f.url}}">{{$f.name}}</a></li>
+    {{endfor}}
+    </ul></div>
+  </div>
+</div>
+<div style="clear:both;"></div>
+
+{{ include parts_footer.html }}
+

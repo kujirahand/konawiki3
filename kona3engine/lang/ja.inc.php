@@ -19,6 +19,7 @@ $lang_data = [
   'Success to logout.' => 'ログアウトしました。',
   'Add' => '追加',
   'Save temp' => '一時保存',
+  'Load temp' => '一時保存を読込',
   'Save &amp; Show' => '保存して表示',
   'Save to Repo' => '編集履歴に保存',
   'Conflict editing, Please submit and check.' => 

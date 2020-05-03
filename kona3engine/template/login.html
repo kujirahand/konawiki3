@@ -1,0 +1,23 @@
+{{ include parts_header.html }}
+
+<div id="wikimessage">
+<div class="box">
+<div id="loginform">
+  {{ $msg }}
+  <form
+    class="pure-form pure-form-stacked" 
+    method="post" action="{{$action}}">
+    <input type="hidden" name="a_mode" value="trylogin">
+    <label for="user">{{'User' | lang}}:</label>
+    <input id="user" type="text" name="a_user">
+    <label for="pass">{{'Password' | lang}}:</label>
+    <input id="pass" type="password" name="a_pw">
+    <input class="pure-button pure-button-primary"
+      type="submit" value="{{'Login' | lang}}">
+  </form>
+</div>
+</div><!-- end of .box -->
+</div><!-- end of #wikimessage -->
+<div style="clear:both;"></div>
+
+{{ include parts_footer.html }}
