@@ -245,7 +245,11 @@ function kona3template_prepare($name, $params) {
   $kona3conf['FrontPage_url'] =
     kona3getPageURL($kona3conf['FrontPage']);
   
-  // 
+  // data file 
+  if (empty($kona3conf['data_filename'])) {
+    $kona3conf['data_filename'] = 
+      kona3getWikiFile($kona3conf['page']);
+  }
 }
 
 function kona3template($name, $params) {
@@ -336,14 +340,14 @@ function kona3getWikiName($filename) {
 
 function kona3getSysInfo() {
   global $kona3conf;
-  $href = "https://kujirahand.com/konawiki/";
+  $href = "https://kujirahand.com/konawiki3/";
   $ver  = KONA3_SYSTEM_VERSION;
   $opt = "";
   if ($kona3conf["wiki.private"]) $opt .= "(private)";
   return
     "<span class='konawiki3copyright'>".
-    "<a href=\"$href\">Konawiki3 v.{$ver}</a>".
-    "{$opt}</span>";
+    "<a href=\"$href\">Konawiki3 v.{$ver} {$opt}</a>".
+    "</span>";
 }
 
 function kona3getCtrlMenuArray($type) {

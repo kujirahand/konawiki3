@@ -25,6 +25,7 @@ function kona3_action_show() {
   // body
   if ($wiki_live) {
     $txt = @file_get_contents($fname);
+    $kona3conf['data_filename'] = $fname;
   } else {
     $txt = kona3show_file_not_found($page, $ext);
   }
