@@ -18,6 +18,9 @@ $lang_data = [
   'Invalid User or Password.' => 'ユーザーかパスワードが間違っています。',
   'Success' => '処理しました。',
   'Login successful.' => 'ログイン成功。',
+  'Really?' => '本当ですか？',
+  'Yes' => 'はい',
+  'No' => 'いいえ',
   'Signup' => '新規ユーザー登録',
   'Confirm' => '確認',
   'Invalid Username' => 'ユーザー名が不正です。',
@@ -49,6 +52,7 @@ $lang_data = [
   'Invalid Token' => 'トークンの間違い',
   'Invalid Token in email' => 'トークンが間違っています。メールアドレスに書かれているURLを過不足なくコピーしてブラウザで開いてください。',
   'Admin Page' => '管理者ページ',
-  'You do not have admin perm.' => '管理者権限がないとアクセスできません。'
+  'You do not have admin perm.' => '管理者権限がないとアクセスできません。',
+  'Delete All' => 'すべて削除する',
 ];
 
