@@ -813,6 +813,24 @@
 	padding:1.5em;
 }
 
+#wikimessage .box_border
+{
+	border: 1px solid silver;
+	padding: 8px;
+	margin: 8px;
+}
+
+#wikimessage .pad
+{
+	padding:1em;
+}
+
+#wikimessage h3
+{
+  border-bottom: 1px solid silver;
+  padding: 6px;
+}
+
 #wikimessage blockquote
 {
 	padding:32px;
@@ -1007,6 +1025,11 @@
 	margin:4px auto;
 	max-width:768px;
 	text-align:right;
+}
+
+.error_box {
+	background-color: #FEE;
+	padding: 1em;
 }
 
 .error,.red

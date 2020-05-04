@@ -3,7 +3,7 @@
 <div id="wikimessage">
 <div class="box">
 <div id="loginform">
-  {{ $msg }}
+  <div class="error">{{ $msg }}</div>
   <form
     class="pure-form pure-form-stacked" 
     method="post" action="{{$action}}">
@@ -16,6 +16,14 @@
       type="submit" value="{{'Login' | lang}}">
   </form>
 </div>
+<br>
+
+{{if $allow_add_user}}
+<div>
+  👉 <a href="{{$signup_link}}">{{'Signup' | lang}}</a>
+</div>
+{{endif}}
+
 </div><!-- end of .box -->
 </div><!-- end of #wikimessage -->
 <div style="clear:both;"></div>

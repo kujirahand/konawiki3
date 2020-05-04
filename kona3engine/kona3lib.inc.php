@@ -190,17 +190,21 @@ function kona3getRelativePath($wikiname) {
 
 // show error page
 function kona3error($title, $msg) {
-  $err = "<div class='error'>$msg</div>";
+  $err = "<div class='error_box'>".
+    "<h3 class='error'>$title</h3>".
+    "<div class='error pad'>$msg</div>".
+    "</div>";
   kona3template("message.html", array(
-    'page_title' => kona3text2html($title),
     'page_body'  => $err,
   ));
   exit;
 }
 function kona3showMessage($title, $msg) {
-  $body = "<div class='message'>$msg</div>";
+  $body = "<div>".
+    "<h3>$title</h3>".
+    "<div class='pad'>$msg</div>".
+    "</div>";
   kona3template("message.html", array(
-    'page_title' => kona3text2html($title),
     'page_body'  => $body,
   ));
   exit;
@@ -252,6 +256,7 @@ function kona3template_prepare($name, $params) {
   }
 }
 
+// Show template
 function kona3template($name, $params) {
   global $kona3conf, $FW_TEMPLATE_PARAMS;
   kona3template_prepare($name, $params);
@@ -263,6 +268,14 @@ function kona3getPage() {
   global $kona3conf;
   $page = $kona3conf["page"];
   return $page;
+}
+
+function kona3getURLParams($params) {
+  $a = [];
+  foreach ($params as $k => $v) {
+    $a[] = urlencode($k)."=".urlencode($v);
+  }
+  return implode("&", $a);
 }
 
 function kona3getPageURL($page = "", $action = "", $stat = "", $paramStr = "") {
@@ -359,6 +372,9 @@ function kona3getCtrlMenuArray($type) {
   $login_uri = kona3getPageURL($page, 'login');
   $logout_uri = kona3getPageURL($page, 'logout');
   $search_uri = kona3getPageURL($page, 'search');
+  $email_logs_uri = kona3getPageURL($page, 'emailLogs');
+  $FrontPage_uri = kona3getPageURL($kona3conf['FrontPage']);
+  $users_uri = kona3getPageURL($page, 'users');
   //
   $list = array();
   //
@@ -368,8 +384,15 @@ function kona3getCtrlMenuArray($type) {
       $list[] = array(lang('Login'), $login_uri);
     }
   } else {
+    $loginInfo = kona3getLoginInfo();
+    $user = $loginInfo['user'];
+    $list[] = array("🙋 $user", $FrontPage_uri);
     $list[] = array(lang('Edit'), $edit_uri);
     $list[] = array(lang('New'), $new_uri);
+    if (kona3isAdmin()) {
+      $list[] = array(lang('Email Logs'), $email_logs_uri);
+      $list[] = array(lang('Users List'), $users_uri);
+    }
     $list[] = array(lang('Search'), $search_uri);
     $list[] = array(lang('Logout'), $logout_uri);
   }

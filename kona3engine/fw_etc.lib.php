@@ -1,4 +1,5 @@
 <?php
+global $FW_ADMIN_EMAIL;
 function get_param($name, $def = '') {
   if (isset($_GET[$name])) {
     return $_GET[$name];
@@ -20,22 +21,25 @@ function redirect($url) {
 }
 
 function error_page($msg, $title = 'エラー') {
-  template_render('error.html', [
+  template_render('message.html', [
     'msg' => $msg, 
     'title' => $title
   ]);
 }
 
 function msgbox($msg, $title = '情報') {
-  template_render('msgbox.html', [
+  template_render('message.html', [
     'msg' => $msg, 
     'title' => $title
   ]);
 }
 
 function lib_send_email($to, $subject, $email_body) {
-  global $ADMIN_EMAIL;
-  $headers = "From: $ADMIN_EMAIL";
+  global $FW_ADMIN_EMAIL;
+  if ($FW_ADMIN_EMAIL == '') {
+    throw new Exception("global $ FW_ADMIN_EMAIL not set");
+  }
+  $headers = "From: $FW_ADMIN_EMAIL";
   @mb_send_mail($to, $subject, $email_body, $headers);
   //
   // 送信したことを記録する
@@ -47,6 +51,10 @@ function lib_send_email($to, $subject, $email_body) {
 }
 
 function lib_send_email_to_admin($subject, $email_body) {
-  global $ADMIN_EMAIL;
-  lib_send_email($ADMIN_EMAIL, $subject, $email_body);
+  global $FW_ADMIN_EMAIL;
+  lib_send_email($FW_ADMIN_EMAIL, $subject, $email_body);
 }
+
+
+
+

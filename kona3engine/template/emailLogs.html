@@ -1,0 +1,17 @@
+{{ include parts_header.html }}
+
+<div id="wikimessage"><div class="box">
+
+{{ for $logs as $v }}
+<div class="box_border">
+  <h3>{{ $v.email_log_id }}: {{ $v.title }}</h3>
+  <p><pre>{{ $v.body | multiline }}</pre></p>
+  <p class="date">( {{ $v.ctime | datetime }} )</p>
+</div>
+{{ endfor }}
+
+</div></div><!-- end of #wikimessage -->
+<div style="clear:both;"></div>
+
+{{ include parts_footer.html }}
+

@@ -5,18 +5,7 @@ define('TEMPLATE_USE_CACHE', FALSE);
 define('TEMPLATE_CACHE_TYPE', 'SAMEFILE'); // SAMEFILE | DATETYPE
 require_once __DIR__.'/fw_template_engine_plugins.lib.php';
 
-if (!function_exists('preg_replace_callback_array')) {
-  function preg_replace_callback_array (array $patterns_and_callbacks, $subject, $limit=-1, &$count=NULL) {
-      $count = 0;
-      foreach ($patterns_and_callbacks as $pattern => &$callback) {
-          $subject = preg_replace_callback($pattern, $callback, $subject, $limit, $partial_count);
-          $count += $partial_count;
-      }
-      return preg_last_error() == PREG_NO_ERROR ? $subject : NULL;
-  }
-}
-
-
+// テンプレートの表示メソッド
 function template_render($tpl_filename, $tpl_params) {
   /*
    * [使い方]
@@ -41,7 +30,9 @@ function template_render($tpl_filename, $tpl_params) {
   // check template
   $file_template = $DIR_TEMPLATE."/$tpl_filename";
   if (!file_exists($file_template)) {
-    throw new Exception("[Template Error] file not found : $tpl_name : $file_template");
+    $msg = "FileNotFound : $tpl_filename";
+    template_error($msg);
+    throw new Exception($msg);
   }
   
   // check cache file
@@ -154,5 +145,24 @@ function template_var_name($name) {
   return $r;
 }
 
+function template_error($msg, $title = '') {
+  echo <<<__EOS__
+<div style="background-color:#fee; padding:1em;">
+  <h3 style="color:red">Template Error $title</h3>
+  <p>$msg</p>
+</div>
+__EOS__;
+}
 
+// PHPの互換性のため
+if (!function_exists('preg_replace_callback_array')) {
+  function preg_replace_callback_array (array $patterns_and_callbacks, $subject, $limit=-1, &$count=NULL) {
+      $count = 0;
+      foreach ($patterns_and_callbacks as $pattern => &$callback) {
+          $subject = preg_replace_callback($pattern, $callback, $subject, $limit, $partial_count);
+          $count += $partial_count;
+      }
+      return preg_last_error() == PREG_NO_ERROR ? $subject : NULL;
+  }
+}
 

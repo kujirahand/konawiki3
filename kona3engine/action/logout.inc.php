@@ -8,7 +8,7 @@ function kona3_action_logout() {
   $kona3conf["robots"] = "noindex";
   kona3showMessage(
     $page,
-    lang('Success to logout.')
+    lang('You have logged out.')
   );
 }
 

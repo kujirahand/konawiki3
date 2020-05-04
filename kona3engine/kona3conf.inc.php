@@ -24,10 +24,12 @@ function kona3conf_setDefConfig() {
   // global setting
   defC("KONA3_WIKI_TITLE",     "Konwwiki3");
   defC("KONA3_WIKI_FRONTPAGE", "FrontPage");
-  defC("KONA3_WIKI_PRIVATE",   false);
+  defC("KONA3_WIKI_PRIVATE",   FALSE);
   defC("KONA3_WIKI_USERS",     "kona3:pass3,kona2:pass2");
   defC("KONA3_WIKI_SKIN",      "def");
   defC("KONA3_LANG",           "ja");
+  defC("KONA3_ADMIN_EMAIL",    "");
+  defC("KONA3_ALLOW_ADD_USER", FALSE);
   // global dir
   defC("KONA3_DIR_PUBLIC",     dirname(__DIR__));
   defC("KONA3_DIR_ENGINE",     dirname(__FILE__));
@@ -153,6 +155,7 @@ function kona3conf_setDefConfig() {
     $pd[$name] = TRUE;
   }
   $kona3conf["plugin.disallow"] = $pd;
+  $kona3conf["allow_add_user"] = KONA3_ALLOW_ADD_USER;
 
   // check
   $url_data = $kona3conf["url.data"];
@@ -164,8 +167,17 @@ function kona3conf_setDefConfig() {
   global $DIR_TEMPLATE;
   global $DIR_TEMPLATE_CACHE;
   global $FW_TEMPLATE_PARAMS;
+  global $FW_ADMIN_EMAIL;
   $DIR_TEMPLATE = KONA3_DIR_TEMPLATE;
   $DIR_TEMPLATE_CACHE = KONA3_DIR_CACHE;
+  $FW_ADMIN_EMAIL = KONA3_ADMIN_EMAIL;
+
+  // Database library
+  database_set(
+    KONA3_DIR_PRIVATE.'/info.sqlite',
+    KONA3_DIR_TEMPLATE.'/info.sql'
+  );
+  $db = database_get();
 }
 
 // get value from array with default value

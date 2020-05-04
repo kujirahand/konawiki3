@@ -1,0 +1,37 @@
+{{ include parts_header.html }}
+
+<div id="wikimessage">
+<div class="box">
+<div id="loginform">
+  <div class="error">{{ $msg | safe }}</div>
+  <div><form
+    class="pure-form pure-form-stacked" 
+    method="post" action="{{$action}}">
+    <input type="hidden" name="a_mode" value="try">
+    <!-- user -->
+    <label for="user">{{'User' | lang}}:</label>
+    <input id="user" type="text" name="a_user" 
+      value="{{$user}}">
+    <!-- email -->
+    <label for="email">{{'Email' | lang}}:</label>
+    <input id="email" type="email" name="a_email" 
+      value="{{$email}}">
+    <!-- password -->
+    <label for="pass">{{'Password' | lang}}:</label>
+    <input id="pass" type="password" name="a_pw">
+    <!-- password2 -->
+    <label for="pass2">
+      {{'Password' | lang}}({{'Confirm' | lang}}):
+    </label>
+    <input id="pass2" type="password" name="a_pw2">
+    <!-- submit -->
+    <input class="pure-button pure-button-primary"
+      type="submit" value="{{'Signup' | lang}}">
+    </form></div>
+</div>
+<br>
+</div><!-- end of .box -->
+</div><!-- end of #wikimessage -->
+<div style="clear:both;"></div>
+
+{{ include parts_footer.html }}
