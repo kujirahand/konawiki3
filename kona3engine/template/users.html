@@ -2,6 +2,10 @@
 
 <div id="wikimessage"><div class="box">
 
+{{ if count($users) == 0 }}
+<div class="box_border">None</div>
+{{ endif}}
+
 {{ for $users as $v }}
 <div class="box_border">
   <h3>
@@ -14,6 +18,7 @@
       <span class="error">
         DISABLED - 
         <a href="{{ $v.enable_link }}">Change to Enabled</a>
+        - <a href="{{ $v.delete_link }}">Delete</a>
       </span>
     {{ else }}
       <a href="{{ $v.disable_link }}">Change to Disabled</a>
@@ -22,6 +27,12 @@
   <p class="date">Date: {{ $v.ctime | datetime }}</p>
 </div>
 {{ endfor }}
+
+<div class="box_border">
+  <a class="pure-button" 
+   href="{{e:echo kona3getPageURL('new','signup')}}">新規追加</a>
+</div>
+
 
 </div></div><!-- end of #wikimessage -->
 <div style="clear:both;"></div>

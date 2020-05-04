@@ -15,6 +15,9 @@ function kona3_action_users() {
   elseif ($q == 'enable') {
     return users_disable(1);
   }
+  elseif ($q == 'delete') {
+    return users_disable(-4);
+  }
 
   $users = db_get(
     "SELECT * FROM users ".
@@ -41,14 +44,21 @@ function kona3_action_users() {
 function users_disable($value) {
   $user_id = intval(kona3param('user_id', 0));
   $token = kona3param('token');
+  // check token
   $r = db_get1(
     "SELECT * FROM users WHERE user_id=? AND token=?",
     [$user_id, $token]);
   if (!$r) {
-    return kona3error('Failed', 'Failed to change disable');
+    return kona3error('Failed', 'Failed to change User status.');
   }
-  db_exec("UPDATE users SET enabled=$value WHERE user_id=?",
-    [$user_id]);
+  // update
+  if ($value == -4) {
+    db_exec("DELETE FROM users WHERE user_id=?",
+      [$user_id]);
+  } else {
+    db_exec("UPDATE users SET enabled=$value WHERE user_id=?",
+      [$user_id]);
+  }
   redirect(kona3getPageURL('ok', 'users'));
 }
 

@@ -78,7 +78,12 @@ function kona3_action_signup() {
 }
 
 function signup_execute($user, $email, $pw, &$msg) {
+  global $kona3conf;
   // CHECK PARAMETERS
+  if (isset($kona3conf['users'][$user])) {
+    $msg = lang('The username alredy registerd.');
+    return FALSE;
+  }
   $r = db_get1(
     "SELECT * FROM users WHERE name=?", [
       $user]);
