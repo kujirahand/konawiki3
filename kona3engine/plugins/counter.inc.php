@@ -2,7 +2,10 @@
 function kona3plugins_counter_execute($args) {
   global $kona3conf;
   $page = $kona3conf['page'];
-  $page_id = kona3db_getPageId($page);
+  $page_id = kona3db_getPageId($page, FALSE);
+  if ($page_id == 0) {
+    return "-";
+  }
 
   // check table
   if (!db_table_exists('counter')) {

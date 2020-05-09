@@ -1,7 +1,7 @@
 <?php
 // file: kona3database.inc.php
 
-function kona3db_getPageId($page, $canCreate = TRUE) {
+function kona3db_getPageId($page, $canCreate = FALSE) {
   $r = db_get1(
     "SELECT * FROM pages ".
     "WHERE name = ? ".
@@ -11,6 +11,7 @@ function kona3db_getPageId($page, $canCreate = TRUE) {
     return $page_id;
   }
   if ($canCreate) {
+    echo "[@created:$page]";
     $page_id = db_insert(
       "INSERT INTO pages (name, ctime, mtime)".
       "VALUES(?, ?, ?)",
@@ -42,7 +43,7 @@ function kona3db_getPageNameById($page_id) {
 }
 
 function kona3db_writePage($page, $body, $user_id=0) {
-  $page_id = kona3db_getPageId($page);
+  $page_id = kona3db_getPageId($page, TRUE);
   $hash = kona3getHash($body);
   // check 1 hour history
   $recent_time = time() - (60 * 60 * 1);

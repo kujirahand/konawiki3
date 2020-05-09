@@ -17,6 +17,10 @@ function kona3plugins_recent_execute($args) {
   foreach ($r as $v) {
     $page = $v["name"];
     $mtime = $v["mtime"];
+    if ($page == "FrontPage" || $page == "MenuBar" ||
+      $page == "GlobalBar") {
+      continue;
+    }
     $url = kona3getPageURL($page);
     $page_h = kona3text2html($page);
     $mtime_h = kona3date($mtime);
