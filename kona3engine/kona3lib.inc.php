@@ -480,4 +480,58 @@ function t_edit_url($v) {
 }
 
 
+function kona3date($value, $mode='easy') {
+  // for time=0
+	if ($value === 0) return "@";
+  // to_int
+	if (is_int($value)) {
+		$target = konawiki_date($value);
+	} else {
+		$target = $value;
+	}
+  $now = time();
+  // ちょっとだけの目安表示
+	if ($mode == 'easy') {
+    $sa = $now - $value;
+    if ($sa < 3600) { // 1h
+      return "<span class='date new'>1h</span>";
+    } else if ($sa < 3600 * 6) {
+      return "<span class='date new'>6h</span>";
+    } else if ($sa < 3600 * 12) {
+      $today = lang('Today');
+      return "<span class='date new'>$today</span>";
+    }
+    $s = "";
+    $y_now = date("Y", $now);
+    $y     = date("Y", $value);
+    if ($y_now == $y) {
+      $dfe = konawiki_private('date_format_easy', 'm-d');
+      $s = date($dfe, $value);
+    } else {
+      $df = konawiki_private('date_format', 'Y-m-d');
+      $s = date($df, $value);
+    }
+    return "<span class='date'>$s</span>";
+	}
+	//
+  // しっかりと日付を表示
+  //
+	$opt = "";
+	$new_limit = time() - (3600 * 24) /* hour */;
+  if ($value > $new_limit) {
+    $opt = " <span class='new'>New!</span>";
+  }
+  $fmt = konawiki_private("data_format", 'Y-m-d');
+  $s = date($fmt, $value);
+	//
+	return "<span class='date'>{$s}</span>{$opt}";
+}
+
+function kona3datetime($value)
+{
+	$fmt1 = konawiki_private('date_format', 'Y-m-d');
+	$fmt2 = konawiki_private('time_format', 'H:i:s');
+	return date("{$fmt1} {$fmt2}", $value);
+}
+
 

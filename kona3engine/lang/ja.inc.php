@@ -24,6 +24,8 @@ $lang_data = [
   'Signup' => '新規ユーザー登録',
   'Confirm' => '確認',
   'Delete' => '削除',
+  'Admin' => '管理者',
+  'Admin Menu' => '管理者メニュー',
   'Invalid Username' => 'ユーザー名が不正です。',
   'Invalid Email' => 'メールアドレスが不正です。',
   'Passwords do not match.' => 'パスワードが一致しません。',
@@ -56,5 +58,6 @@ $lang_data = [
   'Admin Page' => '管理者ページ',
   'You do not have admin perm.' => '管理者権限がないとアクセスできません。',
   'Delete All' => 'すべて削除する',
+  'Today' => '今日',
 ];
 

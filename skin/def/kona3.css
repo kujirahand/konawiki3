@@ -1457,3 +1457,15 @@ ul.topnavi a
 	color:#88f;
 	text-decoration:none;
 }
+
+#wikimenu ul.recent > li
+{
+	font-size: 0.9em;
+	border:none;
+	padding: 4px;
+	margin: 0px;
+}
+
+
+
+

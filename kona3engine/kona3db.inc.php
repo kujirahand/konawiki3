@@ -64,6 +64,11 @@ function kona3db_writePage($page, $body, $user_id=0) {
       "VALUES(?,?,?,?,?)",
       [$page_id, $user_id, $body, $hash, time()]);
   }
+  // update pages.mtime (for #recent plugin)
+  db_exec(
+    "UPDATE pages SET mtime=? WHERE page_id=?",
+    [time(), $page_id]);
+  //
   return TRUE;
 }
 
