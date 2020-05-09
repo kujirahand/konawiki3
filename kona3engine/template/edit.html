@@ -48,8 +48,12 @@
           <a href="{{$v.link}}">
             ({{$v.history_id}})
             {{$v.mtime | datetime}}
-            by {{$v.user}} ({{$v.size}}B)
+            ({{$v.size | number_format}}B)
           </a>
+          by {{$v.user}}
+          {{ if kona3isAdmin() }}
+          <a href="{{$v.delete_link}}">{{'Delete' | lang}}</a>
+          {{ endif }}
         </li>
         {{ endfor }}
       </ul>

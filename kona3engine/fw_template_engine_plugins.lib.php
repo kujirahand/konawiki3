@@ -24,6 +24,12 @@ function t_date($v) {
 function t_datetime($v) {
   echo date('Y/m/d H:i', $v);
 }
+// format
+function t_number_format($v) {
+  $v = floatval($v);
+  echo number_format($v);
+}
+// lang
 function t_lang($msg) {
   echo lang($msg);
 }

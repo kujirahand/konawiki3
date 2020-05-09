@@ -11,7 +11,7 @@ function kona3_action_edit() {
   $a_mode = kona3param('a_mode', '');
   $i_mode = kona3param('i_mode', 'form'); // or ajax
   $q = kona3param("q");
-  $history_id = kona3param("history_id");
+  $cmd = kona3param("cmd");
 
   // check permission
   if (!kona3isLogin()) {
@@ -23,17 +23,22 @@ function kona3_action_edit() {
     kona3_edit_err($msg, $i_mode);
     exit;
   }
+  
+  // edit_command ?
+  if ($cmd != '') { return edit_command($cmd); }
 
   // load body
   $txt = "";
-  $fname = kona3getWikiFile($page);
-  if (file_exists($fname)) {
-    $txt = @file_get_contents($fname);
-  }
   // history mode 
   if ($q == 'history') {
+    $history_id = kona3param("history_id");
     $r = kona3db_getPageHistoryById($history_id);
     $txt = isset($r['body']) ? $r['body'] : '(empty)';
+  } else {
+    $fname = kona3getWikiFile($page);
+    if (file_exists($fname)) {
+      $txt = @file_get_contents($fname);
+    }
   }
   $a_hash = kona3getPageHash($txt);
 
@@ -65,6 +70,35 @@ function kona3_action_edit() {
   ));
 }
 
+// edit command execute
+function edit_command($cmd) {
+  global $kona3conf, $page;
+
+  $page = $kona3conf["page"];
+  $action = kona3getPageURL($page, "edit");
+
+  if (!kona3isAdmin()) {
+    return kona3error('Not Admin', 'Sorry, you are not Admin.');
+  }
+  if ($cmd == 'history_delete') {
+    $history_id = intval(kona3param("history_id"));
+    $hash = kona3param("hash");
+    $r = db_exec(
+      'DELETE FROM page_history '.
+      'WHERE history_id=? AND hash=?',
+      [$history_id, $hash]);
+    if ($r) {
+      $url = kona3getPageURL($page, "edit");
+      return kona3showMessage(
+        'DELETE History', 
+        "OK! (history_id=$history_id) ".
+        "<a href='$url'>Continue to edit</a>");
+    } else {
+      return kona3error('ng', 'Sorry, failed to delete.');
+    }
+  }
+  kona3error('ng', 'Unknown command');
+}
 
 function kona3_make_diff($text_a, $text_b) {
   $lines_a = explode("\n", $text_a);

@@ -85,6 +85,13 @@ function kona3db_getPageHistory($page) {
           "q" => "history",
           "history_id" => $v['history_id'],
         ]));
+      $v['delete_link'] = kona3getPageURL(
+        $page, "edit", "",
+        kona3getURLParams([
+          "cmd" => "history_delete",
+          "history_id" => $v['history_id'],
+          "hash" => $v['hash'],
+        ]));
       $v['size'] = strlen($v['body']);
     }
   }

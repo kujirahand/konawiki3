@@ -23,6 +23,7 @@ $lang_data = [
   'No' => 'いいえ',
   'Signup' => '新規ユーザー登録',
   'Confirm' => '確認',
+  'Delete' => '削除',
   'Invalid Username' => 'ユーザー名が不正です。',
   'Invalid Email' => 'メールアドレスが不正です。',
   'Passwords do not match.' => 'パスワードが一致しません。',
