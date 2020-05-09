@@ -14,7 +14,7 @@
     &lt;{{ $v.email }}&gt;
   </h3>
   <p>
-    {{ if $v['enabled'] == 0 }}
+    {{ if $v['enabled'] eq 0 }}
       <span class="error">
         DISABLED - 
         <a href="{{ $v.enable_link }}">Change to Enabled</a>
@@ -35,6 +35,12 @@
     {{ endif }}
   </p>
   <p class="date">Date: {{ $v.ctime | datetime }}</p>
+  <p>
+    <ul>
+      {{ for $v.pages as $p }}
+      {{ endfor }}
+    </ul>
+  </p>
 </div>
 {{ endfor }}
 

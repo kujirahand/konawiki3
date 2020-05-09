@@ -71,24 +71,30 @@ function template_render($tpl_filename, $tpl_params) {
       $enc = json_encode($tpl_params);
       return "<?php template_render('$file', []);?>";
     },
+    // {{ if $var.name cond }} 
+    '#\{\{\s*if\s+\$([a-zA-Z0-9_\.]+)(.+?)\s*\}\}#is' => function (&$m) {
+      $var = template_var_name($m[1]);
+      $cond = check_eq_flag($m[2]);
+      return "<?php if (\${$var} {$cond}): ?>";
+    },
     // {{ if cond }} 
     '#\{\{\s*if\s+(.+?)\s*\}\}#is' => function (&$m) {
-      $cond = $m[1];
+      $cond = check_eq_flag($m[1]);
       return "<?php if ($cond): ?>";
     },
     '#\{\{\s*else\s*(.*?)}}#is' => function (&$m) {
       return "<?php else: ?>";
     },
     // {{ for $vars as $key => $val }}
-    '#\{\{\s*(for|foreach)\s+\$([a-zA-Z0-9_]+)\s+as\s+\$([a-zA-Z0-9_]+)\s*\=\>\s*\$([a-zA-Z0-9]+)\s*}}#is' => function (&$m) {
-      $ary = $m[2];
+    '#\{\{\s*(for|foreach)\s+\$([a-zA-Z0-9_\.]+)\s+as\s+\$([a-zA-Z0-9_]+)\s*\=\>\s*\$([a-zA-Z0-9]+)\s*}}#is' => function (&$m) {
+      $ary = template_var_name($m[2]);
       $key = $m[3];
       $val = $m[4];
       return "<?php foreach (\${$ary} as \${$key} => \${$val}): ?>";
     },
     // {{ for $vars as $key => $val }}
-    '#\{\{\s*(for|foreach)\s+\$([a-zA-Z0-9_]+)\s+as\s+\$([a-zA-Z0-9]+)\s*}}#i' => function (&$m) {
-      $ary = $m[2];
+    '#\{\{\s*(for|foreach)\s+\$([a-zA-Z0-9_\.]+)\s+as\s+\$([a-zA-Z0-9]+)\s*}}#i' => function (&$m) {
+      $ary = template_var_name($m[2]);
       $val = $m[3];
       return "<?php foreach (\${$ary} as \${$val}): ?>";
     },
@@ -127,6 +133,17 @@ function template_render($tpl_filename, $tpl_params) {
   ], $body);
   file_put_contents($file_cache, $body);
   include($file_cache);
+}
+
+function check_eq_flag($cond) {
+  $cond = " ".$cond;
+  $cond = preg_replace('#\\s+eq\\s+#is', '==', $cond);
+  $cond = preg_replace('#\\s+ne\\s+#is', '!=', $cond);
+  $cond = preg_replace('#\\s+gt\\s+#is', '>', $cond);
+  $cond = preg_replace('#\\s+(gteq|eqgt)\\s+#is', '>=', $cond);
+  $cond = preg_replace('#\\s+lt\\s+#is', '<', $cond);
+  $cond = preg_replace('#\\s+(lteq|eqlt)\\s+#is', '<=', $cond);
+  return $cond;
 }
 
 function template_var_name($name) {

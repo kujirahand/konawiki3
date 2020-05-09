@@ -32,6 +32,7 @@ function kona3_action_users() {
     $user_id = $u['user_id'];
     $token = $u['token'];
     $email = $u['email'];
+    // update status link
     $u['perm_normal_link'] = kona3getPageURL(
       'go', 'users', '', 
       "q=normal&user_id=$user_id&token=$token");
@@ -47,6 +48,9 @@ function kona3_action_users() {
     $u['delete_link'] = kona3getPageURL(
       'go', 'users', '', 
       "q=delete&user_id=$user_id&token=$token");
+    // edited pages
+    $pages = kona3db_getPageHistoryByUserId($user_id);
+    $u['pages'] = $pages;
   }
   kona3template("users.html",[
     "users" => $users,

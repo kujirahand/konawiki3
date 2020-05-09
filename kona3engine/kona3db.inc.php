@@ -20,6 +20,27 @@ function kona3db_getPageId($page, $canCreate = TRUE) {
   return 0;
 }
 
+
+function kona3db_getPageNameById($page_id) {
+  global $kona3db_pagenames;
+  if (isset($kona3db_pagenames[$page_id])) {
+    return $kona3db_pagenames[$page_id];
+  }
+  if (!isset($kona3db_pagenames)) {
+    $kona3db_pagenames = [];
+  }
+  
+  $r = db_get1(
+    "SELECT * FROM pages ".
+    "WHERE page_id = ? ".
+    "LIMIT 1", [$page_id]);
+  if ($r) {
+    $name = $kona3db_pagenames[$page_id] = $r['name'];
+    return $name;
+  }
+  return '';
+}
+
 function kona3db_writePage($page, $body, $user_id=0) {
   $page_id = kona3db_getPageId($page);
   $hash = kona3getHash($body);
@@ -103,6 +124,18 @@ function kona3db_getPageHistoryById($history_id) {
     "SELECT * FROM page_history ".
     "WHERE history_id=?",
     [$history_id]);
+  return $r;
+}
+
+function kona3db_getPageHistoryByUserId($user_id) {
+  $r = db_get(
+    "SELECT * FROM page_history ".
+    "WHERE user_id=? "
+    [$user_id]);
+  foreach ($r as &$v) {
+    $page_id = $v['page_id'];
+    $v['page'] = kona3db_getPageNameById($page_id);
+  }
   return $r;
 }
 
