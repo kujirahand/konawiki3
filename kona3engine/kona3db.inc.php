@@ -11,7 +11,6 @@ function kona3db_getPageId($page, $canCreate = FALSE) {
     return $page_id;
   }
   if ($canCreate) {
-    echo "[@created:$page]";
     $page_id = db_insert(
       "INSERT INTO pages (name, ctime, mtime)".
       "VALUES(?, ?, ?)",
