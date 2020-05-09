@@ -9,6 +9,7 @@ if (!defined("KONA3_PASSWORD_SALT")) {
 function kona3login($user, $email, $perm, $user_id) {
   $_SESSION[KONA3_SESSKEY_LOGIN] = [
     "user"  => $user,
+    "name"  => $user, // alias
     "user_id" => $user_id,
     "email" => $email,
     "perm"  => $perm,
@@ -25,6 +26,16 @@ function kona3getLoginInfo() {
     return FALSE;
   }
   return $_SESSION[KONA3_SESSKEY_LOGIN];
+}
+function kona3getUserName() {
+  $u = kona3getLoginInfo();
+  if (isset($u['name'])) return $u['name'];
+  return 'Unknown';
+}
+function kona3getUserId() {
+  $u = kona3getLoginInfo();
+  if (isset($u['user_id'])) return $u['user_id'];
+  return -1;
 }
 
 function kona3isLogin() {

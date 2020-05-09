@@ -10,6 +10,8 @@ function kona3_action_edit() {
   $action = kona3getPageURL($page, "edit");
   $a_mode = kona3param('a_mode', '');
   $i_mode = kona3param('i_mode', 'form'); // or ajax
+  $q = kona3param("q");
+  $history_id = kona3param("history_id");
 
   // check permission
   if (!kona3isLogin()) {
@@ -28,7 +30,12 @@ function kona3_action_edit() {
   if (file_exists($fname)) {
     $txt = @file_get_contents($fname);
   }
-  $a_hash = kona3getPageHash($txt); 
+  // history mode 
+  if ($q == 'history') {
+    $r = kona3db_getPageHistoryById($history_id);
+    $txt = isset($r['body']) ? $r['body'] : '(empty)';
+  }
+  $a_hash = kona3getPageHash($txt);
 
   if ($a_mode == "trywrite") {
     $msg = kona3_trywrite($txt, $a_hash, $i_mode, $result);
@@ -39,9 +46,13 @@ function kona3_action_edit() {
   }
   // Ajaxならテンプレート出力しない
   if ($i_mode == 'ajax') return;
+  
   // include script
   $kona3conf['js'][] = kona3getResourceURL('edit.js', TRUE);
   $kona3conf['css'][] = kona3getResourceURL('edit.css', TRUE);
+
+  // history
+  $history = kona3db_getPageHistory($page);
 
   // show
   kona3template('edit.html', array(
@@ -50,6 +61,7 @@ function kona3_action_edit() {
     "page_title" => $page,
     "edit_txt"  => $txt,
     "msg" => $msg,
+    "history" => $history,
   ));
 }
 
@@ -120,7 +132,7 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
   $edit_txt = kona3param('edit_txt', '');
   $a_hash_frm = kona3param('a_hash', '');
   $fname = kona3getWikiFile($page);
-  $user_id = 
+  $user_id = kona3getUserId();
 
   $result = FALSE;
   // check hash

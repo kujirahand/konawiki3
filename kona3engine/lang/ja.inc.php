@@ -36,9 +36,10 @@ $lang_data = [
   'Save to Repo' => '編集履歴に保存',
   'Conflict editing, Please submit and check.' => 
     '編集が衝突しました。'.
-    '他のタブで編集していないか確認してみてください。',
+    '「保存して表示」ボタンを押して差分を確認してください。',
   'Could not write file.' => 'ファイルに書き込みができません。',
   'Page Not Found.' => 'ページが見当たりません。',
+  'History' => '履歴',
   'The username alredy registerd.' => 'ユーザー名が既に使われています。',
   'The email already registerd.' => 'Eメールは既に登録されています。',
   'Please check email.' => 

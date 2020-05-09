@@ -32,12 +32,29 @@
       </div>
     </form>
     <br>
+    
     <div class="desc">
       <div>Shortcut:</div>
       <ul>
         <li>Ctrl+S ... save</li>
       </ul>
-    </div>
+    </div><!-- end of .desc -->
+    
+    <div class="desc">
+      <div>{{'History' | lang}}</div>
+      <ul>
+        {{ for $history as $i => $v }}
+        <li>
+          <a href="{{$v.link}}">
+            ({{$v.history_id}})
+            {{$v.mtime | datetime}}
+            by {{$v.user}} ({{$v.size}}B)
+          </a>
+        </li>
+        {{ endfor }}
+      </ul>
+    </div><!-- end of .desc -->
+
     <div class="desc">
       <div>etc...</div>
       <ul>
@@ -46,7 +63,8 @@
             value="{{'Load temp'| lang}}">
         </li>
       </ul>
-    </div>
+    </div><!-- end of .desc -->
+
   </div>
 </div>
 <div style="clear:both;"></div>
