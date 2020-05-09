@@ -431,6 +431,7 @@ function kona3getCtrlMenu($type='bar') {
   return '[ctrl_menu-error-no-type--]';
 }
 
+// THIS METHOD FOR PLUGINS ONLY
 $kona3db = null;
 function kona3getDB() {
   global $kona3db;
@@ -457,6 +458,12 @@ function lang($msg) {
   }
   return $msg;
 }
+
+// get page body hash
+function kona3getPageHash($body) {
+  return hash("sha256", $body);
+}
+
 
 
 

@@ -28,7 +28,7 @@ function kona3_action_edit() {
   if (file_exists($fname)) {
     $txt = @file_get_contents($fname);
   }
-  $a_hash = hash('sha256', $txt); 
+  $a_hash = kona3getPageHash($txt); 
 
   if ($a_mode == "trywrite") {
     $msg = kona3_trywrite($txt, $a_hash, $i_mode, $result);
@@ -120,6 +120,7 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
   $edit_txt = kona3param('edit_txt', '');
   $a_hash_frm = kona3param('a_hash', '');
   $fname = kona3getWikiFile($page);
+  $user_id = 
 
   $result = FALSE;
   // check hash
@@ -127,6 +128,7 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
     return kona3_conflict($edit_txt, $txt, $i_mode);
   }
   // save
+  // === for FILE ===
   if (file_exists($fname)) {
     if (!is_writable($fname)) {
       kona3_edit_err(lang('Could not write file.'), $i_mode);
@@ -169,11 +171,14 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
     return $msg;
   }
 
+  // === for Database ===
+  kona3db_writePage($page, $body, $user_id);
+  
   // result
   if ($i_mode == "ajax") {
     echo json_encode(array(
       'result' => 'ok',
-      'a_hash' => hash('sha256', $edit_txt),
+      'a_hash' => kona3getPageHash($edit_txt),
     ));
     return TRUE;
   }
@@ -219,7 +224,7 @@ function kona3_trygit(&$txt, &$a_hash, $i_mode) {
   if ($i_mode == "ajax") {
     echo json_encode(array(
       'result' => 'ok',
-      'a_hash' => hash('sha256', $edit_txt),
+      'a_hash' => kona3getPageHash($edit_txt),
     ));
     return;
   }

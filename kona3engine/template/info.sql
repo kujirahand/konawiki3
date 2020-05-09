@@ -7,6 +7,7 @@ CREATE TABLE users (
   email TEXT,
   password TEXT,
   token TEXT,
+  perm TEXT DEFAULT 'normal', /* normal or admin  */
   enabled INTEGER DEFAULT 0, /* 0:disabled 1:enabled */
   auth_type TEXT DEFAULT 'email',
   memo TEXT DEFAULT '',

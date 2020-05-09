@@ -21,7 +21,17 @@
         - <a href="{{ $v.delete_link }}">Delete</a>
       </span>
     {{ else }}
+      ENABLED -
       <a href="{{ $v.disable_link }}">Change to Disabled</a>
+    {{ endif }}
+  </p>
+  <p>
+    {{ if $v['perm'] == 'normal' }}
+      Normal User
+      - <a href="{{$v.perm_admin_link}}">Change to Admin User</a>
+    {{ else }}
+      <span class="error">Admin User</span>
+      - <a href="{{$v.perm_normal_link}}">Change to Normal User</a>
     {{ endif }}
   </p>
   <p class="date">Date: {{ $v.ctime | datetime }}</p>

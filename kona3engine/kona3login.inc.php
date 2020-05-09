@@ -6,9 +6,10 @@ if (!defined("KONA3_PASSWORD_SALT")) {
     "tizIu*zC57#7GtF1OjGB!pSw:Ndg%zYi_QVXf");
 }
 
-function kona3login($user, $email, $perm) {
+function kona3login($user, $email, $perm, $user_id) {
   $_SESSION[KONA3_SESSKEY_LOGIN] = [
     "user"  => $user,
+    "user_id" => $user_id,
     "email" => $email,
     "perm"  => $perm,
     "time"  => time(),
@@ -44,7 +45,7 @@ function kona3tryLogin($user, $pw) {
   // Check Admin Users
   $users = $kona3conf['users'];
   if (isset($users[$user]) && $users[$user] == $pw) {
-    kona3login($user, KONA3_ADMIN_EMAIL, "admin");
+    kona3login($user, KONA3_ADMIN_EMAIL, "admin", 0);
     return TRUE;
   }
 
@@ -54,7 +55,7 @@ function kona3tryLogin($user, $pw) {
     "WHERE name=? AND password=? AND enabled=1",
     [$user, kona3getHash($pw)]);
   if ($r == null) return FALSE;
-  kona3login($user, $r['email'], "normal");
+  kona3login($user, $r['email'], $r['perm'], $r['user_id']);
   return TRUE;
 }
 
