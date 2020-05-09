@@ -8,5 +8,7 @@ $lang_data = [
   'Login' => 'Login',
   'Logout' => 'Logout',
   'Search' => 'Search',
+  'This month' => 'This month',
+  'Monthly' => 'monthly',
 ];
 

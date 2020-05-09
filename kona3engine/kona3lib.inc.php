@@ -437,17 +437,6 @@ function kona3getCtrlMenu($type='bar') {
   return '[ctrl_menu-error-no-type--]';
 }
 
-// THIS METHOD FOR PLUGINS ONLY
-$kona3db = null;
-function kona3getDB() {
-  global $kona3db;
-  global $kona3conf;
-  if (!is_null($kona3db)) return $kona3db;
-  $kona3db = new PDO($kona3conf['dsn']);
-  $kona3db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-  return $kona3db;
-}
-
 // localize
 $lang_data = null;
 function lang($msg) {

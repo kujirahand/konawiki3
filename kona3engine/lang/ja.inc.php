@@ -59,5 +59,8 @@ $lang_data = [
   'You do not have admin perm.' => '管理者権限がないとアクセスできません。',
   'Delete All' => 'すべて削除する',
   'Today' => '今日',
+  'This month' => '今月',
+  'Monthly' => '今月',
+  'Popular' => '人気順',
 ];
 

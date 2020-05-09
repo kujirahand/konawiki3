@@ -11,7 +11,7 @@ function kona3plugins_comment_execute($params) {
   $page = $kona3conf['page'];
   $bbsid = $page;
   $type = "";
-  $pdo = kona3getDB();
+  $pdo = database_get();
   if (!$pdo) {
     return "([#comment] SQLite could not use...)";
   }
@@ -198,7 +198,7 @@ function kona3plugins_comment_action() {
     $id = intval(@$_REQUEST['id']);
     $pw = isset($_REQUEST['pw']) ? $_REQUEST['pw'] : '';
     if ($id <= 0) kona3error($page, "no id");
-    $pdo = kona3getDB();
+    $pdo = database_get();
     $stmt = $pdo->prepare('SELECT * FROM comment_list WHERE comment_id=?');
     $stmt->execute(array($id));
     $row = $stmt->fetch();
@@ -215,7 +215,7 @@ function kona3plugins_comment_action() {
     if ($id < 0) kona3error($page, "no id");
     $v = isset($_REQUEST['v']) ? intval($_REQUEST['v']) : -1;
     if ($v < 0) kona3error($page, "no v param");
-    $pdo = kona3getDB();
+    $pdo = database_get();
     $stmt = $pdo->prepare(
       'UPDATE comment_list SET todo=? '.
       '  WHERE comment_id=?');
@@ -240,7 +240,7 @@ function kona3plugins_comment_action_write($page) {
     _err($page, 'Invalid data'); exit;
   }
   if ($name == '') $name = 'no name';
-  $pdo = kona3getDB();
+  $pdo = database_get();
   $stmt = $pdo->prepare(
     "INSERT INTO comment_list(bbs_id, name, body, delkey, ctime, mtime)".
     "VALUES(?, ?, ?, ?, ?, ?)".
@@ -256,8 +256,10 @@ function kona3plugins_comment_action_write($page) {
   header("location: index.php?".urlencode($page));
 }
 
-
 function kona3plugins_comment_init_db($pdo) {
+  if (db_table_exists("comment_list")) {
+    return;
+  }
   $sql = <<< EOS
     /* comment table */
     CREATE TABLE IF NOT EXISTS comment_list (

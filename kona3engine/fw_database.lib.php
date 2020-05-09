@@ -70,4 +70,15 @@ function db_get1($sql, $params = array()) {
   return null;
 }
 
+function db_table_exists($table) {
+  $r = db_get1(
+    "SELECT * FROM sqlite_master ".
+    "WHERE type='table' AND name=?",
+    [$table]);
+  return (isset($r['name']));
+}
+
+
+
+
 
