@@ -29,7 +29,8 @@ function kona3plugins_popular_execute($args) {
     $value = $v["value"];
     $list .= 
       "<li>".
-      "<a href='$url'>$page_h ($value)</a>".
+      "<a href='$url'>$page_h ".
+      "<span class='popular_info'>($value)</span></a>".
       "</li>";
   }
   $list = "<ul class='recent'>$list</ul>";

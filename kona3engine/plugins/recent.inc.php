@@ -9,7 +9,7 @@ function kona3plugins_recent_execute($args) {
     "ORDER BY mtime DESC ".
     "LIMIT ?",
     [$limit]);
-  $head = "<h3>Recent</h3>";
+  $head = "<h3>".lang('Recent')."</h3>";
   if (!$r) {
     return $head."<p>None</p>";
   }

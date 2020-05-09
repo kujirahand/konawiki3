@@ -62,5 +62,6 @@ $lang_data = [
   'This month' => '今月',
   'Monthly' => '今月',
   'Popular' => '人気順',
+  'Recent' => '最近更新',
 ];
 

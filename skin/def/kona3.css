@@ -1466,6 +1466,21 @@ ul.topnavi a
 	margin: 0px;
 }
 
+.counter
+{
+  font-size: 0.9em;
+}
+.coutner_month
+{
+  font-size: 0.8em;
+  color: gray;
+}
+
+.popular_info
+{
+  font-size: 0.8em;
+  color: gray;
+}
 
 
 
