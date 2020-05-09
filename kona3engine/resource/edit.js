@@ -111,6 +111,7 @@ function go_ajax(a_mode) {
     if (result != 'ok') {
       console.log(msg);
       $("#edit_info").val("[error] " + msg['reason']);
+      $("#edit_info").css("color", "red");
       setButtonsDisabled(false);
       return;
     }

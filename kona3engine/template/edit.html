@@ -3,7 +3,7 @@
 <!-- editor -->
 <div id="wikimessage">
   <div id="wikiedit">
-    <div class="edit_msg">{{ $msg }}</div>
+    <div class="edit_msg">{{ $msg | safe }}</div>
     <div id="outline_div"></div>
     <form method="post" action="{{$action}}" class="pure-form">
       <input type="hidden" name="a_mode" value="trywrite">

@@ -18,7 +18,7 @@ CREATE TABLE users (
 /* ページ情報 */
 CREATE TABLE pages (
   page_id INTEGER PRIMARY KEY,
-  name TEXT,
+  name TEXT UNIQUE,
   ctime INTEGER,
   mtime INTEGER
 );

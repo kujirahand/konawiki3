@@ -2,16 +2,20 @@
 // file: kona3database.inc.php
 
 function kona3db_getPageId($page, $canCreate = TRUE) {
-  $r = db_get1("SELECT * FROM pages WHERE name = ?", $page);
-  if (!$r) {
-    if ($canCreate) {
-      $page_id = db_insert(
-        "INSERT INTO pages (name, ctime, mtime)".
-        "VALUES(?,?,?)",
-        [$page, time(), time()]);
-    }
-  } else {
+  $r = db_get1(
+    "SELECT * FROM pages ".
+    "WHERE name = ? ".
+    "LIMIT 1", [$page]);
+  if ($r) {
     $page_id = $r['page_id'];
+    return $page_id;
+  }
+  if ($canCreate) {
+    $page_id = db_insert(
+      "INSERT INTO pages (name, ctime, mtime)".
+      "VALUES(?, ?, ?)",
+      [$page, time(), time()]);
+    echo "[INSERT Page]";
     return $page_id;
   }
   return 0;
@@ -35,7 +39,8 @@ function kona3db_writePage($page, $body, $user_id=0) {
       [$body, $hash, time(), $user_id, $history_id]);
   } else {
     db_exec(
-      "INSERT INTO (page_id,user_id,body,hash,mtime)".
+      "INSERT INTO page_history".
+      "(page_id,user_id,body,hash,mtime)".
       "VALUES(?,?,?,?,?)",
       [$page_id, $user_id, $body, $hash, time()]);
   }

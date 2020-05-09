@@ -172,7 +172,7 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
   }
 
   // === for Database ===
-  kona3db_writePage($page, $body, $user_id);
+  kona3db_writePage($page, $edit_txt, $user_id);
   
   // result
   if ($i_mode == "ajax") {
