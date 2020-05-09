@@ -67,6 +67,13 @@ function kona3db_writePage($page, $body, $user_id=0) {
   return TRUE;
 }
 
+function kona3db_getUserByName($name) {
+  // select
+  $r = db_get1("SELECT * FROM users WHERE name=?",
+    [$name]);
+  return $r;
+}
+
 function kona3db_getUserById($user_id) {
   // check cache
   global $kona3db_users;

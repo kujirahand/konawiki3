@@ -376,23 +376,29 @@ function kona3getCtrlMenuArray($type) {
   $FrontPage_uri = kona3getPageURL($kona3conf['FrontPage']);
   $users_uri = kona3getPageURL($page, 'users');
   //
-  $list = array();
+  $FrontPage_label = '🏠 '.$kona3conf['FrontPage'];
   //
+  $list = array();
   if (!kona3isLogin()) {
-    $list[] = array(lang('Search'), $search_uri);
     if ($type == "bar") {
+      $list[] = array(lang('Search'), $search_uri);
       $list[] = array(lang('Login'), $login_uri);
+    } else {
+      $list[] = array($FrontPage_label, $FrontPage_uri);
+      $list[] = array(lang('Search'), $search_uri);
     }
   } else {
     $loginInfo = kona3getLoginInfo();
     $user = $loginInfo['user'];
-    $list[] = array("🙋 $user", $FrontPage_uri);
+    $userpage_uri = kona3getPageURL($user, 'user');
+    //
+    if (kona3isAdmin()) {
+      $list[] = array("👋🙋 $user", $userpage_uri);
+    } else {
+      $list[] = array("🙋 $user", $userpage_uri);
+    }
     $list[] = array(lang('Edit'), $edit_uri);
     $list[] = array(lang('New'), $new_uri);
-    if (kona3isAdmin()) {
-      $list[] = array(lang('Email Logs'), $email_logs_uri);
-      $list[] = array(lang('Users List'), $users_uri);
-    }
     $list[] = array(lang('Search'), $search_uri);
     $list[] = array(lang('Logout'), $logout_uri);
   }
@@ -465,6 +471,13 @@ function kona3getPageHash($body) {
 }
 
 
+// for template
+function t_url($v) {
+  echo kona3getPageURL($v);
+}
+function t_edit_url($v) {
+  echo kona3getPageURL($v, 'edit');
+}
 
 
 

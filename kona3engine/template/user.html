@@ -1,0 +1,36 @@
+{{ include parts_header.html }}
+
+<div id="wikimessage"><div class="box">
+
+{{if kona3isAdmin() }}
+<div class="box_border">
+  <h3>{{'Admin' | lang}}</h3>
+  <div style="padding:8px;">
+    <a class="pure-button" href="{{$userList_link}}">
+    {{'Users List'|lang}}</a>
+    <a class="pure-button" href="{{$emailLogs_link}}">
+    {{'Email Logs'|lang}}</a>
+  </div>
+</div>
+{{endif}}
+
+<div class="box_border">
+  <h3>{{ $user_id }}. {{ $name }}</h3>
+  <div>
+    <p>{{'History' | lang}}</p>
+    <ul>
+      {{ for $pages as $p }}
+      <li>
+        <span class="date">{{ $p.mtime | datetime }}</span> -
+        <a href="{{$p.page | edit_url}}">{{ $p.page }}</a>
+      </li>
+      {{ endfor }}
+    </ul>
+  </div>
+</div>
+
+</div></div><!-- end of #wikimessage -->
+<div style="clear:both;"></div>
+
+{{ include parts_footer.html }}
+

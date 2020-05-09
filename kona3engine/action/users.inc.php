@@ -30,6 +30,7 @@ function kona3_action_users() {
     "ORDER BY user_id DESC");
   foreach ($users as &$u) {
     $user_id = $u['user_id'];
+    $name = $u['name'];
     $token = $u['token'];
     $email = $u['email'];
     // update status link
@@ -51,6 +52,8 @@ function kona3_action_users() {
     // edited pages
     $pages = kona3db_getPageHistoryByUserId($user_id);
     $u['pages'] = $pages;
+    $u['user_link'] = kona3getPageURL(
+      $name, 'user');
   }
   kona3template("users.html",[
     "users" => $users,

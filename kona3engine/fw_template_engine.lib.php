@@ -72,10 +72,10 @@ function template_render($tpl_filename, $tpl_params) {
       return "<?php template_render('$file', []);?>";
     },
     // {{ if $var.name cond }} 
-    '#\{\{\s*if\s+\$([a-zA-Z0-9_\.]+)(.+?)\s*\}\}#is' => function (&$m) {
+    '#\{\{\s*if\s+\$([a-zA-Z0-9_\.]+)(.*?)\}\}#is' => function (&$m) {
       $var = template_var_name($m[1]);
       $cond = check_eq_flag($m[2]);
-      return "<?php if (\${$var} {$cond}): ?>";
+      return "<?php if (\${$var} {$cond}):/*if_var_cond*/ ?>";
     },
     // {{ if cond }} 
     '#\{\{\s*if\s+(.+?)\s*\}\}#is' => function (&$m) {

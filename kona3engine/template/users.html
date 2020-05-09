@@ -9,8 +9,10 @@
 {{ for $users as $v }}
 <div class="box_border">
   <h3>
-    {{ $v.user_id }}.
-    {{ $v.name }}
+    <a href="{{$v.user_link}}">
+      {{ $v.user_id }}.
+      {{ $v.name }}
+    </a>
     &lt;{{ $v.email }}&gt;
   </h3>
   <p>
@@ -26,7 +28,7 @@
     {{ endif }}
   </p>
   <p>
-    {{ if $v['perm'] == 'normal' }}
+    {{ if $v['perm'] eq 'normal' }}
       Normal User
       - <a href="{{$v.perm_admin_link}}">Change to Admin User</a>
     {{ else }}
@@ -36,8 +38,13 @@
   </p>
   <p class="date">Date: {{ $v.ctime | datetime }}</p>
   <p>
+    <p>{{'History' | lang}}</p>
     <ul>
       {{ for $v.pages as $p }}
+      <li>
+        <span class="date">{{ $p.mtime | datetime }}</span> -
+        <a href="{{$p.page | edit_url}}">{{ $p.page }}</a>
+      </li>
       {{ endfor }}
     </ul>
   </p>
