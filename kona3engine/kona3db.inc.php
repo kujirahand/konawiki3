@@ -140,15 +140,21 @@ function kona3db_getPageHistoryById($history_id) {
 }
 
 function kona3db_getPageHistoryByUserId($user_id) {
+  $pages = [];
   $r = db_get(
     "SELECT * FROM page_history ".
-    "WHERE user_id=? "
+    "WHERE user_id=? ".
+    "ORDER BY history_id DESC LIMIT 50",
     [$user_id]);
-  foreach ($r as &$v) {
+  $result = [];
+  foreach ($r as $v) {
     $page_id = $v['page_id'];
+    if (isset($pages[$page_id])) { continue; }
     $v['page'] = kona3db_getPageNameById($page_id);
+    $pages[$page_id] = TRUE;
+    $result[] = $v;
   }
-  return $r;
+  return $result;
 }
 
 
