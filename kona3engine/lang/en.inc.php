@@ -10,5 +10,7 @@ $lang_data = [
   'Search' => 'Search',
   'This month' => 'This month',
   'Monthly' => 'monthly',
+  'date_format_e' => 'd M',
+  'date_format' => 'd M Y',
 ];
 

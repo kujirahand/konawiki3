@@ -63,5 +63,7 @@ $lang_data = [
   'Monthly' => '今月',
   'Popular' => '人気順',
   'Recent' => '最近更新',
+  'date_format_e' => 'm/d',
+  'date_format' => 'Y/m/d',
 ];
 

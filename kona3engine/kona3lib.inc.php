@@ -439,7 +439,7 @@ function kona3getCtrlMenu($type='bar') {
 
 // localize
 $lang_data = null;
-function lang($msg) {
+function lang($msg, $def = null) {
   global $lang_data;
   // メッセージデータを読み込み
   if (!$lang_data) {
@@ -451,7 +451,8 @@ function lang($msg) {
   if (isset($lang_data[$msg])) {
     return $lang_data[$msg];
   }
-  return $msg;
+  // def ?
+  return isset($def) ? $def : $msg;
 }
 
 // get page body hash
@@ -494,10 +495,10 @@ function kona3date($value, $mode='easy') {
     $y_now = date("Y", $now);
     $y     = date("Y", $value);
     if ($y_now == $y) {
-      $dfe = konawiki_private('date_format_easy', 'm-d');
+      $dfe = lang('date_format_e', 'm-d');
       $s = date($dfe, $value);
     } else {
-      $df = konawiki_private('date_format', 'Y-m-d');
+      $df = lang('date_format', 'Y-m-d');
       $s = date($df, $value);
     }
     return "<span class='date'>$s</span>";
