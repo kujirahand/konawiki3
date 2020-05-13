@@ -14,7 +14,7 @@ function kona3db_getPageId($page, $canCreate = FALSE) {
     $page_id = db_insert(
       "INSERT INTO pages (name, ctime, mtime)".
       "VALUES(?, ?, ?)",
-      [$page, time(), time()]);
+      [$page, time(), 0]);
     return $page_id;
   }
   return 0;
