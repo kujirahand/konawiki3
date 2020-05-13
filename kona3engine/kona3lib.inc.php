@@ -524,4 +524,26 @@ function kona3datetime($value)
 	return date("{$fmt1} {$fmt2}", $value);
 }
 
+function kona3_getPluginInfo($plugin_name, $key, $def = FALSE) {
+  global $kona3conf;
+	if (isset($kona3conf["plugins"][$plugin_name][$key])) {
+		return $kona3conf["plugins"][$plugin_name][$key];
+	}
+	return $def;
+}
+
+function kona3_setPluginInfo($plugin_name, $key, $value) {
+  global $kona3conf;
+  if (!isset($kona3conf['plugins'])) {
+    $kona3conf['plugins'] = [];
+  }
+  if (!isset($kona3conf['plugins'][$plugin_name])) {
+    $kona3conf['plugins'][$plugin_name] = [];
+  }
+	$kona3conf["plugins"][$plugin_name][$key] = $value;
+}
+
+
+
+
 
