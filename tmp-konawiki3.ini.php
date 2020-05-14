@@ -24,6 +24,7 @@ define("KONA3_DSN", "sqlite:".KONA3_DIR_PRIVATE."/data.sqlite");
 
 // Setting
 define("KONA3_SHOW_DATA_DIR", FALSE); // show local path 
+define("KONA3_ALLPAGE_HEADER", ""); 
 define("KONA3_ALLPAGE_FOOTER", "#comment"); // footer
 define("KONA3_ENC_PAGENAME", FALSE); // 日本語名をURLエンコードするか
 

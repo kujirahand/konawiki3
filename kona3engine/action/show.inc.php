@@ -40,6 +40,28 @@ function kona3_action_show() {
     kona3error($page, "Sorry, System Error."); exit;
   }
 
+  // header and footer
+  $allpage_header = '';
+  $allpage_footer = '';
+  if (!empty($kona3conf['allpage_header'])) {
+    $allpage_header =
+      "<div class='allpage_header'>". 
+      konawiki_parser_convert(
+        $kona3conf['allpage_header']).
+      "</div><!-- end of .allpage_hader -->\n";
+  }
+  if (!empty($kona3conf['allpage_footer'])) {
+    $allpage_footer = 
+      "<div class='allpage_footer'>".
+      konawiki_parser_convert(
+        $kona3conf['allpage_footer']).
+      "</div><!-- end of .allpage_footer -->\n";
+  }
+  $page_body = 
+    $allpage_header.
+    $page_body.
+    $allpage_footer;
+
   // show
   kona3template('show.html', [
     "page_title" => $page,

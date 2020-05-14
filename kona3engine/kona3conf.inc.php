@@ -48,6 +48,7 @@ function kona3conf_setDefConfig() {
   defC("KONA3_URI_PUB",        "./pub");
   // option
   defC("KONA3_DSN",            "sqlite:".KONA3_DIR_PRIVATE."/data.sqlite");
+  defC("KONA3_ALLPAGE_HEADER", "");
   defC("KONA3_ALLPAGE_FOOTER", "");
   defC("KONA3_PLUGIN_DISALLOW", ""); // delimitter=","
   defC("KONA3_ENC_PAGENAME", FALSE);
@@ -67,6 +68,7 @@ function kona3conf_setDefConfig() {
   $kona3conf["wiki_title"]     = KONA3_WIKI_TITLE;
   $kona3conf["wiki.private"]   = KONA3_WIKI_PRIVATE;
   $kona3conf["FrontPage"]      = KONA3_WIKI_FRONTPAGE;
+  $kona3conf["allpage_header"] = KONA3_ALLPAGE_HEADER;
   $kona3conf["allpage_footer"] = KONA3_ALLPAGE_FOOTER;
   $kona3conf["lang"] = KONA3_LANG;
   
