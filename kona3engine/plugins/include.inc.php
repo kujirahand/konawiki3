@@ -25,9 +25,6 @@ function kona3plugins_include_execute($args) {
 }
 
 function kona3plugins_include_file($name, &$html) {
-  // dir?
-  $fname = kona3getWikiFile($name, false);
-  if (is_dir($fname)) return false;
   // text
   $fname = kona3getWikiFile($name, 'txt');
   if (file_exists($fname)) {
@@ -42,6 +39,9 @@ function kona3plugins_include_file($name, &$html) {
     $html = kona3plugins_include_markdown_convert($txt);
     return true;
   }
+  // dir?
+  $fname = kona3getWikiFile($name, false);
+  if (is_dir($fname)) return false;
   // else
   $m_edit = lang('Edit');
   $url = kona3getPageURL($name, 'edit');
