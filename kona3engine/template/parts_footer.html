@@ -9,10 +9,12 @@
   </div>
 
   {{ if ($show_data_dir != '') }}
+  {{ if kona3isLogin() }}
   <div id="kona3_show_data_dir">
     <input id="show_data_dir" type="text" 
      value="{{$data_filename}}" readonly>
   </div>
+  {{ endif }}
   {{ endif }}
 
   <div class="info">{{e:echo kona3getSysInfo() }}</div>
