@@ -98,7 +98,7 @@ function nako3doc_list_kana() {
   if (!$ra) {
     return "[ERROR]";
   }
-  $wiki = "* [[命令一覧]]/[[命令一覧/カナ順]]\n";
+  $wiki = "* [[命令一覧]]/[[カナ順:命令一覧/カナ順]]\n";
 
   // 同名の命令があればプラグインを明示
   for ($i = 0; $i < count($ra) - 1; $i++) {
