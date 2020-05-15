@@ -1,21 +1,22 @@
 {{ include parts_header.html }}
-<!-- #wikibody -->
-<div id="wikibody">
-  <div class="pure-g wikibody_pad">
-    <!-- .page_body -->
+<!-- #kona3_layout_show -->
+<div id="kona3_layout_show">
+  <div id="kona3_layout_show_in" class="pure-g">
+  
     <div class="pure-u-1 pure-u-md-19-24 page_body">
-      {{$page_body | safe}}
+      <div id="kona3_main">
+        {{$page_body | safe}}
+      </div><!-- #kona3_main -->
     </div><!-- end of .page_body -->
 
-    <!-- .body-menubar -->
-    <div class="pure-u-1 pure-u-md-5-24 body-menubar">
-      <div id="wikimenu">
+    <div class="pure-u-1 pure-u-md-5-24 show_menubar">
+      <div id="kona3_menubar">
         {{e:echo kona3getWikiPage('MenuBar')}}
-      </div><!-- end of #wikimenu -->
-    </div><!-- end of .body-menubar -->
+      </div><!-- end of #kona3_layout_show_menubar -->
+    </div><!-- end of .show_menubar -->
 
-  </div><!-- end of .pure-g wikibody_pad -->
-</div><!-- end of #wikibody -->
+  </div><!-- end of #kona3_layout_show_in -->
+</div><!-- end of #kona3_layout_show -->
 
 <div style="clear:both;"></div>
 

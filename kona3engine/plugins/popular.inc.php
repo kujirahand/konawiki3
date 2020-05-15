@@ -25,7 +25,7 @@ function kona3plugins_popular_execute($args) {
     $page = kona3db_getPageNameById($page_id);
     // FrontPage/MenuBar を除外
     if ($page == $kona3conf['FrontPage'] || $page == "MenuBar" ||
-      $page == "GlobalBar" || $page == "SideBar") {
+      $page == "GlobalBar" || $page == "SideBar" || $page == '') {
       continue;
     }
     $mtime = $v["mtime"];

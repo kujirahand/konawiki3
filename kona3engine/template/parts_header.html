@@ -17,14 +17,18 @@
 {{if $robots != ''}}<meta name="robots" content="{{$robots}}">{{endif}}
 </head>
 <body>
-<!-- header.begin -->
-<div id="wikiheader"><div class="header_pad">
-  <div id="wikititle">
-    <a href="{{$FrontPage_url}}">{{ $wiki_title }}</a>
-    <span id="pagename">&gt; {{ $page_title_a | safe }}</span>
-  </div>
-</div></div><!-- end of wikiheader -->
-<!-- header.end -->
+
+<!-- #kona3_layout_header -->
+<div id="kona3_layout_header">
+  <div id="kona3_layout_title">
+    <div class="kona3_header_pad">
+      <div id="kona3_header_title">
+        <a href="{{$FrontPage_url}}">{{ $wiki_title }}</a>
+        <span class="pagename">&gt; {{ $page_title_a | safe }}</span>
+      </div><!-- end of #kona3_header_title -->
+    </div><!-- end of .kona3_header_pad -->
+  </div><!-- end of #kona3_layout_title -->
+</div><!-- end of #kona3_layout_header -->
 
 <!-- drawer.begin -->
 <div id="drawer_wrapper">
