@@ -29,7 +29,7 @@ function kona3plugins_nako3_execute($params)
   // default value
   $code = "";
   $rows = 5;
-  $ver = "3.0.72"; // default version
+  $ver = "3.1.2"; // default version
   $size_w = 300;
   $size_h = 300;
   $use_canvas = false;

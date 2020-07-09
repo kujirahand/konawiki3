@@ -100,7 +100,7 @@ function kona3db_getUserById($user_id) {
 
 function kona3db_getUserNameById($user_id) {
   $u = kona3db_getUserById($user_id);
-  return $u['name'];
+  return isset($u['name']) ? $u['name'] : '';
 }
 
 
