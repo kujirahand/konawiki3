@@ -1182,8 +1182,9 @@ ul.topnavi a
 .column
 {
   margin: 1em;
-  padding: 0.5em;
-  background-color: #f6f0ff;
-  border-left: 2px solid silver;
+  padding: 1em 1em 1em 1em;
+  background-color: #f6f6ff;
+  border-right: 1px solid silver;
+  border-bottom: 2px solid silver;
 }
 
