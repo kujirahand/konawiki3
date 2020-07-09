@@ -1179,3 +1179,11 @@ ul.topnavi a
 	text-align:right;
 }
 
+.column
+{
+  margin: 1em;
+  padding: 0.5em;
+  background-color: #f6f0ff;
+  border-left: 2px solid silver;
+}
+
