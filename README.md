@@ -7,6 +7,11 @@
 
 Konawikiは原稿の執筆やマニュアルの作成に特化したシンプルなWikiです。Wikiのデータはただのテキストファイルなので、Gitと連携して詳細な差分を取ることもできます。開発者は何年もテキストエディタの代わりにKonawiki3を使用しています。小さくシンプルなKonawikiを使って大きな仕事を成し遂げよう！
 
+## セキュリティアップデートのお知らせ (2020/07/10)
+
+Konawiki3.1.0 以前のバージョンに不正なページ名を指定した時にJavaScriptが実行されてしまう脆弱性がありました。
+現在は修正されています。最新版にアップデートしてください。
+
 ## Konawiki3 is simple.
 
 It is very simple PHP wiki engine. (Looks like PukiWiki).
