@@ -3,7 +3,12 @@
 function kona3plugins_ls_execute($args) {
   global $kona3conf;
 
-  $page = $kona3conf['page'];
+  $page = $kona3conf['page'];  
+  // .. があれば削除
+  $page = str_replace('..', '', $page);
+  if (strpos($page, '//') !== false) {
+    return "";
+  }
   $fname = kona3getWikiFile($page, false);
   // dir?
   if (is_dir($fname)) {
