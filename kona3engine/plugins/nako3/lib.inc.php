@@ -64,16 +64,32 @@ function nako3_make_script_tag(&$nako3) {
   // 各JavaScriptのパスを設定
   $baseurl = $nako3['baseurl'];
   $jslist = array(
+    // editor
+    array(
+      'src'   => 'https://pagecdn.io/lib/ace/1.4.12/ace.js',
+      'async' => FALSE,
+    ),
     // nadesiko
-    $baseurl."release/wnako3.js",
-    $baseurl."release/plugin_turtle.js",
+    array(
+      'src'   => $baseurl."release/wnako3.js",
+      'async'=> TRUE
+    ),
+    array(
+      'src'   => $baseurl."release/plugin_turtle.js",
+      'async' => TRUE,
+    ),
     // chart.js
-    'https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js'
+    array(
+      'src'   => 'https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js',
+      'async' => TRUE,
+    ),
   );
   // スクリプトタグを生成
   $include_js = '';
   foreach ($jslist as $js) {
-    $include_js .= "<script defer src=\"$js\"></script>\n";
+    $src = $js['src'];
+    $defer = $js['async'] ? 'defer' : '';
+    $include_js .= "<script {$defer} src=\"$src\"></script>\n";
   }
   return $include_js;
 }

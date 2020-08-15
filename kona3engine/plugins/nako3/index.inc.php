@@ -33,7 +33,8 @@ function nako3_main($params) {
       "<!-- [nako3.include_once] -->\n".
       nako3_make_script_tag($nako3).
       nako3_template('tpl-style.html',array()).
-      nako3_template('tpl-js.html', $nako3).
+      nako3_template('tpl-js-edit.html', $nako3).
+      nako3_template('tpl-js-nako3.html', $nako3).
       "<!-- [/nako3.include_once] -->\n";
   }
   
@@ -51,7 +52,8 @@ function nako3_main($params) {
   $nako3['readonly'] = ($nako3['editable']) 
     ? '' : 
     "readonly='1' style='background-color:#f0f0f0;'";
-  $nako3['can_save'] = ($editable) ? 'true' : 'false';
+  $nako3['can_save'] = ($nako3['editable']) ? 'true' : 'false';
+  $nako3['edit_height'] = (ceil(intval($nako3['rows']) * 1.5)).'em';
 
   // show template
   $src = nako3_template('tpl-code.html', $nako3);

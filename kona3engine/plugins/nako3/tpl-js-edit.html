@@ -1,0 +1,56 @@
+<!-- [tpl-js-nako3.html] -->
+<!-- 一度だけ取り込まれる部分 -->
+<script type="text/javascript">
+
+// ace_editors instance
+const ace_editors = {}
+
+function ace_editor_init(pid) {
+    const edit = ace.edit("ace_editor" + pid);
+    edit.setTheme("ace/theme/textmate");
+    edit.setFontSize(16);
+    // edit.session.setMode("ace/mode/javascript");
+    ace_editors[pid] = edit;
+}
+
+// post
+function post_button_init(pid, can_save) {
+    const post_span = document.getElementById('post_span_' + pid);
+    post_span.style.visibility = can_save ? "visible" : "hidden"; // for post
+    console.log('post_button_init='+pid, can_save)
+}
+function nako3_post_submit(pid) {
+    // get code
+    const edit = ace_editors[pid];
+    const textarea = document.getElementById('nako3_code_' + pid);
+    textarea.value = edit.getValue();
+    // submit
+    document.getElementById('nako3codeform_' + pid).submit();
+}
+
+// 仮保存のための処理
+function get_kari_hozon_key(pid) {
+    return 'nako3edit_kari_src_' + pid;
+}
+function nako3_save(pid) {
+    const edit = ace_editors[pid];
+    localStorage[get_kari_hozon_key(pid)] = edit.getValue();
+    alert('仮保存しました');
+}
+function nako3_load(pid) {
+    const src = localStorage[get_kari_hozon_key(pid)];
+    if (!src) {
+        alert('仮保存しているプログラムはありません');
+        return;
+    }
+    var a = confirm(
+        '仮保存しているソースを読み込みますか？\n' + 
+        '---\n' + src.substr(0, 10));
+    if (!a) return;
+    const edit = ace_editors[pid];
+    edit.setValue(src);
+}
+
+</script>
+<!-- [/tpl-js-nako3.html] -->
+
