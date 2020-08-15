@@ -1,0 +1,135 @@
+<!-- [tpl-js.html] -->
+<!-- 一度だけ取り込まれる部分 -->
+<script type="text/javascript">
+var nako3_info_id = 0
+var baseurl = '{{ baseurl }}'
+var nako3_get_resultbox = function () {
+  return document.getElementById("nako3result_div_" + nako3_info_id)
+}
+var nako3_get_info = function () {
+  return document.getElementById("nako3_info_" + nako3_info_id)
+}
+var nako3_get_error = function () {
+  return document.getElementById("nako3_error_" + nako3_info_id)
+}
+var nako3_get_canvas = function () {
+  return document.getElementById("nako3_canvas_" + nako3_info_id)
+}
+var nako3_get_div = function () {
+  return document.getElementById("nako3_div_" + nako3_info_id)
+}
+// 表示
+var nako3_print = function (s) {
+  console.log("[表示] " + s)
+  var info = nako3_get_info()
+  if (!info) return
+  var box = nako3_get_resultbox()
+  box.style.display = 'block'
+  s = "" + s // 文字列に変換
+  // エラーだった場合
+  if (s.substr(0, 9) == "==ERROR==") {
+    s = s.substr(9)
+    var err = nako3_get_error()
+    err.innerHTML = s
+    err.style.display = 'block'
+    return
+  } else {
+    info.innerHTML += to_html(s) + "\n"
+    info.style.display = 'block'
+  }
+}
+//---------------------------------
+var nako3_clear = function (s, use_canvas) {
+  var info = nako3_get_info()
+  if (!info) return
+  info.innerHTML = ''
+  info.style.display = 'none'
+  var err = nako3_get_error()
+  err.innerHTML = ''
+  err.style.display = 'none'
+  var div = nako3_get_div()
+  if (div) div.innerHTML = ''
+  if (use_canvas) {
+    var canvas = nako3_get_canvas()
+    if (canvas) {
+      var ctx = canvas.getContext('2d')
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+    }
+  }
+}
+
+// 独自関数の登録
+var nako3_add_func = function () {
+  navigator.nako3.setFunc("表示", [['の', 'を', 'と']], nako3_print)
+  navigator.nako3.setFunc("表示ログクリア", [], nako3_clear)
+}
+var nako3_init_timer = setInterval(function(){
+  if (typeof(navigator.nako3) === 'undefined') return
+  clearInterval(nako3_init_timer)
+  nako3_add_func()
+}, 500)
+
+function to_html(s) {
+  s = '' + s
+  return s.replace(/\&/g, '&amp;')
+          .replace(/\</g, '&lt;')
+          .replace(/\>/g, '&gt;')
+}
+//------------------------------------
+// なでしこのプログラムを実行する関数
+//------------------------------------
+function nako3_run(id, use_canvas) {
+  if (typeof(navigator.nako3) === 'undefined') {
+    alert('現在ライブラリを読み込み中です。しばらくお待ちください。')
+    return
+  }
+  var code_e = document.getElementById("nako3_code_" + id)
+  if (!code_e) return
+  var code = code_e.value
+  var canvas_name = "#nako3_canvas_" + id
+  var div_name = "#nako3_div_" + id
+  var addon =
+    "「" + div_name + "」へDOM親要素設定;" +
+    "「" + div_name + "」に「」をHTML設定;"
+  if (use_canvas) {
+    addon += 
+      "「" + canvas_name + "」へ描画開始;" +
+      "カメ描画先=「" + canvas_name + "」;" +
+      "カメ全消去;" +
+      "カメ画像URL=「" + baseurl + "/demo/turtle.png」;"
+  } 
+  try {
+    nako3_info_id = id
+    nako3_clear()
+    navigator.nako3.run(addon + code)
+    console.log("DONE")
+  } catch (e) {
+    nako3_print("==ERROR==" + e.message + "")
+    console.log(e)
+  }
+}
+
+// 仮保存のための処理
+function get_kari_hozon_key(pid) {
+  return 'nako3edit_kari_src_' + pid;
+}
+function nako3_save(pid) {
+  var doc = document.getElementById('nako3_code_' + pid)
+  localStorage[get_kari_hozon_key(pid)] = doc.value
+  alert('仮保存しました')
+}
+function nako3_load(pid) {
+  var src = localStorage[get_kari_hozon_key(pid)];
+  if (!src) {
+    alert('仮保存しているプログラムはありません');
+    return;
+  }
+  var a = confirm(
+    '仮保存しているソースを読み込みますか？\n' + 
+    '---\n' + src.substr(0, 10));
+  if (!a) return;
+  var doc = document.getElementById('nako3_code_' + pid);
+  doc.value = src;
+}
+</script>
+<!-- [/tpl-js.html] -->

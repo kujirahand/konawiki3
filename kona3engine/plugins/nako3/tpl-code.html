@@ -1,0 +1,58 @@
+<!-- [tpl-code.html] -->
+
+{{ raw:script_once }}
+
+<!-- 以下毎回取り込まれる部分 -->
+<div class="nako3">
+
+<div id="nako3_editor_main_{{pid}}" class="nako3row">
+<form id="nako3codeform_{{pid}}" action="{{ post_url} }" method="POST">
+<textarea
+  id="nako3_code_{{pid}}"
+  rows="{{rows}}"
+  class="nako3txt"
+  name="body" {{ readonly }}
+ >{{ code }}</textarea>
+<input type="hidden" name="version" value="{{ ver }}" />
+</form>
+</div><!-- end of #nako3_editor_main_{{pid}} -->
+
+<div id="nako3_editor_controlls_{{pid}}" class="nako3row" style="padding-bottom:4px;">
+  <button onclick="nako3_run({{pid}}, {{ j_use_canvas }})">▶ 実行</button>
+  <button onclick="nako3_clear({{pid}}, {{ j_use_canvas }})">クリア</button>
+  <span id="post_span_{{pid}}" class="post_span">
+    <button id="post_button_{{pid}}" onclick="nako3_post_{{pid}}()">公開</button>
+    &nbsp;&nbsp;
+    <a href="#" id="save_button_{{pid}}" class="tmp_btn" onclick="nako3_save({{pid}})">仮保存</a>
+    <a href="#" id="load_button_{{pid}}" class="tmp_btn" onclick="nako3_load({{pid}})">仮読込</a>
+  </span>
+  <span class='nako3ver'>&nbsp;&nbsp;v{{ ver }}</span>
+</div><!-- end of #nako3_editor_controlls_{{pid}} -->
+
+<!-- ERROR -->
+<div class="nako3row nako3error" id="nako3_error_{{pid}}" style="display:none"></div>
+
+<!-- RESULT -->
+<div id="nako3result_div_{{pid}}" class="nako3row" style="display:none;">
+  <textarea class="nako3row nako3info" readonly
+            id="nako3_info_{{pid}}" rows="5" style="display:none"></textarea>
+</div><!-- end of #nako3_error_{{pid}} -->
+
+<!-- FREE DOM AREA -->
+<div id="nako3_div_{{ pid }}" class="nako3_div"></div>
+
+{{ raw:canvas_code }}
+
+</div><!-- end of #nako3 -->
+
+<!-- dynamic js code -->
+<script type="text/javascript">
+  const post_span_{{pid}} = document.getElementById('post_span_{{pid}}');
+  post_span_{{pid}}.style.visibility = {{ can_save }} ? "visible" : "hidden"; // for post
+  function nako3_post_{{pid}}() {
+    const post_button = document.getElementById('post_button_{{pid}}')
+    document.getElementById('nako3codeform_{{pid}}').submit();
+  }
+</script>
+<!-- [/tpl-code.html] -->
+
