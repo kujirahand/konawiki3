@@ -32,7 +32,6 @@ function kona3_action_show() {
   }
 
   // convert
-  $cnt_txt = mb_strlen($txt);
   if ($ext == ".txt") {
     $page_body = konawiki_parser_convert($txt);
   } else if ($ext == ".md") {
@@ -40,6 +39,8 @@ function kona3_action_show() {
   } else {
     kona3error($page, "Sorry, System Error."); exit;
   }
+  // counter
+  $cnt_txt = mb_strlen($txt);
 
   // header and footer
   $allpage_header = '';

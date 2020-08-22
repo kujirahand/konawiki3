@@ -1181,10 +1181,18 @@ ul.topnavi a
 
 .column
 {
-  margin: 1em;
-  padding: 1em 1em 1em 1em;
-  background-color: #f6f6ff;
-  border-right: 1px solid silver;
-  border-bottom: 2px solid silver;
+	margin: 1em;
+	padding: 1em 1em 1em 1em;
+	background-color: #f6f6ff;
+	border-right: 1px solid silver;
+	border-bottom: 2px solid silver;
+}
+
+.mojisu {
+	margin:0;
+	padding:4px;
+	font-size: 0.8em;
+	color: gray;
+	text-align: right;
 }
 

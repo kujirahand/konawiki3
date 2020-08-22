@@ -68,7 +68,7 @@ function template_render($tpl_filename, $tpl_params) {
     // {{ include cond }} 
     '#\{\{\s*include\s+[\'\"]?(.+?)[\'\"]?\s*}}#is' => function (&$m) use ($tpl_params){
       $file = $m[1];
-      $enc = json_encode($tpl_params);
+      // $enc = json_encode($tpl_params);
       return "<?php template_render('$file', []);?>";
     },
     // {{ if $var.name cond }} 

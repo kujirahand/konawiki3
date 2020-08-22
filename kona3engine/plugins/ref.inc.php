@@ -1,5 +1,8 @@
 <?php
-
+/** #ref plugin
+ * 画像を表示するプラグイン
+ * [書式] #ref(image.png, w=400, h=300, 400x300, @link, *caption)
+ */
 function kona3plugins_ref_execute($args) {
   global $kona3conf;
   $page = kona3getPage();
@@ -25,22 +28,14 @@ function kona3plugins_ref_execute($args) {
       $size = " width='{$m[1]}' height='{$m[2]}'";
       continue;
     }
-    // width=xx
-    if (preg_match("#width=(\d+)#", $arg, $m)) {
-      $size = " width='{$m[1]}'";
+    // width=xx or w=xx
+    if (preg_match("#(width|w)\=(\d+)(px|\%)?#", $arg, $m)) {
+      $size = " width='{$m[2]}{$m[3]}'";
       continue;
     }
-    if (preg_match("#w=(\d+)#", $arg, $m)) {
-      $size = " width='{$m[1]}'";
-      continue;
-    }
-    // height=xx
-    if (preg_match("#height=(\d+)#", $arg, $m)) {
-      $size = " height='{$m[1]}'";
-      continue;
-    }
-    if (preg_match("#h=(\d+)#", $arg, $m)) {
-      $size = " height='{$m[1]}'";
+    // height=xx or h=xx
+    if (preg_match("#(height|h)\=(\d+)(px|\%)?#", $arg, $m)) {
+      $size = " height='{$m[2]}{$m[3]}'";
       continue;
     }
   }
