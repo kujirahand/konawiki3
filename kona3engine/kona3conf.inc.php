@@ -98,7 +98,7 @@ function kona3conf_setDefConfig() {
   $kona3conf["path.attach"]   = KONA3_DIR_ATTACH;
   $kona3conf["path.cache"]    = KONA3_DIR_CACHE;
   // URL
-  $scheme = $_SERVER['REQUEST_SCHEME'];
+  $scheme = isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http';
   $host = $_SERVER['HTTP_HOST'];
   $script = $_SERVER['SCRIPT_NAME'];
   $kona3conf["url.index"]   = "{$scheme}://{$host}{$script}";
