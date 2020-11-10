@@ -40,10 +40,13 @@ function kona3plugins_ref_execute($args) {
     }
   }
   // make link
-  if (!preg_match("#^http#", $url)) {
+  $caption = htmlspecialchars($caption);
+  $url = htmlspecialchars_url($url);
+  if (!preg_match("#^https?\:\/\/#", $url)) {
     // file link
     $url2 = kona3plugins_ref_file_url($page, $url);
     if ($url2 === '') {
+      $url = htmlspecialchars($url);
       return "<div class='error'>#ref:(No file:{$url})</div>";
     }
     $url = $url2;
@@ -98,4 +101,14 @@ function kona3plugins_ref_file_url($page, $url) {
   return '';
 }
 
+function htmlspecialchars_url($xss){
+  $s=htmlspecialchars($xss, ENT_QUOTES, 'UTF-8');
+  $s=str_replace('http:','http<',$s);
+  $s=str_replace('https:','https<',$s);
+  $s=str_replace(':','',$s);
+  $s=str_replace(';','',$s);
+  $s=str_replace('http<','http:',$s);
+  $s=str_replace('https<','https:',$s);
+  return $s;
+}
 

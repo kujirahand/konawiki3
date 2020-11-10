@@ -98,7 +98,9 @@ function kona3lib_execute() {
   $actionFunc = "kona3_action_$action";
   $page = $kona3conf['page'];
   if (!file_exists($actionFile)) {
-    kona3error($page, "Invalid Action `$action`"); exit;
+    $action_html = htmlspecialchars($action);
+    kona3error($page, "Invalid Action `$action_html`");
+    exit;
   }
   include_once($actionFile);
   if (!function_exists($actionFunc)) {
@@ -129,6 +131,9 @@ function kona3getWikiFile($wikiname, $autoExt = true, $ext = '.txt', $force_enco
   // encode
   $encode = $kona3conf['enc.pagename'];
   if ($force_encode) { $encode = $force_encode; }
+  
+  // check path traversal
+  $wikiname = str_replace('..', '', $wikiname);
   
   // make path
   $wikiname = kona3getRelativePath($wikiname);
@@ -194,6 +199,7 @@ function kona3getRelativePath($wikiname) {
 
 // show error page
 function kona3error($title, $msg) {
+  $title = htmlspecialchars($title);
   $err = "<div class='error_box'>".
     "<h3 class='error'>$title</h3>".
     "<div class='error pad'>$msg</div>".
@@ -204,6 +210,7 @@ function kona3error($title, $msg) {
   exit;
 }
 function kona3showMessage($title, $msg) {
+  $title = htmlspecialchars($title);
   $body = "<div>".
     "<h3>$title</h3>".
     "<div class='pad'>$msg</div>".
