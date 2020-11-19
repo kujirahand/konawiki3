@@ -1,16 +1,23 @@
-# konawiki3
+# KonaWiki3
 
- - Wiki clone
- - Konawiki --- http://kujirahand.com/konawiki3/
+ - KonaWiki3 is Wiki clone.
+ - [URL] http://kujirahand.com/konawiki3/
 
-## Konawiki3の目標
 
-Konawikiは原稿の執筆やマニュアルの作成に特化したシンプルなWikiです。Wikiのデータはただのテキストファイルなので、Gitと連携して詳細な差分を取ることもできます。開発者は何年もテキストエディタの代わりにKonawiki3を使用しています。小さくシンプルなKonawikiを使って大きな仕事を成し遂げよう！
+## SECURITY UPDATE (2020-11-10)
+
+ - Please update before KonaWiki ver.3.1.2.
+ - [JVNVU#99880454](https://jvn.jp/vu/JVNVU99880454/index.html)
+
 
 ## セキュリティアップデートのお知らせ (2020/11/10)
 
 Konawiki3.1.2 以前のバージョンに不正なページ名を指定した時にディレクトリトラバーサルの脆弱性がありました。
 現在は修正されています。最新版にアップデートしてください。
+
+## Konawiki3の目標
+
+Konawikiは原稿の執筆やマニュアルの作成に特化したシンプルなWikiです。Wikiのデータはただのテキストファイルなので、Gitと連携して詳細な差分を取ることもできます。開発者は何年もテキストエディタの代わりにKonawiki3を使用しています。小さくシンプルなKonawikiを使って大きな仕事を成し遂げよう！
 
 ## Konawiki3 is simple.
 
@@ -70,14 +77,10 @@ text text text text
 - 1. Install WebServer and PHP7
 - 2. Download
  - ``git clone https://github.com/kujirahand/konawiki3.git``
-- 3. Change Current Directory
- - ``cd konawiki3``
-- 4. Copy Config file
- - ``cp tmp-konawiki3.ini.php konawiki3.ini.php``
 
 ## Install Library
 
-- 5. Execute commands
+- 4. Execute commands
 
 ```
 cd kona3engine
@@ -97,3 +100,5 @@ $ git remote add origin git@github.com:hoge/fuga.git
 $ cd ../kona3engine
 $ bash enable_git_support.sh
 ```
+
+
