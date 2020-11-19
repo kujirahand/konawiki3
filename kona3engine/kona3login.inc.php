@@ -56,11 +56,12 @@ function kona3getAdminUsers() {
     $s = base64_decode(trim(substr(KONA3_WIKI_USERS, 7)));
     $users = json_decode($s, TRUE);
   } else {
+    // FOR OLD_VERSION PASSWORD (#31)
     $users_a = explode(",", KONA3_WIKI_USERS);
     foreach ($users_a as $r) {
       $ra = explode(":", trim($r), 2);
       if (count($ra) == 2) {
-        $users[$ra[0]] = $ra[1];
+        $users[$ra[0]] = kona3getHash($ra[1]);
       }
     }
   }
@@ -72,7 +73,7 @@ function kona3tryLogin($user, $pw) {
   
   // Check Admin Users (by config file)
   $users = kona3getAdminUsers();
-  if (isset($users[$user]) && $users[$user] == $pw) {
+  if (isset($users[$user]) && $users[$user] == kona3getHash($pw)) {
     kona3login($user, KONA3_ADMIN_EMAIL, "admin", 0);
     return TRUE;
   }
@@ -87,8 +88,10 @@ function kona3tryLogin($user, $pw) {
   return TRUE;
 }
 
+// Get Hash
 function kona3getHash($password) {
   $s = KONA3_PASSWORD_SALT . "::" . $password;
   return hash("sha512", $s, FALSE);
 }
+
 
