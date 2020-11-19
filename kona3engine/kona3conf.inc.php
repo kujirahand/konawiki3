@@ -80,11 +80,16 @@ function kona3conf_setDefConfig() {
   }
   // users
   $users = array();
-  $users_a = explode(",", KONA3_WIKI_USERS);
-  foreach ($users_a as $r) {
-    $ra = explode(":", trim($r), 2);
-    if (count($ra) == 2) {
-      $users[$ra[0]] = $ra[1];
+  if ('base64:' == substr(KONA3_WIKI_USERS, 0, 7)) {
+    $s = base64_decode(trim(substr(KONA3_WIKI_USERS, 7)));
+    $users = json_decode($s, TRUE);
+  } else {
+    $users_a = explode(",", KONA3_WIKI_USERS);
+    foreach ($users_a as $r) {
+      $ra = explode(":", trim($r), 2);
+      if (count($ra) == 2) {
+        $users[$ra[0]] = $ra[1];
+      }
     }
   }
   $kona3conf["users"] = $users;
