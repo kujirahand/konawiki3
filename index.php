@@ -29,7 +29,7 @@ function konawiki3_setup() {
   if ($q == '') {
     $pw = konawiki3_gen_pw();
     echo "<!DOCTYPE html><html><body style='background-color:#eee;'><form method='POST'>";
-    echo "<h1>ADMIN SETUP</h1><div style='padding:1em;'>";
+    echo "<h1>KONAWIKI3 ADMIN SETUP</h1><div style='padding:1em;'>";
     echo "User ID:<br><input type='text' name='userid' value='admin@example.com'><br>";
     echo "User Password:<br><input type='text' name='pw' value='$pw'><br>";
     echo "Password (confirm):<br><input type='text' name='pw2' value='$pw'>";

@@ -14,7 +14,7 @@ function kona3_action_show() {
       $msg_please_login = lang('Please login.');
       kona3error(
         $page, 
-        "<div>$msg_private</div>".
+        "<div>$msg_private</div><div>&nbsp;</div>".
         "<div><a href='$url'>$msg_please_login</a></div>");
       exit;
     }

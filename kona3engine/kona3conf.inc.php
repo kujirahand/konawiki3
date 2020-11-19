@@ -25,7 +25,6 @@ function kona3conf_setDefConfig() {
   defC("KONA3_WIKI_TITLE",     "Konwwiki3");
   defC("KONA3_WIKI_FRONTPAGE", "FrontPage");
   defC("KONA3_WIKI_PRIVATE",   FALSE);
-  defC("KONA3_WIKI_USERS",     "kona3:pass3,kona2:pass2");
   defC("KONA3_WIKI_SKIN",      "def");
   defC("KONA3_LANG",           "ja");
   defC("KONA3_ADMIN_EMAIL",    "");
@@ -78,22 +77,7 @@ function kona3conf_setDefConfig() {
   } else {
     $kona3conf["robots"] = ''; // or 'index,follow' (デフォルトでは省略すべきとのこと)
   }
-  // users
-  $users = array();
-  if ('base64:' == substr(KONA3_WIKI_USERS, 0, 7)) {
-    $s = base64_decode(trim(substr(KONA3_WIKI_USERS, 7)));
-    $users = json_decode($s, TRUE);
-  } else {
-    $users_a = explode(",", KONA3_WIKI_USERS);
-    foreach ($users_a as $r) {
-      $ra = explode(":", trim($r), 2);
-      if (count($ra) == 2) {
-        $users[$ra[0]] = $ra[1];
-      }
-    }
-  }
-  $kona3conf["users"] = $users;
-  
+
   // path
   $base    = dirname(__FILE__);
   $baseurl = ".";
