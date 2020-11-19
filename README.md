@@ -78,16 +78,16 @@ text text text text
 - 2. Download
  - ``git clone https://github.com/kujirahand/konawiki3.git``
 
-## Install Library
+## Install Library (Option)
 
-- 4. Execute commands
+When you want to use Git or Markdown, execute shell commands.
 
 ```
 cd kona3engine
 composer install
 ```
 
-## Git support
+## Git support (Option)
 
 You can commit and push wiki diffs to your git repository.
 
@@ -95,10 +95,15 @@ You can commit and push wiki diffs to your git repository.
 # set your remote repository in data/
 $ cd data
 $ git remote add origin git@github.com:hoge/fuga.git
-
-# run setup script
-$ cd ../kona3engine
-$ bash enable_git_support.sh
 ```
 
+And set git_enabled to true at the config.
+
+## Config page
+
+First login by Admin User, and access config page.
+
+```
+[URL] http://localhost/index.php?go&editConf
+```
 
