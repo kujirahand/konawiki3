@@ -15,11 +15,11 @@
 Konawiki3.1.2 以前のバージョンに不正なページ名を指定した時にディレクトリトラバーサルの脆弱性がありました。
 現在は修正されています。最新版にアップデートしてください。
 
-## Konawiki3の目標
+## KonaWiki3の目標
 
-Konawikiは原稿の執筆やマニュアルの作成に特化したシンプルなWikiです。Wikiのデータはただのテキストファイルなので、Gitと連携して詳細な差分を取ることもできます。開発者は何年もテキストエディタの代わりにKonawiki3を使用しています。小さくシンプルなKonawikiを使って大きな仕事を成し遂げよう！
+KonaWikiは原稿の執筆やマニュアルの作成に特化したシンプルなWikiです。Wikiのデータはただのテキストファイルなので、Gitと連携して詳細な差分を取ることもできます。開発者は何年もテキストエディタの代わりにKonaWiki3を使用しています。小さくシンプルなKonawikiを使って大きな仕事を成し遂げよう！
 
-## Konawiki3 is simple.
+## KonaWiki3 is simple.
 
 It is very simple PHP wiki engine. (Looks like PukiWiki).
 
@@ -50,7 +50,7 @@ console.log('hello');
 
 ## 日本語Wiki記法のサポート
 
-Konawiki2に由来する、日本語Wiki記法をサポートしています。
+KonaWiki2に由来する、日本語Wiki記法をサポートしています。
 
 ```
 ■大見出し
