@@ -10,6 +10,7 @@ define("KONA3_WIKI_SKIN", "def"); // def/single
 
 // Admin Users "user1:password1,user2:password2"
 define("KONA3_WIKI_USERS", "##WIKI_USERS##");
+define("KONA3_PASSWORD_SALT", "6pD0wa#sU4!0[mo@z5rm"); // Please modify before add users
 define("KONA3_ADMIN_EMAIL", ""); // Please set your email
 define("KONA3_ALLOW_ADD_USER", FALSE);
 

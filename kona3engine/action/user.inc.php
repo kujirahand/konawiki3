@@ -7,7 +7,8 @@ function kona3_action_user() {
   $u = kona3db_getUserByName($name);
   // admin user?
   if (!$u) {
-    if (isset($kona3conf['users'][$name])) {
+    $admin_users = kona3getAdminUsers();
+    if (isset($admin_users[$name])) {
       $u = [
         "user_id" => 0,
         "user" => $name,

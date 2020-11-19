@@ -50,10 +50,7 @@ function kona3isAdmin() {
   return isset($i['perm']) && ($i['perm'] == 'admin');
 }
 
-function kona3tryLogin($user, $pw) {
-  global $kona3conf;
-  
-  // Check Admin Users (by config file)
+function kona3getAdminUsers() {
   $users = array();
   if ('base64:' == substr(KONA3_WIKI_USERS, 0, 7)) {
     $s = base64_decode(trim(substr(KONA3_WIKI_USERS, 7)));
@@ -67,6 +64,14 @@ function kona3tryLogin($user, $pw) {
       }
     }
   }
+  return $users;
+}
+
+function kona3tryLogin($user, $pw) {
+  global $kona3conf;
+  
+  // Check Admin Users (by config file)
+  $users = kona3getAdminUsers();
   if (isset($users[$user]) && $users[$user] == $pw) {
     kona3login($user, KONA3_ADMIN_EMAIL, "admin", 0);
     return TRUE;
