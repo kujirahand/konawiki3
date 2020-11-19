@@ -268,7 +268,7 @@ function nako3doc_getDB() {
   if (isset($nako3doc_db)) {
     return $nako3doc_db;
   }
-  $dbfile = $kona3conf['path.data'].'/nako3commands.db';
+  $dbfile = KONA3_DIR_DATA.'/nako3commands.db';
   $nako3doc_db = new PDO("sqlite:$dbfile");
   return $nako3doc_db;
 }

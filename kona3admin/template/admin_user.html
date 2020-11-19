@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Setup Admin User</title>
+  <style>
+    body {
+      font-size: 1em;
+      background-color: #e0e0e0;
+      line-height: 1.5em;
+      color: black;
+    }
+    h1 {
+      background-color: blue;
+      color: white;
+      margin: 0;
+      padding: 0.3em;
+    }
+    input {
+      font-size: 1.5em;
+      padding: 0.3em;
+      width: 20em;
+    }
+    .userform {
+      padding: 1em;
+    }
+  </style>
+</head>
+<body>
+<form method='POST'>
+<input type='hidden' name='q' value='save'>
+<h1>KonaWiki3 : Setup Admin User</h1>
+<div class="userform">
+  User ID:<br>
+  <input type='text' name='userid' value='admin@example.com'><br>
+  Password:<br>
+  <input type='password' name='pw' value=''><br>
+  Password (confirm):<br>
+  <input type='password' name='pw2' value=''><br>
+  <br>
+  <input type='submit' value='Save'>
+</div>
+</form>
+<body>
+</html>

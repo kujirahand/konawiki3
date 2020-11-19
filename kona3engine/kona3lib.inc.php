@@ -113,7 +113,7 @@ function kona3lib_execute() {
 function kona3getEngineFName($dir, $pname) {
   global $kona3conf;
   $pname = kona3getPName($pname);
-  $af = $kona3conf["path.engine"]."/$dir/$pname.inc.php";
+  $af = KONA3_DIR_ENGINE."/$dir/$pname.inc.php";
   return $af;
 }
 
@@ -126,10 +126,10 @@ function kona3getPName($pname) {
 // wikiname to filename
 function kona3getWikiFile($wikiname, $autoExt = true, $ext = '.txt', $force_encode = FALSE) {
   global $kona3conf;
-  $path_data = $kona3conf["path.data"];
+  $path_data = KONA3_DIR_DATA;
   
   // encode
-  $encode = $kona3conf['enc.pagename'];
+  $encode = $kona3conf['enc_pagename'];
   if ($force_encode) { $encode = $force_encode; }
   
   // check path traversal
@@ -176,10 +176,10 @@ function kona3getWikiPage($wikiname, $def = '') {
 }
 
 
-// relative path from path.data
+// relative path from KONA3_DIR_DATA
 function kona3getRelativePath($wikiname) {
   global $kona3conf;
-  $path_data = $kona3conf["path.data"];
+  $path_data = KONA3_DIR_DATA;
   
   // check "file:/path/to/file"
   if (substr($wikiname, 0, 5) == 'file:') {
@@ -302,7 +302,7 @@ function kona3getPageURL($page = "", $action = "", $stat = "", $paramStr = "") {
   $url = "{$url_index}?{$page_}";
   
   // FrontPageならオプションを削る
-  if ($page == KONA3_WIKI_FRONTPAGE && $action == "show" && $stat == "" && $paramStr == '') {
+  if ($page == $kona3conf['FrontPage'] && $action == "show" && $stat == "" && $paramStr == '') {
     return $url_index;
   }
   
@@ -321,7 +321,7 @@ function kona3getPageURL($page = "", $action = "", $stat = "", $paramStr = "") {
 
 function kona3getResourceURL($file, $use_mtime = FALSE) {
   global $kona3conf;
-  $path_resource = KONA3_DIR_RESOURCE;
+  $path_resource = $kona3conf['path_resource'];
   $path = "{$path_resource}/$file";
   if ($use_mtime && file_exists($path)) {
     $mtime = filemtime($path);
@@ -332,8 +332,8 @@ function kona3getResourceURL($file, $use_mtime = FALSE) {
 
 function kona3getSkinURL($file, $use_mtime = FALSE) {
   global $kona3conf;
-  $skin = KONA3_WIKI_SKIN;
-  $path_skin = $kona3conf['path.skin'];
+  $skin = $kona3conf['skin'];
+  $path_skin = KONA3_DIR_SKIN;
   $path = "{$path_skin}/{$skin}/{$file}";
   // skinディレクトリにファイルがなければresourceを探す
   if (!file_exists($path)) {
@@ -354,7 +354,7 @@ function kona3text2html($text) {
 // filename to wikiname
 function kona3getWikiName($filename) {
   global $kona3conf;
-  $path_data = $kona3conf["path.data"].'/';
+  $path_data = KONA3_DIR_DATA.'/';
   $f = str_replace($path_data, "", $filename);
   if (preg_match('#(.+)\.(txt|md)$#', $f, $m)) {
     $f = $m[1];
@@ -367,7 +367,7 @@ function kona3getSysInfo() {
   $href = "https://kujirahand.com/konawiki3/";
   $ver  = KONA3_SYSTEM_VERSION;
   $opt = "";
-  if ($kona3conf["wiki.private"]) $opt .= "(private)";
+  if ($kona3conf["wiki_private"]) $opt .= "(private)";
   return
     "<span class='konawiki3copyright'>".
     "<a href=\"$href\">Konawiki3 v.{$ver} {$opt}</a>".
@@ -455,7 +455,7 @@ function lang($msg, $def = null) {
   // メッセージデータを読み込み
   if (!$lang_data) {
     $lang = KONA3_LANG;
-    $langfile = KONA3_DIR_LANG."/$lang.inc.php";
+    $langfile = KONA3_DIR_ENGINE."/lang/$lang.inc.php";
     @include_once($langfile); // $lang_data
   }
   // 値を取得

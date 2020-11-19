@@ -65,5 +65,6 @@ $lang_data = [
   'Recent' => '最近更新',
   'date_format_e' => 'm/d',
   'date_format' => 'Y/m/d',
+  'Edit Config' => '設定を編集',
 ];
 

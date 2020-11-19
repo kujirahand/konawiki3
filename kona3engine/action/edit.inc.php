@@ -189,7 +189,7 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
       }
     } else {
       // auto mkdir ?
-      $data_dir = $kona3conf['path.data'];
+      $data_dir = KONA3_DIR_DATA;
       $max_level = $kona3conf['path.max.mkdir'];
       if ($data_dir != substr($dirname, 0, strlen($data_dir))) {
         kona3_edit_err('Invalid File Path.', $i_mode); exit;
@@ -249,13 +249,13 @@ function kona3_trygit(&$txt, &$a_hash, $i_mode) {
   }
   
   // Gitが有効?
-  if (!$kona3conf["git.enabled"]) {
+  if (!$kona3conf["git_enabled"]) {
     return;
   }
   
   // Git操作
-  $branch = $kona3conf["git.branch"];
-  $remote_repository = $kona3conf["git.remote_repository"];
+  $branch = $kona3conf["git_branch"];
+  $remote_repository = $kona3conf["git_remote_repository"];
   $repo = new Cz\Git\GitRepository(dirname($fname));
 
   if ($repo->getCurrentBranchName() != $branch) {

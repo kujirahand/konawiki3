@@ -17,9 +17,9 @@ function kona3_action_skin() {
   if (preg_match('/(\.\w+?)$/', $fname, $m)) {
     $ext = $m[1];
   }
-  $skin = KONA3_WIKI_SKIN;
+  $skin = $kona3conf['skin'];
   $skin_dir = KONA3_DIR_SKIN;
-  $res_dir = KONA3_DIR_RESOURCE;
+  $res_dir = $kona3conf['path_resource'];
   
   // check skin dir
   $path = "$skin_dir/$skin/$fname";

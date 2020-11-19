@@ -17,7 +17,7 @@ function kona3_action_search() {
   $res= [];
   if ($am == "search") {
     $result = array();
-    $path_data = $kona3conf["path.data"];
+    $path_data = KONA3_DIR_DATA;
     kona3search($key, $result, $path_data);
     foreach ($result as $f) {
       $path = str_replace("$path_data/", "", $f);

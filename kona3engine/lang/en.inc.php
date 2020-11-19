@@ -12,5 +12,6 @@ $lang_data = [
   'Monthly' => 'monthly',
   'date_format_e' => 'd M',
   'date_format' => 'd M Y',
+  'Edit Config' => 'Edit Config',
 ];
 

@@ -33,6 +33,14 @@ function t_number_format($v) {
 function t_lang($msg) {
   echo lang($msg);
 }
+// boolstr
+function t_boolstr($v) {
+  if ($v) {
+    echo "true";
+  } else {
+    echo "false";
+  }
+}
 
 
 // --- {{{e:xxx}}} ---

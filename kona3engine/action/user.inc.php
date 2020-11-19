@@ -27,6 +27,7 @@ function kona3_action_user() {
     "name" => $name,
     "userList_link" => kona3getPageURL($name, 'users'),
     "emailLogs_link" => kona3getPageURL($name, 'emailLogs'),
+    "editConf_link" => kona3getPageURL($name, 'editConf'),
   ]);
 }
 

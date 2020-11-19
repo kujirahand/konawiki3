@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Setup kona3conf</title>
+  <style>
+    body {
+      font-size: 1em;
+      background-color: #e0e0e0;
+      line-height: 2em;
+      color: black;
+    }
+    h1 {
+      background-color: blue;
+      color: white;
+      margin: 0;
+      padding: 0.3em;
+    }
+    h3 {
+      font-size: 1em;
+      padding: 0.5em;
+      background-color: blue;
+      color: white;
+    }
+    input {
+      font-size: 1.5em;
+      padding: 0.3em;
+      width: 20em;
+    }
+    .userform {
+      padding: 1em;
+    }
+  </style>
+</head>
+<body>
+<form method='POST'>
+<input type='hidden' name='q' value='save'>
+<h1>KonaWiki3 : Setup kona3conf</h1>
+<div class="userform">
+  <h3>Basic</h3>
+  Wiki Title:<br>
+  <input type='text' name='wiki_title' value='{{$wiki_title}}'><br>
+  
+  Admin Email:<br>
+  <input type='text' name='admin_email' value='{{$admin_email}}'><br>
+  
+  Wiki Private(true/false):<br>
+  <input type='text' name='wiki_private' value='{{$wiki_private | boolstr}}'><br>
+  
+  Language (ja/en):<br>
+  <input type='text' name='lang' value='{{$lang}}'><br>
+  
+  Skin:<br>
+  <input type='text' name='skin' value='{{$skin}}'><br>
+  
+  allow_add_user:<br>
+  <input type='text' name='allow_add_user' value='{{$allow_add_user | boolstr}}'><br>
+  
+  <h3>Header/Footer</h3>
+  
+  allpage_header(wiki text):<br>
+  <input type='text' name='allpage_header' value='{{$allpage_header}}'><br>
+  
+  allpage_footer(wiki text):<br>
+  <input type='text' name='allpage_footer' value='{{$allpage_footer}}'><br>
+  
+  analytics code (html):<br>
+  <input type='text' name='analytics' value='{{$analytics}}'><br>
+  
+  <h3>Git</h3>
+  
+  git_enabled(true/false):<br>
+  <input type='text' name='git_enabled' value='{{$git_enabled | boolstr}}'><br>
+  
+  git_branch:<br>
+  <input type='text' name='git_branch' value='{{$git_branch}}'><br>
+  
+  git_remote_repository:<br>
+  <input type='text' name='git_remote_repository' value='{{$git_remote_repository}}'><br>
+  
+  <h3>Options</h3>
+  
+  FrontPage Name:<br>
+  <input type='text' name='FrontPage' value='{{$FrontPage}}'><br>
+  
+  plugin_disallow (delimiter=','):<br>
+  <input type='text' name='plugin_disallow' value='{{$plugin_disallow}}'><br>
+  
+  noanchor(true/false):<br>
+  <input type='text' name='noanchor' value='{{$noanchor | boolstr}}'><br>
+  
+  enc_pagename(true/false):<br>
+  <input type='text' name='enc_pagename' value='{{$enc_pagename | boolstr}}'><br>
+  
+  show_data_dir(true/false):<br>
+  <input type='text' name='show_data_dir' value='{{$show_data_dir | boolstr}}'><br>
+  
+  para_enabled_br(true/false):<br>
+  <input type='text' name='para_enabled_br' value='{{$para_enabled_br | boolstr}}'><br>
+  
+  <br>
+  <input type='submit' value='Save'>
+</div>
+</form>
+<body>
+</html>

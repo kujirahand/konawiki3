@@ -790,7 +790,7 @@ function konawiki_parser_getPlugin($pname)
   $uname = urlencode($pname);
 
   // path
-  $path  = $kona3conf["path.engine"]."/plugins/$uname.inc.php";
+  $path  = KONA3_DIR_ENGINE."/plugins/$uname.inc.php";
   $func  = str_replace("%", "_", $uname);
 
   // check disabled

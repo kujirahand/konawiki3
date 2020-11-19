@@ -75,13 +75,13 @@ function kona3plugins_ref_file_url($page, $url) {
   if (file_exists($f)) return $kona3conf["url.attach"]."/".$url;
 
   // is data dir?
-  $f = $kona3conf["path.data"]."/".$url;
+  $f = KONA3_DIR_DATA."/".$url;
   if (file_exists($f)) return $kona3conf["url.data"]."/".$url;
   
   // Is this file in same directory?
   if (strpos($page, "/") !== FALSE) {
     $url2 = dirname($page)."/".urldecode($url);
-    $f = $kona3conf["path.data"]."/".$url2;
+    $f = KONA3_DIR_DATA."/".$url2;
     if (file_exists($f)) {
       if ($kona3conf["url.data"] == '') {
         $url = $url2;

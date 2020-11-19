@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__.'/jsonphp.lib.php';
 define("KONA3_SESSKEY_LOGIN", "kona3_login_info");
 
 if (!defined("KONA3_PASSWORD_SALT")) {
@@ -51,31 +52,24 @@ function kona3isAdmin() {
 }
 
 function kona3getAdminUsers() {
-  $users = array();
-  if ('base64:' == substr(KONA3_WIKI_USERS, 0, 7)) {
-    $s = base64_decode(trim(substr(KONA3_WIKI_USERS, 7)));
-    $users = json_decode($s, TRUE);
-  } else {
-    // FOR OLD_VERSION PASSWORD (#31)
-    $users_a = explode(",", KONA3_WIKI_USERS);
-    foreach ($users_a as $r) {
-      $ra = explode(":", trim($r), 2);
-      if (count($ra) == 2) {
-        $users[$ra[0]] = kona3getHash($ra[1]);
-      }
-    }
-  }
+  $adminuser_json = KONA3_DIR_PRIVATE.'/kona3adminuser.json.php';
+  $users = jsonphp_load($adminuser_json, []);
   return $users;
 }
 
 function kona3tryLogin($user, $pw) {
   global $kona3conf;
   
-  // Check Admin Users (by config file)
+  // Check Admin Users
   $users = kona3getAdminUsers();
-  if (isset($users[$user]) && $users[$user] == kona3getHash($pw)) {
-    kona3login($user, KONA3_ADMIN_EMAIL, "admin", 0);
-    return TRUE;
+  if (isset($users[$user])) {
+    $hash = $users[$user]['hash'];
+    $salt = $users[$user]['salt'];
+    if (kona3getHash($pw, $salt) == $hash) {
+      kona3login($user, KONA3_ADMIN_EMAIL, "admin", 0);
+      return TRUE;
+    }
+    return FALSE;
   }
 
   // Check Database
@@ -89,8 +83,8 @@ function kona3tryLogin($user, $pw) {
 }
 
 // Get Hash
-function kona3getHash($password) {
-  $s = KONA3_PASSWORD_SALT . "::" . $password;
+function kona3getHash($password, $salt2 = '') {
+  $s = KONA3_PASSWORD_SALT . $salt2 . "::" . $password;
   return hash("sha512", $s, FALSE);
 }
 

@@ -2,33 +2,24 @@
 // ----------------------------------------------------
 // konawiki3 - index.php
 // ----------------------------------------------------
-define('KONA3_FILE_CONFIG', 'konawiki3.ini.php');
+define('KONA3_DIR_INDEX', __DIR__);
 
-// Read config file
-$file_config = __DIR__.'/'.KONA3_FILE_CONFIG;
-if (!file_exists($file_config)) {
-  $file_kona3setup = __DIR__ . '/kona3admin/kona3setup.inc.php';
-  if (file_exists($file_kona3setup)) {
-    require_once $file_kona3setup;
-    konawiki3_setup($file_config); exit;
-  } else {
-    $help_url = 'https://kujirahand.com/konawiki3/index.php?install';
-    echo "<!DOCTYPE html><html><body><h1><a href='$help_url'>Please Setup.</a></h1></body></html>";
-    exit;
-  }
-}
-require_once($file_config);
-
-// Include kona3engine/index.inc.php
-if (defined("KONA3_DIR_ENGINE")) {
-  $engine_index = KONA3_DIR_ENGINE."/index.inc.php";
+// Read Directories info
+$file_kona3dir_def = __DIR__.'/kona3dir.def.php';
+if (file_exists($file_kona3dir_def)) {
+  require_once $file_kona3dir_def;
 } else {
-  $engine_index = dirname(__FILE__)."/kona3engine/index.inc.php";
+  define('KONA3_DIR_ENGINE',  __DIR__.'/kona3engine');
+  define('KONA3_DIR_ADMIN',   __DIR__.'/kona3admin');
+  define('KONA3_DIR_SKIN',    __DIR__.'/skin');
+  define('KONA3_DIR_DATA',    __DIR__.'/data');
+  define('KONA3_DIR_PRIVATE', __DIR__.'/private');
+  define('KONA3_DIR_CACHE',   __DIR__.'/cache');
 }
+
+// Execute kona3engine/index.inc.php
+$engine_index = KONA3_DIR_ENGINE.'/index.inc.php';
 if (!file_exists($engine_index)) {
-  echo "<h1>Sorry, engine not exists...</h1>"; exit;
+  echo 'File Not Found: KONA3_DIR_ENGINE/index.inc.php'; exit;
 }
-require_once($engine_index);
-
-
-
+require $engine_index;

@@ -21,7 +21,7 @@ function kona3plugins_countpages_execute($args) {
       continue;
     }
   }
-  $path = rtrim($kona3conf["path.data"], '/');
+  $path = rtrim(KONA3_DIR_DATA, '/');
   $cnt_txt = 0;
   $cnt_src = 0;
   $cnt_file = 0;
