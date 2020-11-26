@@ -29,15 +29,24 @@ function kona3_action_edit() {
 
   // load body
   $txt = "";
-  // history mode 
+  // history mode?
   if ($q == 'history') {
     $history_id = kona3param("history_id");
     $r = kona3db_getPageHistoryById($history_id);
     $txt = isset($r['body']) ? $r['body'] : '(empty)';
-  } else {
-    $fname = kona3getWikiFile($page);
+  }
+  else { // normal mode
+    $fname = kona3getWikiFile($page, TRUE, '.txt');
+    if (!file_exists($fname)) {
+      $fname = kona3getWikiFile($page, FALSE, '');
+    }
     if (file_exists($fname)) {
       $txt = @file_get_contents($fname);
+      // binary?
+      $sz = @filesize($fname);
+      if (strpos($txt, '\0') !== FALSE && $sz < 1024 * 1024 * 3) { // max 3MB
+        $txt = "data:image/gif;base64,".base64_encode($txt);
+      }
     }
   }
   $a_hash = kona3getPageHash($txt);
@@ -165,7 +174,14 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
 
   $edit_txt = kona3param('edit_txt', '');
   $a_hash_frm = kona3param('a_hash', '');
-  $fname = kona3getWikiFile($page);
+
+  // has file ext?
+  if (preg_match('#\.([a-zA-Z0-9_]+)$#', $page, $m)) {
+    $ext = strtolower($m[1]);
+    $fname = kona3getWikiFile($page, FALSE, '');
+  } else {
+    $fname = kona3getWikiFile($page);
+  }
   $user_id = kona3getUserId();
 
   $result = FALSE;

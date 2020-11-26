@@ -32,10 +32,17 @@ function kona3_action_show() {
   }
 
   // convert
+  $ext = strtolower($ext);
   if ($ext == ".txt") {
     $page_body = konawiki_parser_convert($txt);
   } else if ($ext == ".md") {
     $page_body = kona3show_markdown_convert($txt);
+  } else if ($ext == "__dir__") {
+    $txt = "* {$page}\n\n#ls"; // ls
+    $page_body = konawiki_parser_convert($txt);
+  } else if ($ext == '.png' || $ext == '.gif' || $ext == '.jpg' || $ext == '.jpeg') {
+    $txt = "#ref({$page})"; // images
+    $page_body = konawiki_parser_convert($txt);
   } else {
     kona3error($page, "Sorry, System Error."); exit;
   }
@@ -91,31 +98,26 @@ function kona3show_file_not_found($page, &$ext) {
 }
 
 function kona3show_detect_file($page, &$fname, &$ext) {
-  // check file types
-  $ext_list = ['.txt', '.md', '.png', '.jpg', '.jpeg'];
-  foreach ($ext_list as $ext) {
-    // encode uri
-    $fname = kona3getWikiFile($page, TRUE, $ext, TRUE);
-    if (file_exists($fname)) return TRUE;
-    // no encode uri
-    $fname = kona3getWikiFile($page, TRUE, $ext, FALSE);
-    if (file_exists($fname)) return TRUE;
+  // is text file?
+  $fname = kona3getWikiFile($page, TRUE, '.txt', FALSE);
+  if (file_exists($fname)) {
+    $ext = '.txt';
+    return TRUE;
   }
-
-  // is dir?
-  $ext = '';
+  // dir?
   $fname = kona3getWikiFile($page, FALSE);
   if (is_dir($fname)) {
     $ext = '__dir__';
-    return FALSE;
+    return TRUE;
   }
-
-  // make link
-  $fname = kona3getWikiFile($page, TRUE);
-  if (preg_match('#\.([a-z0-9]+)$#', $fname, $m)) {
-    $ext = $m[1];
-  } else {
+  // direct
+  $fname = kona3getWikiFile($page,FALSE, '', FALSE);
+  if (file_exists($fname)) {
     $ext = '';
+    if (preg_match('#(\.[a-zA-Z0-9_]+)$#', $fname, $m)) {
+      $ext = $m[1];
+    }
+    return TRUE;
   }
   return FALSE;
 }

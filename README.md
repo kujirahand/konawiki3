@@ -104,6 +104,6 @@ And set git_enabled to true at the config.
 First login by Admin User, and access config page.
 
 ```
-[URL] http://localhost/index.php?go&editConf
+[URI] index.php?go&editConf
 ```
 
