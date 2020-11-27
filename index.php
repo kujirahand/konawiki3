@@ -20,6 +20,8 @@ if (file_exists($file_kona3dir_def)) {
 // Execute kona3engine/index.inc.php
 $engine_index = KONA3_DIR_ENGINE.'/index.inc.php';
 if (!file_exists($engine_index)) {
-  echo 'File Not Found: KONA3_DIR_ENGINE/index.inc.php'; exit;
+  echo '<p><a href="https://kujirahand.com/konawiki3/index.php?install%2Fkona3dir.def.php">Please check KONA3_DIR_ENGINE</a></p>'."\n";
+  exit;
 }
 require $engine_index;
+
