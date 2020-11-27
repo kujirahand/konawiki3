@@ -27,8 +27,9 @@ function kona3setup_config() {
   if ($q == 'save') {
     foreach ($conf as $key => $def) {
       $v = isset($_POST[$key]) ? $_POST[$key] : $def;
-      if ($v == 'true') { $v = TRUE; }
-      if ($v == 'false') { $v = FALSE; }
+      $v = trim($v);
+      if ($v === 'true') { $v = TRUE; }
+      if ($v === 'false') { $v = FALSE; }
       $conf[$key] = $v;
     }
     jsonphp_save($file_conf, $conf);
