@@ -51,7 +51,10 @@ function kona3_action_edit() {
   }
   $a_hash = kona3getPageHash($txt);
 
-  if ($a_mode == "trywrite") {
+  // Check mode
+  if ($a_mode == "trywrite" && $i_mode == "form") { // save & show
+    $msg = kona3_trygit($txt, $a_hash, $i_mode);
+  } else if ($a_mode == "trywrite") {
     $msg = kona3_trywrite($txt, $a_hash, $i_mode, $result);
   } else if ($a_mode == "trygit") {
     $msg = kona3_trygit($txt, $a_hash, $i_mode);
@@ -145,7 +148,7 @@ function kona3_make_diff($text_a, $text_b) {
 
 function kona3_edit_err($msg, $method = "web") {
   global $page;
-  if ($method == "ajax") {
+  if ($method == "ajax" || $method == "git") {
     echo json_encode(array(
       'result' => 'ng',
       'reason' => $msg,
@@ -224,6 +227,7 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
       }
     }
   }
+  
   // write
   $bytes = @file_put_contents($fname, $edit_txt);
   if ($bytes === FALSE) {
@@ -237,7 +241,11 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
   kona3db_writePage($page, $edit_txt, $user_id);
   
   // result
-  if ($i_mode == "ajax") {
+  if ($i_mode == "git") {
+    $result = TRUE;
+    return TRUE;
+  }
+  else if ($i_mode == "ajax") {
     echo json_encode(array(
       'result' => 'ok',
       'a_hash' => kona3getPageHash($edit_txt),
@@ -259,7 +267,7 @@ function kona3_trygit(&$txt, &$a_hash, $i_mode) {
   $fname = kona3getWikiFile($page);
   
   // 先に保存
-  kona3_trywrite($txt, $a_hash, $i_mode, $result);
+  kona3_trywrite($txt, $a_hash, 'git', $result);
   if (!$result) {
     return;
   }
@@ -270,17 +278,24 @@ function kona3_trygit(&$txt, &$a_hash, $i_mode) {
   }
   
   // Git操作
-  $branch = $kona3conf["git_branch"];
-  $remote_repository = $kona3conf["git_remote_repository"];
-  $repo = new Cz\Git\GitRepository(dirname($fname));
+  try {
+    $branch = $kona3conf["git_branch"];
+    $remote_repository = $kona3conf["git_remote_repository"];
+    $repo = new Cz\Git\GitRepository(dirname($fname));
 
-  if ($repo->getCurrentBranchName() != $branch) {
-    $repo->checkout($branch);
+    if ($repo->getCurrentBranchName() != $branch) {
+      $repo->checkout($branch);
+    }
+    $repo->addFile($fname);
+    if ($repo->hasChanges()) {
+      $userId = kona3getUserId();
+      $repo->commit("Update $page by $userId");
+      $repo->push($remote_repository, array($branch));
+    }
+  } catch(Exception $e) {
+    kona3_edit_err('Git Error:'.$e->getMessage(), $i_mode);
+    exit;
   }
-
-  $repo->addFile($fname);
-  $repo->commit("Update $page from Konawiki3");
-  $repo->push($remote_repository, array($branch));
 
   // result
   if ($i_mode == "ajax") {
