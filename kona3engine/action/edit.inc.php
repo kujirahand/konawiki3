@@ -12,6 +12,7 @@ function kona3_action_edit() {
   $i_mode = kona3param('i_mode', 'form'); // or ajax
   $q = kona3param("q");
   $cmd = kona3param("cmd");
+  $git_enabled = $kona3conf["git_enabled"];
 
   // check permission
   if (!kona3isLogin()) {
@@ -52,7 +53,8 @@ function kona3_action_edit() {
   $a_hash = kona3getPageHash($txt);
 
   // Check mode
-  if ($a_mode == "trywrite" && $i_mode == "form") { // save & show
+  if ($a_mode == "trywrite" && $i_mode == "form" && $git_enabled) {
+    // save & show with git
     $msg = kona3_trygit($txt, $a_hash, $i_mode);
   } else if ($a_mode == "trywrite") {
     $msg = kona3_trywrite($txt, $a_hash, $i_mode, $result);
