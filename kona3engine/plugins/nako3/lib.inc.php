@@ -75,6 +75,22 @@ function nako3_make_script_tag(&$nako3) {
       'async'=> TRUE
     ),
     array(
+      'src'   => $baseurl."release/plugin_csv.js",
+      'async'=> TRUE
+    ),
+    array(
+      'src'   => $baseurl."release/plugin_datetime.js",
+      'async'=> TRUE
+    ),
+    array(
+      'src'   => $baseurl."release/plugin_kansuji.js",
+      'async'=> TRUE
+    ),
+    array(
+      'src'   => $baseurl."release/plugin_markup.js",
+      'async'=> TRUE
+    ),
+    array(
       'src'   => $baseurl."release/plugin_turtle.js",
       'async' => TRUE,
     ),
