@@ -78,11 +78,11 @@ function temporarily_save() {
 }
 
 function save_ajax() {
-  $('temporarily_save_btn').prop('disabled', true);
+  $('#temporarily_save_btn').prop('disabled', true);
   go_ajax('trywrite');
 }
 function git_save() {
-  $('git_save_btn').prop('disabled', true);
+  $('#git_save_btn').prop('disabled', true);
   go_ajax('trygit');
 }
 

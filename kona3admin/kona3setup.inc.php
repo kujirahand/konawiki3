@@ -27,8 +27,9 @@ function kona3setup_config() {
   if ($q == 'save') {
     foreach ($conf as $key => $def) {
       $v = isset($_POST[$key]) ? $_POST[$key] : $def;
-      if ($v == 'true') { $v = TRUE; }
-      if ($v == 'false') { $v = FALSE; }
+      $v = trim($v);
+      if ($v === 'true') { $v = TRUE; }
+      if ($v === 'false') { $v = FALSE; }
       $conf[$key] = $v;
     }
     jsonphp_save($file_conf, $conf);
@@ -105,14 +106,14 @@ function kona3setup_check_dirs() {
   $help_chmod = '';
   foreach ($dirs as $dir) {
     if (!is_writable($dir)) {
-      $help_chmod .= "$ chmod +w \"$dir\"";
+      $help_chmod .= "$ chmod +w \"$dir\"<br/>\n";
     }
   }
   // show help
   if ($help_chmod != '') {
-    konawiki3_index_setup_help(
+    kona3_setup_help(
       "Please change directories permission.<br>".
-      "<code>{$help_chmod}</code>");
+      "<div class='code'><code>{$help_chmod}</code></div>");
     exit;
   }
 }
@@ -130,7 +131,7 @@ function kona3setup_template($file, $params) {
 function kona3_setup_help($msg) {
   $url = 'https://kujirahand.com/konawiki3/index.php?install';
   echo '<!DOCTYPE html><html><body>';
-  echo '<style>code{ padding:0.5em; background-color: black; color:white; }</style>';
+  echo '<style>.code{ padding:0.5em; line-height:1.2em; font-size:1em; background-color: black; color:white; }</style>';
   echo "<h1>Please setup KonaWiki3.</h1>";
   echo "<p style='color:red;'>$msg</p>";
   echo "<p><a href='$url'>How to Install?</a></p>";

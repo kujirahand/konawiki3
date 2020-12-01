@@ -29,7 +29,7 @@ if (file_exists($file_kona3conf_json)) {
     require $setup_php;
     konawiki3_setup(); exit;
   } else {
-    kona3_setup_help($setup_php.'/You do not have setup script.');
+    echo "<h2><a href='https://kujirahand.com/konawiki3/index.php?install%2Fkona3dir.def.php'>You do not have setup script.</a></h2>";
     exit;
   }
 }
