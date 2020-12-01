@@ -66,7 +66,8 @@ function kona3tryLogin($user, $pw) {
     $hash = $users[$user]['hash'];
     $salt = $users[$user]['salt'];
     if (kona3getHash($pw, $salt) == $hash) {
-      kona3login($user, KONA3_ADMIN_EMAIL, "admin", 0);
+      $email = kona3conf['admin_email'];
+      kona3login($user, $email, "admin", 0);
       return TRUE;
     }
     return FALSE;
