@@ -32,25 +32,6 @@ function nako3_post_submit(pid) {
 function get_kari_hozon_key(pid) {
     return 'nako3edit_kari_src_' + pid;
 }
-function nako3_save(pid) {
-    const edit = ace_editors[pid];
-    localStorage[get_kari_hozon_key(pid)] = edit.getValue();
-    alert('仮保存しました');
-}
-function nako3_load(pid) {
-    const src = localStorage[get_kari_hozon_key(pid)];
-    if (!src) {
-        alert('仮保存しているプログラムはありません');
-        return;
-    }
-    var a = confirm(
-        '仮保存しているソースを読み込みますか？\n' + 
-        '---\n' + src.substr(0, 10));
-    if (!a) return;
-    const edit = ace_editors[pid];
-    edit.setValue(src);
-}
-
 </script>
 <!-- [/tpl-js-nako3.html] -->
 

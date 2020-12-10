@@ -24,13 +24,10 @@
   <div id="nako3_editor_controlls_{{pid}}" class="nako3ctrl">
     <button onclick="nako3_run({{pid}}, {{ j_use_canvas }})">▶ 実行</button>
     <button onclick="nako3_clear({{pid}}, {{ j_use_canvas }})">クリア</button>
-    <span class='nako3ver'>&nbsp;&nbsp;v{{ ver }}</span>
     <span id="post_span_{{pid}}" class="post_span">
-      <button id="post_button_{{pid}}" onclick="nako3_post_submit({{pid}})">公開</button>
-      &nbsp;&nbsp;
-      <a href="#" id="save_button_{{pid}}" class="tmp_btn" onclick="nako3_save({{pid}})">仮保存</a>
-      <a href="#" id="load_button_{{pid}}" class="tmp_btn" onclick="nako3_load({{pid}})">仮読込</a>
+      <button id="post_button_{{pid}}" onclick="nako3_post_submit({{pid}})">保存</button>
     </span>
+    <span class='nako3ver'>&nbsp;&nbsp;&nbsp;v{{ ver }}</span>
   </div>
 </div><!-- end of #nako3_editor_controlls_{{pid}} -->
 
