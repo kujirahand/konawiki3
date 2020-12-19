@@ -5,7 +5,7 @@
 // === #nako3 プラグインのデフォルト値 ===
 global $nako3;
 $nako3 = array(
-  'ver'         => '3.1.8', // なでしこ3のバージョン
+  'ver'         => '3.1.9', // なでしこ3のバージョン
   'baseurl'     => '',      // @see nako3_set_script_url
   'post_url'    => 'https://nadesi.com/v3/storage/index.php?page=0&action=presave',
 );
