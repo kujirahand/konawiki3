@@ -94,6 +94,14 @@ function nako3_make_script_tag(&$nako3) {
       'src'   => $baseurl."release/plugin_turtle.js",
       'async' => TRUE,
     ),
+    array(
+      'src'   => $baseurl."release/plugin_webworker.js",
+      'async' => TRUE,
+    ),
+    array(
+      'src'   => $baseurl."release/plugin_caniuse.js",
+      'async' => TRUE,
+    ),
     // chart.js
     array(
       'src'   => 'https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js',
