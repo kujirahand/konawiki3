@@ -1,6 +1,6 @@
 <?php
 // php7 以降に対応
-define('TEMPLATE_VERSION', 'v1_'.filemtime(__FILE__));
+define('TEMPLATE_VERSION', 'v2_'.filemtime(__FILE__));
 define('TEMPLATE_USE_CACHE', FALSE);
 define('TEMPLATE_CACHE_TYPE', 'SAMEFILE'); // SAMEFILE | DATETYPE
 require_once __DIR__.'/fw_template_engine_plugins.lib.php';
@@ -20,6 +20,7 @@ function template_render($tpl_filename, $tpl_params) {
    * {{"..." | filter}} で文字列をFilterにかける
    * {{'...' | filter}} で文字列をFilterにかける
    * {{# (comment) }}
+   * {{ include filename }} で外部ファイルの取り込み
    */
   global $DIR_TEMPLATE;
   global $DIR_TEMPLATE_CACHE;
@@ -54,84 +55,78 @@ function template_render($tpl_filename, $tpl_params) {
   }
   
   // create cache
-  $body = "<?php /*[fw_template_engine.lib.php] ".TEMPLATE_VERSION.
+  $fw_contents = "<?php /*[fw_template_engine.lib.php] ".TEMPLATE_VERSION.
           "*/";
-  $body .= "?>";
-  $body .= file_get_contents($file_template);
-  $body = preg_replace_callback_array([
+  $fw_contents .= "?>";
+  $fw_contents .= file_get_contents($file_template);
+  $fw_contents = preg_replace_callback_array([
     // flow
     // {{ eval code }} {{e:code}}
-    '#\{\{\s*(eval|e)[\s\:]+(.+?)}}#is' => function (&$m) {
+    '#\{\{\s*(eval|e)[\s\:]+(.+?)}}#is' => function ($m) {
       $code = $m[2];
       return "<?php $code;?>";
     },
-    // {{ include cond }} 
-    '#\{\{\s*include\s+[\'\"]?(.+?)[\'\"]?\s*}}#is' => function (&$m) use ($tpl_params){
+    // {{ include filename }} 
+    '#\{\{\s*include\s+[\'\"]?(.+?)[\'\"]?\s*}}#is' => function ($m) use ($tpl_params){
       $file = $m[1];
       // $enc = json_encode($tpl_params);
       return "<?php template_render('$file', []);?>";
     },
     // {{ if $var.name cond }} 
-    '#\{\{\s*if\s+\$([a-zA-Z0-9_\.]+)(.*?)\}\}#is' => function (&$m) {
+    '#\{\{\s*if\s+\$([a-zA-Z0-9_\.]+)(.*?)\}\}#is' => function ($m) {
       $var = template_var_name($m[1]);
       $cond = check_eq_flag($m[2]);
       return "<?php if (\${$var} {$cond}):/*if_var_cond*/ ?>";
     },
     // {{ if cond }} 
-    '#\{\{\s*if\s+(.+?)\s*\}\}#is' => function (&$m) {
+    '#\{\{\s*if\s+(.+?)\s*\}\}#is' => function ($m) {
       $cond = check_eq_flag($m[1]);
       return "<?php if ($cond): ?>";
     },
-    '#\{\{\s*else\s*(.*?)}}#is' => function (&$m) {
+    '#\{\{\s*else\s*(.*?)}}#is' => function ($m) {
       return "<?php else: ?>";
     },
     // {{ for $vars as $key => $val }}
-    '#\{\{\s*(for|foreach)\s+\$([a-zA-Z0-9_\.]+)\s+as\s+\$([a-zA-Z0-9_]+)\s*\=\>\s*\$([a-zA-Z0-9]+)\s*}}#is' => function (&$m) {
+    '#\{\{\s*(for|foreach)\s+\$([a-zA-Z0-9_\.]+)\s+as\s+\$([a-zA-Z0-9_]+)\s*\=\>\s*\$([a-zA-Z0-9]+)\s*}}#is' => function ($m) {
       $ary = template_var_name($m[2]);
       $key = $m[3];
       $val = $m[4];
       return "<?php foreach (\${$ary} as \${$key} => \${$val}): ?>";
     },
     // {{ for $vars as $key => $val }}
-    '#\{\{\s*(for|foreach)\s+\$([a-zA-Z0-9_\.]+)\s+as\s+\$([a-zA-Z0-9]+)\s*}}#i' => function (&$m) {
+    '#\{\{\s*(for|foreach)\s+\$([a-zA-Z0-9_\.]+)\s+as\s+\$([a-zA-Z0-9]+)\s*}}#i' => function ($m) {
       $ary = template_var_name($m[2]);
       $val = $m[3];
       return "<?php foreach (\${$ary} as \${$val}): ?>";
     },
-    '#\{\{\s*(endif|endfor|endforeach|end)\s*(.*?)}}#is' => function (&$m) {
+    '#\{\{\s*(endif|endfor|endforeach|end)\s*(.*?)}}#is' => function ($m) {
       $end = $m[1];
       if ($end == 'endfor') { $end = 'endforeach'; }
       return "<?php $end; ?>";
     },
-    // param filter
-    '#\{\{\s*\$([a-zA-Z0-9_.]+)\s*\|\s*([a-zA-Z0-9_]+)\s*}}#is' => function (&$m) {
+    // varname with filter
+    '#\{\{\s*\$([a-zA-Z0-9_.]+)\s*\|\s*([a-zA-Z0-9_]+)\s*}}#is' => function ($m) {
       $key = template_var_name($m[1]);
       $filter = $m[2];
-      return "<?php t_{$filter}(\${$key});?>";
+      return "<?php echo t_{$filter}(\$$key);?>";
     },
-    // param only
-    '#\{\{\s*\$([a-zA-Z0-9_.]+)\s*}}#is' => function (&$m) {
+    // varname only
+    '#\{\{\s*\$([a-zA-Z0-9_.]+)\s*}}#is' => function ($m) {
       $key = template_var_name($m[1]);
-      return "<?php t_echo(\$$key);?>";
+      return "<?php echo t_echo(\$$key);?>";
     },
     // string with filter {{ "..." | filter }}
-    '#\{\{\s*\"(.*?)\"\s*\|\s*([a-zA-Z0-9_]+)\s*}}#is' => function (&$m) {
+    '#\{\{\s*(\".*?\"|\'.*?\')\s*\|\s*([a-zA-Z0-9_]+)\s*}}#is' => function (&$m) {
       $str = $m[1];
       $filter = $m[2];
-      return "<?php t_{$filter}(\"{$str}\");?>";
-    },
-    // string with filter {{ '...' | filter }}
-    '#\{\{\s*\'(.*?)\'\s*\|\s*([a-zA-Z0-9_]+)\s*}}#is' => function (&$m) {
-      $str = $m[1];
-      $filter = $m[2];
-      return "<?php t_{$filter}('{$str}');?>";
+      return "<?php echo t_{$filter}($str);?>";
     },
     // comment
-    '#\{\{\s*\#(.*?)}}#is' => function (&$m) {
+    '#\{\{\s*\#(.*?)}}#is' => function ($m) {
       return "";
     },
-  ], $body);
-  file_put_contents($file_cache, $body);
+  ], $fw_contents);
+  file_put_contents($file_cache, $fw_contents);
   include($file_cache);
 }
 
