@@ -55,8 +55,7 @@ function template_render($tpl_filename, $tpl_params) {
   }
   
   // create cache
-  $fw_contents = "<?php /*[fw_template_engine.lib.php] ".TEMPLATE_VERSION.
-          "*/";
+  $fw_contents = "<?php /*[fw_template_engine.lib.php] ".TEMPLATE_VERSION."*/";
   $fw_contents .= "?>";
   $fw_contents .= file_get_contents($file_template);
   $fw_contents = preg_replace_callback_array([
@@ -67,7 +66,7 @@ function template_render($tpl_filename, $tpl_params) {
       return "<?php $code;?>";
     },
     // {{ include filename }} 
-    '#\{\{\s*include\s+[\'\"]?(.+?)[\'\"]?\s*}}#is' => function ($m) use ($tpl_params){
+    '#\{\{\s*include\s+[\'\"]?(.+?)[\'\"]?\s*}}#is' => function ($m) use ($tpl_params) {
       $file = $m[1];
       // $enc = json_encode($tpl_params);
       return "<?php template_render('$file', []);?>";
@@ -116,7 +115,7 @@ function template_render($tpl_filename, $tpl_params) {
       return "<?php echo t_echo(\$$key);?>";
     },
     // string with filter {{ "..." | filter }}
-    '#\{\{\s*(\".*?\"|\'.*?\')\s*\|\s*([a-zA-Z0-9_]+)\s*}}#is' => function (&$m) {
+    '#\{\{\s*(\".*?\"|\'.*?\')\s*\|\s*([a-zA-Z0-9_]+)\s*}}#is' => function ($m) {
       $str = $m[1];
       $filter = $m[2];
       return "<?php echo t_{$filter}($str);?>";
@@ -168,9 +167,9 @@ __EOS__;
 
 // PHPの互換性のため
 if (!function_exists('preg_replace_callback_array')) {
-  function preg_replace_callback_array (array $patterns_and_callbacks, $subject, $limit=-1, &$count=NULL) {
+  function preg_replace_callback_array (array $patterns_and_callbacks, $subject, $limit=-1, $count=NULL) {
       $count = 0;
-      foreach ($patterns_and_callbacks as $pattern => &$callback) {
+      foreach ($patterns_and_callbacks as $pattern => $callback) {
           $subject = preg_replace_callback($pattern, $callback, $subject, $limit, $partial_count);
           $count += $partial_count;
       }
