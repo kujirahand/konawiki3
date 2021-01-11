@@ -2,15 +2,17 @@
 //
 // nako3.inc.php から利用される
 //
+require_once __DIR__ . '/lib.inc.php';
+require_once __DIR__ . '/tpl.inc.php';
+require_once __DIR__ . '/nako_version.inc.php';
+
 // === #nako3 プラグインのデフォルト値 ===
 global $nako3;
 $nako3 = array(
-  'ver'         => '3.1.13', // なでしこ3のバージョン
+  'ver'         => NAKO_DEFAULT_VERSION, // なでしこ3のバージョン
   'baseurl'     => '',      // @see nako3_set_script_url
   'post_url'    => 'https://nadesi.com/v3/storage/index.php?page=0&action=presave',
 );
-require_once __DIR__ . '/lib.inc.php';
-require_once __DIR__ . '/tpl.inc.php';
 
 // #nako3 plugin main function
 function nako3_main($params) {
