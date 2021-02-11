@@ -81,7 +81,7 @@ function to_html(s) {
 // なでしこのプログラムを実行する関数
 //------------------------------------
 function nako3_run(id, use_canvas) {
-  if (typeof(navigator.nako3) === 'undefined') {
+  if (typeof(navigator.nako3) === 'undefined' || ace_editors[id] === undefined) {
     alert('現在ライブラリを読み込み中です。しばらくお待ちください。')
     return
   }

@@ -11,6 +11,7 @@
  * -- baseurl=url なでしこ3の基本URL
  * --- post=url 保存先CGI(デフォルトは、nako3storage)
  * -- edit/editable 編集可能な状態にする
+ * -- disable_marker  コンパイルエラーを表示しない
  * -- size=(width)x(height) canvasの幅と高さ
  * - [使用例] #nako3(なでしこのプログラム);
 {{{
