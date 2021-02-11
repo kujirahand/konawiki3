@@ -7,10 +7,319 @@ const ace_editors = {}
 
 function ace_editor_init(pid) {
     const edit = ace.edit("ace_editor" + pid);
-    edit.setTheme("ace/theme/textmate");
     edit.setFontSize(16);
-    // edit.session.setMode("ace/mode/javascript");
+    edit.setReadOnly(!!document.getElementById("ace_editor" + pid).dataset.nako3Readonly);
     ace_editors[pid] = edit;
+
+    const getDefaultTokens = (row, doc) => [{ type: 'markup.other', value: doc.getLine(row) }]
+
+    const getScope = (token) => {
+        switch (token.type) {
+            case "line_comment": return 'comment.line'
+            case "range_comment": return 'comment.block'
+            case "def_test": return 'keyword.control'
+            case "def_func": return 'keyword.control'
+            case "func": return 'entity.name.function'
+            case "number": return 'constant.numeric'
+            // 独立した助詞
+            case "とは": return 'keyword.other'
+            case "ならば":
+            case "でなければ":
+                return 'keyword.control'
+            // 制御構文
+            case "ここから":
+            case "ここまで":
+            case "もし":
+            case "違えば":
+                return 'keyword.control'
+            // 予約語
+            case "回":
+            case "間":
+            case "繰り返す":
+            case "反復":
+            case "抜ける":
+            case "続ける":
+            case "戻る":
+            case "先に":
+            case "次に":
+            case "代入":
+            case "逐次実行":
+            case "条件分岐":
+            case "取込":
+            case "エラー監視":
+            case "エラー":
+                return 'keyword.control'
+            case "変数": return 'variable.other'
+            case "定数": return 'support.constant'
+            // 演算子
+            case "shift_r0":
+            case "shift_r":
+            case "shift_l":
+            case "gteq":
+            case "lteq":
+            case "noteq":
+            case "eq":
+            case "not":
+            case "gt":
+            case "lt":
+            case "and":
+            case "or":
+            case "@":
+            case "+":
+            case "-":
+            case "*":
+            case "/":
+            case "%":
+            case "^":
+            case "&":
+                return 'keyword.operator'
+            case "string":
+            case "string_ex":
+                return 'string.other'
+            case "word":
+                if (token.value === "関数") {
+                    return 'keyword.other'
+                } else if (["それ", "そう"].includes(token.value)) {
+                    return 'keyword.control'
+                } else {
+                    return 'variable.other'
+                }
+                break
+            default:
+                return 'markup.other'
+        }
+    }
+
+    /**
+     * @param {string[]} lines
+     */
+    const tokenize = (lines) => {
+        const code = lines.join('\n')
+
+        // lexerにかける
+        navigator.nako3.reset()
+        navigator.nako3.lexer.setFuncList(navigator.nako3.funclist)
+        const lexerOutput = navigator.nako3.lex(code, 'main.nako3')
+        let tokens = [...lexerOutput.tokens, ...lexerOutput.commentTokens]
+
+        // eol、eof、長さが1未満のトークン、位置を特定できないトークンを消す
+        tokens = tokens.filter((t) =>
+            t.type !== 'eol' && t.type !== 'eof' &&
+            typeof t.startOffset === "number" && typeof t.endOffset === "number" &&
+            t.startOffset < t.endOffset)
+
+        // startOffsetでソートする
+        tokens.sort((a, b) => (a.startOffset || 0) - (b.startOffset || 0))
+
+        // 各行について、余る文字の無いようにエディタのトークンに変換する。
+        // 複数のトークンが重なることはないと仮定する。
+        let lineStartOffset = 0
+        let tokenIndex = 0
+        const editorTokens = [] // 各行のエディタのトークン
+        for (let i = 0; i < lines.length; i++) {
+            editorTokens.push([])
+            const lineEndOffset = lineStartOffset + lines[i].length
+            let offset = lineStartOffset
+
+            // 現在の行にかかっているトークンまで飛ばす
+            while (tokenIndex < tokens.length &&
+                tokens[tokenIndex].endOffset <= lineStartOffset) {
+                tokenIndex++
+            }
+
+            // 行全体を完全にまたがっているトークンが存在する場合
+            if (tokenIndex < tokens.length &&
+                tokens[tokenIndex].startOffset <= lineStartOffset &&
+                tokens[tokenIndex].endOffset >= lineEndOffset) {
+                editorTokens[i].push({ type: getScope(tokens[tokenIndex]), value: lines[i] })
+            } else {
+                // 行頭をまたがっているトークンが存在する場合
+                if (tokenIndex < tokens.length &&
+                    tokens[tokenIndex].startOffset <= lineStartOffset) {
+                    editorTokens[i].push({ type: getScope(tokens[tokenIndex]), value: code.slice(offset, tokens[tokenIndex].endOffset) })
+                    offset = tokens[tokenIndex].endOffset
+                    tokenIndex++
+                }
+
+                // 行頭も行末もまたがっていないトークンを処理する
+                while (tokenIndex < tokens.length &&
+                    tokens[tokenIndex].endOffset < lineEndOffset) {
+                    // このトークンと直前のトークンの間に隙間があるなら、埋める
+                    if (offset < tokens[tokenIndex].startOffset) {
+                        editorTokens[i].push({ type: 'markup.other', value: code.slice(offset, tokens[tokenIndex].startOffset) })
+                        offset = tokens[tokenIndex].startOffset
+                    }
+
+                    // 現在のトークンを使う
+                    editorTokens[i].push({ type: getScope(tokens[tokenIndex]), value: code.slice(offset, tokens[tokenIndex].endOffset) })
+                    offset = tokens[tokenIndex].endOffset
+                    tokenIndex++
+                }
+
+                // 行末をまたがっているトークンが存在する場合
+                if (tokenIndex < tokens.length &&
+                    tokens[tokenIndex].startOffset < lineEndOffset) {
+                    // トークンの前の隙間
+                    editorTokens[i].push({ type: 'markup.other', value: code.slice(offset, tokens[tokenIndex].startOffset) })
+                    offset = tokens[tokenIndex].startOffset
+
+                    // トークンを使う
+                    editorTokens[i].push({ type: getScope(tokens[tokenIndex]), value: code.slice(tokens[tokenIndex].startOffset, lineEndOffset) })
+                } else {
+                    editorTokens[i].push({ type: 'markup.other', value: code.slice(offset, lineEndOffset) })
+                }
+            }
+
+            lineStartOffset += lines[i].length + 1
+        }
+
+        return editorTokens
+    }
+
+    class BackgroundTokenizer {
+        constructor(doc, _signal) {
+            this._signal = _signal
+            this.doc = doc
+            this.dirty = true
+
+            // 各行のパース結果。
+            // typeはscopeのこと。配列の全要素のvalueを結合した文字列がその行の文字列と等しくなる必要がある。
+            /** @type {{ type: string, value: string }[][]} */
+            this.lines = this.doc.getAllLines().map((line) => [{ type: 'markup.other', value: line }])
+
+            // this.lines は外部から勝手に編集されてしまうため、コピーをもう一つ持つ
+            this.cache = null
+
+            const update = () => {
+                // 6000行以上は時間がかかりすぎるためシンタックスハイライトを行わない。
+                if (this.dirty && this.doc.getLength() < 6000) {
+                    const startTime = Date.now()
+                    this.dirty = false
+                    try {
+                        this.lines = tokenize(this.doc.getAllLines())
+                        this.cache = {
+                            code: this.doc.getAllLines().join('\n'),
+                            lines: JSON.stringify(this.lines),
+                        }
+
+                        // ファイル全体の更新を通知する。
+                        _signal('update', { data: { first: 0, last: this.doc.getLength() - 1 } })
+                    } catch (e) {
+                        console.error(e) // LexError
+                    }
+                    // tokenizeに時間がかかる場合、文字を入力できるように次回の実行を遅くする。最大で5秒まで遅らせる。
+                    setTimeout(update, Math.max(100, Math.min(5000, (Date.now() - startTime) * 5)))
+                } else {
+                    setTimeout(update, 100)
+                }
+            }
+            update()
+        }
+
+        // テキストに変更があったときに呼ばれる。IME入力中には呼ばれない。
+        $updateOnChange(delta) {
+            this.dirty = true
+            const startRow = delta.start.row
+            const endRow = delta.end.row
+            if (startRow === endRow) { // 1行の編集
+                if (delta.action === 'insert' && this.lines[startRow]) { // 行内に文字列を挿入
+                    const columnStart = delta.start.column
+                    const columnEnd = delta.end.column
+                    // updateOnChangeはIME入力中には呼ばれない。composition_placeholder を消さないとIME確定後の表示がずれる。
+                    const oldTokens = this.lines[startRow]
+                        .filter((v) => v.type !== 'composition_placeholder')
+                    const newTokens = []
+                    let i = 0
+                    let offset = 0
+
+                    // columnStartより左のトークンはそのまま保持する
+                    while (i < oldTokens.length && offset + oldTokens[i].value.length <= columnStart) {
+                        newTokens.push(oldTokens[i])
+                        offset += oldTokens[i].value.length
+                        i++
+                    }
+
+                    // columnStartに重なっているトークンがあれば、2つに分割する
+                    if (i < oldTokens.length && offset < columnStart) {
+                        newTokens.push({ type: oldTokens[i].type, value: oldTokens[i].value.slice(0, columnStart - offset) })
+                        newTokens.push({ type: 'markup.other', value: delta.lines[0] })
+                        newTokens.push({ type: oldTokens[i].type, value: oldTokens[i].value.slice(columnStart - offset)　})
+                        i++
+                    } else {
+                        newTokens.push({ type: 'markup.other', value: delta.lines[0] })
+                    }
+
+                    // columnStartより右のトークンもそのまま保持する
+                    while (i < oldTokens.length) {
+                        newTokens.push(oldTokens[i])
+                        i++
+                    }
+
+                    this.lines[startRow] = newTokens
+                } else {
+                    this.lines[startRow] = getDefaultTokens(startRow, this.doc)
+                }
+            } else if (delta.action === 'remove') { // 範囲削除
+                this.lines.splice(startRow, endRow - startRow + 1, getDefaultTokens(startRow, this.doc))
+            } else { // 行の挿入
+                this.lines.splice(startRow, 1, ...Array(endRow - startRow + 1).fill(null).map((_, i) => getDefaultTokens(i + startRow, this.doc)))
+            }
+        }
+
+        // tokenizerの出力を返す。文字入力したときに呼ばれる。
+        getTokens(row) {
+            // IME入力中はthis.lines[row]に自動的にnullが設定される。その場合新しく行のトークン列を生成して返さなければならない。
+            // 返した配列には自動的にIMEの入力用のテキストボックスであるcomposition_placeholderが挿入される。
+            if (!this.lines[row]) {
+                if (this.doc.getLength() < 2000) {
+                    // tokenizeは非常に遅いため、キャッシュを使えるならそれを使う。
+                    const code = this.doc.getAllLines().join('\n')
+                    if (this.cache === null || this.cache.code !== code) {
+                        try {
+                            const lines = tokenize(this.doc.getAllLines())
+                            this.cache = { code, lines: JSON.stringify(lines) }
+                        } catch (e) {
+                            this.cache = { code, lines: getDefaultTokens(row, this.doc) }
+                            console.error(e) // LexError
+                        }
+                    }
+                    this.lines[row] = JSON.parse(this.cache.lines)[row]
+                } else {
+                    this.lines[row] = getDefaultTokens(row, this.doc)
+                }
+            }
+            return this.lines[row]
+        }
+
+        // 呼ばれるが無視するメソッド
+        start(startRow) { /* pass */ }
+        fireUpdateEvent(firstRow, lastRow) { /* pass */ }
+        setDocument(doc) { /* pass */ }
+        scheduleStart() { /* pass */ }
+        setTokenizer(tokenizer) { /* pass */ }
+        stop() { /* pass */ }
+        getState(row) { return 'start' }
+    }
+
+    // navigator.nako3 が読み込まれるまで待つ
+    const start = () => {
+        if (!("nako3" in navigator)) {
+            setTimeout(start, 100);
+            return
+        }
+
+        // 今走っている background tokenizer を止める
+        edit.session.bgTokenizer.stop()
+
+        // background tokenizer を上書きする
+        edit.session.bgTokenizer = new BackgroundTokenizer(edit.session.bgTokenizer.doc, edit.session.bgTokenizer._signal.bind(edit.session.bgTokenizer))
+
+        // セッションをリセットする
+        edit.session.resetCaches()
+
+        edit.setTheme("ace/theme/xcode")
+    }
+    start()
 }
 
 // post

@@ -51,9 +51,10 @@ function nako3_main($params) {
       "</canvas>";
   }
   $nako3['j_use_canvas'] = ($nako3['use_canvas']) ? 1 : 0;
-  $nako3['readonly'] = ($nako3['editable']) 
+  $nako3['data_nako3_readonly'] = ($nako3['editable']) ? '' : '1';
+  $nako3['readonly_class'] = ($nako3['editable']) 
     ? '' : 
-    "readonly='1' style='background-color:#f0f0f0;'";
+    "readonly";
   $nako3['can_save'] = ($nako3['editable']) ? 'true' : 'false';
   $nako3['edit_height'] = (ceil(intval($nako3['rows']) * 1.5)).'em';
 

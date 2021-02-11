@@ -11,10 +11,10 @@
   style="display: none;"
   id="nako3_code_{{pid}}"
   rows="{{rows}}"
-  class="nako3txt"
-  name="body" {{ readonly }}
+  class="nako3txt"　
+  name="body"
  >{{ code }}</textarea>
-<div id="ace_editor{{pid}}" style="height:{{edit_height}};">{{code}}</div>
+<div id="ace_editor{{pid}}" class="nako3-editor {{readonly_class}}" style="height:{{edit_height}};" data-nako3-readonly="{{data_nako3_readonly}}">{{code}}</div>
 <input type="hidden" name="version" value="{{ ver }}" />
 </form>
 
