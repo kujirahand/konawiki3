@@ -6,11 +6,11 @@
 const ace_editors = {}
 
 function ace_editor_init(pid) {
-    const edit = ace.edit("ace_editor" + pid);
-    edit.setTheme("ace/theme/textmate");
-    edit.setFontSize(16);
-    // edit.session.setMode("ace/mode/javascript");
-    ace_editors[pid] = edit;
+    if (navigator.nako3 === undefined) {
+        setTimeout(() => { ace_editor_init(pid) }, 100);
+        return
+    }
+    ace_editors[pid] = navigator.nako3.setupEditor("ace_editor" + pid).editor;
 }
 
 // post
@@ -20,6 +20,9 @@ function post_button_init(pid, can_save) {
     console.log('post_button_init='+pid, can_save)
 }
 function nako3_post_submit(pid) {
+    if (ace_editors[pid] === undefined) {
+        alert('現在ライブラリを読み込み中です。しばらくお待ちください。')
+    }
     // get code
     const edit = ace_editors[pid];
     const textarea = document.getElementById('nako3_code_' + pid);

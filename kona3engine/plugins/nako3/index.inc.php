@@ -34,6 +34,7 @@ function nako3_main($params) {
     $nako3['script_once'] =
       "<!-- [nako3.include_once] -->\n".
       nako3_make_script_tag($nako3).
+      '<link rel="stylesheet" href="'.$nako3['baseurl'].'src/wnako3_editor.css">'.
       nako3_template('tpl-style.html',array()).
       nako3_template('tpl-js-edit.html', $nako3).
       nako3_template('tpl-js-nako3.html', $nako3).
@@ -51,9 +52,8 @@ function nako3_main($params) {
       "</canvas>";
   }
   $nako3['j_use_canvas'] = ($nako3['use_canvas']) ? 1 : 0;
-  $nako3['readonly'] = ($nako3['editable']) 
-    ? '' : 
-    "readonly='1' style='background-color:#f0f0f0;'";
+  $nako3['readonly'] = ($nako3['editable']) ? '' : 'true';
+  $nako3['data_disable_marker'] = ($nako3['disable_marker']) ? 'true' : '';
   $nako3['can_save'] = ($nako3['editable']) ? 'true' : 'false';
   $nako3['edit_height'] = (ceil(intval($nako3['rows']) * 1.5)).'em';
 

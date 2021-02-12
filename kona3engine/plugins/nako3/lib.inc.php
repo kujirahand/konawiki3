@@ -23,6 +23,10 @@ function nako3_parse_params(&$nako3, $params) {
       $nako3['use_canvas'] = true;
       continue;
     }
+    if ($s == "disable_marker") {
+      $nako3['disable_marker'] = true;
+      continue;
+    }
     
     // 引数付きパラメータ
     if (preg_match('#rows\=([0-9]+)#', $s, $m)) {
