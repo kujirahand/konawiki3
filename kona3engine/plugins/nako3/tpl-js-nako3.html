@@ -88,7 +88,7 @@ function nako3_run(id, use_canvas) {
   // var code_e = document.getElementById("nako3_code_" + id)
   // if (!code_e) return
   // var code = code_e.value
-  const code = ace_editors[id].getValue()
+  const code = ace_editors[id].editor.getValue()
   var canvas_name = "#nako3_canvas_" + id
   var div_name = "#nako3_div_" + id
   var addon =
@@ -99,14 +99,16 @@ function nako3_run(id, use_canvas) {
       "「" + canvas_name + "」へ描画開始;" +
       "カメ描画先=「" + canvas_name + "」;" +
       "カメ全消去;"
-  } 
+  }
+  const preCode = addon + "\n"
   try {
     nako3_info_id = id
     nako3_clear()
-    navigator.nako3.run(addon + "\n" + code)
+    navigator.nako3.runReset(preCode + code, "main.nako3", preCode)
     console.log("DONE")
   } catch (e) {
     nako3_print("==ERROR==" + e.message + "")
+    ace_editors[id].editorMarkers.addByError(code, e)
     console.log(e)
   }
 }
