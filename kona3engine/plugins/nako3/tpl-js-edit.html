@@ -3,6 +3,7 @@
 <script type="text/javascript">
 
 // ace_editors instance
+/** @type {{ editor: any, editorMarkers: any }[]} */
 const ace_editors = {}
 
 function ace_editor_init(pid) {
@@ -10,7 +11,7 @@ function ace_editor_init(pid) {
         setTimeout(() => { ace_editor_init(pid) }, 100);
         return
     }
-    ace_editors[pid] = navigator.nako3.setupEditor("ace_editor" + pid).editor;
+    ace_editors[pid] = navigator.nako3.setupEditor("ace_editor" + pid);
 }
 
 // post
@@ -24,7 +25,7 @@ function nako3_post_submit(pid) {
         alert('現在ライブラリを読み込み中です。しばらくお待ちください。')
     }
     // get code
-    const edit = ace_editors[pid];
+    const edit = ace_editors[pid].editor;
     const textarea = document.getElementById('nako3_code_' + pid);
     textarea.value = edit.getValue();
     // submit
