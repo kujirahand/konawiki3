@@ -111,6 +111,10 @@ function nako3_make_script_tag(&$nako3) {
       'src'   => 'https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js',
       'async' => TRUE,
     ),
+    array(
+      'src' => 'https://unpkg.com/mocha/mocha.js',
+      'async' => TRUE,
+    )
   );
   // スクリプトタグを生成
   $include_js = '';
