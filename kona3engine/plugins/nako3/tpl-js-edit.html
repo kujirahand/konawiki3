@@ -8,7 +8,7 @@ const ace_editors = {}
 
 function ace_editor_init(pid) {
     if (navigator.nako3 === undefined) {
-        setTimeout(() => { ace_editor_init(pid) }, 100);
+        setTimeout(function() { ace_editor_init(pid) }, 100);
         return
     }
     ace_editors[pid] = navigator.nako3.setupEditor("ace_editor" + pid);
