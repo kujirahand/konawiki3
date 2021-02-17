@@ -73,6 +73,14 @@ function nako3_make_script_tag(&$nako3) {
       'src'   => 'https://pagecdn.io/lib/ace/1.4.12/ace.js',
       'async' => FALSE,
     ),
+    array(
+      'src'   => 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-language_tools.min.js',
+      'async' => FALSE,
+    ),
+    array(
+      'src'   => 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-options.min.js',
+      'async' => FALSE,
+    ),
     // nadesiko
     array(
       'src'   => $baseurl."release/wnako3.js",
