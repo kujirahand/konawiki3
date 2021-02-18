@@ -67,72 +67,22 @@ function nako3_make_script_tag(&$nako3) {
   }
   // 各JavaScriptのパスを設定
   $baseurl = $nako3['baseurl'];
-  $jslist = array(
-    // editor
-    array(
-      'src'   => 'https://pagecdn.io/lib/ace/1.4.12/ace.js',
-      'async' => FALSE,
-    ),
-    array(
-      'src'   => 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-language_tools.min.js',
-      'async' => FALSE,
-    ),
-    array(
-      'src'   => 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-options.min.js',
-      'async' => FALSE,
-    ),
-    // nadesiko
-    array(
-      'src'   => $baseurl."release/wnako3.js",
-      'async'=> TRUE
-    ),
-    array(
-      'src'   => $baseurl."release/plugin_csv.js",
-      'async'=> TRUE
-    ),
-    array(
-      'src'   => $baseurl."release/plugin_datetime.js",
-      'async'=> TRUE
-    ),
-    array(
-      'src'   => $baseurl."release/plugin_kansuji.js",
-      'async'=> TRUE
-    ),
-    array(
-      'src'   => $baseurl."release/plugin_markup.js",
-      'async'=> TRUE
-    ),
-    array(
-      'src'   => $baseurl."release/plugin_turtle.js",
-      'async' => TRUE,
-    ),
-    array(
-      'src'   => $baseurl."release/plugin_webworker.js",
-      'async' => TRUE,
-    ),
-    array(
-      'src'   => $baseurl."release/plugin_caniuse.js",
-      'async' => TRUE,
-    ),
-    // chart.js
-    array(
-      'src'   => 'https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js',
-      'async' => TRUE,
-    ),
-    array(
-      'src' => 'https://unpkg.com/mocha/mocha.js',
-      'async' => TRUE,
-    )
-  );
-  // スクリプトタグを生成
-  $include_js = '';
-  foreach ($jslist as $js) {
-    $src = $js['src'];
-    $defer = $js['async'] ? 'defer' : '';
-    $include_js .= "<script {$defer} src=\"$src\"></script>\n";
-  }
+
+  $include_js =
+    '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" integrity="sha512-GZ1RIgZaSc8rnco/8CXfRdCpDxRCphenIiZ2ztLy3XQfCbQUSCuk8IudvNHxkRA3oUg6q0qejgN/qqyG1duv5Q==" crossorigin="anonymous"></script>' .
+    '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-language_tools.min.js" integrity="sha512-8qx1DL/2Wsrrij2TWX5UzvEaYOFVndR7BogdpOyF4ocMfnfkw28qt8ULkXD9Tef0bLvh3TpnSAljDC7uyniEuQ==" crossorigin="anonymous"></script>' .
+    '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-options.min.js" integrity="sha512-oHR+WVzBiVZ6njlMVlDDLUIOLRDfUUfRQ55PfkZvgjwuvGqL4ohCTxaahJIxTmtya4jgyk0zmOxDMuLzbfqQDA==" crossorigin="anonymous"></script>' .
+
+    "<script defer src=\"${baseurl}release/wnako3.js\"></script>" .
+    "<script defer src=\"${baseurl}release/plugin_csv.js\"></script>" .
+    "<script defer src=\"${baseurl}release/plugin_datetime.js\"></script>" .
+    "<script defer src=\"${baseurl}release/plugin_kansuji.js\"></script>" .
+    "<script defer src=\"${baseurl}release/plugin_markup.js\"></script>" .
+    "<script defer src=\"${baseurl}release/plugin_turtle.js\"></script>" .
+    "<script defer src=\"${baseurl}release/plugin_webworker.js\"></script>" .
+    "<script defer src=\"${baseurl}release/plugin_caniuse.js\"></script>" .
+  
+    '<script defer src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js" integrity="sha512-d9xgZrVZpmmQlfonhQUvTR7lMPtO7NkZMkA0ABN3PHCbKA5nqylQ/yWlFAyY6hYgdF1Qh6nYiuADWwKB4C2WSw==" crossorigin="anonymous"></script>' .
+    '<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mocha/8.3.0/mocha.min.js" integrity="sha512-LA/TpBXau/JNubKzHQhdi5vGkRLyQjs1vpuk2W1nc8WNgf/pCqBplD8MzlzeKJQTZPvkEZi0HqBDfRC2EyLMXw==" crossorigin="anonymous"></script>';
   return $include_js;
 }
-
-
-
