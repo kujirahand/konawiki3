@@ -472,16 +472,15 @@ function __konawiki_parser_tohtml(&$text, $level)
         // Wiki Link
         if ($c2 == "[[") {
             // description mode ?
-            if (substr($text, 0, 3) === "[[[") { // with desctiption
+            if (substr($text, 0, 3) === "[[[") {
                 $text = substr($text, 3);
                 $page = konawiki_parser_token($text, "]]]");
-                $result .= konawiki_parser_showPageDescription($page);
             }
             else { // simple name
                 $text = substr($text, 2);
                 $s = konawiki_parser_token($text, "]]");
-                $result .= konawiki_parser_makeWikiLink($s);
             }
+            $result .= konawiki_parser_makeWikiLink($s);
             continue;
         }
         // end of inline plugin
@@ -620,11 +619,6 @@ function konawiki_parser_makeUriLink($url)
     return "<a href='$link'>$disp</a>";
 }
 
-function konawiki_parser_showPageDescription($page)
-{
-    return konawiki_parser_makeWikiLink($page);
-}
-
 function konawiki_parser_makeWikiLink($name)
 {
     // check pattern
@@ -668,11 +662,15 @@ function konawiki_parser_makeWikiLink($name)
         }
     }
 
-    // wikipage exists ?
-    if ($wikilink === TRUE) {
-        // TODO: check extra tag
-    }
+    // check link
+    $link = konawiki_parser_checkURL($link);
     return "<a href='$link'>$caption</a>";
+}
+
+function konawiki_parser_checkURL($url)
+{
+    $url = preg_replace('/^javascript\:/', '', $url);
+    return $url;
 }
 
 function konawiki_parser_disp_url($url)
