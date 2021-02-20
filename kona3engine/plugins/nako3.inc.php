@@ -8,7 +8,6 @@
  * -- rows=num エディタの行数
  * -- ver=xxx なでしこ3のバージョン
  * -- canvas canvasを用意する場合に指定
- * -- baseurl=url なでしこ3の基本URL
  * --- post=url 保存先CGI(デフォルトは、nako3storage)
  * -- edit/editable 編集可能な状態にする
  * -- disable_marker  コンパイルエラーを表示しない

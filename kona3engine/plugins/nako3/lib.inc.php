@@ -43,10 +43,6 @@ function nako3_parse_params(&$nako3, $params) {
       $nako3['ver'] = $m[1];
       continue;
     }
-    if (preg_match('#baseurl\=([0-9a-zA-Z\.\_\/\%\:\&\#]+)#', $s, $m)) {
-      $nako3['baseurl'] = $m[1];
-      continue;
-    }
     if (preg_match('#post\=([0-9a-zA-Z\.\_\/\%\:\&\#]+)#', $s, $m)) {
       $nako3['post_url'] = $m[1];
       continue;

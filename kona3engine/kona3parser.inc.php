@@ -494,7 +494,7 @@ function __konawiki_parser_tohtml(&$text, $level)
             $pname  = trim($m[1]);
             $plugin = konawiki_parser_getPlugin($pname);
             $text   = substr($text, strlen($m[0]));
-            if ($plugin['disallow'] || !file_exists($plugin["file"])) {
+            if ($plugin['disable'] || !file_exists($plugin["file"])) {
                 $result .= htmlspecialchars("&".$pname."(");
             } else {
                 $pparam = __konawiki_parser_tohtml($text, $level + 1);
@@ -670,6 +670,7 @@ function konawiki_parser_makeWikiLink($name)
 function konawiki_parser_checkURL($url)
 {
     $url = preg_replace('/^javascript\:/', '', $url);
+    $url = htmlspecialchars($url, ENT_QUOTES);
     return $url;
 }
 
