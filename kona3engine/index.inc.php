@@ -8,12 +8,6 @@ global $kona3conf;
 $kona3conf = array();
 // session
 session_start();
-/*
-// check old version
-if (!defined('KONA3_DIR_INDEX')) {
-  echo '<a href="https://kujirahand.com/konawiki3/index.php?update_3_2">Please update index.php.</a>'; exit;
-}
- */
 // Load Config data
 $file_kona3conf_json = KONA3_DIR_PRIVATE.'/kona3conf.json.php';
 if (file_exists($file_kona3conf_json)) {

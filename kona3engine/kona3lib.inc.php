@@ -45,10 +45,18 @@ function kona3lib_parseURI() {
   if ($action == "") $action = "show";
   $status = array_shift( $path_args );
   if (isset($params['status'])) $action = $params['status'];
-  // check invalid name like /../../..
+  // Check invalid page name like /../../..
   $page = str_replace('..', '', $page);
   $page = str_replace('//', '', $page);
   $page = preg_replace('#^/#', '', $page);
+  // Check invalid action
+	if (!preg_match('#^[a-zA-Z0-9_]+$#', $action)) {
+		$action = '__INVALID__';
+	}
+  // Check invalid status
+	if (!preg_match('#^[a-zA-Z0-9_]+$#', $status)) {
+		$status = '__INVALID__';
+	}
   // set to conf
   $kona3conf['page']   = $_GET['page']   = $page;
   $kona3conf['action'] = $_GET['action'] = $action;
