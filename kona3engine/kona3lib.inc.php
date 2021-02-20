@@ -54,9 +54,11 @@ function kona3lib_parseURI() {
 		$action = '__INVALID__';
 	}
   // Check invalid status
-	if (!preg_match('#^[a-zA-Z0-9_]+$#', $status)) {
-		$status = '__INVALID__';
-	}
+  if ($status != '') {
+    if (!preg_match('#^[a-zA-Z0-9_]*$#', $status)) {
+      $status = '__INVALID__';
+    }
+  }
   // set to conf
   $kona3conf['page']   = $_GET['page']   = $page;
   $kona3conf['action'] = $_GET['action'] = $action;
