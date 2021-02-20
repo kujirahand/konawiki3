@@ -787,6 +787,12 @@ function konawiki_parser_render_plugin($value)
 function konawiki_parser_getPlugin($pname)
 {
   global $kona3conf;
+
+  // Sanitize path
+  $pname = str_replace('/', '', $pname);
+  $pname = str_replace('.', '', $pname);
+  
+  // 日本語ファイル名のプラグインはurlencodeした名前にする
   $uname = urlencode($pname);
 
   // path
