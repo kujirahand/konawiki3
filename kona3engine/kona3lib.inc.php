@@ -129,7 +129,8 @@ function kona3getEngineFName($dir, $pname) {
 
 // pname(Plugin name) is only alhpabet and number and %_-
 function kona3getPName($pname) {
-  $pname = preg_replace("/([a-zA-Z0-9\_\-\%]+)/", "$1", $pname);
+  // sanitize path
+  $pname = preg_replace("/([^a-zA-Z0-9\_\-\%]+)/", "", $pname);
   return $pname;
 }
 
