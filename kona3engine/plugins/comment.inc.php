@@ -107,6 +107,7 @@ function _renderCommentForm($page, $bbs_id) {
   $msg_post_comment = lang('Post Comment');
   $msg_close = lang('Close');
   $msg_post = lang('Add');
+  $edit_token = kona3_getEditToken();
   return <<< EOS
 <div class="comment_form_box">
   <!-- close bar -->
@@ -120,6 +121,7 @@ function _renderCommentForm($page, $bbs_id) {
    class="pure-form pure-form-stacked">
     <input type="hidden" name="m" value="write">
     <input type="hidden" name="bbs_id" value="$bbs_id">
+    <input type="hidden" id="edit_token" name="edit_token" value="$edit_token">
     <label for="name">name:</label>
     <input id="name" type="text" name="name" value="">
     <label for="body">body: <span class="memo">(&gt;1 &gt;2 ...)</span></label>
@@ -180,18 +182,29 @@ function kona3plugins_comment_action() {
   // delete comment (1/2)
   if ($m == "del") {
     $id = intval(@$_REQUEST['id']);
+    $edit_token = kona3_getEditToken();
     if ($id <= 0) kona3error($page, 'no id');
-    $del = "<form method='post'>".
+    $del_form = "<form method='post'>".
+      "<input type='hidden' name='edit_token' value='$edit_token'>".
       "<input type='hidden' name='m' value='del2'>".
       "<input type='hidden' name='id' value='$id'>".
-      "<p>Really delete (id=$id)?</p>".
-      "<p>password: <input type='password' name='pw' value=''>".
-      " <input type='submit' value='Delete'></p>".
-      "</form>";
-    _err($page, $del); exit;
+      "<p>".lang('Really?')."</p>";
+    if (!kona3isLogin()) {
+      $del_form .= "<p>".lang("Password").": <input type='password' name='pw' value=''></p>";
+    } else {
+      $del_form .= "<input type='hidden' name='pw' value='LOGINED'></p>";
+    }
+    $del_form .= " <input class='pure-button pure-button-primary' type='submit' value='".lang('Delete')."'></p>";
+    $del_form .= "</form>";
+    kona3showMessage(lang('Delete')." (id:$id)", $del_form);
+    exit;
   }
   // delete comment (2/2)
   if ($m == "del2") {
+    if (!kona3_checkEditToken()) {
+      kona3error(lang('Invalid Token'), lang('Invalid edit token.'));
+      exit;
+    }
     $id = intval(@$_REQUEST['id']);
     $pw = isset($_REQUEST['pw']) ? $_REQUEST['pw'] : '';
     if ($id <= 0) kona3error($page, "no id");
@@ -208,6 +221,9 @@ function kona3plugins_comment_action() {
   }
   // set todo
   if ($m == "todo") {
+    if (!kona3_checkEditToken()) {
+      _err($page, 'Invalid Token'); exit;
+    }
     $id = intval(@$_REQUEST['id']);
     if ($id < 0) kona3error($page, "no id");
     $v = isset($_REQUEST['v']) ? intval($_REQUEST['v']) : -1;
@@ -231,6 +247,10 @@ function kona3plugins_comment_action_write($page) {
   $body = isset($_POST['body']) ? $_POST['body'] : '';
   $pw   = isset($_POST['pw']) ? $_POST['pw'] : '';
 
+  // check edit_token
+  if (!kona3_checkEditToken()) {
+    kona3error(lang('Invalid Token'), '<a href="javascript:history.back()">'.lang('Please back page.').'</a>'); exit;
+  }
   //
   $bbs_id = intval($bbs_id);
   if ($body == '' || $bbs_id <= 0) {
@@ -350,7 +370,8 @@ function chtodo(event, id) {
   var e = event.target;
   var v = (e.innerHTML == "todo") ? 1 : 0;
   cv = (v == 0) ? 1 : 0;
-  var para = {"m": "todo", "id": id, "v": cv, "fmt": "json"};
+  var edit_token = $("#edit_token").val();
+  var para = {"m": "todo", "id": id, "v": cv, "fmt": "json", "edit_token": edit_token};
   $.post(comment_api, para, function(data){
     var o = JSON.parse(data);
     if (o["result"] == "ok") {

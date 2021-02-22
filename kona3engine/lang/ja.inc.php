@@ -58,6 +58,7 @@ $lang_data = [
   'Invalid edit token.' => 'ページの再読み込みが必要です。別のページを開いていないか確認して再度投稿してください。',
   'Admin Page' => '管理者ページ',
   'You do not have admin perm.' => '管理者権限がないとアクセスできません。',
+  'Please back page.' => '投稿元のページに戻って投稿しなおしてください。',
   'Delete All' => 'すべて削除する',
   'Today' => '今日',
   'This month' => '今月',
