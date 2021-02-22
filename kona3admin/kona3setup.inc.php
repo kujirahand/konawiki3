@@ -21,10 +21,18 @@ function kona3setup_config() {
   kona3conf_init($conf);
   $q = empty($_POST['q']) ? '' : $_POST['q'];
   if ($q == '') {
+    $conf['edit_token'] = kona3_getEditToken();
     kona3setup_template('admin_conf.html', $conf);
     exit;
   }
   if ($q == 'save') {
+    // check token
+    if (!kona3_checkEditToken()) {
+      kona3error("Invalid Token", "<a href='javascript:history.back()'>Plase back</a>, and submit form again.");
+      exit;
+    } else {
+      unset($conf['edit_key']);
+    }
     foreach ($conf as $key => $def) {
       $v = isset($_POST[$key]) ? $_POST[$key] : $def;
       $v = trim($v);
@@ -33,7 +41,8 @@ function kona3setup_config() {
       $conf[$key] = $v;
     }
     jsonphp_save($file_conf, $conf);
-    header('location: ./index.php');
+    kona3showMessage('Setting',
+      '<h1>Saved.</h1><p><a href="./index.php">Go to FrontPage.</a></p>');
     exit;
   }
 }

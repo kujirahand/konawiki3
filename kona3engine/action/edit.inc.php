@@ -24,6 +24,24 @@ function kona3_action_edit() {
     kona3_edit_err($msg, $i_mode);
     exit;
   }
+
+  // check edit_token
+  if (!kona3_checkEditToken()) {
+    $label = lang('Edit');
+    $url = kona3getPageURL($page, 'edit', '', "edit_token=".kona3_getEditToken());
+    $page_html = htmlspecialchars($page, ENT_QUOTES);
+    if ($i_mode == 'form') {
+      kona3showMessage(
+        $label,
+        "<a href='$url' class='pure-button pure-button-primary'>".
+        "$label - $page_html</a>");
+    } else {
+      kona3_edit_err('invalid token', $i_mode);
+    }
+    exit;
+  }
+  // generate new edit_token
+  $edit_token = kona3_getEditToken();
   
   // edit_command ?
   if ($cmd != '') { return edit_command($cmd); }
@@ -71,7 +89,7 @@ function kona3_action_edit() {
   $kona3conf['css'][] = kona3getResourceURL('edit.css', TRUE);
 
   // history
-  $history = kona3db_getPageHistory($page);
+  $history = kona3db_getPageHistory($page, $edit_token);
 
   // show
   kona3template('edit.html', array(
@@ -81,6 +99,7 @@ function kona3_action_edit() {
     "edit_txt"  => $txt,
     "msg" => $msg,
     "history" => $history,
+    "edit_token" => $edit_token,
   ));
 }
 
@@ -102,7 +121,8 @@ function edit_command($cmd) {
       'WHERE history_id=? AND hash=?',
       [$history_id, $hash]);
     if ($r) {
-      $url = kona3getPageURL($page, "edit");
+      $edit_token = kona3_getEditToken();
+      $url = kona3getPageURL($page, "edit", "", "edit_token=$edit_token");
       return kona3showMessage(
         'DELETE History', 
         "OK! (history_id=$history_id) ".

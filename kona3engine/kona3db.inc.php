@@ -104,7 +104,7 @@ function kona3db_getUserNameById($user_id) {
 }
 
 
-function kona3db_getPageHistory($page) {
+function kona3db_getPageHistory($page, $edit_token) {
   $page_id = kona3db_getPageId($page);
   $r = db_get(
     "SELECT * FROM page_history ".
@@ -124,6 +124,7 @@ function kona3db_getPageHistory($page) {
           "cmd" => "history_delete",
           "history_id" => $v['history_id'],
           "hash" => $v['hash'],
+          "edit_token" => $edit_token
         ]));
       $v['size'] = strlen($v['body']);
     }

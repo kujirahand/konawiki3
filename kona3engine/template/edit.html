@@ -8,6 +8,7 @@
     <form method="post" action="{{$action}}" class="pure-form">
       <input type="hidden" name="a_mode" value="trywrite">
       <input type="hidden" id="a_hash" name="a_hash" value="{{$a_hash}}">
+      <input type="hidden" id="edit_token" name="edit_token" value="{{$edit_token}}">
       <div class="editor">
         <textarea id="edit_txt" name="edit_txt">{{$edit_txt}}</textarea>
       </div>
