@@ -103,8 +103,6 @@ __EOS__;
 
 function _renderCommentForm($page, $bbs_id) {
   $form_action = kona3getPageURL($page, 'plugin', '', 'name=comment');
-  $def_name = isset($_SESSION['name']) ? $_SESSION['name'] : '';
-  $def_pw   = isset($_SESSION['password']) ? $_SESSION['password'] : '';
   $script = _todo_script();
   $msg_post_comment = lang('Post Comment');
   $msg_close = lang('Close');
@@ -123,11 +121,11 @@ function _renderCommentForm($page, $bbs_id) {
     <input type="hidden" name="m" value="write">
     <input type="hidden" name="bbs_id" value="$bbs_id">
     <label for="name">name:</label>
-    <input id="name" type="text" name="name" value="$def_name">
+    <input id="name" type="text" name="name" value="">
     <label for="body">body: <span class="memo">(&gt;1 &gt;2 ...)</span></label>
     <textarea id="body" name="body" rows="4" cols="50"></textarea>
     <label for="password">password</label>
-    <input type="password" name="pw" value="$def_pw">
+    <input type="password" name="pw" value="">
     <input class="pure-button pure-button-primary" type="submit" value="$msg_post">
   </form>
 </div><!-- /comment_form_box -->
@@ -183,12 +181,11 @@ function kona3plugins_comment_action() {
   if ($m == "del") {
     $id = intval(@$_REQUEST['id']);
     if ($id <= 0) kona3error($page, 'no id');
-    $key = $_SESSION['password'];
     $del = "<form method='post'>".
       "<input type='hidden' name='m' value='del2'>".
       "<input type='hidden' name='id' value='$id'>".
       "<p>Really delete (id=$id)?</p>".
-      "<p>password: <input type='password' name='pw' value='$key'>".
+      "<p>password: <input type='password' name='pw' value=''>".
       " <input type='submit' value='Delete'></p>".
       "</form>";
     _err($page, $del); exit;
@@ -247,8 +244,6 @@ function kona3plugins_comment_action_write($page) {
     "");
   $a = array($bbs_id, $name, $body, $pw, time(), time());
   $r = $stmt->execute($a);
-  $_SESSION['name'] = $name;
-  $_SESSION['password'] = $pw;
   
   // show result
   if ($output_format == "json") _ok($page, "inserted"); 
