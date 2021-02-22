@@ -40,13 +40,13 @@ function kona3plugins_ref_execute($args) {
     }
   }
   // make link
-  $caption = htmlspecialchars($caption);
+  $caption = htmlspecialchars($caption, ENT_QUOTES);
   $url = htmlspecialchars_url($url);
   if (!preg_match("#^https?\:\/\/#", $url)) {
     // file link
     $url2 = kona3plugins_ref_file_url($page, $url);
     if ($url2 === '') {
-      $url = htmlspecialchars($url);
+      $url = htmlspecialchars($url, ENT_QUOTES);
       return "<div class='error'>#ref:(No file:{$url})</div>";
     }
     $url = $url2;
@@ -67,7 +67,7 @@ function kona3plugins_ref_execute($args) {
 
 function kona3plugins_ref_file_url($page, $url) {
   global $kona3conf;
-  // Disallow up dir!!
+  // Disallow up dir!! (1/2)
   $url = str_replace('..', '', $url);
   
   // is attach dir?
@@ -81,6 +81,8 @@ function kona3plugins_ref_file_url($page, $url) {
   // Is this file in same directory?
   if (strpos($page, "/") !== FALSE) {
     $url2 = dirname($page)."/".urldecode($url);
+    // Disallow up dir!! (2/2)
+    $url2 = str_replace('..', '', $url2);
     $f = KONA3_DIR_DATA."/".$url2;
     if (file_exists($f)) {
       if ($kona3conf["url.data"] == '') {

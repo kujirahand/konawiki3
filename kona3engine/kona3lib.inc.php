@@ -146,7 +146,7 @@ function kona3getWikiFile($wikiname, $autoExt = true, $ext = '.txt', $force_enco
   $encode = $kona3conf['enc_pagename'];
   if ($force_encode) { $encode = $force_encode; }
   
-  // check path traversal
+  // check path traversal (1/2)
   $wikiname = str_replace('..', '', $wikiname);
   
   // make path
@@ -156,6 +156,8 @@ function kona3getWikiFile($wikiname, $autoExt = true, $ext = '.txt', $force_enco
   foreach ($paths as $p) {
     $enc = $p;
     if ($encode) $enc = urlencode($p);
+    // remove path travasal (2/2)
+    $enc = str_replace('..', '', $enc);
     $rpath[] = $enc;
   }
   $res = $path_data . "/" . implode("/", $rpath);
@@ -344,6 +346,8 @@ function kona3getPageURL($page = "", $action = "", $stat = "", $paramStr = "") {
 
 function kona3getResourceURL($file, $use_mtime = FALSE) {
   global $kona3conf;
+  // remove dir travasal
+  $file = str_replace('..', '', $file);
   $path_resource = $kona3conf['path_resource'];
   $path = "{$path_resource}/$file";
   if ($use_mtime && file_exists($path)) {
@@ -356,6 +360,10 @@ function kona3getResourceURL($file, $use_mtime = FALSE) {
 function kona3getSkinURL($file, $use_mtime = FALSE) {
   global $kona3conf;
   $skin = $kona3conf['skin'];
+  // check invalid skin pattern
+  if (preg_match('#[^a-zA-Z0-9_\-]#', $skin)) {
+    $skin = 'def';
+  }
   $path_skin = KONA3_DIR_SKIN;
   $path = "{$path_skin}/{$skin}/{$file}";
   // skinディレクトリにファイルがなければresourceを探す
