@@ -22,6 +22,9 @@ function kona3setup_config() {
   $q = empty($_POST['q']) ? '' : $_POST['q'];
   if ($q == '') {
     $conf['edit_token'] = kona3_getEditToken();
+    if (isset($_GET['admin'])) {
+      $conf['admin_email'] = $_GET['admin'];
+    }
     kona3setup_template('admin_conf.html', $conf);
     exit;
   }
@@ -41,8 +44,12 @@ function kona3setup_config() {
       $conf[$key] = $v;
     }
     jsonphp_save($file_conf, $conf);
-    kona3showMessage('Setting',
-      '<h1>Saved.</h1><p><a href="./index.php">Go to FrontPage.</a></p>');
+    if (function_exists('template_render')) {
+      kona3showMessage('Setting',
+        '<h1>Saved.</h1><p><a href="./index.php">Go to FrontPage.</a></p>');
+    } else {
+      echo "<h1>OK, saved.<a href='index.php'>Go to FrontPage</a></h1>";
+    }
     exit;
   }
 }
@@ -64,7 +71,7 @@ function kona3setup_check_admin_user() {
   if ($q == 'save') {
     $pw = trim(empty($_POST['pw']) ? '' : $_POST['pw']);
     $pw2 = trim(empty($_POST['pw2']) ? '' : $_POST['pw2']);
-    if ($pw != $pw2) { echo "Wrong Master Password"; exit; }
+    if ($pw != $pw2) { echo "The master passwords do not match."; exit; }
     $salt = konawiki3_gen_pw(255);
     $hash = kona3getHash($pw, $salt); // convert to hash
     $userid = trim(empty($_POST['userid']) ? '' : $_POST['userid']);
@@ -74,8 +81,8 @@ function kona3setup_check_admin_user() {
         'salt' => $salt,
       ]]);
     kona3login($userid, $userid, 'admin', $userid);
-    header('location: ./index.php');
-    echo "Please reload page.";
+    $userid_ = urldecode($userid);
+    echo "<h1>OK, <a href='index.php?admin={$userid_}'>Go to index page.</a></h1>";
     exit;
   }
   echo 'q param error';

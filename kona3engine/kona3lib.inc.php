@@ -2,7 +2,7 @@
 /**
  * konawiki3 main library
  */
-require_once 'kona3login.inc.php';
+require_once __DIR__.'/kona3login.inc.php';
 
 function kona3param($key, $def = NULL) {
   if (isset($_REQUEST[$key])) {
@@ -140,6 +140,9 @@ function kona3getWikiFile($wikiname, $autoExt = true, $ext = '.txt', $force_enco
   $path_data = KONA3_DIR_DATA;
   
   // encode
+  if (empty($kona3conf['enc_pagename'])) {
+    $kona3conf['enc_pagename'] = FALSE;
+  }
   $encode = $kona3conf['enc_pagename'];
   if ($force_encode) { $encode = $force_encode; }
   
@@ -268,10 +271,16 @@ function kona3template_prepare($name, $params) {
   $kona3conf['js_tags'] = $js;
 
   // FrontPage URL
+  if (empty($kona3conf['FrontPage'])) {
+    $kona3conf['FrontPage'] = 'FrontPage';
+  }
   $kona3conf['FrontPage_url'] =
     kona3getPageURL($kona3conf['FrontPage']);
   
   // data file 
+  if (empty($kona3conf['page'])) {
+    $kona3conf['page'] = 'FrontPage';
+  }
   if (empty($kona3conf['data_filename'])) {
     $kona3conf['data_filename'] = 
       kona3getWikiFile($kona3conf['page']);
@@ -309,6 +318,9 @@ function kona3getPageURL($page = "", $action = "", $stat = "", $paramStr = "") {
   $stat_ = urlencode($stat);
   
   // 基本URLを構築
+  if (empty($kona3conf["url.index"])) {
+    $kona3conf["url.index"] = 'index.php';
+  }
   $url_index = $kona3conf["url.index"];
   $url = "{$url_index}?{$page_}";
   

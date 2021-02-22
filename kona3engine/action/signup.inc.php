@@ -7,14 +7,9 @@ function kona3_action_signup() {
   $msg = "";
   
   // Check Config file
-  if (KONA3_ADMIN_EMAIL == '') {
-    kona3error('Config Error', 
-      'Please set "KONA3_ADMIN_EMAIL" in konawiki3.ini.php.');
-    exit;
-  }
   if (!$kona3conf["allow_add_user"]) {
     kona3error('Config Error',
-      'Please set "KONA3_ALLOW_ADD_USER" in konawiki3.ini.php.');
+      'Please set "KONA3_ALLOW_ADD_USER" in setting.');
     exit;
   }
 
@@ -113,6 +108,7 @@ function signup_execute($user, $email, $pw, &$msg) {
   // SEND EMAIL
   global $kona3conf;
   $wiki_title = $kona3conf['wiki_title'];
+  $admin_email = $kona3conf['admin_email'];
   $signup_url = kona3getPageURL("user", "signup", "", 
     kona3getURLParams([
       "a_mode" => "email",
@@ -123,7 +119,7 @@ function signup_execute($user, $email, $pw, &$msg) {
     lang("Please access here: %s")."\n".
     "------------\n".
     "$wiki_title<%s>",
-    $signup_url, KONA3_ADMIN_EMAIL);
+    $signup_url, $admin_email);
   $signup_title = "[$wiki_title] ".lang('Signup');
   lib_send_email($email, $signup_title, $signup_body);
   kona3showMessage(lang('Success'), lang('Please check email.'));
