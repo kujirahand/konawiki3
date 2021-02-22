@@ -18,11 +18,10 @@ function kona3_action_edit() {
 
   // check permission
   if (!kona3isLogin()) {
+    $please_login = lang("Please login.");
     $url = kona3getPageURL($page, 'login');
-    $msg = "<a href=\"$url\">Please login.</a>";
-    if ($i_mode == 'ajax') {
-      $msg = "Please login.";
-    }
+    $msg = "<a href=\"$url\">{$please_login}</a>";
+    if ($i_mode == 'ajax') { $msg = $please_login; }
     kona3_edit_err($msg, $i_mode);
     exit;
   }
@@ -38,7 +37,7 @@ function kona3_action_edit() {
         "<a href='$url' class='pure-button pure-button-primary'>".
         "$label - $page_html</a>");
     } else {
-      kona3_edit_err('Invalid token, Please submit form.', $i_mode);
+      kona3_edit_err(lang('Invalid edit token.'), $i_mode);
     }
     exit;
   }
@@ -113,7 +112,7 @@ function edit_command($cmd) {
   $action = kona3getPageURL($page, "edit");
 
   if (!kona3isAdmin()) {
-    return kona3error('Not Admin', 'Sorry, you are not Admin.');
+    return kona3error('Not Admin', lang('You do not have admin perm.'));
   }
   if ($cmd == 'history_delete') {
     $history_id = intval(kona3param("history_id"));
@@ -241,8 +240,13 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
       $cnt = count(explode("/", $dirname2));
       // check directories level
       if ($cnt > $max_level) {
+        if ($max_level == 0) {
+          kona3_edit_err(lang("Invalid Wiki Name: not allow use '/'"), $i_mode);
+          exit;
+        }
         kona3_edit_err(
-          "Invalid Wiki Name (not allow use '/' over $max_level times)", 
+          sprintf(lang("Invalid Wiki Name: not allow use '/' over %s times"),
+            $max_level), 
           $i_mode);
         exit;
       }

@@ -55,6 +55,7 @@ $lang_data = [
     "[URL] %s\n",
   'Invalid Token' => 'トークンの間違い',
   'Invalid Token in email' => 'トークンが間違っています。メールアドレスに書かれているURLを過不足なくコピーしてブラウザで開いてください。',
+  'Invalid edit token.' => 'ページの再読み込みが必要です。別のページを開いていないか確認して再度投稿してください。',
   'Admin Page' => '管理者ページ',
   'You do not have admin perm.' => '管理者権限がないとアクセスできません。',
   'Delete All' => 'すべて削除する',
@@ -66,5 +67,7 @@ $lang_data = [
   'date_format_e' => 'm/d',
   'date_format' => 'Y/m/d',
   'Edit Config' => '設定を編集',
+  "Invalid Wiki Name: not allow use '/'" => "不正なWIKI名: 設定によりパス記号『/』は利用できません。",
+  "Invalid Wiki Name: not allow use '/' over %s times" => "不正なWIKI名: 設定によりパス記号『/』は%s回以下にしてください。",
 ];
 
