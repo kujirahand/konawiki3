@@ -476,11 +476,23 @@ function kona3getCtrlMenu($type='bar') {
 $lang_data = null;
 function lang($msg, $def = null) {
   global $lang_data;
-  // メッセージデータを読み込み
+  global $kona3conf;
+  // Load message data
   if (!$lang_data) {
-    $lang = KONA3_LANG;
-    $langfile = KONA3_DIR_ENGINE."/lang/$lang.inc.php";
-    @include_once($langfile); // $lang_data
+    $lang_data = [];
+    if (!empty($kona3conf['lang'])) {
+      // language should be [a-z]+
+      $lang = $kona3conf['lang'];
+      if (!preg_match('#^[a-z]+$#', $lang)) {
+        $lang = 'en';
+      }
+      // check locale file
+      $langfile = KONA3_DIR_ENGINE."/lang/$lang.inc.php";
+      if (file_exists($langfile)) {
+        @include_once($langfile); // $lang_data
+      } else {
+      }
+    }
   }
   // 値を取得
   if (isset($lang_data[$msg])) {

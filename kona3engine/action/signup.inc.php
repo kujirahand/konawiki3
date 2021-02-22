@@ -95,7 +95,7 @@ function signup_execute($user, $email, $pw, &$msg) {
   }
   // INSERT
   try {
-    $token = uniqid("singup", TRUE);
+    $token = bin2hex(random_bytes(64));
     $id = db_insert("INSERT INTO users".
       "(name, email, password, token, enabled, ctime, mtime)".
       "VALUES(?,?,?,?,?,?,?)",[

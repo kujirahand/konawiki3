@@ -47,7 +47,6 @@ function check_conf(&$conf, $key, $def) {
 function kona3conf_gen() {
   global $kona3conf; 
   
-  define('KONA3_LANG', $kona3conf['lang']);
   if (!defined('KONA3_DIR_SKIN')) {
     define('KONA3_DIR_SKIN', dirname(__DIR__).'/skin');
   }
