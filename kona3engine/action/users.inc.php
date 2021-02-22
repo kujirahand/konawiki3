@@ -1,5 +1,7 @@
 <?php
 
+header('X-Frame-Options: SAMEORIGIN');
+
 function kona3_action_users() {
   if (!kona3isAdmin()) {
     kona3error(
@@ -7,6 +9,14 @@ function kona3_action_users() {
       lang('You do not have admin perm.'));
     exit;
   }
+  // check edit_token
+  if (!kona3_checkEditToken()) {
+    $edit_token = kona3_getEditToken();
+    $url = kona3getPageURL('all', 'users', '', "edit_token=$edit_token");
+    kona3error('Invalid Token', "<a href='$url'>Try again.</a>");
+    exit;
+  }
+
   // Check Params
   $q = kona3param('q');
   if ($q == 'disable') {
@@ -25,6 +35,7 @@ function kona3_action_users() {
     return users_updateParam("admin");
   }
 
+  $edit_token = kona3_getEditToken();
   $users = db_get(
     "SELECT * FROM users ".
     "ORDER BY user_id DESC");
@@ -35,25 +46,25 @@ function kona3_action_users() {
     $email = $u['email'];
     // update status link
     $u['perm_normal_link'] = kona3getPageURL(
-      'go', 'users', '', 
-      "q=normal&user_id=$user_id&token=$token");
+      'go', 'users', '',
+      "q=normal&user_id=$user_id&token=$token&edit_token=$edit_token");
     $u['perm_admin_link'] = kona3getPageURL(
       'go', 'users', '', 
-      "q=admin&user_id=$user_id&token=$token");
+      "q=admin&user_id=$user_id&token=$token&edit_token=$edit_token");
     $u['enable_link'] = kona3getPageURL(
       'go', 'users', '', 
-      "q=enable&user_id=$user_id&token=$token");
+      "q=enable&user_id=$user_id&token=$token&edit_token=$edit_token");
     $u['disable_link'] = kona3getPageURL(
       'go', 'users', '', 
-      "q=disable&user_id=$user_id&token=$token");
+      "q=disable&user_id=$user_id&token=$token&edit_token=$edit_token");
     $u['delete_link'] = kona3getPageURL(
       'go', 'users', '', 
-      "q=delete&user_id=$user_id&token=$token");
+      "q=delete&user_id=$user_id&token=$token&edit_token=$edit_token");
     // edited pages
     $pages = kona3db_getPageHistoryByUserId($user_id);
     $u['pages'] = $pages;
     $u['user_link'] = kona3getPageURL(
-      $name, 'user');
+      $name, 'user', '', "edit_token=$edit_token");
   }
   kona3template("users.html",[
     "users" => $users,
@@ -87,7 +98,8 @@ function users_updateParam($value) {
     db_exec("UPDATE users SET perm='normal' WHERE user_id=?",
       [$user_id]);
   }
-  redirect(kona3getPageURL('ok', 'users'));
+  $edit_token = kona3_getEditToken();
+  redirect(kona3getPageURL('ok', 'users', '', "edit_token=$edit_token"));
 }
 
 
