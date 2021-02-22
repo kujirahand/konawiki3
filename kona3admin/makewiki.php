@@ -1,5 +1,4 @@
 <?php
-print_r($argv);
 if (count($argv) < 2) {
   echo "[USAGE] makewiki.php (dir)";
   exit;

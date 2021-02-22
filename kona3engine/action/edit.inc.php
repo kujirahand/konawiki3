@@ -3,6 +3,8 @@
 include_once dirname(dirname(__FILE__)).'/kona3lib.inc.php';
 include_once dirname(dirname(__FILE__)).'/kona3parser.inc.php';
 
+header('X-Frame-Options: SAMEORIGIN');
+
 function kona3_action_edit() {
   global $kona3conf, $page;
 

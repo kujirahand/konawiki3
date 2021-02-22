@@ -1,5 +1,6 @@
 <?php
 @session_start();
+header('X-Frame-Options: SAMEORIGIN');
 
 // Auto setup
 function konawiki3_setup() {

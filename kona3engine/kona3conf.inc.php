@@ -26,7 +26,7 @@ function kona3conf_init(&$conf) {
   check_conf($conf, 'allpage_footer', '');
   check_conf($conf, 'analytics', '');
   check_conf($conf, 'FrontPage', 'FrontPage');
-  check_conf($conf, 'plugin_disallow', '');
+  check_conf($conf, 'plugin_disallow', 'html,htmlshow');
   check_conf($conf, 'git_enabled', FALSE);
   check_conf($conf, 'git_branch', 'master');
   check_conf($conf, 'git_remote_repository', 'origin');
