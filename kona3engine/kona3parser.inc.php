@@ -255,7 +255,7 @@ function konawiki_parser_render($tokens, $flag_isContents = TRUE)
             $html .= konawiki_parser_render_plugin($value);
         }
         else if ($cmd == "conflict") {
-            $text = htmlspecialchars($text);
+            $text = htmlspecialchars($text, ENT_QUOTES);
             if (trim($text) == "") { $text = "&nbsp;"; }
             if ($value["flag"] == "[+]") {
                 $html .= "<div class='conflictadd'>+ $text</div>".$eol;
@@ -305,7 +305,7 @@ function konawiki_parser_render_hx(&$value)
         $all_text .= $konawiki_headers[$level]."/";
     }
     $hash   = sprintf("%x",crc32($all_text));
-    $uri = htmlspecialchars(kona3getPageURL())."#h{$hash}";
+    $uri = htmlspecialchars(kona3getPageURL(), ENT_QUOTES)."#h{$hash}";
     $anchor = "<a id='h{$hash}' name='h{$hash}' href='$uri' class='anchor_super'>&nbsp;*</a>";
     $noanchor = konawiki_param("noanchor", FALSE) || konawiki_public('noanchor', FALSE);
     if ($noanchor) $anchor = "";
@@ -495,7 +495,7 @@ function __konawiki_parser_tohtml(&$text, $level)
             $plugin = konawiki_parser_getPlugin($pname);
             $text   = substr($text, strlen($m[0]));
             if ($plugin['disable'] || !file_exists($plugin["file"])) {
-                $result .= htmlspecialchars("&".$pname."(");
+                $result .= htmlspecialchars("&".$pname."(", ENT_QUITES);
             } else {
                 $pparam = __konawiki_parser_tohtml($text, $level + 1);
                 $param_ary = explode(",", $pparam);
@@ -615,7 +615,7 @@ function konawiki_parser_makeUriLink($url)
 {
     $disp = mb_strimwidth($url, 0, 60, "..");
     // $disp = htmlspecialchars($url);
-    $link = htmlspecialchars($url);
+    $link = htmlspecialchars($url, ENT_QUOTES);
     return "<a href='$link'>$disp</a>";
 }
 

@@ -10,7 +10,7 @@ require_once __DIR__ . '/nako_version.inc.php';
 global $nako3;
 $nako3 = array(
   'ver'         => NAKO_DEFAULT_VERSION, // なでしこ3のバージョン
-  'baseurl'     => '',      // @see nako3_set_script_url
+  'baseurl'     => '', // @see nako3_make_script_tag in nako3/lib.inc.php
   'post_url'    => 'https://nadesi.com/v3/storage/index.php?page=0&action=presave',
 );
 
