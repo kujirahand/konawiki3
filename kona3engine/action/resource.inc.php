@@ -15,8 +15,8 @@ function kona3_action_resource() {
   if (preg_match('/(\.\w+?)$/', $fname, $m)) {
     $ext = $m[1];
   }
+  // check resource dir
   $file = $kona3conf['path_resource'].'/'.$fname;
-  // check skin dir
   if (!file_exists($file)) {
     header('HTTP/1.0 404 Not Found');
     echo "FILE NOT FOUND: $fname";

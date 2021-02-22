@@ -18,6 +18,12 @@ function kona3_action_skin() {
     $ext = $m[1];
   }
   $skin = $kona3conf['skin'];
+  // check skin name
+  if (!preg_match('#^[a-zA-Z0-9\_\-]+$#', $skin)) {
+    header('HTTP/1.0 404 Not Found');
+    echo "404 Not Found - skin conf error.\n";
+    exit;
+  }
   $skin_dir = KONA3_DIR_SKIN;
   $res_dir = $kona3conf['path_resource'];
   

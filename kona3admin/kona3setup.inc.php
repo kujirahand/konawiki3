@@ -44,15 +44,38 @@ function kona3setup_config() {
       if ($v === 'false') { $v = FALSE; }
       $conf[$key] = $v;
     }
-    jsonphp_save($file_conf, $conf);
-    if (function_exists('template_render')) {
-      kona3showMessage('Setting',
-        '<h1>Saved.</h1><p><a href="./index.php">Go to FrontPage.</a></p>');
-    } else {
-      echo "<h1>OK, saved.<a href='index.php'>Go to FrontPage</a></h1>";
+    // check parameters
+    if (strpos($conf['FrontPage'], '/') !== FALSE) {
+      kona3setup_error('FrontPage could not include "/".');
+      exit;
     }
+    if (trim($conf['FrontPage']) == '') { $conf['FrontPage'] = 'FrontPage'; }
+    if (preg_match('#[^a-zA-Z0-9\_\-]#', $conf['skin'])) {
+      kona3setup_error('Skin name could not include path flag "/" and special chars.');
+      exit;
+    }
+    // save
+    jsonphp_save($file_conf, $conf);
+    kona3setup_showMessage('<h1>Saved</h1><p><a href="./index.php">Go to FrontPage.</a></p>');
     exit;
   }
+}
+
+function kona3setup_error($msg) {
+  if (function_exists('template_render')) {
+    kona3showMessage('Error', $msg);
+  } else {
+    echo "<html><body><h1 style='color:red;'>$msg</h1></body></html>";
+  }
+  exit;
+}
+function kona3setup_showMessage($msg) {
+  if (function_exists('template_render')) {
+    kona3showMessage('Setting', $msg);
+  } else {
+    echo "<html><body><div style='color:blue;'>$msg</div></body></html>";
+  }
+  exit;
 }
 
 function kona3setup_check_admin_user() {
