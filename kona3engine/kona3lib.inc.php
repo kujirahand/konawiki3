@@ -578,8 +578,14 @@ function kona3_setPluginInfo($plugin_name, $key, $value) {
 	$kona3conf["plugins"][$plugin_name][$key] = $value;
 }
 
-function kona3_getEditToken() {
+function kona3_getEditToken($update = TRUE) {
   global $kona3conf;
+  if ($update == FALSE) {
+    if (isset($_SESSION['konawiki3_edit_token'])) {
+      $kona3conf['edit_token'] = $_SESSION['konawiki3_edit_token'];
+      return $kona3conf['edit_token'];
+    }
+  }
   if (!isset($kona3conf['edit_token'])) {
     $t = $kona3conf['edit_token'] = bin2hex(random_bytes(32));
     $_SESSION['konawiki3_edit_token'] = $t;

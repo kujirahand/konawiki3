@@ -98,6 +98,12 @@
   para_enabled_br(true/false):<br>
   <input type='text' name='para_enabled_br' value='{{$para_enabled_br | boolstr}}'><br>
   
+  path_max_mkdir(0:off, 1,2,3...:on):<br>
+  <input type='text' name='path_max_mkdir' value='{{$path_max_mkdir}}'><br>
+  
+  chmod_mkdir(default:0777):<br>
+  <input type='text' name='chmod_mkdir' value='{{$chmod_mkdir}}'><br>
+  
   <br>
   <input type='hidden' name='edit_token' value='{{$edit_token}}'>
   <input type='submit' value='Save'>

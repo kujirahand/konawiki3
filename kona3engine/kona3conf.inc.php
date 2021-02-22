@@ -34,6 +34,8 @@ function kona3conf_init(&$conf) {
   check_conf($conf, 'enc_pagename', FALSE);
   check_conf($conf, 'show_data_dir', FALSE);
   check_conf($conf, 'para_enabled_br', TRUE);
+  check_conf($conf, 'path_max_mkdir', 3);
+  check_conf($conf, 'chmod_mkdir', '0777');
 }
 
 function check_conf(&$conf, $key, $def) {
@@ -70,7 +72,6 @@ function kona3conf_gen() {
   $kona3conf["url.data"]    = './data';
   $kona3conf["url.pub"]     = './pub';
   $kona3conf['path_resource'] = KONA3_DIR_ENGINE.'/resource'; 
-  $kona3conf["path.max.mkdir"] = 3; // max level dir under path.data (disallow = 0)
   $kona3conf["scriptname"] = 'index.php';
 
 

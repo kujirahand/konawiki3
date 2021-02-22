@@ -38,12 +38,12 @@ function kona3_action_edit() {
         "<a href='$url' class='pure-button pure-button-primary'>".
         "$label - $page_html</a>");
     } else {
-      kona3_edit_err('invalid token', $i_mode);
+      kona3_edit_err('Invalid token, Please submit form.', $i_mode);
     }
     exit;
   }
   // generate new edit_token
-  $edit_token = kona3_getEditToken();
+  $edit_token = kona3_getEditToken(($i_mode == 'form'));
   
   // edit_command ?
   if ($cmd != '') { return edit_command($cmd); }
@@ -233,21 +233,30 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
     } else {
       // auto mkdir ?
       $data_dir = KONA3_DIR_DATA;
-      $max_level = $kona3conf['path.max.mkdir'];
+      $max_level = $kona3conf['path_max_mkdir'];
       if ($data_dir != substr($dirname, 0, strlen($data_dir))) {
         kona3_edit_err('Invalid File Path.', $i_mode); exit;
       }
       $dirname2 = substr($dirname, strlen($data_dir) + 1);
       $cnt = count(explode("/", $dirname2));
-      if ($cnt <= $max_level) { // 3 level directories
-        $b = mkdir($dirname, 0777, TRUE);
-        if (!$b) {
-          kona3_edit_err('mkdir failed, could not use "/"', $i_mode); exit;
-        }
-      } else {
+      // check directories level
+      if ($cnt > $max_level) {
         kona3_edit_err(
           "Invalid Wiki Name (not allow use '/' over $max_level times)", 
-          $i_mode); exit;
+          $i_mode);
+        exit;
+      }
+      // get dir mode
+      $dir_mode = @octdec($kona3conf['chmod_mkdir']);
+      if ($dir_mode == 0) {
+        kona3_edit_err('Invalid value: chmod_mkdir in config', $i_mode);
+        exit;
+      }
+      // mkdir
+      $b = @mkdir($dirname, $dir_mode, TRUE);
+      if (!$b) {
+        kona3_edit_err('mkdir failed.', $i_mode);
+        exit;
       }
     }
   }
