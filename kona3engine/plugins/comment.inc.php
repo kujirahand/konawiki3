@@ -188,14 +188,10 @@ function kona3plugins_comment_action() {
       "<input type='hidden' name='edit_token' value='$edit_token'>".
       "<input type='hidden' name='m' value='del2'>".
       "<input type='hidden' name='id' value='$id'>".
-      "<p>".lang('Really?')."</p>";
-    if (!kona3isLogin()) {
-      $del_form .= "<p>".lang("Password").": <input type='password' name='pw' value=''></p>";
-    } else {
-      $del_form .= "<input type='hidden' name='pw' value='LOGINED'></p>";
-    }
-    $del_form .= " <input class='pure-button pure-button-primary' type='submit' value='".lang('Delete')."'></p>";
-    $del_form .= "</form>";
+      "<p>".lang('Really?')."</p>".
+      "<p>".lang("Password").": <input type='password' name='pw' value=''></p>".
+      "<input class='pure-button pure-button-primary' type='submit' value='".lang('Delete')."'></p>".
+      "</form>";
     kona3showMessage(lang('Delete')." (id:$id)", $del_form);
     exit;
   }
@@ -207,17 +203,35 @@ function kona3plugins_comment_action() {
     }
     $id = intval(@$_REQUEST['id']);
     $pw = isset($_REQUEST['pw']) ? $_REQUEST['pw'] : '';
-    if ($id <= 0) kona3error($page, "no id");
+    if ($id <= 0) {
+      kona3error($page, "no id");
+      exit;
+    }
     $pdo = database_get();
     $stmt = $pdo->prepare('SELECT * FROM comment_list WHERE comment_id=?');
     $stmt->execute(array($id));
     $row = $stmt->fetch();
-    if ($row['delkey'] === $pw || $is_login) {
-      $pdo->exec("DELETE FROM comment_list WHERE comment_id=$id");
-      if ($output_format == "json") _ok($page, "deleted");
-      header('location: index.php?'.urlencode($page));
+    // check password hash
+    $delkey = $row['delkey'];
+    $can_delete = hash_equals($delkey, $pw); // for old password
+    if (substr($delkey, 0, 2) == '!!') {
+      list($type, $salt, $hash) = explode('::', $delkey);
+      if ($type != '!!sha256') {
+        kona3error('system error', 'invalid hash type');
+        exit;
+      }
+      $can_delete = hash_equals(
+        kona3plugins_comment_getHash($pw, $salt),
+        $hash);
+    }
+    // delete
+    if (!$can_delete) {
+      kona3error($page, 'Invalid Password');
       exit;
     }
+    $pdo->exec("DELETE FROM comment_list WHERE comment_id=$id");
+    if ($output_format == "json") _ok($page, "deleted");
+    header('location: index.php?'.urlencode($page));
   }
   // set todo
   if ($m == "todo") {
@@ -251,24 +265,31 @@ function kona3plugins_comment_action_write($page) {
   if (!kona3_checkEditToken()) {
     kona3error(lang('Invalid Token'), '<a href="javascript:history.back()">'.lang('Please back page.').'</a>'); exit;
   }
-  //
+  // check paramters
   $bbs_id = intval($bbs_id);
   if ($body == '' || $bbs_id <= 0) {
     _err($page, 'Invalid data'); exit;
   }
   if ($name == '') $name = 'no name';
+  // make hash for salt
+  $salt = bin2hex(random_bytes(32));
+  $pw_hash = "!!sha256::".$salt."::".kona3plugins_comment_getHash($pw, $salt);
   $pdo = database_get();
   $stmt = $pdo->prepare(
     "INSERT INTO comment_list(bbs_id, name, body, delkey, ctime, mtime)".
     "VALUES(?, ?, ?, ?, ?, ?)".
     "");
-  $a = array($bbs_id, $name, $body, $pw, time(), time());
+  $a = array($bbs_id, $name, $body, $pw_hash, time(), time());
   $r = $stmt->execute($a);
   
   // show result
   if ($output_format == "json") _ok($page, "inserted"); 
   // jump
   header("location: index.php?".urlencode($page));
+}
+
+function kona3plugins_comment_getHash($pw, $salt) {
+  return hash('sha256', $salt.'::'.$pw);
 }
 
 function kona3plugins_comment_init_db($pdo) {
