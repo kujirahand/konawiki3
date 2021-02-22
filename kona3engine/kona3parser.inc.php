@@ -669,7 +669,14 @@ function konawiki_parser_makeWikiLink($name)
 
 function konawiki_parser_checkURL($url)
 {
-    $url = preg_replace('/^javascript\:/', '', $url);
+    // allow only http:// or https://
+    if (preg_match('#^(.+?)\:(.*)$#', $url, $m)) {
+        if ($m[1] == 'http' || $m[1] == 'https') {
+            return htmlspecialchars($url, ENT_QUOTES);
+        }
+        $url = preg_replace('#[^a-zA-Z0-9_]#', '_', $url);
+        $url = "?WIKI_LINK_ERROR_".$url;
+    }
     $url = htmlspecialchars($url, ENT_QUOTES);
     return $url;
 }
