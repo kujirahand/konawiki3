@@ -2,11 +2,11 @@
 // --- filters ---
 // escape value
 function t_echo($v) {
-  $v = htmlspecialchars($v);
+  $v = htmlspecialchars($v, ENT_QUOTES);
   return $v;
 }
 function t_multiline($v) {
-  $v = htmlspecialchars($v);
+  $v = htmlspecialchars($v, ENT_QUOTES);
   $v = preg_replace('#(\r\n|\n|\r)#s', '<br>', $v);
   return $v;
 }
@@ -92,8 +92,8 @@ function echo_options($sel_value, $labels, $values) {
   $ret = '';
   $cnt = count($labels);
   for ($i = 0; $i < $cnt; $i++) {
-    $label = htmlspecialchars($labels[$i]);
-    $value = htmlspecialchars($values[$i]);
+    $label = htmlspecialchars($labels[$i], ENT_QUOTES);
+    $value = htmlspecialchars($values[$i], ENT_QUOTES);
     $selected = '';
     if ($value == $sel_value) {
       $selected = ' selected';
