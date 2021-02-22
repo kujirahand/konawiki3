@@ -8,6 +8,7 @@
     class="pure-form pure-form-stacked" 
     method="post" action="{{$action}}">
     <input type="hidden" name="a_mode" value="trylogin">
+    <input type="hidden" name="edit_token" value="{{$edit_token}}">
     <label for="user">{{'User' | lang}}:</label>
     <input id="user" type="text" name="a_user">
     <label for="pass">{{'Password' | lang}}:</label>

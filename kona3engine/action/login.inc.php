@@ -12,6 +12,13 @@ function kona3_action_login() {
 
   // check user
   if ($am == "trylogin") {
+    // check edit_token
+    if (!kona3_checkEditToken()) {
+      $url = kona3getPageURL($page, 'login');
+      kona3showMessage(lang('Invalid Token'), 
+        "<a href='$url'>".lang('Login')."</a>");
+      exit;
+    }
     if (kona3tryLogin($user, $pw)) {
       // ok
       $editLink = kona3getPageURL($page, 'edit');
@@ -31,6 +38,7 @@ function kona3_action_login() {
     "msg" => $msg,
     "action" => $action,
     "signup_link" => kona3getPageURL($page, 'signup'),
+    "edit_token" => kona3_getEditToken(),
   ));
 }
 
