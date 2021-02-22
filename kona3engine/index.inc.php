@@ -2,7 +2,7 @@
 /**
  * KonaWiki3 kona3engine/index.inc.php
  */
-define("KONA3_SYSTEM_VERSION", "3.2.1");
+define("KONA3_SYSTEM_VERSION", "3.2.2");
 // global
 global $kona3conf;
 $kona3conf = array();
