@@ -640,8 +640,8 @@ function konawiki_parser_makeWikiLink($name)
     else {
         // [[xxx:xxx]]
         preg_match('|^(.*?)\:(.*)$|', $name, $e);
-        $caption = $e[1];
-        $link    = $e[2];
+        $caption = trim($e[1]);
+        $link    = trim($e[2]);
         // protocol ?
         if ($caption == 'http' || $caption == 'https' || $caption == 'ftp') {
             $link = $caption = $name;
@@ -670,10 +670,12 @@ function konawiki_parser_makeWikiLink($name)
 function konawiki_parser_checkURL($url)
 {
     // allow only http:// or https://
+    $url = trim($url);
     if (preg_match('#^(.+?)\:(.*)$#', $url, $m)) {
         if ($m[1] == 'http' || $m[1] == 'https') {
             return htmlspecialchars($url, ENT_QUOTES);
         }
+        print_r("[{$m[1]}]");
         $url = preg_replace('#[^a-zA-Z0-9_]#', '_', $url);
         $url = "?WIKI_LINK_ERROR_".$url;
     }
