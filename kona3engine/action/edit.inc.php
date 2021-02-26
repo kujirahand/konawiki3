@@ -27,9 +27,10 @@ function kona3_action_edit() {
   }
 
   // check edit_token
-  if (!kona3_checkEditToken()) {
+  if (!kona3_checkEditToken($page)) {
     $label = lang('Edit');
-    $url = kona3getPageURL($page, 'edit', '', "edit_token=".kona3_getEditToken());
+    $edit_token = kona3_getEditToken($page, FALSE);
+    $url = kona3getPageURL($page, 'edit', '', "edit_token=".$edit_token);
     $page_html = htmlspecialchars($page, ENT_QUOTES);
     if ($i_mode == 'form') {
       kona3showMessage(
@@ -43,7 +44,7 @@ function kona3_action_edit() {
   }
   // generate edit_token
   // (memo) 強制的に更新しないことで不要な書き込みエラーを防ぐ
-  $edit_token = kona3_getEditToken(FALSE);
+  $edit_token = kona3_getEditToken($page, FALSE);
   
   // edit_command ?
   if ($cmd != '') { return edit_command($cmd); }

@@ -408,10 +408,9 @@ function kona3getSysInfo() {
 function kona3getCtrlMenuArray($type) {
   global $kona3conf;
   $page = $kona3conf['page'];
-  $edit_token = kona3_getEditToken();
   //
   $new_uri = kona3getPageURL($page, 'new');
-  $edit_uri = kona3getPageURL($page, 'edit', '', "edit_token=$edit_token");
+  $edit_uri = kona3getPageURL($page, 'edit');
   $login_uri = kona3getPageURL($page, 'login');
   $logout_uri = kona3getPageURL($page, 'logout');
   $search_uri = kona3getPageURL($page, 'search');
@@ -598,23 +597,25 @@ function kona3_setPluginInfo($plugin_name, $key, $value) {
 	$kona3conf["plugins"][$plugin_name][$key] = $value;
 }
 
-function kona3_getEditToken($update = TRUE) {
+function kona3_getEditToken($key = 'default', $update = TRUE) {
   global $kona3conf;
+  $sname = "konawiki3_edit_token_$key";
   if ($update == FALSE) {
-    if (isset($_SESSION['konawiki3_edit_token'])) {
-      $kona3conf['edit_token'] = $_SESSION['konawiki3_edit_token'];
+    if (isset($_SESSION[$sname])) {
+      $kona3conf['edit_token'] = $_SESSION[$sname];
       return $kona3conf['edit_token'];
     }
   }
   if (!isset($kona3conf['edit_token'])) {
     $t = $kona3conf['edit_token'] = bin2hex(random_bytes(32));
-    $_SESSION['konawiki3_edit_token'] = $t;
+    $_SESSION[$sname] = $t;
   }
   return $kona3conf['edit_token'];
 }
 
-function kona3_checkEditToken() {
-  $ses = isset($_SESSION['konawiki3_edit_token']) ? $_SESSION['konawiki3_edit_token'] : '';
+function kona3_checkEditToken($key = 'default') {
+  $sname = "konawiki3_edit_token_$key";
+  $ses = isset($_SESSION[$sname]) ? $_SESSION[$sname] : '';
   $get = isset($_REQUEST['edit_token']) ? $_REQUEST['edit_token'] : '';
   if ($ses != '' && $ses == $get) {
     return TRUE;
