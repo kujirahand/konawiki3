@@ -616,10 +616,17 @@ function kona3_getEditToken($update = TRUE) {
 function kona3_checkEditToken() {
   $ses = isset($_SESSION['konawiki3_edit_token']) ? $_SESSION['konawiki3_edit_token'] : '';
   $get = isset($_REQUEST['edit_token']) ? $_REQUEST['edit_token'] : '';
-  if ($ses == $get) {
+  if ($ses != '' && $ses == $get) {
     return TRUE;
   }
   return FALSE;
 }
 
+function kona3getConf($key, $def = '') {
+  global $kona3conf;
+  if (isset($kona3conf[$key])) {
+    return $Kona3conf[$key];
+  }
+  return $def;
+}
 

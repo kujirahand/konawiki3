@@ -41,7 +41,7 @@ function kona3_action_show() {
     $txt = "* {$page}\n\n#ls"; // ls
     $page_body = konawiki_parser_convert($txt);
   } else if ($ext == '.png' || $ext == '.gif' || $ext == '.jpg' || $ext == '.jpeg') {
-    $txt = "#ref({$page})"; // images
+    $txt = "#ref({$page},w=400)"; // images
     $page_body = konawiki_parser_convert($txt);
   } else {
     kona3error($page, "Sorry, System Error."); exit;

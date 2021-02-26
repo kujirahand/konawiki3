@@ -41,8 +41,9 @@ function kona3_action_edit() {
     }
     exit;
   }
-  // generate new edit_token
-  $edit_token = kona3_getEditToken(($i_mode == 'form'));
+  // generate edit_token
+  // (memo) 強制的に更新しないことで不要な書き込みエラーを防ぐ
+  $edit_token = kona3_getEditToken(FALSE);
   
   // edit_command ?
   if ($cmd != '') { return edit_command($cmd); }
@@ -62,10 +63,18 @@ function kona3_action_edit() {
     }
     if (file_exists($fname)) {
       $txt = @file_get_contents($fname);
-      // binary?
+      // check filesize
       $sz = @filesize($fname);
-      if (strpos($txt, '\0') !== FALSE && $sz < 1024 * 1024 * 3) { // max 3MB
-        $txt = "data:image/gif;base64,".base64_encode($txt);
+      $max_edit_size = intval(kona3getConf('max_edit_size', '0'));
+      if ($max_edit_size > 0) {
+        $max_bytes = 1024 * 1024 * $max_edit_size;
+        if ($sz > $max_bytes) {
+          kona3error('File Size overflow',
+            "<h1>File size overflow</h1>".
+            "<p>max_edit_size: $max_edit_size MB</p>".
+            "<p>File size: $sz B</p>");
+          exit;
+        }
       }
     }
   }
