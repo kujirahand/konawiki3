@@ -626,7 +626,7 @@ function kona3_checkEditToken($key = 'default') {
 function kona3getConf($key, $def = '') {
   global $kona3conf;
   if (isset($kona3conf[$key])) {
-    return $Kona3conf[$key];
+    return $kona3conf[$key];
   }
   return $def;
 }
