@@ -140,7 +140,7 @@ function nako3doc_list_func() {
   $wiki_html = konawiki_parser_convert($wiki);
   return <<<EOS
 <iframe height="400" width="100%"
-  src="https://nadesi.com/v3/storage/widget.php?453&run=1"
+  src="https://nadesi.com/v3/storage/widget.php?453&run=1&mute_name=1"
   style="width:99%; border: none;"></iframe>
 {$wiki_html}
 EOS;
@@ -214,7 +214,7 @@ function nako3doc_list_kana($mode) {
   }
   return <<<EOS
 <iframe height="450" width="100%"
-  src="https://nadesi.com/v3/storage/widget.php?451&run=1"
+  src="https://nadesi.com/v3/storage/widget.php?451&run=1&mute_name=1"
   style="width:99%; border: none;"></iframe>
 {$wiki_html}
 EOS;
