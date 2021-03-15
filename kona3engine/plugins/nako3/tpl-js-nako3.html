@@ -4,55 +4,11 @@
 // baseurl
 const baseurl = '{{ baseurl }}';
 
-let nako3_info_id = 0; // 実行ボタンを押した時に書き換えられる
-function nako3_get_resultbox() {
-  return document.getElementById("nako3result_div_" + nako3_info_id)
-}
-function nako3_get_info() {
-  return document.getElementById("nako3_info_" + nako3_info_id)
-}
-function nako3_get_error() {
-  return document.getElementById("nako3_error_" + nako3_info_id)
-}
-function nako3_get_canvas() {
-  return document.getElementById("nako3_canvas_" + nako3_info_id)
-}
-function nako3_get_div() {
-  return document.getElementById("nako3_div_" + nako3_info_id)
-}
-// 表示
-const nako3_print = function (s) {
-  console.log("[表示] " + s)
-  var info = nako3_get_info()
-  if (!info) return
-  var box = nako3_get_resultbox()
-  box.style.display = 'block'
-  s = "" + s // 文字列に変換
-  // エラーだった場合
-  if (s.substr(0, 9) == "==ERROR==") {
-    s = s.substr(9)
-    var err = nako3_get_error()
-    err.innerHTML = s
-    err.style.display = 'block'
-    return
-  } else {
-    info.innerHTML += to_html(s) + "\n"
-    info.style.display = 'block'
-  }
-}
-//---------------------------------
-const nako3_clear = function (s, use_canvas) {
-  var info = nako3_get_info()
-  if (!info) return
-  info.innerHTML = ''
-  info.style.display = 'none'
-  var err = nako3_get_error()
-  err.innerHTML = ''
-  err.style.display = 'none'
-  var div = nako3_get_div()
-  if (div) div.innerHTML = ''
+const nako3_clear = function (id, use_canvas) {
+  const resultDiv = document.getElementById("nako3result_div_" + id)
+  if (resultDiv) resultDiv.innerHTML = ''
   if (use_canvas) {
-    var canvas = nako3_get_canvas()
+    var canvas = document.getElementById("nako3_canvas_" + nako3_info_id)
     if (canvas) {
       var ctx = canvas.getContext('2d')
       ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -60,23 +16,6 @@ const nako3_clear = function (s, use_canvas) {
   }
 }
 
-// 独自関数の登録
-const nako3_add_func = function () {
-  navigator.nako3.setFunc("表示", [['の', 'を', 'と']], nako3_print)
-  navigator.nako3.setFunc("表示ログクリア", [], nako3_clear)
-}
-let nako3_init_timer = setInterval(function(){
-  if (typeof(navigator.nako3) === 'undefined') return
-  clearInterval(nako3_init_timer)
-  nako3_add_func()
-}, 500)
-
-function to_html(s) {
-  s = '' + s
-  return s.replace(/\&/g, '&amp;')
-          .replace(/\</g, '&lt;')
-          .replace(/\>/g, '&gt;')
-}
 //------------------------------------
 // なでしこのプログラムを実行する関数
 //------------------------------------
@@ -85,10 +24,8 @@ function nako3_run(id, use_canvas) {
     alert('現在ライブラリを読み込み中です。しばらくお待ちください。')
     return
   }
-  // var code_e = document.getElementById("nako3_code_" + id)
-  // if (!code_e) return
-  // var code = code_e.value
-  const code = ace_editors[id].editor.getValue()
+  navigator.nako3.setFunc("表示ログクリア", [], function () { nako3_clear(id, false) })
+
   var canvas_name = "#nako3_canvas_" + id
   var div_name = "#nako3_div_" + id
   var addon =
@@ -101,16 +38,10 @@ function nako3_run(id, use_canvas) {
       "カメ全消去;"
   }
   const preCode = addon + "\n"
-  try {
-    nako3_info_id = id
-    nako3_clear()
-    navigator.nako3.runReset(preCode + code, "main.nako3", preCode)
-    console.log("DONE")
-  } catch (e) {
-    nako3_print("==ERROR==" + e.message + "")
-    ace_editors[id].editorMarkers.addByError(code, e)
-    console.log(e)
-  }
+
+  const resultDiv = document.getElementById("nako3result_div_" + id)
+  resultDiv.style.display = "block"
+  ace_editors[id].run({ outputContainer: resultDiv, preCode })
 }
 
 </script>
