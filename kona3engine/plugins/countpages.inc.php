@@ -1,18 +1,26 @@
 <?php
 
 /**
- * [usage] #countpage(path, ignore=key1:key2:key3:key4...)
+ * [usage] #countpages(path, pp=perPage, ignore=key1:key2:key3:key4...)
  * count text char length
  */
 function kona3plugins_countpages_execute($args) {
   global $kona3conf;
   $pattern = "";
   $ignore = [];
+  $perpage = 1000;
   foreach ($args as $a) {
+    // pattern
     if ($pattern == "") {
       $pattern = $a;
       continue;
     }
+    // per page
+    if (preg_match('#pp\=([0-9]+)#', $a, $m)) {
+      $perpage = intval($m[1]);
+      if ($perpage <= 0) { $perpage = 1000; }
+    }
+    // ignore
     if (preg_match('#ignore\=([a-zA-Z0-9_\-]+)#', $a, $m)) {
       $ignore = explode(":", $m[1]);
       foreach ($ignore as &$r) {
@@ -61,13 +69,13 @@ function kona3plugins_countpages_execute($args) {
   }
   // 
   $cnt = $cnt_txt + $cnt_src;
-  $page = floor($cnt / 1000);
+  $page = floor($cnt / $perpage);
   //
   $cnt_f = number_format($cnt);
   $page_f = number_format($page);
   //
   $cnt_txt_f = number_format($cnt_txt);
-  $page_txt = floor($cnt_txt / 1000);
+  $page_txt = floor($cnt_txt / $perpage);
   return
     "<div><span>".
     "<b>合計 {$cnt_f}字</b>, {$page_f}p&nbsp;".
