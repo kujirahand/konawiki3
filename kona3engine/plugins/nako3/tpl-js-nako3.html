@@ -1,6 +1,6 @@
 <!-- [tpl-js-nako3.html] -->
 <!-- 一度だけ取り込まれる部分 -->
-<script type="text/javascript">
+<script>
 // baseurl
 const baseurl = '{{ baseurl }}';
 
@@ -19,15 +19,46 @@ const nako3_clear = function (id, use_canvas) {
   }
 }
 
+function toHTML(text, br) {
+    var html = '' + text
+    html = html.replace('&', '&amp;')
+               .replace('>', '&gt;')
+               .replace('<', '&lt;')
+    if (br) {
+        html = html.replace('\n', '<br/>')
+    }
+    return html
+}
+
+function nako3_print_forIE (id, text) {
+  const resultDiv = document.getElementById("nako3result_div_" + id)
+  resultDiv.innerHTML += toHTML(text, true) + '<br/>'
+}
+
 //------------------------------------
 // なでしこのプログラムを実行する関数
 //------------------------------------
+var nako3_run_inited = false
 function nako3_run(id, use_canvas) {
-  if (typeof(navigator.nako3) === 'undefined' || ace_editors[id] === undefined) {
+  // wait for wnako3.js
+  if (typeof(navigator.nako3) === 'undefined') {
     alert('現在ライブラリを読み込み中です。しばらくお待ちください。')
     return
   }
-  navigator.nako3.setFunc("表示ログクリア", [], function () { nako3_clear(id, false) })
+  // wait for ace editor
+  if (isIE() === false  && ace_editors[id] === undefined) {
+    alert('現在ace editorのライブラリを読み込み中です。しばらくお待ちください。')
+    return
+  }
+  // 最初の初期化
+  if (!nako3_run_inited) {
+    navigator.nako3.setFunc("表示ログクリア", [], function () { nako3_clear(id, false) }, false)
+    if (isIE()) {
+        navigator.nako3.setFunc("表示", [['と', 'を']], function (s) {
+          nako3_print_forIE(id, s) }, true)
+    }
+    nako3_run_inited = true
+  }
 
   var canvas_name = "#nako3_canvas_" + id
   var div_name = "#nako3_div_" + id
@@ -43,7 +74,12 @@ function nako3_run(id, use_canvas) {
 
   const resultDiv = document.getElementById("nako3result_div_" + id)
   resultDiv.style.display = "block"
-  ace_editors[id].run({ outputContainer: resultDiv, preCode })
+  if (isIE()) {
+      var body = document.getElementById('nako3_code_' + id).value
+      navigator.nako3.runReset(preCode + body, preCode)
+  } else {
+      ace_editors[id].run({ 'outputContainer': resultDiv, 'preCode': preCode })
+  }
 }
 
 </script>

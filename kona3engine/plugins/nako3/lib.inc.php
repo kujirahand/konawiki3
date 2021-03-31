@@ -63,12 +63,17 @@ function nako3_make_script_tag(&$nako3) {
   }
   // 各JavaScriptのパスを設定
   $baseurl = $nako3['baseurl'];
-
-  $include_js =
-    '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" integrity="sha512-GZ1RIgZaSc8rnco/8CXfRdCpDxRCphenIiZ2ztLy3XQfCbQUSCuk8IudvNHxkRA3oUg6q0qejgN/qqyG1duv5Q==" crossorigin="anonymous"></script>' .
-    '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-language_tools.min.js" integrity="sha512-8qx1DL/2Wsrrij2TWX5UzvEaYOFVndR7BogdpOyF4ocMfnfkw28qt8ULkXD9Tef0bLvh3TpnSAljDC7uyniEuQ==" crossorigin="anonymous"></script>' .
-    '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-options.min.js" integrity="sha512-oHR+WVzBiVZ6njlMVlDDLUIOLRDfUUfRQ55PfkZvgjwuvGqL4ohCTxaahJIxTmtya4jgyk0zmOxDMuLzbfqQDA==" crossorigin="anonymous"></script>' .
-
+  $include_js = '';
+  if (!isIE()) {
+    // for ace editor
+    $include_js .=
+      '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" integrity="sha512-GZ1RIgZaSc8rnco/8CXfRdCpDxRCphenIiZ2ztLy3XQfCbQUSCuk8IudvNHxkRA3oUg6q0qejgN/qqyG1duv5Q==" crossorigin="anonymous"></script>' .
+      '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-language_tools.min.js" integrity="sha512-8qx1DL/2Wsrrij2TWX5UzvEaYOFVndR7BogdpOyF4ocMfnfkw28qt8ULkXD9Tef0bLvh3TpnSAljDC7uyniEuQ==" crossorigin="anonymous"></script>' .
+      '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-options.min.js" integrity="sha512-oHR+WVzBiVZ6njlMVlDDLUIOLRDfUUfRQ55PfkZvgjwuvGqL4ohCTxaahJIxTmtya4jgyk0zmOxDMuLzbfqQDA==" crossorigin="anonymous"></script>'.
+      '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-code_lens.min.js" integrity="sha512-gsDyyKTnOmSWRDzUbpYcPjzVsEyFGSWeWefzVKvbMULPR2ElIlKKsOtU3ycfybN9kncZXKLFSsUiG3cgJUbc/g==" crossorigin="anonymous"></script>';
+  }
+  // wnako3 and plugins
+  $include_js .=
     "<script defer src=\"${baseurl}release/wnako3.js\"></script>" .
     "<script defer src=\"${baseurl}release/plugin_csv.js\"></script>" .
     "<script defer src=\"${baseurl}release/plugin_datetime.js\"></script>" .
@@ -76,9 +81,19 @@ function nako3_make_script_tag(&$nako3) {
     "<script defer src=\"${baseurl}release/plugin_markup.js\"></script>" .
     "<script defer src=\"${baseurl}release/plugin_turtle.js\"></script>" .
     "<script defer src=\"${baseurl}release/plugin_webworker.js\"></script>" .
-    "<script defer src=\"${baseurl}release/plugin_caniuse.js\"></script>" .
-  
+    "<script defer src=\"${baseurl}release/plugin_caniuse.js\"></script>";
+  // add-on plugins
+  $include_js .=    
     '<script defer src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js" integrity="sha512-d9xgZrVZpmmQlfonhQUvTR7lMPtO7NkZMkA0ABN3PHCbKA5nqylQ/yWlFAyY6hYgdF1Qh6nYiuADWwKB4C2WSw==" crossorigin="anonymous"></script>' .
     '<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mocha/8.3.0/mocha.min.js" integrity="sha512-LA/TpBXau/JNubKzHQhdi5vGkRLyQjs1vpuk2W1nc8WNgf/pCqBplD8MzlzeKJQTZPvkEZi0HqBDfRC2EyLMXw==" crossorigin="anonymous"></script>';
   return $include_js;
 }
+
+function isIE() {
+    // IE対策のためmsieパラメータをセット
+    $agent = strtolower($_SERVER['HTTP_USER_AGENT']);
+    $msie = FALSE;
+    if (strstr($agent , 'trident') || strstr($agent , 'msie')) { $msie = TRUE; }
+    return $msie;
+}
+

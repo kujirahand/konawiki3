@@ -7,14 +7,17 @@
 
 <div id="nako3_editor_main_{{pid}}" class="nako3row_pad">
 <form id="nako3codeform_{{pid}}" action="{{ post_url }}" method="POST">
-<textarea
-  style="display: none;"
-  id="nako3_code_{{pid}}"
+<textarea id="nako3_code_{{pid}}"
+  style="display:none;"
   rows="{{rows}}"
   class="nako3txt"
   name="body"
  >{{ code }}</textarea>
-<div id="ace_editor{{pid}}" class="nako3_editor" style="height:{{edit_height}};" data-nako3-readonly="{{ readonly }}" data-nako3-disable-marker="{{ data_disable_marker }}">{{code}}</div>
+<div id="ace_editor{{pid}}"
+  class="nako3_editor"
+  style="height:{{edit_height}};display:none;"
+  data-nako3-readonly="{{ readonly }}"
+  data-nako3-disable-marker="{{ data_disable_marker }}">{{code}}</div>
 <input type="hidden" name="version" value="{{ ver }}" />
 </form>
 
