@@ -7,7 +7,7 @@ function kona3plugins_ref_execute($args) {
   global $kona3conf;
   $page = kona3getPage();
   // get args
-  $size = "";
+  $size = " width='400px' "; // set default image size
   $caption = "";
   $link = "";
   $url = array_shift($args);
