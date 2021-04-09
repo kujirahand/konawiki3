@@ -5,7 +5,12 @@
 
 function kona3plugins_filecode_execute($args) {
   global $kona3conf;
-  // get file path
+  
+  // get pid
+  $pid = kona3_getPluginInfo("filecode", "pid", 0) + 1;
+  kona3_setPluginInfo("filecode", "pid", $pid);
+  
+  // get parameters
   $name = array_shift($args);
   $name = str_replace('..', '', $name);
   $fname = kona3getWikiFile($name, false);
@@ -30,25 +35,44 @@ function kona3plugins_filecode_execute($args) {
     $htm = preg_replace('#[\r\n]#', '', $htm);
   } else if (preg_match('#\.(nako|nako3)$#', $fname)) {
     // #nako3 plugin
+    $src = kona3text2html(trim($txt));
     $txt = str_replace('{{{', ' {{{', $txt); // escape
     $txt = str_replace('}}}', ' }}}', $txt);
-    $cnt = substr_count($txt, "\n");
-    $head = "<div class='filecode'>".
-            "  <div class='filename'>file: {$name_}</div>".
-            "</div>";
+    $cnt = substr_count($txt, "\n") + 1;
+    $script = "".
+      "<script>\n".
+      "var show_filecode_{$pid} = function(){\n".
+      "  var nako = document.getElementById('filecode{$pid}');\n".
+      "  nako.style.display = 'block';\n".
+      "  var fsrc = document.getElementById('filecode_src{$pid}');\n".
+      "  fsrc.style.display = 'none';\n".
+      "}".
+      "</script>\n";
+    $btn = "".
+      "<a href='javascript:show_filecode_{$pid}()'>".
+      "[実行]</a> - ";
+    $head = $script.
+      "<div class='filecode'>\n".
+      "  <div class='filename'>{$btn} file: {$name_}</div>\n".
+      "  <pre id='filecode_src{$pid}' class='code'>$src</pre>\n".
+      "</div>\n".
+      "<div id='filecode{$pid}' style='display:none;'>";
+    $foot = "".
+      "</div><!-- #filecode{$pid} -->\n";
     $code  = "{{{#nako3(canvas,rows=$cnt,use_textarea)\n";
     $code .= trim($txt) . "\n";
     $code .= '}}}'."\n";
-    $htm = $head . konawiki_parser_convert($code);
+    // head + body + foot
+    $htm = $head . konawiki_parser_convert($code) . $foot;
     return $htm;
   } else {
     $htm = kona3text2html(trim($txt));
   }
   $code =
-    "<div class='filecode'>".
-    "  <div class='filename'>file: {$name_}</div>".
-    "  <pre class='code'>$htm</pre>".
-    "</div>";
+    "<div class='filecode'>\n".
+    "  <div class='filename'>file: {$name_}</div>\n".
+    "  <pre class='code'>$htm</pre>\n".
+    "</div>\n";
   return $code;
 }
 
