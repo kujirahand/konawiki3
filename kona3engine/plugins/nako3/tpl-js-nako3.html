@@ -74,6 +74,8 @@ function nako3_run(id, use_canvas) {
 
   const resultDiv = document.getElementById("nako3result_div_" + id)
   resultDiv.style.display = "block"
+  const canvasDom = document.querySelector(canvas_name)
+  canvasDom.style.display = "block"
   if (isIE()) {
       var body = document.getElementById('nako3_code_' + id).value
       navigator.nako3.runReset(preCode + body, preCode)

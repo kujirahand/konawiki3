@@ -47,7 +47,8 @@ function nako3_main($params) {
     $size_w = $nako3['size_w'];
     $size_h = $nako3['size_h'];
     $nako3['canvas_code'] =
-      "<canvas id='nako3_canvas_{$pid}' ".
+      "<canvas id='nako3_canvas_{$pid}'".
+      " style='display:none;'".
       " width='{$size_w}' height='{$size_h}'>".
       "</canvas>";
   }
