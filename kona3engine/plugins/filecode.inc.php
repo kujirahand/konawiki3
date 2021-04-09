@@ -36,7 +36,7 @@ function kona3plugins_filecode_execute($args) {
     $head = "<div class='filecode'>".
             "  <div class='filename'>file: {$name_}</div>".
             "</div>";
-    $code  = "{{{#nako3(canvas,rows=$cnt)\n";
+    $code  = "{{{#nako3(canvas,rows=$cnt,use_textarea)\n";
     $code .= trim($txt) . "\n";
     $code .= '}}}'."\n";
     $htm = $head . konawiki_parser_convert($code);

@@ -24,7 +24,7 @@ function nako3_main($params) {
   kona3_setPluginInfo("nako3", "pid", $pid);
   $nako3['pid'] = $pid;
 
-  // プラグインのパラメータを解析
+  // プラグインのパラメータを解析 (lib.inc.php)
   nako3_parse_params($nako3, $params);
   
   // JavaScriptとCSSは1回だけあれば良い
@@ -52,8 +52,8 @@ function nako3_main($params) {
       " width='{$size_w}' height='{$size_h}'>".
       "</canvas>";
   }
-  $nako3['j_use_canvas'] = ($nako3['use_canvas']) ? 1 : 0;
   $nako3['readonly'] = ($nako3['editable']) ? '' : 'true';
+  $nako3['textarea_style_ex'] = ($nako3['editable']) ? '' : 'nako3txt_readonly';
   $nako3['data_disable_marker'] = ($nako3['disable_marker']) ? 'true' : '';
   $nako3['can_save'] = ($nako3['editable']) ? 'true' : 'false';
   $nako3['edit_height'] = (ceil(intval($nako3['rows']) * 1.5)).'em';
@@ -61,9 +61,9 @@ function nako3_main($params) {
   // show template
   $src = nako3_template('tpl-code.html', $nako3);
   return
-    "<!-- [nako3.plugin] -->\n".
-    $src.
-    "<!-- [/nako3.plugin] -->\n";
+    "<!-- [nako3.plugin] (pid=$pid) -->\n".
+    trim($src).
+    "<!-- [/nako3.plugin] (pid=$pid) -->\n";
 }
 
 

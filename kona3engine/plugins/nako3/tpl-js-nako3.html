@@ -30,7 +30,7 @@ function toHTML(text, br) {
     return html
 }
 
-function nako3_print_forIE (id, text) {
+function nako3_print_textarea (id, text) {
   const resultDiv = document.getElementById("nako3result_div_" + id)
   resultDiv.innerHTML += toHTML(text, true) + '<br/>'
 }
@@ -38,28 +38,25 @@ function nako3_print_forIE (id, text) {
 //------------------------------------
 // なでしこのプログラムを実行する関数
 //------------------------------------
-var nako3_run_inited = false
-function nako3_run(id, use_canvas) {
+function nako3_run(id, use_canvas, use_textarea) {
   // wait for wnako3.js
   if (typeof(navigator.nako3) === 'undefined') {
-    alert('現在ライブラリを読み込み中です。しばらくお待ちください。')
+    alert('現在「なでしこ3」を読み込み中です。しばらくお待ちください。')
     return
   }
   // wait for ace editor
-  if (isIE() === false  && ace_editors[id] === undefined) {
-    alert('現在ace editorのライブラリを読み込み中です。しばらくお待ちください。')
+  if (use_textarea === false  && ace_editors[id] === undefined) {
+    alert('現在「ace editor」を読み込み中です。しばらくお待ちください。')
     return
   }
-  // 最初の初期化
-  if (!nako3_run_inited) {
-    navigator.nako3.setFunc("表示ログクリア", [], function () { nako3_clear(id, false) }, false)
-    if (isIE()) {
-        navigator.nako3.setFunc("表示", [['と', 'を']], function (s) {
-          nako3_print_forIE(id, s) }, true)
-    }
-    nako3_run_inited = true
+  // (注意) pid ごとに出力先、クリア先が異なるので毎回初期化が必要
+  navigator.nako3.setFunc("表示ログクリア", [], function () { nako3_clear(id, false) }, false)
+  if (use_textarea) {
+    navigator.nako3.setFunc("表示", [['と', 'を']], function (s) {
+      nako3_print_textarea(id, s)
+    }, true)
   }
-
+  // なでしこ3用の初期化コード
   var canvas_name = "#nako3_canvas_" + id
   var div_name = "#nako3_div_" + id
   var addon =
@@ -71,12 +68,12 @@ function nako3_run(id, use_canvas) {
       "カメ描画先=「" + canvas_name + "」;" 
   }
   const preCode = addon + "\n"
-
+  // 結果やcanvasを表示する
   const resultDiv = document.getElementById("nako3result_div_" + id)
   resultDiv.style.display = "block"
   const canvasDom = document.querySelector(canvas_name)
   canvasDom.style.display = "block"
-  if (isIE()) {
+  if (use_textarea) {
       var body = document.getElementById('nako3_code_' + id).value
       navigator.nako3.runReset(preCode + body, preCode)
   } else {

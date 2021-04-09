@@ -10,8 +10,9 @@
 <textarea id="nako3_code_{{pid}}"
   style="display:none;"
   rows="{{rows}}"
-  class="nako3txt"
+  class="nako3txt {{textarea_style_ex}}"
   name="body"
+  readonly="{{ readonly }}"
  >{{ code }}</textarea>
 <div id="ace_editor{{pid}}"
   class="nako3_editor"
@@ -25,8 +26,8 @@
 
 <div class="nako3row">
   <div id="nako3_editor_controlls_{{pid}}" class="nako3ctrl">
-    <button onclick="nako3_run({{pid}}, {{ j_use_canvas }})">▶ 実行</button>
-    <button onclick="nako3_clear({{pid}}, {{ j_use_canvas }})">クリア</button>
+    <button onclick="nako3_run({{pid}}, {{use_canvas}}, {{use_textarea}})">▶ 実行</button>
+    <button onclick="nako3_clear({{pid}}, {{use_canvas}})">クリア</button>
     <span id="post_span_{{pid}}" class="post_span">
       <button id="post_button_{{pid}}" onclick="nako3_post_submit({{pid}})">保存</button>
     </span>
@@ -45,15 +46,17 @@
 </div><!-- end of #nako3 -->
 
 <!-- dynamic js code -->
-<script type="text/javascript">
+<script>
 (function(){
-  // post
+  // #nako3 plugins pid={{pid}}
   const pid = {{pid}};
-  const can_save = {{ can_save }};
+  const editable = {{editable}};
+  const can_save = {{can_save}};
+  const use_textarea = {{editable}};
   // post button
   post_button_init(pid, can_save);
   // ace_editor
-  ace_editor_init(pid);
+  ace_editor_init(pid, {{use_textarea}});
 })();
 </script>
 

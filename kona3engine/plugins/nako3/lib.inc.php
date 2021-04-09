@@ -10,6 +10,7 @@ function nako3_parse_params(&$nako3, $params) {
   $nako3['use_canvas'] = false;
   $nako3['size_w'] = 300;
   $nako3['size_h'] = 300;
+  $nako3['use_textarea'] = false;
  
   // パラメータを一つずつチェック
   foreach ($params as $s) {
@@ -25,6 +26,10 @@ function nako3_parse_params(&$nako3, $params) {
     }
     if ($s == "disable_marker") {
       $nako3['disable_marker'] = true;
+      continue;
+    }
+    if ($s == "use_textarea") {
+      $nako3['use_textarea'] = true;
       continue;
     }
     
@@ -51,6 +56,11 @@ function nako3_parse_params(&$nako3, $params) {
     // それ以外の時はプログラムのコード
     $nako3['code'] = $s;
     break;
+  }
+
+  // もしIEであれば、use_textareaを強制
+  if (isIE()) {
+    $nako3['use_textarea'] = true;
   }
 }
 

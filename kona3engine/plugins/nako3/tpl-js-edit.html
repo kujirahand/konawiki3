@@ -13,20 +13,20 @@ function isIE() {
 /** @type {{ editor: any, editorMarkers: any }[]} */
 const ace_editors = {}
 
-function ace_editor_init(pid) {
+function ace_editor_init(pid, use_textarea) {
     if (navigator.nako3 === undefined) {
-        setTimeout(function() { ace_editor_init(pid) }, 100);
+        setTimeout(function() { ace_editor_init(pid, use_textarea) }, 200);
         return
     }
-    if (isIE()) {
+    if (use_textarea) {
         var edit = document.getElementById('nako3_code_' + pid)
         edit.style.display = 'block'
-        console.log('textarea mode')
+        console.log('[#nako3 plugin] textarea mode')
     } else {
         const ace = document.getElementById('ace_editor' + pid)
         ace.style.display = 'block'
         ace_editors[pid] = navigator.nako3.setupEditor('ace_editor' + pid)
-        console.log('ace_editor mode')
+        console.log('[#nako3 plugin] ace_editor mode')
     }
 }
 
@@ -34,14 +34,16 @@ function ace_editor_init(pid) {
 function post_button_init(pid, can_save) {
     const post_span = document.getElementById('post_span_' + pid);
     post_span.style.visibility = can_save ? "visible" : "hidden"; // for post
-    console.log('post_button_init='+pid, can_save)
 }
 function nako3_post_submit(pid) {
-    if (isIE() === false && ace_editors[pid] === undefined) {
-        alert('現在ライブラリを読み込み中です。しばらくお待ちください。')
-    }
-    // get code
-    if (!isIE()) {
+    // use_textarea ?
+    if (!use_textarea) {
+        if (ace_editors[pid] === undefined) {
+            alert('現在ライブラリを読み込み中です。しばらくお待ちください。')
+            return
+        }
+    } else {
+        // copy ace_editor to textarea
         const edit = ace_editors[pid].editor;
         const textarea = document.getElementById('nako3_code_' + pid);
         textarea.value = edit.getValue();

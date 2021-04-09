@@ -20,6 +20,9 @@ function nako3_template($tpl_file, $values) {
       // encode
       if (isset($values[$key])) {
         $val = $values[$key];
+        if (is_bool($val)) {
+          $val = $val ? "true" : "false";
+        }
         if ($enc) {
           $val = htmlspecialchars($val);
         }
