@@ -1196,3 +1196,9 @@ ul.topnavi a
 	text-align: right;
 }
 
+#wikimessagebox .white_box {
+	background-color: white;
+	margin: 1em;
+	padding:1.5em;
+}
+

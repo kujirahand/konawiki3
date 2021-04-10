@@ -53,7 +53,7 @@ function kona3plugins_nako3_action() {
         $base_dir = dirname(__FILE__).'/nako3';
         require_once $base_dir.'/index.inc.php';
         $html = nako3_main($params);
-        kona3showMessage('#nako3', $html);
+        kona3showMessage('#nako3', $html, 'white.html');
         return;
     }
     echo "api_error";

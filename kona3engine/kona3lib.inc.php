@@ -225,13 +225,16 @@ function kona3error($title, $msg) {
   ));
   exit;
 }
-function kona3showMessage($title, $msg) {
+function kona3showMessage($title, $msg, $tpl = '') {
   $title = htmlspecialchars($title);
   $body = "<div>".
     "<h3>$title</h3>".
     "<div class='pad'>$msg</div>".
     "</div>";
-  kona3template("message.html", array(
+  if ($tpl == '') {
+    $tpl = 'message.html';
+  }
+  kona3template($tpl, array(
     'page_body'  => $body,
   ));
   exit;
