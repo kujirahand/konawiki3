@@ -23,11 +23,15 @@ function kona3_action_plugin() {
   if (empty($pinfo['file']) || !file_exists($pinfo['file'])) {
     err404("Invalid plugin name");
   }
+  // disallow ?
+  if ($pinfo['disallow']) {
+    err404('Plugin Disallow');
+  }
   // execute
   include_once($pinfo['file']);
   $func_name = "kona3plugins_{$name}_action";
   if (!function_exists($func_name)) {
-    err404("Plugin function not found");
+    err404("Plugin function not found: The plugin should have [{$func_name}].");
   }
   @call_user_func($func_name);
 }

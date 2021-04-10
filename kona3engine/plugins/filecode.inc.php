@@ -29,43 +29,26 @@ function kona3plugins_filecode_execute($args) {
   $txt = @file_get_contents($fname);
   $name_ = htmlspecialchars($name, ENT_QUOTES);
   if (preg_match('#\.php$#', $fname)) {
+    // .php file
     $txt = trim($txt);
     $htm = highlight_string($txt, true);
     // <pre>するので不必要な改行を削除
     $htm = preg_replace('#[\r\n]#', '', $htm);
   } else if (preg_match('#\.(nako|nako3)$#', $fname)) {
-    // #nako3 plugin
+    // .nako3 file
     $src = kona3text2html(trim($txt));
-    $txt = str_replace('{{{', ' {{{', $txt); // escape
-    $txt = str_replace('}}}', ' }}}', $txt);
-    $cnt = substr_count($txt, "\n") + 1;
-    $script = "".
-      "<script>\n".
-      "var show_filecode_{$pid} = function(){\n".
-      "  var nako = document.getElementById('filecode{$pid}');\n".
-      "  nako.style.display = 'block';\n".
-      "  var fsrc = document.getElementById('filecode_src{$pid}');\n".
-      "  fsrc.style.display = 'none';\n".
-      "}".
-      "</script>\n";
-    $btn = "".
-      "<a href='javascript:show_filecode_{$pid}()'>".
-      "[実行]</a> - ";
-    $head = $script.
+    $name_u = urlencode($name);
+    $link = kona3getPageURL("", "plugin", "", 
+              "name=nako3&mode=run&filecode=$name_u&canvas");
+    $btn = "<a href='$link'>[RUN]</a>";
+    $htm =
       "<div class='filecode'>\n".
       "  <div class='filename'>{$btn} file: {$name_}</div>\n".
-      "  <pre id='filecode_src{$pid}' class='code'>$src</pre>\n".
-      "</div>\n".
-      "<div id='filecode{$pid}' style='display:none;'>";
-    $foot = "".
-      "</div><!-- #filecode{$pid} -->\n";
-    $code  = "{{{#nako3(canvas,rows=$cnt,use_textarea)\n";
-    $code .= trim($txt) . "\n";
-    $code .= '}}}'."\n";
-    // head + body + foot
-    $htm = $head . konawiki_parser_convert($code) . $foot;
+      "  <pre class='code'>$src</pre>\n".
+      "</div>\n";
     return $htm;
   } else {
+    // other file
     $htm = kona3text2html(trim($txt));
   }
   $code =
