@@ -39,8 +39,8 @@ function kona3plugins_filecode_execute($args) {
     $src = kona3text2html(trim($txt));
     $name_u = urlencode($name);
     $link = kona3getPageURL("", "plugin", "", 
-              "name=nako3&mode=run&filecode=$name_u&canvas");
-    $btn = "<a href='$link'>[RUN]</a>";
+              "name=nako3&mode=run&nakofile=$name_u&canvas");
+    $btn = "<a href='$link'>[実行]</a>";
     $htm =
       "<div class='filecode'>\n".
       "  <div class='filename'>{$btn} file: {$name_}</div>\n".

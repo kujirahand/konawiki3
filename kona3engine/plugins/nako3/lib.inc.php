@@ -11,6 +11,7 @@ function nako3_parse_params(&$nako3, $params) {
   $nako3['size_w'] = 300;
   $nako3['size_h'] = 300;
   $nako3['use_textarea'] = false;
+  $nako3['nakofile'] = '';
  
   // パラメータを一つずつチェック
   foreach ($params as $s) {
@@ -52,12 +53,26 @@ function nako3_parse_params(&$nako3, $params) {
       $nako3['post_url'] = $m[1];
       continue;
     }
+    if (preg_match('#nakofile\=([0-9a-zA-Z\.\_\/\%\:\&\#]+)#', $s, $m)) {
+      $nako3['nakofile'] = $m[1];
+      continue;
+    }
     
     // それ以外の時はプログラムのコード
     $nako3['code'] = $s;
     break;
   }
-
+  
+  // nakofileが指定されていればwikiファイルを取り込む
+  if (!empty($nako3['nakofile'])) {
+    $nakofile = $nako3['nakofile'];
+    $nakofile = kona3getWikiFile($nakofile, FALSE);
+    if (!file_exists($nakofile)) {
+      $nako3['code'] = '## ファイルが見当たりませんでした';
+    } else {
+      $nako3['code'] = file_get_contents($nakofile);
+    }
+  }
   // もしIEであれば、use_textareaを強制
   if (isIE()) {
     $nako3['use_textarea'] = true;

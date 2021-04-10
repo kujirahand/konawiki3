@@ -12,6 +12,8 @@
  * -- edit/editable 編集可能な状態にする
  * -- disable_marker  コンパイルエラーを表示しない
  * -- size=(width)x(height) canvasの幅と高さ
+ * --- use_textarea テキストエリアで表示する
+ * --- nakofile=xxx data以下のファイル名を指定
  * - [使用例] #nako3(なでしこのプログラム);
 {{{
 #nako3(なでしこのプログラム);
@@ -34,30 +36,39 @@ function kona3plugins_nako3_action() {
     // GETをチェック
     $mode = empty($_GET['mode']) ? "run" : $_GET['mode'];
     if ($mode == 'run') {
-        // $_GET => parameterを変換
-        $params = [];
-        if (isset($_GET['edit'])) { $params[] = 'edit'; }
-        if (isset($_GET['canvas'])) { $params[] = 'canvas'; }
-        if (isset($_GET['rows'])) { $params[] = 'rows='.$_GET['rows']; }
-        if (isset($_GET['use_textarea'])) { $params[] = 'use_textarea'; }
-        // ソースコードを読み込む？
-        if (!empty($_GET['filecode'])) {
-          $nakofile = $_GET['filecode'];
-          $nakofile = kona3getWikiFile($nakofile, FALSE);
-          if (!file_exists($nakofile)) {
-            kona3error('#nako3', 'File not found.'); return;
-          }
-          $params[] = file_get_contents($nakofile);
-        }
-        // load nako3 main
-        $base_dir = dirname(__FILE__).'/nako3';
-        require_once $base_dir.'/index.inc.php';
-        $html = nako3_main($params);
-        kona3showMessage('#nako3', $html, 'white.html');
+        kona3plugins_nako3_action_mode_run();
         return;
     }
     echo "api_error";
 }
 
+function kona3plugins_nako3_action_mode_run() {
+    global $kona3conf;
+    // check login
+    if ($kona3conf["wiki_private"]) {
+        if (!kona3isLogin()) {
+            kona3error('先にログインしてください');
+            return;
+        }
+    }
+    
+    // $_GET => parameterを変換
+    $params = [];
+    if (isset($_GET['edit'])) { $params[] = 'edit'; }
+    if (isset($_GET['editable'])) { $params[] = 'editable'; }
+    if (isset($_GET['canvas'])) { $params[] = 'canvas'; }
+    if (isset($_GET['use_textarea'])) { $params[] = 'use_textarea'; }
+    // 値を持つオプション
+    if (isset($_GET['rows'])) { $params[] = 'rows='.$_GET['rows']; }
+    if (isset($_GET['size'])) { $params[] = 'size='.$_GET['size']; }
+    if (isset($_GET['ver'])) { $params[] = 'ver='.$_GET['ver']; }
+    if (isset($_GET['nakofile'])) { $params[] = 'nakofile='.$_GET['nakofile']; }
+    
+    // load nako3 main
+    $base_dir = dirname(__FILE__).'/nako3';
+    require_once $base_dir.'/index.inc.php';
+    $html = nako3_main($params);
+    kona3showMessage('#nako3', $html, 'white.html');
+}
 
 
