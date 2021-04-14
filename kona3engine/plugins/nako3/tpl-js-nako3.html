@@ -6,7 +6,10 @@ const baseurl = '{{ baseurl }}';
 
 const nako3_clear = function (id, use_canvas) {
   const resultDiv = document.getElementById("nako3result_div_" + id)
-  if (resultDiv) resultDiv.innerHTML = ''
+  if (resultDiv) {
+    resultDiv.innerHTML = ''
+    resultDiv.style.display = 'none'
+  }
   if (use_canvas) {
     var canvas = document.getElementById("nako3_canvas_" + id)
     if (canvas) {
