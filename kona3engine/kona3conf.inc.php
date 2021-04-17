@@ -68,6 +68,10 @@ function kona3conf_gen() {
   $scheme = isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http';
   $host = $_SERVER['HTTP_HOST'];
   $script = $_SERVER['SCRIPT_NAME'];
+  // go.php?
+  if (basename($script) == 'go.php') {
+    $script = dirname($script).'/index.php';
+  } 
   $kona3conf["url.index"]   = "{$scheme}://{$host}{$script}";
   $kona3conf["url.data"]    = './data';
   $kona3conf["url.pub"]     = './pub';

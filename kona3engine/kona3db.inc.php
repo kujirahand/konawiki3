@@ -1,5 +1,5 @@
 <?php
-// file: kona3database.inc.php
+// file: kona3db.inc.php
 
 function kona3db_getPageId($page, $canCreate = FALSE) {
   $r = db_get1(

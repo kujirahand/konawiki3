@@ -7,6 +7,9 @@
   <div class="footer_menu">
     <nav>{{e:echo kona3getCtrlMenu('bar') }}</nav>
   </div>
+  <div class="footer_menu">
+    {{e:echo kona3getShortcutLink()}}
+  </div>
 
   {{ if ($show_data_dir != '') }}
   {{ if kona3isLogin() }}

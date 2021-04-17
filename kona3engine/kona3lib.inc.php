@@ -17,7 +17,7 @@ function kona3lib_parseURI() {
   // (ex) /path/index.php?page=PageName&action=Action&status=Status
   global $kona3conf;
   $uri = $_SERVER["REQUEST_URI"];
-  $params = array();
+  $params = $_GET; // default params
   $path_args = array();
   list($script_path, $paramStr) = explode('?', $uri.'?');
   $a = explode('&', $paramStr);
@@ -45,6 +45,7 @@ function kona3lib_parseURI() {
   if ($action == "") $action = "show";
   $status = array_shift( $path_args );
   if (isset($params['status'])) $action = $params['status'];
+  
   // Check invalid page name like /../../..
   $page = str_replace('..', '', $page);
   $page = str_replace('//', '', $page);
@@ -633,4 +634,26 @@ function kona3getConf($key, $def = '') {
   }
   return $def;
 }
+
+function kona3getShortcutLink() {
+  // get url
+  $host = $_SERVER['HTTP_HOST'];
+  $scriptname = dirname($_SERVER['SCRIPT_NAME']);
+  $scheme = $_SERVER['REQUEST_SCHEME'];
+  $base_url = "{$scheme}://{$host}{$scriptname}/go.php";
+  // get shortcut
+  // get page_id
+  $page = $_GET['page'];
+  $page_id = kona3db_getPageId($page);
+  if ($page_id == 0) { return '<!-- no shortcut -->'; }
+  $url = "{$base_url}?{$page_id}";
+  // get real url
+  $real_url = kona3getPageURL($page);
+  $page_h = htmlspecialchars($page, ENT_QUOTES);
+  return "".
+    "<a href=\"$real_url\">$page_h</a><br>".
+    "<a href=\"$url\">$url</a><br>";
+}
+
+
 
