@@ -79,7 +79,12 @@ function nako3doc_checkGenre($page) {
   if (!$ra) {
     return nako3doc_checkPlugin($page);
   }
-  $wiki = "* [[$plug]]/[[$genre:$page]]\n";
+  $wiki = "* 🔌 [[$plug]] / [[$genre:$page]]\n";
+  $wiki .= 
+    "#html(<blockquote style='background-color:#fff0f0;'>);\n".
+    "#page($plug)\n".
+    "#html(</blockquote>);\n".
+    "** 🌴 [[$genre:$page]]\n";
   foreach ($ra as $r) {
     $plugin = $r['plugin'];
     $genre = $r['genre'];
@@ -93,8 +98,12 @@ function nako3doc_checkGenre($page) {
     $mtime = $r['mtime'];
     if ($type == '定数') {
       $wiki .= "- [[$name:$pagename]]\n";
+      $wiki .= "-- 定数\n";
     } else {
-      $wiki .= "- [[$name:$pagename]] -- $desc\n";
+      $arg_desc = "";
+      if ($args) {$arg_desc="($args)";}
+      $wiki .= "- [[$name:$pagename]] $arg_desc\n";
+      $wiki .= "-- $desc\n";
     }
   }
   return konawiki_parser_convert($wiki);
@@ -103,15 +112,17 @@ function nako3doc_checkGenre($page) {
 function nako3doc_list_func() {
   $ra = nako3doc_run(
     "SELECT * FROM commands ".
-    "ORDER BY plugin ASC, genre ASC",
+    "ORDER BY plugin ASC",
     []);
   if (!$ra) {
     return "[ERROR]";
   }
-  $wiki = "* [[命令一覧]] / [[機能順:命令一覧/機能順]]\n";
-
+  
+  // make
+  $plugins = [];
   $pluginLast = '';
   $genreLast = '';
+  $cmd = [];
   foreach ($ra as $r) {
     $plugin = $r['plugin'];
     $genre = $r['genre'];
@@ -123,27 +134,64 @@ function nako3doc_list_func() {
     $kana = $r['kana'];
     $ctime = $r['ctime'];
     $mtime = $r['mtime'];
-    if ($plugin != $pluginLast) {
-      $pluginLast = $plugin;
-      $wiki .= "** [[$plugin]]\n";
+    
+    // plugin
+    if (!isset($cmd[$plugin])) {
+      $cmd[$plugin]  = [];
     }
-    if ($genre != $genreLast) {
-      $genreLast = $genre;
-      $wiki .= "*** [[$plugin]] / [[$genre:$plugin/$genre]]\n";
+    // genre
+    if (!isset($cmd[$plugin][$genre])) {
+      $cmd[$plugin][$genre] = [];
     }
-    if ($type == '定数') {
-      $wiki .= "- [[$name:$pagename]]\n";
-    } else {
-      $wiki .= "- [[$name:$pagename]]\n";
-    }
+    // command
+    $cmd[$plugin][$genre][] = "[[$name:$pagename]]";
   }
+  // プラグイン順に出力
+  $fn = function ($cmd, $plugin) {
+    $w = "** 🔌 [[$plugin]]\n";
+    $t = "| 🔌[[$plugin]] | ";
+    foreach ($cmd[$plugin] as $genre => $list) {
+      $w .= "*** 🌴 [[$genre:$plugin/$genre]]:\n";
+      $w .= '{{{#column'."\n";
+      $w .= implode(' / ', $list)."\n";
+      $w .= '}}}'."\n\n";
+      $w .= "\n\n";
+      $t .= "([[$genre:$plugin/$genre]]) ";
+    }
+    $t .= "\n";
+    return [$w, $t];
+  };
+  // 出力
+  $index = '';
+  $wiki = '';
+  list($w, $t) = $fn($cmd, 'plugin_system');
+  $wiki .= $w; $index .= $t;
+  list($w, $t) = $fn($cmd, 'plugin_browser');
+  $wiki .= $w; $index .= $t;
+  list($w, $t) = $fn($cmd, 'plugin_turtle');
+  $wiki .= $w; $index .= $t;
+  foreach ($cmd as $plug => $v) {
+    if ($plug == 'plugin_system' || 
+        $plug == 'plugin_browser' ||
+        $plug == 'plugin_turtle') {
+      continue;
+    }
+    list($w, $t) = $fn($cmd, $plug);
+    $wiki .= $w; $index .= $t;
+  }
+  $wiki = 
+    "* [[命令一覧]] / [[機能順:命令一覧/機能順]]\n".
+    $index."\n\n".
+    $wiki."\n\n".
+    "";
+
   $wiki_html = konawiki_parser_convert($wiki);
-  return <<<EOS
+  $widget = <<<EOS
 <iframe height="400" width="100%"
   src="https://nadesi.com/v3/storage/widget.php?453&run=1&mute_name=1"
   style="width:99%; border: none;"></iframe>
-{$wiki_html}
 EOS;
+  return $wiki_html;
 }
 
 function nako3doc_list_kana($mode) {
@@ -265,12 +313,13 @@ function nako3doc_checkPlugin($page) {
     $kana = $r['kana'];
     if ($genreLast != $genre) {
       $genreLast = $genre;
-      $wiki .= "*** [[$plugin]] / [[$genre:$plugin/$genre]]\n";
+      $wiki .= "*** 🌴 [[$genre:$plugin/$genre]]\n";
     }
     if ($type == '定数') {
-      $wiki .= "- [[$name:$pagename]]\n";
+      $wiki .= "- [[$name:$pagename]] \n";
     } else {
-      $wiki .= "- [[($args) $name:$pagename]]\n";
+      if ($args) { $args = "($args)"; }
+      $wiki .= "- [[$name:$pagename]] $args\n";
     }
   }
   return konawiki_parser_convert($wiki);
