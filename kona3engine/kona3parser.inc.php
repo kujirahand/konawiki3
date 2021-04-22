@@ -478,9 +478,9 @@ function __konawiki_parser_tohtml(&$text, $level)
             }
             else { // simple name
                 $text = substr($text, 2);
-                $s = konawiki_parser_token($text, "]]");
+                $page = konawiki_parser_token($text, "]]");
             }
-            $result .= konawiki_parser_makeWikiLink($s);
+            $result .= konawiki_parser_makeWikiLink($page);
             continue;
         }
         // end of inline plugin
