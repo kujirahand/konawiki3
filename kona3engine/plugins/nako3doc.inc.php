@@ -352,14 +352,18 @@ function nako3doc_run($sql, $params = []) {
 function kona3plugins_nako3doc_action() {
   $q = isset($_GET['q']) ? $_GET['q'] : '';
   $rows = nako3doc_run(
-    'SELECT * FROM commands WHERE name=?',
-    [$q]);
+    'SELECT * FROM commands WHERE name=? OR pagename=?',
+    [$q, $q]);
   $html = '<ul>';
-  foreach ($rows as $r) {
-    $pagename = $r['pagename'];
-    $url = kona3getPageURL($pagename);
-    $pagename_html = htmlspecialchars($pagename);
-    $html .= "<li><a href='$url'>$pagename_html</a></li>";
+  if (!$rows) {
+    $html .= '<li>見つかりません</li>';
+  } else {
+    foreach ($rows as $r) {
+      $pagename = $r['pagename'];
+      $url = kona3getPageURL($pagename);
+      $pagename_html = htmlspecialchars($pagename);
+      $html .= "<li><a href='$url'>$pagename_html</a></li>";
+    }
   }
   $html .= '</ul>';
   kona3showMessage('#nako3doc', $html, 'white.html');
