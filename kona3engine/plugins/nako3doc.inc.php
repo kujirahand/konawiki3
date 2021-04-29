@@ -39,9 +39,15 @@ function kona3plugins_nako3doc_execute($parg) {
   $extra_plugin = "";
   if ($plugin == 'plugin_system' || $pligin == 'plugin_browser' || $plugin == 'plugin_node' || $plugin == 'plugin_turtle') {
   } else {
-    $extra_plugin = "> (拡張プラグイン) 以下の宣言が必要:\n" .
-      '{{{'."\n!『{$plugin}』を取り込む\n".'}}}'."\n";
+    $extra_plugin = "{{{\n".
+      "# [拡張プラグイン] 以下の宣言が必要:\n".
+      "!『{$plugin}』を取り込む\n".
+      "}}}\n";
   }
+  // search in nako3storage
+  $nameenc = urlencode($name);
+  $search_url = "https://nadesi.com/v3/storage/index.php?search_word={$nameenc}&action=search&target=program";
+  $search_name = "[[→『{$name}』を貯蔵庫で検索:$search_url]]";
   $wiki =<<<EOS
 * {$name} ($kana)
 
@@ -52,6 +58,7 @@ function kona3plugins_nako3doc_execute($parg) {
 説明 || $desc
 }}}
 {$extra_plugin}
+{$search_name}
 EOS;
   if ($type == '定数') {
     $wiki =<<<EOS
