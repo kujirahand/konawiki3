@@ -109,8 +109,9 @@ function nako3_make_script_tag(&$nako3) {
     "<script defer src=\"${baseurl}release/plugin_caniuse.js\"></script>";
   // add-on plugins
   $include_js .=    
-    '<script defer src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js" integrity="sha512-d9xgZrVZpmmQlfonhQUvTR7lMPtO7NkZMkA0ABN3PHCbKA5nqylQ/yWlFAyY6hYgdF1Qh6nYiuADWwKB4C2WSw==" crossorigin="anonymous"></script>' .
-    '<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mocha/8.3.0/mocha.min.js" integrity="sha512-LA/TpBXau/JNubKzHQhdi5vGkRLyQjs1vpuk2W1nc8WNgf/pCqBplD8MzlzeKJQTZPvkEZi0HqBDfRC2EyLMXw==" crossorigin="anonymous"></script>';
+    "<script defer src=\"${baseurl}demo/js/chart.js@3.2.1/chart.min.js\" integrity=\"sha256-uVEHWRIr846/vAdLJeybWxjPNStREzOlqLMXjW/Saeo=\" crossorigin=\"anonymous\"></script>";
+    // v3.2.10で mocha は必須ではない
+    // "<script defer src=\"${baseurl}demo/js/mocha@8.3.0/mocha.min.js\" integrity=\"sha256-BVqM0n0+nt4yMGMUV7UCfvmX1Ji8Vss5dq+gl1eqah8=\" crossorigin=\"anonymous\"></script>";
   return $include_js;
 }
 
