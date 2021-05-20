@@ -84,7 +84,7 @@ function nako3_make_script_tag(&$nako3) {
   // 基本URL
   if ($nako3['baseurl'] == '') {
     $ver = $nako3['ver'];
-    $nako3['baseurl'] = "https://nadesi.com/v3/cdn.php?v=$ver&f=";
+    $nako3['baseurl'] = "https://n3s.nadesi.com/cdn.php?v=$ver&f=";
   }
   // 各JavaScriptのパスを設定
   $baseurl = $nako3['baseurl'];
@@ -110,8 +110,6 @@ function nako3_make_script_tag(&$nako3) {
   // add-on plugins
   $include_js .=    
     "<script defer src=\"${baseurl}demo/js/chart.js@3.2.1/chart.min.js\" integrity=\"sha256-uVEHWRIr846/vAdLJeybWxjPNStREzOlqLMXjW/Saeo=\" crossorigin=\"anonymous\"></script>";
-    // v3.2.10で mocha は必須ではない
-    // "<script defer src=\"${baseurl}demo/js/mocha@8.3.0/mocha.min.js\" integrity=\"sha256-BVqM0n0+nt4yMGMUV7UCfvmX1Ji8Vss5dq+gl1eqah8=\" crossorigin=\"anonymous\"></script>";
   return $include_js;
 }
 
