@@ -117,6 +117,28 @@ function nako3doc_checkGenre($page) {
 }
 
 function nako3doc_list_func() {
+  $conf_use_cache = isset($_GET['cache']) ? (intval($_GET['cache']) == 1) : TRUE;
+  if ($conf_use_cache) {
+    // check cache
+    $use_cache = FALSE;
+    $cache_dir = KONA3_DIR_CACHE;
+    $cache_file = $cache_dir.'/nako3doc.cache.list_func.html';
+    if (file_exists($cache_file)) {
+      $cache_time = filemtime($cache_file);
+      $db_time = nako3doc_getDBTime();
+      if ($db_time < $cache_time) { $use_cache = TRUE; }
+    }
+    // use cache
+    if ($use_cache) {
+      $html = file_get_contents($cache_file);
+      if (kona3isLogin()) {
+        $page_nocache = kona3getPageURL('', '', '', 'cache=0');
+        $html = "<div class='block'>[CACHE mode : <a href='$page_nocache'>nocache</a>]</div>".$html;
+      }
+      return $html;
+    }
+  }
+
   $ra = nako3doc_run(
     "SELECT * FROM commands ".
     "ORDER BY plugin ASC",
@@ -198,6 +220,11 @@ function nako3doc_list_func() {
   src="https://nadesi.com/v3/storage/widget.php?453&run=1&mute_name=1"
   style="width:99%; border: none;"></iframe>
 EOS;
+
+  // save cache
+  if ($conf_use_cache && $cache_dir != '') {
+    @file_put_contents($cache_file, $wiki_html);
+  }
   return $wiki_html;
 }
 
@@ -332,6 +359,14 @@ function nako3doc_checkPlugin($page) {
   return konawiki_parser_convert($wiki);
 }
 
+function nako3doc_getDBFile() {
+  $dbfile = KONA3_DIR_DATA.'/nako3commands.db';
+  return $dbfile;
+}
+
+function nako3doc_getDBTime() {
+  return filemtime(nako3doc_getDBFile()); 
+}
 
 function nako3doc_getDB() {
   global $kona3conf;
@@ -339,7 +374,7 @@ function nako3doc_getDB() {
   if (isset($nako3doc_db)) {
     return $nako3doc_db;
   }
-  $dbfile = KONA3_DIR_DATA.'/nako3commands.db';
+  $dbfile = nako3doc_getDBFile();
   $nako3doc_db = new PDO("sqlite:$dbfile");
   return $nako3doc_db;
 }
