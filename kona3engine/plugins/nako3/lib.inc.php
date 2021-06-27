@@ -106,6 +106,7 @@ function nako3_make_script_tag(&$nako3) {
     "<script defer src=\"${baseurl}release/plugin_markup.js\"></script>" .
     "<script defer src=\"${baseurl}release/plugin_turtle.js\"></script>" .
     "<script defer src=\"${baseurl}release/plugin_webworker.js\"></script>" .
+    "<script defer src=\"${baseurl}release/nako_gen_async.js\"></script>" .
     "<script defer src=\"${baseurl}release/plugin_caniuse.js\"></script>";
   // add-on plugins
   $include_js .=    
