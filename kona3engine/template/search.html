@@ -3,12 +3,17 @@
 <div id="wikimessage">
   <div class="box">
     <!-- form -->
-    <div>
+    <div style="border:1px solid silver;padding:0.5em;">
       <form class="pure-form" method="post" action="{{$action}}">
         <input type="hidden" name="a_mode" value="search">
         <input type="text" name="a_key" value="{{$key}}">
         <input class="pure-button pure-button-primary" 
           type="submit"  value="{{'Search' | lang}}">
+        <br>
+        <label>
+          <input type="checkbox" name="a_body" value="on" {{$a_body}}>
+          本文も検索
+        </label>
       </form>
     </div>
     <!-- result -->

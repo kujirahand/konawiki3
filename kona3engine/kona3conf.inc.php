@@ -37,6 +37,8 @@ function kona3conf_init(&$conf) {
   check_conf($conf, 'path_max_mkdir', 3);
   check_conf($conf, 'chmod_mkdir', '0777');
   check_conf($conf, 'max_edit_size', '3');
+  check_conf($conf, 'max_search', '10');
+  check_conf($conf, 'max_search_level', '2');
 }
 
 function check_conf(&$conf, $key, $def) {
