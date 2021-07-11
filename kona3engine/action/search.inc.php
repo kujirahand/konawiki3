@@ -14,6 +14,15 @@ function kona3_action_search() {
   $am   = kona3param('a_mode', '');
   $key  = kona3param('a_key', '');
 
+  // キーが短すぎるなら検索しない
+  if ($am == 'search' && mb_strlen($key) <= 2) {
+    $url = kona3getPageURL($page, 'search');
+    kona3error('検索できません', 
+      "3文字以上のキーワードを入力してください。".
+      "<a href='$url'>→やり直す</a>");
+    return;
+  }
+
   $res= [];
   if ($am == "search") {
     $result = array();
@@ -41,6 +50,22 @@ function kona3search($key, &$result, $dir) {
   global $_search_exclude;
   if ($key == "") return;
   $flist = glob($dir.'/*');
+  $path_len = strlen(KONA3_DIR_DATA);
+  // check filename
+  foreach ($flist as $f) {
+    if ($f == "." || $f == "..") continue;
+    if (!preg_match('/\.(md|txt)$/', $f)) continue;
+    $ff = substr($f, $path_len);
+    if (strpos($ff, $key) !== FALSE) {
+      $result[] = $f;
+      continue;
+    }
+  }
+  // 既にファイル名だけでもたくさんマッチしているなら本文検索はしない
+  if (count($result) > 10) {
+    return TRUE;
+  }
+  // check text file and sub folder
   foreach ($flist as $f) {
     if ($f == "." || $f == "..") continue;
     if (is_dir($f)) {
@@ -50,6 +75,7 @@ function kona3search($key, &$result, $dir) {
       continue;
     }
     if (preg_match('/\.(md|txt)$/', $f)) {
+      // check contents
       $txt = @file_get_contents($f);
       if (strpos($txt, $key) !== FALSE) {
         $result[] = $f;
