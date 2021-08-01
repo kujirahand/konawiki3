@@ -358,7 +358,7 @@ function nako3doc_list_kana($mode) {
   }
   return <<<EOS
 <iframe height="450" width="100%"
-  src="https://nadesi.com/v3/storage/widget.php?451&run=1&mute_name=1"
+  src="https://nadesi.com/v3/storage/widget.php?451&amp;run=1&amp;mute_name=1"
   style="width:99%; border: none;"></iframe>
 {$wiki_html}
 EOS;
