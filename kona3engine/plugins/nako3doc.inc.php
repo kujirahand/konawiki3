@@ -117,8 +117,8 @@ function nako3doc_checkGenre($page) {
   return konawiki_parser_convert($wiki);
 }
 
-function nako3doc_list_func($nakotype) {
-  if (!$nakotype) { $nakotype = ''; }
+function nako3doc_list_func($pagetype) {
+  if (!$pagetype) { $pagetype = ''; }
   $conf_use_cache = isset($_GET['cache']) ? (intval($_GET['cache']) == 1) : TRUE;
   if ($conf_use_cache) {
     // check cache
@@ -141,7 +141,7 @@ function nako3doc_list_func($nakotype) {
     }
   }
 
-  if (!$nakotype) {
+  if (!$pagetype) {
     $ra = nako3doc_run(
       "SELECT * FROM commands ".
       "ORDER BY plugin ASC",
@@ -208,7 +208,7 @@ function nako3doc_list_func($nakotype) {
   $wiki = '';
   list($w, $t) = $fn($cmd, 'plugin_system');
   $wiki .= $w; $index .= $t;
-  if ($nakotype == 'wnako') {
+  if (!$pagetype || $pagetype == 'wnako') {
     list($w, $t) = $fn($cmd, 'plugin_browser');
     $wiki .= $w; $index .= $t;
     list($w, $t) = $fn($cmd, 'plugin_turtle');
