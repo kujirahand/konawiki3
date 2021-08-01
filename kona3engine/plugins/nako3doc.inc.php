@@ -36,15 +36,17 @@ function kona3plugins_nako3doc_execute($parg) {
   $kana = $r['kana'];
   $ctime = $r['ctime'];
   $mtime = $r['mtime'];
+  $nakotype = nako3doc_getNakoTypeWiki($plugin);
   // 拡張かどうか
   $extra_plugin = "";
-  if ($plugin == 'plugin_system' || $pligin == 'plugin_browser' || $plugin == 'plugin_node' || $plugin == 'plugin_turtle') {
-  } else {
+  if (strpos($nakotype, '拡張プラグイン') !== FALSE) {
     $extra_plugin = "{{{\n".
       "# [拡張プラグイン] 以下の宣言が必要:\n".
       "!『{$plugin}』を取り込む\n".
       "}}}\n";
   }
+  $nakotype = str_replace('基本プラグイン,', '', $nakotype);
+  $nakotype = str_replace('拡張プラグイン,', '', $nakotype);
   // search in nako3storage
   $nameenc = urlencode($name);
   $search_url = "https://nadesi.com/v3/storage/index.php?search_word={$nameenc}&action=search&target=program";
@@ -54,6 +56,7 @@ function kona3plugins_nako3doc_execute($parg) {
 
 {{{#csv(flag=||)
 カテゴリ || [[$plugin]] > [[$genre:$plugin/$genre]]
+環境 || $nakotype
 種類 || $type
 引数 || $args
 説明 || $desc
@@ -117,6 +120,57 @@ function nako3doc_checkGenre($page) {
   return konawiki_parser_convert($wiki);
 }
 
+function nako3doc_getNakoTypeWiki($plugin) {
+  $nakotype = nako3doc_getNakoType($plugin);
+  if (!$nakotype) return '';
+  return preg_replace('#([a-z]+)#', '[[\1]]', $nakotype);
+}
+
+function nako3doc_getNakoType($plugin) {
+  $q = nako3doc_run(
+    "SELECT * FROM plugins WHERE name=?", [$plugin]);
+  if (!$q) {
+    return null;
+  }
+  return $q[0]['nakotype'];
+}
+
+function nako3doc_getPluginInfo($plugin) {
+  $p = [
+    "wnako" => FALSE,
+    "cnako" => FALSE,
+    "phpnako" => FALSE,
+    "基本プラグイン" => FALSE,
+    "拡張プラグイン" => FALSE,
+    "nakotype" => "",
+  ];
+  $nakotype = nako3doc_getNakoType($plugin);
+  if (!$nakotype) return $p;
+  $qqq = explode(',', $nakotype);
+  foreach ($qqq as $k) {
+    $p[$k] = TRUE;
+  }
+  $P['nakotype'] = $nakotype;
+  return $p;
+}
+
+function nako3doc_getPlugins($pagetype = '') {
+  if ($pagetype) {
+    $pluginQ = nako3doc_run(
+      "SELECT * FROM plugins WHERE nakotype LIKE ?", 
+      ["%$pagetype%"]);
+  } else {
+    // all
+    $pluginQ = nako3doc_run("SELECT * FROM plugins", []);
+  }
+  $pluginInfo = [];
+  foreach ($pluginQ as $q) {
+    $pluginInfo[$q['name']] = $q['nakotype'];
+  }
+  return $pluginInfo;
+}
+
+
 function nako3doc_list_func($pagetype) {
   if (!$pagetype) { $pagetype = ''; }
   $conf_use_cache = isset($_GET['cache']) ? (intval($_GET['cache']) == 1) : TRUE;
@@ -141,17 +195,13 @@ function nako3doc_list_func($pagetype) {
     }
   }
 
-  if (!$pagetype) {
-    $ra = nako3doc_run(
-      "SELECT * FROM commands ".
-      "ORDER BY plugin ASC",
-      []);
-  } else {
-    $ra = nako3doc_run(
-      "SELECT * FROM commands WHERE nakotype LIKE ?".
-      "ORDER BY plugin ASC",
-      ["%{$nakotype}%"]);
-  }
+  // 該当するプラグインを取得
+  $pluginInfo = nako3doc_getPlugins($pagetype);
+
+  $ra = nako3doc_run(
+    "SELECT * FROM commands ".
+    "ORDER BY plugin ASC",
+    []);
   if (!$ra) {
     return "[ERROR]";
   }
@@ -159,11 +209,10 @@ function nako3doc_list_func($pagetype) {
   $plugins = [];
   $pluginLast = '';
   $genreLast = '';
-  $pluginDesc = [];
   $cmd = [];
   foreach ($ra as $r) {
     $plugin = $r['plugin'];
-    $nakotype = $r['nakotype'];
+    if (!isset($pluginInfo[$plugin])) continue;
     $genre = $r['genre'];
     $pagename = $r['pagename'];
     $type = $r['type'];
@@ -177,7 +226,6 @@ function nako3doc_list_func($pagetype) {
     // plugin
     if (!isset($cmd[$plugin])) {
       $cmd[$plugin]  = [];
-      $pluginDesc[$plugin] = $nakotype;
     }
     // genre
     if (!isset($cmd[$plugin][$genre])) {
@@ -187,8 +235,8 @@ function nako3doc_list_func($pagetype) {
     $cmd[$plugin][$genre][] = "[[$name:$pagename]]";
   }
   // プラグイン順に出力
-  $fn = function ($cmd, $plugin) use($pluginDesc) {
-    $type = $pluginDesc[$plugin];
+  $fn = function ($cmd, $plugin) use($pluginInfo) {
+    $type = $pluginInfo[$plugin];
     $type = preg_replace('#([a-z]+)#', '[[$1]]', $type);
     $w = "** 🔌 [[$plugin]]\n[[$plugin]]は{$type}で使えます。\n";
     $t = "| 🔌 [[$plugin]] ($type) | ";
@@ -317,18 +365,10 @@ EOS;
 }
 
 function nako3doc_list_plugins() {
-  $ra = nako3doc_run(
-    "SELECT DISTINCT plugin FROM commands ",
-    []);
-  if (!$ra) {
-    return "[ERROR]";
-  }
+  $plugins = nako3doc_getPlugins();
   $wiki = "* [[命令一覧]] > プラグイン一覧\n";
-  foreach ($ra as $r) {
-    $plugin = $r['plugin'];
-    $a = nako3doc_run("SELECT * FROM commands WHERE plugin=? LIMIT 1", [$plugin]);
-    $type = $a[0]['nakotype'];
-    $type = preg_replace('/([a-z]+)/', '[[\1]]', $type);
+  foreach ($plugins as $plugin => $r) {
+    $type = preg_replace('/([a-z]+)/', '[[\1]]', $r);
     $wiki .= "*** 🔌[[$plugin]]\n";
     $wiki .= "#html(<blockquote>)";
     $wiki .= "#include($plugin)\n";
@@ -348,9 +388,11 @@ function nako3doc_checkPlugin($page) {
   if (!$ra) {
     return "";
   }
-  $wiki = "* [[プラグイン一覧]] > [[$page]]\n";
+  $wiki = "* [[プラグイン一覧]] > 🔌 [[$page]]\n";
+  $nakotype = nako3doc_getNakoTypeWiki($page);
   $wiki .= "#html(<blockquote>)\n";
   $wiki .= "#include($page)\n";
+  $wiki .= "({$nakotype}で利用できます)\n";
   $wiki .= "#html(</blockquote>)\n";
   $genreLast = "";
   foreach ($ra as $r) {
