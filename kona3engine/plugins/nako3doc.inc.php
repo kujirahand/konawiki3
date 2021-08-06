@@ -178,7 +178,7 @@ function nako3doc_list_func($pagetype) {
     // check cache
     $use_cache = FALSE;
     $cache_dir = KONA3_DIR_CACHE;
-    $cache_file = $cache_dir."/nako3doc.cache.list_func_$nakotype.html";
+    $cache_file = $cache_dir."/nako3doc.cache.list_func_{$pagetype}.html";
     if (file_exists($cache_file)) {
       $cache_time = filemtime($cache_file);
       $db_time = nako3doc_getDBTime();
