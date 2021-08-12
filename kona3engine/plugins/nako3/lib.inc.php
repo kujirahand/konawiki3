@@ -110,7 +110,7 @@ function nako3_make_script_tag(&$nako3) {
     "<script defer src=\"${baseurl}release/plugin_caniuse.js\"></script>";
   // add-on plugins
   $include_js .=    
-    "<script defer src=\"${baseurl}demo/js/chart.js@3.2.1/chart.min.js\" integrity=\"sha256-uVEHWRIr846/vAdLJeybWxjPNStREzOlqLMXjW/Saeo=\" crossorigin=\"anonymous\"></script>";
+    "<script defer src=\"https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.2.1/chart.min.js\" integrity=\"sha256-uVEHWRIr846/vAdLJeybWxjPNStREzOlqLMXjW/Saeo=\" crossorigin=\"anonymous\"></script>";
   return $include_js;
 }
 
