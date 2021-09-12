@@ -1,43 +1,53 @@
-extensions:
-- keyString: "txt"
-outlineMenu:
-- beginString: "^(■|\\*)(.+)"
-  bold: true
-  keyString: "■ $2"
-- beginString: "^(▲|\\*{3})(.+)"
-  keyString: "　　▲ $2"
-  italic: true
-- beginString: "^(●|\\*\\*)(.+)"
-  keyString: "　● $2"
-  bold: true
-comments:
-- beginString: "''"
-  endString: "''"
-- beginString: "``"
-  endString: "``"
-metadata:
-  author: "kujirahand"
-  license: "Same as CotEditor"
-  lastModified: "2015-04-09"
-  version: "1.0"
-numbers: []
+attributes: []
+characters: []
 commands:
-- beginString: "^\\>"
-  regularExpression: true
-  endString: "\\n"
-values: []
-keywords:
-- beginString: "^(■|●|▲)"
-  regularExpression: true
-  endString: "\\n"
-- beginString: "^\\*+"
-  endString: "\\n"
-  regularExpression: true
-strings:
-- beginString: "^\\{{3}"
-  endString: "^\\}{3}"
+- beginString: ^(■|●|▲).+
   regularExpression: true
 commentDelimiters:
-  inlineDelimiter: "#"
-characters: []
+  beginDelimiter: '{{{'
+  endDelimiter: '}}}'
+  inlineDelimiter: '>'
+comments:
+- beginString: '[['
+  endString: ']]'
 completions: []
+extensions:
+- keyString: txt
+filenames: []
+interpreters: []
+keywords: []
+metadata:
+  author: クジラ飛行机
+  version: '1.2'
+numbers: []
+outlineMenu:
+- beginString: ^\*(.+)
+  bold: true
+  keyString: ■ $1
+- beginString: ^■(.+)
+  bold: true
+  ignoreCase: false
+  keyString: ■ $1
+- beginString: ^\*{2}(.+)
+  bold: true
+  keyString: 　● $1
+- beginString: ^●(.+)
+  bold: true
+  keyString: 　● $1
+- beginString: ^\*{3}(.+)
+  keyString: 　　▲ $1
+- beginString: ^▲(.+)
+  bold: true
+  keyString: 　　▲$1
+strings:
+- beginString: ''''''
+  endString: ''''''
+- beginString: '**'
+  endString: '**'
+- beginString: '``'
+  endString: '``'
+types: []
+values: []
+variables:
+- beginString: '#[a-zA-Z_][a-zA-Z0-9-]*'
+  regularExpression: true
