@@ -13,5 +13,6 @@ $lang_data = [
   'date_format_e' => 'd M',
   'date_format' => 'd M Y',
   'Edit Config' => 'Edit Config',
+  'PDF' => 'PDF',
 ];
 

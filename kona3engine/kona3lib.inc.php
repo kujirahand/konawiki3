@@ -128,6 +128,13 @@ function kona3getEngineFName($dir, $pname) {
   return $af;
 }
 
+// get config data
+function kona3getConf($key, $def = FALSE) {
+  global $kona3conf;
+  if (empty($kona3conf[$key])) { return $def; }
+  return $kona3conf[$key];
+}
+
 // pname(Plugin name) is only alhpabet and number and %_-
 function kona3getPName($pname) {
   // sanitize path
@@ -418,6 +425,7 @@ function kona3getCtrlMenuArray($type) {
   $login_uri = kona3getPageURL($page, 'login');
   $logout_uri = kona3getPageURL($page, 'logout');
   $search_uri = kona3getPageURL($page, 'search');
+  $pdf_uri = kona3getPageURL($page, 'pdf');
   $email_logs_uri = kona3getPageURL($page, 'emailLogs');
   $FrontPage_uri = kona3getPageURL($kona3conf['FrontPage']);
   $users_uri = kona3getPageURL($page, 'users');
@@ -446,6 +454,9 @@ function kona3getCtrlMenuArray($type) {
     $list[] = array(lang('Edit'), $edit_uri);
     $list[] = array(lang('New'), $new_uri);
     $list[] = array(lang('Search'), $search_uri);
+    if (kona3getConf('use_pdf_out')) {
+      $list[] = array(lang('PDF'), $pdf_uri);
+    }
     $list[] = array(lang('Logout'), $logout_uri);
   }
   return $list;
@@ -625,14 +636,6 @@ function kona3_checkEditToken($key = 'default') {
     return TRUE;
   }
   return FALSE;
-}
-
-function kona3getConf($key, $def = '') {
-  global $kona3conf;
-  if (isset($kona3conf[$key])) {
-    return $kona3conf[$key];
-  }
-  return $def;
 }
 
 function kona3getShortcutLink() {

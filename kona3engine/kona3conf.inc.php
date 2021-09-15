@@ -39,6 +39,7 @@ function kona3conf_init(&$conf) {
   check_conf($conf, 'max_edit_size', '3');
   check_conf($conf, 'max_search', '10');
   check_conf($conf, 'max_search_level', '2');
+  check_conf($conf, 'use_pdf_out', FALSE);
 }
 
 function check_conf(&$conf, $key, $def) {

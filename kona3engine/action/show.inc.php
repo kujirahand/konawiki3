@@ -7,18 +7,7 @@ function kona3_action_show() {
   $page_h = htmlspecialchars($page);
 
   // check login
-  if ($kona3conf["wiki_private"]) {
-    if (!kona3isLogin()) {
-      $url = kona3getPageURL($page, "login");
-      $msg_private = lang('Private Mode');
-      $msg_please_login = lang('Please login.');
-      kona3error(
-        $page, 
-        "<div>$msg_private</div><div>&nbsp;</div>".
-        "<div><a href='$url'>$msg_please_login</a></div>");
-      exit;
-    }
-  }
+  kona3show_check_private();
 
   // detect file type
   $wiki_live = kona3show_detect_file($page, $fname, $ext);
@@ -78,6 +67,21 @@ function kona3_action_show() {
     "cnt_txt"    => $cnt_txt,
     "page_file"  => $fname,
   ]);
+}
+
+function kona3show_check_private() {
+  if (kona3getConf('wiki_private')) {
+    if (!kona3isLogin()) {
+      $url = kona3getPageURL($page, "login");
+      $msg_private = lang('Private Mode');
+      $msg_please_login = lang('Please login.');
+      kona3error(
+        $page, 
+        "<div>$msg_private</div><div>&nbsp;</div>".
+        "<div><a href='$url'>$msg_please_login</a></div>");
+      exit;
+    }
+  }
 }
 
 function kona3show_file_not_found($page, &$ext) {
