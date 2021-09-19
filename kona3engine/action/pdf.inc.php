@@ -14,7 +14,7 @@ function kona3_action_pdf() {
     $page_h = htmlspecialchars($page);
   
     // check login
-    kona3show_check_private();
+    kona3show_check_private($page);
   
     // detect file type
     $wiki_live = kona3show_detect_file($page, $fname, $ext);

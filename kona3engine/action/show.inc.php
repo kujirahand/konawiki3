@@ -7,7 +7,7 @@ function kona3_action_show() {
   $page_h = htmlspecialchars($page);
 
   // check login
-  kona3show_check_private();
+  kona3show_check_private($page);
 
   // detect file type
   $wiki_live = kona3show_detect_file($page, $fname, $ext);
@@ -69,7 +69,7 @@ function kona3_action_show() {
   ]);
 }
 
-function kona3show_check_private() {
+function kona3show_check_private($page) {
   if (kona3getConf('wiki_private')) {
     if (!kona3isLogin()) {
       $url = kona3getPageURL($page, "login");
