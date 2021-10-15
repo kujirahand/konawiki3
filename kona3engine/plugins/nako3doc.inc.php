@@ -173,9 +173,10 @@ function nako3doc_getPlugins($pagetype = '') {
 
 function nako3doc_list_func($pagetype) {
   if (!$pagetype) { $pagetype = ''; }
+  
+  // check page cache
   $conf_use_cache = isset($_GET['cache']) ? (intval($_GET['cache']) == 1) : TRUE;
   if ($conf_use_cache) {
-    // check cache
     $use_cache = FALSE;
     $cache_dir = KONA3_DIR_CACHE;
     $cache_file = $cache_dir."/nako3doc.cache.list_func_{$pagetype}.html";
@@ -197,7 +198,16 @@ function nako3doc_list_func($pagetype) {
 
   // 該当するプラグインを取得
   $pluginInfo = nako3doc_getPlugins($pagetype);
+  // 拡張プラグインかどうかを調べる
+  $pluginIsBasic = [];
+  foreach ($pluginInfo as $pname => $v) {
+    $a = explode(",", $v);
+    $is_basic = array_shift($a);
+    // 基本プラグインかどうか
+    $pluginIsBasic[$pname] = ($is_basic === '基本プラグイン');
+  }
 
+  // コマンド一覧を得る
   $ra = nako3doc_run(
     "SELECT * FROM commands ".
     "ORDER BY plugin ASC",
@@ -262,14 +272,24 @@ function nako3doc_list_func($pagetype) {
     list($w, $t) = $fn($cmd, 'plugin_turtle');
     $wiki .= $w; $index .= $t;
   }
-  foreach ($cmd as $plug => $v) {
-    if ($plug == 'plugin_system' || 
-        $plug == 'plugin_browser' ||
-        $plug == 'plugin_turtle') {
-      continue;
-    }
-    list($w, $t) = $fn($cmd, $plug);
+  if (!$pagetype || $pagetype == 'cnako') {
+    list($w, $t) = $fn($cmd, 'plugin_node');
     $wiki .= $w; $index .= $t;
+  }
+  foreach ([TRUE, FALSE] as $isBasic) {
+    foreach ($cmd as $plug => $v) {
+      // 既に追加済みならスキップ
+      if ($plug == 'plugin_system' || 
+          $plug == 'plugin_browser' ||
+          $plug == 'plugin_turtle' ||
+          $plug == 'plugin_node') {
+        continue;
+      }
+      if ($pluginIsBasic[$plug] == $isBasic) {
+        list($w, $t) = $fn($cmd, $plug);
+        $wiki .= $w; $index .= $t;
+      }
+    }
   }
   $wiki = 
     $index."\n\n".
