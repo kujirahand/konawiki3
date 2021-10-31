@@ -87,7 +87,7 @@ composer install
 ## Output PDF (Option)
 
  - 設定画面で PDF 出力をtrueに設定
- - 文字化けするときは、/vendor/fonts/DroidSansFallback.ttf を配置してください。([ダウンロード](https://github.com/aosp-mirror/platform_frameworks_base/blob/master/data/fonts/DroidSansFallback.ttf))
+ - 文字化けするときは、/vendor/fonts に拡張子が.ttfのフォントを配置してください。(例:[ダウンロード](https://github.com/aosp-mirror/platform_frameworks_base/blob/master/data/fonts/DroidSansFallback.ttf))
 
 ## Git support (Option)
 
