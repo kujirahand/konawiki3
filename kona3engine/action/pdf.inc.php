@@ -79,8 +79,15 @@ function kona3_action_pdf() {
 
     // === カスタマイズできるように考慮する ===
     // ユニコードフォントがあるかチェック
-    $fontfile = dirname(__DIR__).'/vendor/fonts/DroidSansFallback.ttf';
-    if (file_exists($fontfile)) {
+    $fontfile = '';
+    $font_dir= dirname(__DIR__).'/vendor/fonts';
+    $fonts = glob($font_dir.'/*.ttf');
+    foreach ($fonts as $f) {
+      if (file_exists($f)) {
+        $fontfile = $f;
+      }
+    }
+    if ($fontfile) {
       $font = new TCPDF_FONTS();
       $fontX = $font->addTTFfont($fontfile);  
       $tcpdf->SetFont($fontX , '', 14);

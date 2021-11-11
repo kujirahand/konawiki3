@@ -84,6 +84,11 @@ cd kona3engine
 composer install
 ```
 
+## Output PDF (Option)
+
+ - 設定画面で PDF 出力をtrueに設定
+ - 文字化けするときは、/vendor/fonts に拡張子が.ttfのフォントを配置してください。(例:[ダウンロード](https://github.com/aosp-mirror/platform_frameworks_base/blob/master/data/fonts/DroidSansFallback.ttf))
+
 ## Git support (Option)
 
 You can commit and push wiki diffs to your git repository.
