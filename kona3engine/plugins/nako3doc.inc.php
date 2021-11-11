@@ -49,8 +49,10 @@ function kona3plugins_nako3doc_execute($parg) {
   $nakotype = str_replace('拡張プラグイン,', '', $nakotype);
   // search in nako3storage
   $nameenc = urlencode($name);
-  $search_url = "https://nadesi.com/v3/storage/index.php?search_word={$nameenc}&action=search&target=program";
-  $search_name = "[[→『{$name}』を貯蔵庫で検索:$search_url]]";
+  // $search_url = "https://nadesi.com/v3/storage/index.php?search_word={$nameenc}&action=search&target=program";
+  // $search_name = "[[→『{$name}』を貯蔵庫で検索:$search_url]]";
+  $search_url = "https://www.google.com/search?q=site%3A%2F%2Fnadesi.com%2Fv3%2Fdoc+{$nameenc}";
+  $search_name = "[[→『{$name}』をマニュアル内検索:{$search_url}]]";
   $wiki =<<<EOS
 * {$name} ($kana)
 
@@ -76,6 +78,7 @@ EOS;
 EOS;
   }
   $s = konawiki_parser_convert($wiki);
+  
   return $s;  
 }
 
