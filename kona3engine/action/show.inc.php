@@ -32,7 +32,7 @@ function kona3_action_show() {
   } else if ($ext == '.png' || $ext == '.gif' || $ext == '.jpg' || $ext == '.jpeg') {
     $txt = "#ref({$page})"; // images
     $page_body = konawiki_parser_convert($txt);
-  } else if ($ext == '.pdf') {
+  } else if ($ext == '.pdf' || $ext == '.xlsx' || $ext == '.docx' || $ext == '.xls' || $ext == '.doc') {
     $txt = "#ref({$page})"; // pdf 
     $page_body = konawiki_parser_convert($txt);
   } else {
