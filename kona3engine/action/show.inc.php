@@ -115,7 +115,7 @@ function kona3show_detect_file($page, &$fname, &$ext) {
     return TRUE;
   }
   // direct
-  $fname = kona3getWikiFile($page,FALSE, '', FALSE);
+  $fname = kona3getWikiFile($page, FALSE, '', FALSE);
   if (file_exists($fname)) {
     $ext = '';
     if (preg_match('#(\.[a-zA-Z0-9_]+)$#', $fname, $m)) {
