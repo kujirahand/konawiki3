@@ -46,7 +46,7 @@ function kona3_action_attach() {
         }
         // check name
         $name = basename($name);
-        $name = preg_replace('#[\<\>\\/\:\;\*\?\|]#', '_', $name);
+        $name = preg_replace('#[\'\"\<\>\\/\:\;\*\?\|\=\s]#', '_', $name);
         // savefile
         $savefile = $savedir.'/'.$name;
         $p = pathinfo($savefile);
