@@ -37,10 +37,10 @@ function kona3_action_attach() {
     if (!empty($_FILES['file']['tmp_name'])) {
         $tmp_name = $_FILES['file']['tmp_name'];
         // detect file name
-        $name = empty($_POST['name']) ? '' : $_POST['name'];
+        $name = empty($_POST['name']) ? '' : trim($_POST['name']);
         if ($name == '') {
             $name = $_FILES['file']['name'];
-        }        
+        }
         if ($name == '') {
             kona3error('ファイル名の未指定', 'ファイル名が未指定です'); exit;
         }
@@ -51,6 +51,14 @@ function kona3_action_attach() {
         $savefile = $savedir.'/'.$name;
         $p = pathinfo($savefile);
         $ext = empty($p['extension']) ? '' : $p['extension'];
+        if ($ext == '') {
+            // 元ファイルに拡張子があれば使う
+            $pp = pathinfo($_FILES['file']['name']);
+            if (isset($pp['extension'])) {
+                $ext = $pp['extension'];
+                $savefile .= ".{$ext}";
+            }
+        }
         $allow_ext = $kona3conf['allow_upload_ext'];
         $allow_ext_a = explode(';', $allow_ext);
         if (!in_array($ext, $allow_ext_a)) {
