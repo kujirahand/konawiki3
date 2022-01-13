@@ -494,6 +494,9 @@ function __konawiki_parser_tohtml(&$text, $level)
             $pname  = trim($m[1]);
             $plugin = konawiki_parser_getPlugin($pname);
             $text   = substr($text, strlen($m[0]));
+            if (!isset($plugin['disable'])) {
+              $plugin['disable'] = '';
+            }
             if ($plugin['disable'] || !file_exists($plugin["file"])) {
                 $result .= htmlspecialchars("&".$pname."(", ENT_QUITES);
             } else {
