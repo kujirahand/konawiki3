@@ -1,0 +1,22 @@
+{{ include parts_header.html }}
+
+<div id="wikimessage">
+    <div class="box">
+        <div class="error">{{ $msg }}</div>
+        <h3>Attach file: {{ $dir }} </h3>
+        <form action="{{ $action }}" method="POST" enctype="multipart/form-data" class="pure-form pure-form-stacked">
+            ファイル名(省略可):<input type="text" name="name" value="">
+            <input type="file" name="file">
+            <br>
+            <input type="submit" value="{{'Upload'|lang}}">
+            <input type="hidden" name="MAX_FILE_SIZE" value="{{ $max_file_size }}" />
+        </form>
+        <hr/>
+        <h3>files:</h3>
+        <div><ul>{{ $files | raw }}</ul></div>
+    </div>
+  </div>
+<div style="clear:both;"></div>
+
+{{ include parts_footer.html }}
+

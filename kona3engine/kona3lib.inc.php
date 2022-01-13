@@ -426,6 +426,7 @@ function kona3getCtrlMenuArray($type) {
   $logout_uri = kona3getPageURL($page, 'logout');
   $search_uri = kona3getPageURL($page, 'search');
   $pdf_uri = kona3getPageURL($page, 'pdf');
+  $attach_uri = kona3getPageURL($page, 'attach');
   $email_logs_uri = kona3getPageURL($page, 'emailLogs');
   $FrontPage_uri = kona3getPageURL($kona3conf['FrontPage']);
   $users_uri = kona3getPageURL($page, 'users');
@@ -454,6 +455,9 @@ function kona3getCtrlMenuArray($type) {
     $list[] = array(lang('Edit'), $edit_uri);
     $list[] = array(lang('New'), $new_uri);
     $list[] = array(lang('Search'), $search_uri);
+    if (kona3getConf('allow_upload')) {
+      $list[] = array(lang('Attach'), $attach_uri);
+    }
     if (kona3getConf('use_pdf_out')) {
       $list[] = array(lang('PDF'), $pdf_uri);
     }

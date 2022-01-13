@@ -30,7 +30,10 @@ function kona3_action_show() {
     $txt = "* {$page}\n\n#ls"; // ls
     $page_body = konawiki_parser_convert($txt);
   } else if ($ext == '.png' || $ext == '.gif' || $ext == '.jpg' || $ext == '.jpeg') {
-    $txt = "#ref({$page},w=400)"; // images
+    $txt = "#ref({$page})"; // images
+    $page_body = konawiki_parser_convert($txt);
+  } else if ($ext == '.pdf' || $ext == '.xlsx' || $ext == '.docx' || $ext == '.xls' || $ext == '.doc') {
+    $txt = "#ref({$page})"; // pdf 
     $page_body = konawiki_parser_convert($txt);
   } else {
     kona3error($page, "Sorry, System Error."); exit;
@@ -115,7 +118,7 @@ function kona3show_detect_file($page, &$fname, &$ext) {
     return TRUE;
   }
   // direct
-  $fname = kona3getWikiFile($page,FALSE, '', FALSE);
+  $fname = kona3getWikiFile($page, FALSE, '', FALSE);
   if (file_exists($fname)) {
     $ext = '';
     if (preg_match('#(\.[a-zA-Z0-9_]+)$#', $fname, $m)) {
