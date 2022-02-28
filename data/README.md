@@ -1,5 +1,8 @@
-# Data directories
+# KonaWiki3
 
-Data dir
+## Data directories
+
+- data directory
+
 
 
