@@ -631,8 +631,8 @@ function kona3markdown_parser_tosource_block($src, $params = [])
         $fname = "<div style='$css'>$fname</div>";
     }
     $src = htmlspecialchars($src, ENT_QUOTES);
-    $begin = "<div>$fname<pre class='code'><code>";
-    $end   = "</code></pre></div>" . $eol;
+    $begin = "<div>$fname<pre class='code'>";
+    $end   = "</pre></div>" . $eol;
     return $begin.$src.$end;
 }
 
