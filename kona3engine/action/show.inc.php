@@ -130,8 +130,6 @@ function kona3show_detect_file($page, &$fname, &$ext) {
 }
 
 function kona3show_markdown_convert($txt) {
-    require_once dirname(dirname(__FILE__)).'/vendor/autoload.php';
-    $parser = new \cebe\markdown\MarkdownExtra();
-    $txt = $parser->parse($txt);
-    return $txt;
+    require_once dirname(__DIR__).'/kona3parser_md.inc.php';
+    return kona3markdown_parser_convert($txt);
 }

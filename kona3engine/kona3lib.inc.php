@@ -646,7 +646,7 @@ function kona3getShortcutLink() {
     // get url
     $host = $_SERVER['HTTP_HOST'];
     $scriptname = dirname($_SERVER['SCRIPT_NAME']);
-    $scheme = $_SERVER['REQUEST_SCHEME'];
+    $scheme = (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on')) ? 'https' : 'http';
     $base_url = "{$scheme}://{$host}{$scriptname}/go.php";
     // get shortcut
     // get page_id
