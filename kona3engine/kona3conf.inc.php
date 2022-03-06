@@ -21,6 +21,7 @@ function kona3conf_init(&$conf) {
   check_conf($conf, 'wiki_private', TRUE);
   check_conf($conf, 'lang', 'ja');
   check_conf($conf, 'skin', 'def');
+  check_conf($conf, 'def_text_ext', 'txt');
   check_conf($conf, 'allow_add_user', FALSE);
   check_conf($conf, 'allpage_header', '');
   check_conf($conf, 'allpage_footer', '');

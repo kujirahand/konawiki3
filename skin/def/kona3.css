@@ -922,6 +922,15 @@ pre
 	padding:4px;
 }
 
+span.code
+{
+	font-family:"Menlo", "Courier", "monospace", "ＭＳ ゴシック";
+	letter-spacing:0;
+    border: 1px solid #B0C4DE;
+    background-color: #fffff0;
+    padding: 4px;
+}
+
 pre.code
 {
 	font-family:"Menlo", "Courier", "monospace", "ＭＳ ゴシック";
