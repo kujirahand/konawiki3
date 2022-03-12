@@ -220,6 +220,8 @@ function nako3doc_list_func($pagetype) {
   if (!$ra) {
     return "[ERROR]";
   }
+  $command_count = count($ra);
+  $count_str = "▲命令数\n\n命令数: {$command_count}個です。";
 
   $plugins = [];
   $pluginLast = '';
@@ -299,6 +301,7 @@ function nako3doc_list_func($pagetype) {
   $wiki = 
     $index."\n\n".
     $wiki."\n\n".
+    $count_str.
     "";
 
   $wiki_html = konawiki_parser_convert($wiki);
