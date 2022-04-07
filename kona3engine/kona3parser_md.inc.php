@@ -470,8 +470,8 @@ function __kona3markdown_parser_tohtml(&$text, $level)
             $result .= $s;
             continue;
         }
-        $c1 = substr($text, 0, 1);
-        $c2 = substr($text, 0, 2);
+        $c1 = mb_substr($text, 0, 1);
+        $c2 = mb_substr($text, 0, 2);
         // inline plugin
         if (($c1 == '&') &&
             preg_match('#^\&([\d\w_]+?);?\(#',$text, $m)) {
@@ -495,13 +495,13 @@ function __kona3markdown_parser_tohtml(&$text, $level)
         }
         // escape
         if ($c1 == '\\') {
-            $text = substr($text, 1);
+            $text = mb_substr($text, 1);
             $result .= $c1;
             continue;
         }
         // inline code
         if ($c1 == '`') {
-            $text = substr($text, 1);
+            $text = mb_substr($text, 1);
             $s = kona3markdown_parser_token($text, "`");
             $str = kona3markdown_parser_tohtml($s);
             $result .= "<span class='code'><code>$str</code></span>";
@@ -509,7 +509,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
         }
         // string1 *
         if ($c1 == '*') {
-            $text = substr($text, 1);
+            $text = mb_substr($text, 1);
             $s = kona3markdown_parser_token($text, "*");
             $str = kona3markdown_parser_tohtml($s);
             $result .= "<strong class='strong1'>$str</strong>";
@@ -517,7 +517,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
         }
         // strong1 **
         if ($c2 == "**") {
-            $text = substr($text, 2);
+            $text = mb_substr($text, 2);
             $s = kona3markdown_parser_token($text, "**");
             $str = kona3markdown_parser_tohtml($s);
             $result .= "<strong class='strong1'>$str</strong>";
@@ -525,7 +525,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
         }
         // string2 _
         if ($c1 == '_') {
-            $text = substr($text, 1);
+            $text = mb_substr($text, 1);
             $s = kona3markdown_parser_token($text, "_");
             $str = kona3markdown_parser_tohtml($s);
             $result .= "<strong class='strong2'>$str</strong>";
@@ -533,7 +533,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
         }
         // strong2
         if ($c2 == "__") {
-            $text = substr($text, 2);
+            $text = mb_substr($text, 2);
             $s = kona3markdown_parser_token($text, "__");
             $str = kona3markdown_parser_tohtml($s);
             $result .= "<strong class='strong2'>$str</strong>";
@@ -541,7 +541,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
         }
         // strike
         if ($c2 == '~~') {
-            $text = substr($text, 2);
+            $text = mb_substr($text, 2);
             $s = kona3markdown_parser_token($text, "~~");
             $str = kona3markdown_parser_tohtml($s);
             $result .= "<del>$str</del>";
@@ -562,7 +562,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
         // ~
         if ($c2 == "~\n" || $c2 == "~\r") {
             $result .= "<br/>";
-            $text = substr($text, 1);
+            $text = substr($text, strlen($c2));
             continue;
         }
         // escape ?
@@ -574,7 +574,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
         case '"': $c = '&quot;'; break;
         }
         $result .= $c;
-        $text = mb_substr($text, 1);
+        $text = substr($text, strlen($c));
     }
     return $result;
 }
