@@ -189,16 +189,22 @@ function kona3getWikiUrl($wikiname) {
 
 // get wiki data
 function kona3getWikiPage($wikiname, $def = '') {
-    require_once dirname(__FILE__).'/kona3parser.inc.php';
-    $file = kona3getWikiFile($wikiname);
+    $ext = '.'.kona3getConf('def_text_ext', 'txt');
+    $file = kona3getWikiFile($wikiname, TRUE, $ext);
     if (file_exists($file)) {
         $text = @file_get_contents($file);
-        $html = konawiki_parser_convert($text);
-        return $html; 
+        if ($ext == '.txt') {
+            require_once __DIR__.'/kona3parser.inc.php';
+            $html = konawiki_parser_convert($text);
+            return $html;
+        } else {
+            require_once __DIR__.'/kona3parser_md.inc.php';
+            $html = kona3markdown_parser_convert($text);
+            return $html;
+        }
     }
     return $def;
 }
-
 
 // relative path from KONA3_DIR_DATA
 function kona3getRelativePath($wikiname) {
