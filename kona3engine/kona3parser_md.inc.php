@@ -599,7 +599,8 @@ function kona3markdown_parser_tosource_block($src, $params = [])
 {
     global $eol;
     // plugin ?
-    if (substr($src,0,1) == "#") {
+    $c = mb_substr($src, 0, 1);
+    if ($c == "♪" || $c == "#") {
         $src     = substr($src, 1);
         $line    = kona3markdown_parser_token($src, "\n");
         $pname   = trim(kona3markdown_parser_token($line, "("));
