@@ -67,20 +67,20 @@ function kona3markdown_parser_parse($text)
                 kona3markdown_parser_skipEOL($text);
                 $tokens[] = array("cmd"=>"hr", "text"=>"", "level"=>$level);
             } else {
-                $text = substr($text, 1);
+                $text = mb_substr($text, 1);
                 kona3markdown_parser_skipSpace($text);
                 $tokens[] = array("cmd"=>"-", "text"=>kona3markdown_parser_token($text, $eol), "level"=>1);
             }
         }
         // LIST <ol>
         else if ($c == "+") {
-            $text = substr($text, 1);
+            $text = mb_substr($text, 1);
             kona3markdown_parser_skipSpace($text);
             $tokens[] = array("cmd"=>"+", "text"=>kona3markdown_parser_token($text, $eol), "level"=>1);
         }
         else if ($c == ' ') {
             if (preg_match('#^(\s{1,})\-#', $text, $m)) {
-                $text = substr($text, strlen($m[0]));
+                $text = mb_substr($text, mb_strlen($m[0]));
                 $level = intval(strlen($m[1]) / 2) + 1;
                 $tokens[] = array("cmd"=>"-", "text"=>kona3markdown_parser_token($text, $eol), "level"=>$level);
             }
@@ -103,10 +103,10 @@ function kona3markdown_parser_parse($text)
         }
         // resmark or conflict mark
         else if ($c == ">") {
-            if (substr($text, 0, 3) == ">>>") {
-                $text = substr($text, 3);
-                $flag = substr($text, 0, 3);
-                $text = substr($text, 3);
+            if (mb_substr($text, 0, 3) == ">>>") {
+                $text = mb_substr($text, 3);
+                $flag = mb_substr($text, 0, 3);
+                $text = mb_substr($text, 3);
                 $tokens[] = array("cmd"=>"conflict", "text"=>kona3markdown_parser_token($text, $eol), "flag"=>$flag);
             } else {
                 kona3markdown_parser_skipSpace($text);
@@ -121,7 +121,7 @@ function kona3markdown_parser_parse($text)
         }
         // PLUG-INS
         else if ($c == "♪") { // plugins
-            kona3markdown_parser_getStr($text, strlen($c)); // skip '#'
+            kona3markdown_parser_getStr($text, mb_strlen($c)); // skip '#'
             $tokens[] = kona3markdown_parser_plugins($text, $c);
         }
         // SOURCE BLOCK
@@ -137,7 +137,7 @@ function kona3markdown_parser_parse($text)
                 // get line
                 $line = kona3markdown_parser_token($text, $eol);
                 // last 1char
-                $last = substr($line, strlen($line) - 1, 1);
+                $last = mb_substr($line, mb_strlen($line) - 1, 1);
                 if ($last == '~') {
                     $plain .= $line.$eol;
                 } else {
@@ -376,8 +376,8 @@ function kona3markdown_parser_getchar(&$text)
 
 function kona3markdown_parser_getStr(&$text, $len)
 {
-    $result = substr($text, 0, $len);
-    $text = substr($text, $len);
+    $result = mb_substr($text, 0, $len);
+    $text = mb_substr($text, $len);
     return $result;
 }
 
@@ -574,7 +574,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
         case '"': $c = '&quot;'; break;
         }
         $result .= $c;
-        $text = substr($text, strlen($c));
+        $text = mb_substr($text, mb_strlen($c));
     }
     return $result;
 }
