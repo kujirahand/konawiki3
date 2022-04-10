@@ -599,12 +599,14 @@ function kona3markdown_parser_tosource_block($src, $params = [])
 {
     global $eol;
     // plugin ?
-    $c = mb_substr($src, 0, 1);
+    $fname = array_shift($params);
+    if ($fname == null) { $fname = ''; }
+    $c = mb_substr($fname, 0, 1);
     if ($c == "♪" || $c == "#") {
-        $src     = substr($src, 1);
-        $line    = kona3markdown_parser_token($src, "\n");
-        $pname   = trim(kona3markdown_parser_token($line, "("));
-        $arg_str = kona3markdown_parser_token($line, ")");
+        $fname = mb_substr($fname, 1);
+        $line  = kona3markdown_parser_token($fname, "\n");
+        $pname = trim(kona3markdown_parser_token($line, "("));
+        $arg_str = kona3markdown_parser_token($fname, ")");
         if ($arg_str != "") {
             $args = explode(",", $arg_str);
         } else {
