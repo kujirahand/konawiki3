@@ -149,11 +149,16 @@ function countText() {
   s += 'total(' + txt.length + ') '
   // id
   while (txt) {
+    var close_tag = '}}}'
     var i = txt.indexOf('{{{#count')
-    if (i < 0) break;
+    if (i < 0) {
+        i = txt.indexOf('```#count')
+        if (i < 0) break;
+        close_tag = '```'
+    }
     // trim left side
     txt = txt.substr(i)
-    txt = txt.replace(/^\{+\#(countbox|count)/, '')
+    txt = txt.replace(/^[\{`]+\#(countbox|count)/, '')
     // count
     var id = '*'
     var ts = ''
@@ -163,12 +168,12 @@ function countText() {
       txt = txt.substr(ti);
       var m = txt.match(/id=(.+)\)/);
       if (m) id = m[1];
-      ei = txt.indexOf('}}}')
+      ei = txt.indexOf(close_tag)
       ts = txt.substr(0, ei);
       ts = ts.split("\n").slice(1).join("")
-      txt = txt.substr(ei + 3);
+      txt = txt.substr(ei + close_tag.length);
     } else {
-      ei = txt.indexOf('}}}')
+      ei = txt.indexOf(close_tag)
       ts = txt.substr(0, ei);
       ts = ts.split("\n").join("")
     }
