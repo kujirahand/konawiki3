@@ -565,7 +565,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
             $text = substr($text, strlen($c2));
             continue;
         }
-        // escape ?
+        // 1chars replace
         $c = $c1;
         switch ($c) {
         case '>': $c = '&gt;'; break;
@@ -574,7 +574,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
         case '"': $c = '&quot;'; break;
         }
         $result .= $c;
-        $text = mb_substr($text, mb_strlen($c));
+        $text = mb_substr($text, 1);
     }
     return $result;
 }
