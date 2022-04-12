@@ -449,27 +449,6 @@ function __kona3markdown_parser_tohtml(&$text, $level)
     // make link
     $result = "";
     while ($text <> "") {
-        // wikilink
-        if (preg_match('#^\[(.*?)\]\((.+)\)#',$text, $m)) {
-            $text = substr($text, strlen($m[0]));
-            $label = $m[1];
-            $link = $m[2];
-            $result .= kona3markdown_parser_makeWikiLink($label, $link);
-            continue;
-        }
-        // image link
-        if (preg_match('#^\!\[(.*?)\]\((.+)\)#',$text, $m)) {
-            $text = substr($text, strlen($m[0]));
-            $alt = $m[1];
-            $link = $m[2];
-            $plugin = kona3markdown_parser_getPlugin('ref');
-            $param_ary = [$link, '*'.$alt];
-            include_once($plugin["file"]);
-            $p = array("cmd"=>"plugin", "text"=>"ref", "params"=>$param_ary);
-            $s = kona3markdown_parser_render_plugin($p);
-            $result .= $s;
-            continue;
-        }
         $c1 = mb_substr($text, 0, 1);
         $c2 = mb_substr($text, 0, 2);
         // inline plugin
@@ -495,8 +474,8 @@ function __kona3markdown_parser_tohtml(&$text, $level)
         }
         // escape
         if ($c1 == '\\') {
-            $text = mb_substr($text, 1);
-            $result .= $c1;
+            $result .= mb_substr($text, 1, 1);
+            $text = mb_substr($text, 2);
             continue;
         }
         // inline code
@@ -545,6 +524,27 @@ function __kona3markdown_parser_tohtml(&$text, $level)
             $s = kona3markdown_parser_token($text, "~~");
             $str = kona3markdown_parser_tohtml($s);
             $result .= "<del>$str</del>";
+            continue;
+        }
+        // wikilink
+        if (preg_match('#^\[(.*?)\]\((.+)\)#',$text, $m)) {
+            $text = substr($text, strlen($m[0]));
+            $label = $m[1];
+            $link = $m[2];
+            $result .= kona3markdown_parser_makeWikiLink($label, $link);
+            continue;
+        }
+        // image link
+        if (preg_match('#^\!\[(.*?)\]\((.+)\)#',$text, $m)) {
+            $text = substr($text, strlen($m[0]));
+            $alt = $m[1];
+            $link = $m[2];
+            $plugin = kona3markdown_parser_getPlugin('ref');
+            $param_ary = [$link, '*'.$alt];
+            include_once($plugin["file"]);
+            $p = array("cmd"=>"plugin", "text"=>"ref", "params"=>$param_ary);
+            $s = kona3markdown_parser_render_plugin($p);
+            $result .= $s;
             continue;
         }
         // url
