@@ -22,7 +22,8 @@ function kona3plugins_chapter_execute($args) {
         $line = kona3plugin_chapter_read_head($f);
         $name = kona3getWikiName($f);
         $url = kona3getPageURL($name);
-        $name = htmlentities($name);
+        if ($line == '') { $line = $name; }
+        $line = htmlentities($line);
         $code .= "<li><a href='$url'>$line</a></li>\n";
     }
     $code .= "</ul>\n";
@@ -38,6 +39,6 @@ function kona3plugin_chapter_read_head($fname) {
         $result = $line;
         break;
     }
-    return $result;
+    return trim($result);
 }
 
