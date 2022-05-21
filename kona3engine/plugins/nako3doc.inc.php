@@ -261,22 +261,31 @@ function nako3doc_list_func($pagetype) {
         $type = str_replace(',', ', ', $type);
         $w = "** 🔌 [[$plugin]]\n[[$plugin]]は{$type}で使えます。\n";
         $ps = preg_replace('#^(plugin_|nadesiko3-)#', '', $plugin);
+        $alias = ['system' => 'システム', 'browser' => 'ブラウザ', 'datetime' => '日時',
+            'math' => '数学関数', 'kansuji' => '漢数字'];
+        if (isset($alias[$ps])) { $ps = $alias[$ps]; }
         $t = "| 🔌 [[$ps:$plugin]] | ";
+        $groupList = []; $i = 0; $marks = ['🌿','🌱','🍃','🍃','🌲'];
         foreach ($cmd[$plugin] as $genre => $list) {
-            $w .= "*** 🌴 [[$genre:$plugin/$genre]]:\n";
+            $mark = $marks[$i % count($marks)]; $i++;
+            $w .= "*** [[🌲 {$ps}:$plugin]] > [[{$genre}:$plugin/$genre]]:\n";
             $w .= '{{{#column'."\n";
-            $w .= implode(' / ', $list)."\n";
+            $w .= implode(' 🌲 ', $list)."\n";
             $w .= '}}}'."\n\n";
             $w .= "\n\n";
-            $t .= "([[$genre:$plugin/$genre]]) ";
+            $groupList[] = "[[$genre:$plugin/$genre]]";
         }
-        $t .= "\n";
+        $t .= implode(' 🌲 ', $groupList)."\n";
         return [$w, $t];
     };
     // 出力
     $index = '';
     $wiki = '';
     list($w, $t) = $fn($cmd, 'plugin_system');
+    $wiki .= $w; $index .= $t;
+    list($w, $t) = $fn($cmd, 'plugin_math');
+    $wiki .= $w; $index .= $t;
+    list($w, $t) = $fn($cmd, 'plugin_csv');
     $wiki .= $w; $index .= $t;
     if (!$pagetype || $pagetype == 'wnako') {
         list($w, $t) = $fn($cmd, 'plugin_browser');
@@ -292,6 +301,8 @@ function nako3doc_list_func($pagetype) {
         foreach ($cmd as $plug => $v) {
             // 既に追加済みならスキップ
             if ($plug == 'plugin_system' || 
+                $plug == 'plugin_math' ||
+                $plug == 'plugin_csv' ||
                 $plug == 'plugin_browser' ||
                 $plug == 'plugin_turtle' ||
                 $plug == 'plugin_node') {
@@ -339,6 +350,10 @@ function nako3doc_list_kana($mode) {
         }
         $plugin1 = $ra[$i]['plugin'];
         $plugin2 = $ra[$i+1]['plugin'];
+        $plugin1 = str_replace('plugin_', '', $plugin1);
+        $plugin2 = str_replace('plugin_', '', $plugin2);
+        $plugin1 = str_replace('nadesiko3-', '', $plugin1);
+        $plugin2 = str_replace('nadesiko3-', '', $plugin2);
         $kana1 = $ra[$i]['kana'];
         $ra[$i+0]['name_show'] = "$name1($plugin1)";
         $ra[$i+1]['name_show'] = "$name1($plugin2)";
@@ -383,12 +398,7 @@ function nako3doc_list_kana($mode) {
     if ($mode == 'yomi') {
         return $wiki_html;
     }
-    return <<<EOS
-<iframe height="450" width="100%"
-  src="https://nadesi.com/v3/storage/widget.php?451&amp;run=1&amp;mute_name=1"
-  style="width:99%; border: none;"></iframe>
-{$wiki_html}
-EOS;
+    return $wiki_html;
 }
 
 function nako3doc_list_plugins() {
