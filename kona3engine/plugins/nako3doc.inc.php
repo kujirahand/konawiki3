@@ -56,10 +56,10 @@ function kona3plugins_nako3doc_execute($parg) {
     // $search_url = "https://nadesi.com/v3/storage/index.php?search_word={$nameenc}&action=search&target=program";
     // $search_name = "[[→『{$name}』を貯蔵庫で検索:$search_url]]";
     $search_url = "https://www.google.com/search?q=site%3A%2F%2Fnadesi.com%2Fv3%2Fdoc+{$nameenc}";
-    $search_name = "[[→『{$name}』を検索(マニュアル):{$search_url}]]";
+    $search_name = "[[🔍マニュアルを検索:{$search_url}]]";
     $search_url = "https://www.google.com/search?q=site%3A%2F%2Fn3s.nadesi.com+{$nameenc}";
-    $search_name_n3s = "[[→『{$name}』を検索(貯蔵庫):{$search_url}]]";
-    $src_link = "[[→Gitソース:{$src_url}]]";
+    $search_name_n3s = "[[🔍貯蔵庫を検索:{$search_url}]]";
+    $src_link = "[[👓ソース:{$src_url}]]";
     $wiki =<<<EOS
 * {$name} ($kana)
 
