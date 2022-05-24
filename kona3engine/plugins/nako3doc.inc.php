@@ -37,6 +37,7 @@ function kona3plugins_nako3doc_execute($parg) {
     $args = $r['args'];
     $desc = $r['desc'];
     $kana = $r['kana'];
+    $src_url = $r['src_url'];
     $ctime = $r['ctime'];
     $mtime = $r['mtime'];
     $nakotype = nako3doc_getNakoTypeWiki($plugin);
@@ -58,6 +59,7 @@ function kona3plugins_nako3doc_execute($parg) {
     $search_name = "[[→『{$name}』を検索(マニュアル):{$search_url}]]";
     $search_url = "https://www.google.com/search?q=site%3A%2F%2Fn3s.nadesi.com+{$nameenc}";
     $search_name_n3s = "[[→『{$name}』を検索(貯蔵庫):{$search_url}]]";
+    $src_link = "[[→Gitソース:{$src_url}]]";
     $wiki =<<<EOS
 * {$name} ($kana)
 
@@ -81,7 +83,7 @@ EOS;
 }}}
 EOS;
     }
-    $wiki = $wiki."\n{$search_name_n3s} / {$search_name}\n";
+    $wiki = $wiki."\n{$search_name_n3s} / {$search_name} / ${src_link}\n";
     $s = konawiki_parser_convert($wiki);
 
     return $s;  
