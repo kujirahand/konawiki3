@@ -492,22 +492,27 @@ function nako3doc_run($sql, $params = []) {
 // action
 function kona3plugins_nako3doc_action() {
     $q = isset($_GET['q']) ? $_GET['q'] : '';
+    $qhtml = htmlspecialchars($q);
     $rows = nako3doc_run(
         'SELECT * FROM commands WHERE name=? OR pagename=?',
         [$q, $q]);
-    $html = '<ul>';
+    $html = "<div style='color:gray;'>命令『{$qhtml}』の検索結果:</div>".
+        "<div><ul>";
     if (!$rows) {
         $html .= '<li>見つかりません</li>';
     } else {
         foreach ($rows as $r) {
             $pagename = $r['pagename'];
+            $desc = htmlspecialchars($r['desc']);
+            $args = htmlspecialchars($r['args']);
             $url = kona3getPageURL($pagename);
-            $pagename_html = htmlspecialchars($pagename);
-            $html .= "<li><a href='$url'>$pagename_html</a></li>";
+            $name = htmlspecialchars($pagename);
+            $html .= "<li><a href='$url'>$name</a> ($args)".
+                "<br>$desc</li>";
         }
     }
-    $html .= '</ul>';
-    kona3showMessage('#nako3doc', $html, 'white.html');
+    $html .= '</ul></div>';
+    kona3showMessage('#nako3doc - 命令検索', $html, 'white.html');
 }
 
 
