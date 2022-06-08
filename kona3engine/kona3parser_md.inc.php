@@ -50,17 +50,30 @@ function kona3markdown_parser_parse($text)
 
     // main loop
     $tokens = array();
+    $oldtext = '';
     while ( $text != "") {
+        // check parse error
+        if ($text == $oldtext) {
+            $sb = mb_substr($text, 0, 32)."..\n";
+            $sb = str_replace("\n", '[LF]', $sb);
+            echo "<pre>[PARSE ERROR] ".$sb;
+            echo "<a href='https://github.com/kujirahand/konawiki3/issues'>Please report...</a></pre>";
+            break;
+        }
+        $oldtext = $text;
+        // check line head
         $c = mb_substr($text, 0, 1);
+        echo "[$c][".ord($c)."]\n";
         // TITLE
         if ($c == "#") {
             $level = kona3markdown_parser_count_level($text, $c);
             kona3markdown_parser_skipSpace($text);
             $tokens[] = array("cmd"=>"*", "text"=>kona3markdown_parser_token($text, $eol), "level"=>$level);
             kona3markdown_parser_skipEOL($text);
+            continue;
         }
         // LIST <ul>
-        else if ($c == '-') {
+        if ($c == '-') {
             // hr
             if (preg_match('#^(-{5,})\n#', $text, $m)) {
                 $text = substr($text, strlen($m[0]));
@@ -79,6 +92,7 @@ function kona3markdown_parser_parse($text)
             $tokens[] = array("cmd"=>"+", "text"=>kona3markdown_parser_token($text, $eol), "level"=>1);
         }
         else if ($c == ' ') {
+            // indent + list
             if (preg_match('#^(\s{1,})\-#', $text, $m)) {
                 $text = mb_substr($text, mb_strlen($m[0]));
                 $level = intval(strlen($m[1]) / 2) + 1;
@@ -88,6 +102,10 @@ function kona3markdown_parser_parse($text)
                 $text = substr($text, strlen($m[0]));
                 $level = intval(strlen($m[1]) / 2) + 1;
                 $tokens[] = array("cmd"=>"+", "text"=>kona3markdown_parser_token($text, $eol), "level"=>$level);
+            } else {
+                // skip
+                kona3markdown_parser_skipSpace($text);
+                continue;
             }
         }
         // TABLE
@@ -118,6 +136,7 @@ function kona3markdown_parser_parse($text)
         // skip CR LF
         else if ($c == "\r" || $c == "\n") {
             kona3markdown_parser_skipEOL($text);
+            continue;
         }
         // PLUG-INS
         else if ($c == "♪") { // plugins
