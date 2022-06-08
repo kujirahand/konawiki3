@@ -63,7 +63,6 @@ function kona3markdown_parser_parse($text)
         $oldtext = $text;
         // check line head
         $c = mb_substr($text, 0, 1);
-        echo "[$c][".ord($c)."]\n";
         // TITLE
         if ($c == "#") {
             $level = kona3markdown_parser_count_level($text, $c);
