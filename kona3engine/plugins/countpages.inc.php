@@ -6,6 +6,7 @@
  */
 function kona3plugins_countpages_execute($args) {
   global $kona3conf;
+  $ext = '.'.kona3getConf('def_text_ext', 'txt');
   $pattern = "";
   $ignore = [];
   $perpage = 1000;
@@ -39,7 +40,7 @@ function kona3plugins_countpages_execute($args) {
   $cnt_code = 0;
   //
   $pattern = str_replace('*', '', $pattern);
-  $files = glob_files("$path/$pattern", '.txt', $ignore);
+  $files = glob_files("$path/$pattern", $ext, $ignore);
   //
   foreach($files as $f) {
     // check $pattern
