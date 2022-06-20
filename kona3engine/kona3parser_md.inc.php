@@ -513,6 +513,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
             continue;
         }
         // string1 *
+        /*
         if ($c1 == '*') {
             $text = mb_substr($text, 1);
             $s = kona3markdown_parser_token($text, "*");
@@ -520,6 +521,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
             $result .= "<strong class='strong1'>$str</strong>";
             continue;
         }
+        */
         // strong2
         if ($c2 == "__") {
             $text = mb_substr($text, 2);
@@ -529,6 +531,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
             continue;
         }
         // string2 _
+        /*
         if ($c1 == '_') {
             $text = mb_substr($text, 1);
             $s = kona3markdown_parser_token($text, "_");
@@ -536,6 +539,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
             $result .= "<strong class='strong2'>$str</strong>";
             continue;
         }
+        */
         // strike
         if ($c2 == '~~') {
             $text = mb_substr($text, 2);
