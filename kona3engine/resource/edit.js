@@ -96,7 +96,8 @@ function go_ajax(a_mode) {
       'a_mode': a_mode,
       'a_hash': $('#a_hash').val(),
       'edit_txt': text,
-      'edit_token': $('#edit_token').val()
+      'edit_token': $('#edit_token').val(),
+      'tags': $('#tags').val()
   })
   .done(function(msg) {
     // parse to json

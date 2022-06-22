@@ -15,6 +15,7 @@ function kona3_action_edit() {
     $q = kona3param("q");
     $cmd = kona3param("cmd");
     $git_enabled = $kona3conf["git_enabled"];
+    $page_id = kona3db_getPageId($page, FALSE);
 
     // check permission
     if (!kona3isLogin()) {
@@ -102,6 +103,17 @@ function kona3_action_edit() {
     // history
     $history = kona3db_getPageHistory($page, $edit_token);
 
+    // tags
+    $tags = '';
+    $r = db_get('SELECT * FROM tags WHERE page_id=?', [$page_id]);
+    if ($r) {
+      $a = [];
+      foreach ($r as $i) {
+        $a[] = $i['tag'];
+      }
+      $tags = implode('/', $a);
+    }
+
     // show
     kona3template('edit.html', array(
         "action" => $action,
@@ -111,6 +123,7 @@ function kona3_action_edit() {
         "msg" => $msg,
         "history" => $history,
         "edit_token" => $edit_token,
+        "tags" => $tags,
     ));
 }
 
@@ -223,6 +236,7 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
 
     $edit_txt = kona3param('edit_txt', '');
     $a_hash_frm = kona3param('a_hash', '');
+    $tags = kona3param('tags', '');
 
     $fname = kona3getEditFile($page, $ext);
     $user_id = kona3getUserId();
@@ -290,10 +304,9 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
         $result = FALSE;
         return $msg;
     }
-
     // === for Database ===
-    kona3db_writePage($page, $edit_txt, $user_id);
-
+    kona3db_writePage($page, $edit_txt, $user_id, $tags);
+    
     // result
     if ($i_mode == "git") {
         $result = TRUE;

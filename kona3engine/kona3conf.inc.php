@@ -11,6 +11,7 @@ header("Content-Type: text/html; charset=UTF-8");
 
 include_once __DIR__.'/kona3lib.inc.php';
 include_once __DIR__.'/fw_database.lib.php';
+include_once __DIR__.'/kona3db.inc.php';
 
 // --------------------
 // Initialize config
@@ -131,4 +132,5 @@ function kona3conf_gen() {
     $DIR_TEMPLATE.'/info.sql'
   );
   $db = database_get();
+  kona3dbInit();
 }

@@ -1,5 +1,29 @@
 <?php
 // file: kona3db.inc.php
+function kona3dbInit() {
+  // check database version
+  if (!db_table_exists('meta')) {
+    db_exec("CREATE TABLE IF NOT EXISTS meta (
+        name TEXT,
+        value_i INTEGER,
+        value_s TEXT DEFAULT ''
+    )");
+    db_exec("INSERT INTO meta (name,value_i)VALUES('dbversion', 0)");
+  }
+  // get dbversion
+  $r = db_get('SELECT * FROM meta WHERE name="dbversion"');
+  // ver 11 ?
+  if ($r && $r['value_i'] < 11) {
+    db_exec("UPDATE meta SET value_i=11 WHERE name='dbversion'");
+    db_exec("
+      CREATE TABLE IF NOT EXISTS tags (
+        page_id INTEGER,
+        tag TEXT,
+        mtime INTEGER
+      );
+    ");
+  }
+}
 
 function kona3db_getPageId($page, $canCreate = FALSE) {
   $r = db_get1(
@@ -41,7 +65,7 @@ function kona3db_getPageNameById($page_id) {
   return '';
 }
 
-function kona3db_writePage($page, $body, $user_id=0) {
+function kona3db_writePage($page, $body, $user_id=0, $tags = NULL) {
   $page_id = kona3db_getPageId($page, TRUE);
   $hash = kona3getHash($body);
   // check 1 hour history
@@ -68,7 +92,17 @@ function kona3db_writePage($page, $body, $user_id=0) {
   db_exec(
     "UPDATE pages SET mtime=? WHERE page_id=?",
     [time(), $page_id]);
-  //
+  // tags
+  if ($tags != NULL) {
+    $tags_a = explode('/', $tags);
+    db_exec("DELETE FROM tags WHERE page_id=?", [$page_id]);
+    foreach ($tags_a as $name) {
+      $name = trim($name);
+      db_exec(
+        "INSERT INTO tags (page_id, tag, mtime)VALUES(?, ?, ?)", 
+        [$page_id, $name, time()]);
+    }
+  }
   return TRUE;
 }
 

@@ -41,3 +41,21 @@ CREATE TABLE email_logs (
   ctime INTEGER
 );
 
+/* tags */
+CREATE TABLE tags (
+  page_id INTEGER,
+  tag TEXT,
+  mtime INTEGER
+);
+
+/* meta table */
+CREATE TABLE meta (
+  name TEXT,
+  value_i INTEGER,
+  value_s TEXT DEFAULT ''
+);
+
+/** History
+2022/06/22 ver11 : add tags, meta table
+*/
+
