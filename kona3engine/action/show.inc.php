@@ -58,10 +58,25 @@ function kona3_action_show() {
                 $kona3conf['allpage_footer']).
                 "</div><!-- end of .allpage_footer -->\n";
     }
+    // tags
+    $tags = '';
+    $page_id = kona3db_getPageId($page);
+    $tags_a = db_get('SELECT * FROM tags WHERE page_id=?',
+        [$page_id]);
+    if ($tags_a) {
+        $a = [];
+        foreach ($tags_a as $t) {
+            $tag = $t['tag'];
+            $a[] = htmlspecialchars($tag);
+        }
+        $tags = '<div class="desc" style="text-align:right;font-size:0.8em;color:gray;">Tags: '.implode('/', $a).'</div>';
+    }
+    //
     $page_body = 
         $allpage_header.
         $page_body.
-        $allpage_footer;
+        $allpage_footer.
+        $tags;
 
     // show
     kona3template('show.html', [

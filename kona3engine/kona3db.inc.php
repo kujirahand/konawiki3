@@ -5,13 +5,13 @@ function kona3dbInit() {
   if (!db_table_exists('meta')) {
     db_exec("CREATE TABLE IF NOT EXISTS meta (
         name TEXT,
-        value_i INTEGER,
+        value_i INTEGER DEFULT 0,
         value_s TEXT DEFAULT ''
     )");
     db_exec("INSERT INTO meta (name,value_i)VALUES('dbversion', 0)");
   }
   // get dbversion
-  $r = db_get('SELECT * FROM meta WHERE name="dbversion"');
+  $r = db_get1('SELECT * FROM meta WHERE name="dbversion"');
   // ver 11 ?
   if ($r && $r['value_i'] < 11) {
     db_exec("UPDATE meta SET value_i=11 WHERE name='dbversion'");

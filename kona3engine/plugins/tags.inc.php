@@ -22,8 +22,8 @@ function kona3plugins_tags_execute($args) {
     [$tag, $limit]);
   $code = "";
   if ($r) {
+    $code .= "Tag: ".htmlspecialchars($tag)."</li>\n";
     $code .= "<ul>";
-    $code .= "<li>".htmlspecialchars($tag)."</li>\n";
     foreach ($r as $t) {
       $page = kona3db_getPageNameById($t['page_id']);
       $page_h = htmlspecialchars($page);

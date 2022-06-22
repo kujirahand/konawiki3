@@ -51,7 +51,7 @@ CREATE TABLE tags (
 /* meta table */
 CREATE TABLE meta (
   name TEXT,
-  value_i INTEGER,
+  value_i INTEGER DEFAULT 0,
   value_s TEXT DEFAULT ''
 );
 
