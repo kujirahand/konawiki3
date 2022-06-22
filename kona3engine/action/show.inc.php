@@ -67,9 +67,13 @@ function kona3_action_show() {
         $a = [];
         foreach ($tags_a as $t) {
             $tag = $t['tag'];
-            $a[] = htmlspecialchars($tag);
+            $tag_h = htmlspecialchars($tag);
+            $tag_u = urlencode($tag);
+            $url = kona3getPageURL($page, 'plugin', '', "name=tags&tag=$tag_u");
+            $a[] = "<a href='$url'>$tag_h</a>";
         }
-        $tags = '<div class="desc" style="text-align:right;font-size:0.8em;color:gray;">Tags: '.implode('/', $a).'</div>';
+        $tags = '<div class="desc" style="text-align:right;font-size:0.8em;color:gray;">Tags: '.
+            implode('/', $a).'</div>';
     }
     //
     $page_body = 

@@ -11,11 +11,15 @@ function kona3plugins_tags_execute($args) {
     if ($arg == 'sort=mtime') { $sort = 'mtime'; continue; }
     if ($arg == 'sort=page_id') { $sort = 'page_id'; continue; }
     if (preg_match('/^limit=(\d+)/', $arg, $m)) {
-      $limit = $m[1];
+      $limit = intval($m[1]);
       continue;
     }
-    $tag = $arg;
+    if ($tag == '') { $tag = $arg; }
   }
+  return kona3plugins_tags_getTags($tag, $sort, $limit);
+}
+
+function kona3plugins_tags_getTags($tag, $sort = 'mtime', $limit = 30) {
   // get
   $r = db_get(
     'SELECT * FROM tags WHERE tag=? ORDER BY '.$sort.' LIMIT ?', 
@@ -33,4 +37,11 @@ function kona3plugins_tags_execute($args) {
     $code .= "</ul>\n";
   }
   return $code;
+}
+
+function kona3plugins_tags_action() {
+  $tag = kona3param('tag', '');
+  $tag_h = htmlspecialchars($tag);
+  $code = kona3plugins_tags_getTags($tag, 'mtime', 300);
+  kona3showMessage("Tag: $tag_h", $code, 'white.html');
 }
