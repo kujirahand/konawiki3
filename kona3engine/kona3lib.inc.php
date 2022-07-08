@@ -554,7 +554,7 @@ function kona3date($value, $mode='easy') {
     if ($value === 0) return "@";
     // to_int
     if (is_int($value)) {
-        $target = konawiki_date($value);
+        $target = date(lang('date_format', 'Y-m-d'), $value);
     } else {
         $target = $value;
     }
