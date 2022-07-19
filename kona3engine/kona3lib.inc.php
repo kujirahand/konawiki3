@@ -177,14 +177,15 @@ function kona3getWikiFile($wikiname, $autoExt = true, $ext = '.txt', $force_enco
 function kona3getWikiUrl($wikiname) {
     global $kona3conf;
     $path_url = $kona3conf["url.data"];
-    $wikiname = kona3getRelativePath($wikiname);
-    $paths = explode("/", $wikiname);
+    $file_path = kona3getRelativePath($wikiname);
+    $paths = explode("/", $file_path);
     $rpath = array();
     foreach ($paths as $p) {
         $rpath[] = urlencode($p);
     }
-    $base = $path_url . ($path_url != '') ? '/' : '';
-    return $base . implode("/", $rpath);
+    $base = $path_url . (($path_url != '') ? '/' : '');
+    $result = $base . implode("/", $rpath);
+    return $result;
 }
 
 // get wiki data

@@ -32,7 +32,7 @@ function kona3plugins_filelist_execute($args) {
   $code = "<ul>";
   foreach ($files as $f) {
     if (is_dir($f)) continue;
-    $file = "$f";
+    $file = "file:$f";
     $url = kona3getWikiUrl($file);
     $name = htmlentities(basename($f));
     $thumb = "";
@@ -44,7 +44,7 @@ function kona3plugins_filelist_execute($args) {
       }
       else { $thumb = ''; }  
     }
-    $code .= "<li><a href='$url'>$thumb $name $url</a></li>\n";
+    $code .= "<li><a href='$url'>$thumb $name</a></li>\n";
   }
   $code .= "</ul>\n";
   return $code;
