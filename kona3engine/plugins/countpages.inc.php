@@ -58,7 +58,7 @@ function kona3plugins_countpages_execute($args) {
     // search #filecode(***)
     $lines = explode("\n", $txt);
     foreach ($lines as $line) {
-      if (!preg_match("/\#filecode\((.+)\)/", $line, $m)) continue;
+      if (!preg_match("/[#♪]filecode\((.+)\)/", $line, $m)) continue;
       $src = $path . "/" . $m[1];
       if (file_exists($src)) {
         $subtxt = @file_get_contents($src);
