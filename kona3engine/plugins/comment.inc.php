@@ -226,7 +226,7 @@ function kona3plugins_comment_action() {
       if (!$can_delete) {
         $bbs_admin_password = kona3getConf('bbs_admin_password', '');
         if ($bbs_admin_password != '') {
-          if ($delkey == $bbs_admin_password) { $can_delete = TRUE; }
+          if ($pw == $bbs_admin_password) { $can_delete = TRUE; }
         }
       }
     }
