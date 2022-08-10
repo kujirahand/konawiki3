@@ -17,7 +17,8 @@ function kona3plugins_filelist_execute($args) {
   $page = $kona3conf['page'];
   $fname = kona3getWikiFile($page);
   $dir = dirname($fname);
-  $files = glob($dir.'/*');
+  $glob_pat = $dir.'/*';
+  $files = glob($glob_pat);
   sort($files);
 
   # filter
@@ -32,7 +33,7 @@ function kona3plugins_filelist_execute($args) {
   foreach ($files as $f) {
     if (is_dir($f)) continue;
     $file = "file:$f";
-    $url = kona3getWikiUrl($file, false);
+    $url = kona3getWikiUrl($file);
     $name = htmlentities(basename($f));
     $thumb = "";
     if (isset($opt['thumb']) || isset($opt['thumb128'])) {
@@ -41,7 +42,7 @@ function kona3plugins_filelist_execute($args) {
       if (preg_match('/\.(png|gif|jpg|jpeg)$/i', $f)) {
         $thumb = "<img src='$url' width='$width'>";
       }
-      else { $thumb = '(no thumb)'; }  
+      else { $thumb = ''; }  
     }
     $code .= "<li><a href='$url'>$thumb $name</a></li>\n";
   }

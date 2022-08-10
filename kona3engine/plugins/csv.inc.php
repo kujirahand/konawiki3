@@ -5,6 +5,7 @@
  * -- noheader ... 一行目をヘッダとしない
  * -- flag=xxx ... 区切り文字
  * -- cell=xxx ... セルの変換(wiki|text) wikiでwiki記法をパース/デフォルトはwiki
+ * -- plain ... 強制セルの変換を行わない
  * -- データ ... CSVデータを指定する
 */
 function kona3plugins_csv_execute($params) {
@@ -16,6 +17,10 @@ function kona3plugins_csv_execute($params) {
     foreach ($params as $s) {
         if ($s == "noheader") {
             $noheader = TRUE;
+            continue;
+        }
+        if ($s == 'plain') {
+            $cellType = 'text';
             continue;
         }
         if (preg_match('#flag\=(.+)#', $s, $m)) {

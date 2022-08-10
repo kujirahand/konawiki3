@@ -628,7 +628,7 @@ function kona3markdown_parser_tosource_block($src, $params = [])
         $fname = mb_substr($fname, 1);
         $line  = kona3markdown_parser_token($fname, "\n");
         $pname = trim(kona3markdown_parser_token($line, "("));
-        $arg_str = kona3markdown_parser_token($fname, ")");
+        $arg_str = kona3markdown_parser_token($line, ")");
         if ($arg_str != "") {
             $args = explode(",", $arg_str);
         } else {
@@ -851,8 +851,7 @@ function kona3markdown_parser_sourceBlock(&$text)
     // create end mark
     $endmark .= $eol;
     $src = kona3markdown_parser_token($text, $endmark);
-    //
-    return array("cmd"=>"block", "text"=>$src, "params" => [$name]);
+    return array("cmd"=>"block", "text"=>$src, "params" =>[$name]);
 }
 
 function kona3markdown_public($key, $def = "") {
