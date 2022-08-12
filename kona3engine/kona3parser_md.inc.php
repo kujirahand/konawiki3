@@ -557,7 +557,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
             continue;
         }
         // image link
-        if (preg_match('#^\!\[(.+?)\]\((.+?)\)#',$text, $m)) {
+        if (preg_match('#^\!\[(.*?)\]\((.+?)\)#',$text, $m)) {
             $text = substr($text, strlen($m[0]));
             $alt = $m[1];
             $link = $m[2];
