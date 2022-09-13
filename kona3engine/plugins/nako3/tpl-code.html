@@ -26,7 +26,7 @@
 
 <div class="nako3row">
   <div id="nako3_editor_controlls_{{pid}}" class="nako3ctrl">
-    <button onclick="nako3_run({{pid}}, {{use_canvas}}, {{use_textarea}}, {{debug}})">▶ 実行</button>
+    <button onclick="nako3_run({{pid}}, {{use_canvas}}, {{use_textarea}}, {{debug}}, {{editable}})">▶ 実行</button>
     <button onclick="nako3_clear({{pid}}, {{use_canvas}})">クリア</button>
     <span id="post_span_{{pid}}" class="post_span">
       <button id="post_button_{{pid}}" onclick="nako3_post_submit({{pid}})">保存</button>
@@ -54,6 +54,7 @@
   const can_save = {{ can_save }};
   const use_textarea = {{ use_textarea }};
   const use_canvas = {{ use_canvas }};
+  const debug = {{ debug }};
   // post button
   post_button_init(pid, can_save);
   // ace_editor
@@ -66,7 +67,7 @@
         setTimeout(autoRun, 500)
         return
       }
-      nako3_run(pid, use_canvas, use_textarea)
+      nako3_run(pid, use_canvas, use_textarea, debug, editable)
     }
     autoRun()
   }

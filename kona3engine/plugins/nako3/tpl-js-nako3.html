@@ -43,7 +43,7 @@ function nako3_print_textarea (id, text) {
 //------------------------------------
 // なでしこのプログラムを実行する関数
 //------------------------------------
-function nako3_run(id, use_canvas, use_textarea, useDebug) {
+function nako3_run(id, use_canvas, use_textarea, useDebug, editable) {
   // wait for wnako3.js
   if (typeof(navigator.nako3) === 'undefined') {
     alert('現在「なでしこ3」を読み込み中です。しばらくお待ちください。')
@@ -85,7 +85,7 @@ function nako3_run(id, use_canvas, use_textarea, useDebug) {
       if (useDebug) {
         nako3.debugOption.useDebug = true
         nako3.debugOption.waitTime = 0.3
-        nako3.debugOption.messageAction = 'konawiki3.debug.line'
+        nako3.debugOption.messageAction = editable ? 'konawiki3.debug.line.editable' : 'konawiki3.debug.line'
       } else {
         nako3.debugOption.useDebug = false
       }
@@ -106,7 +106,11 @@ function nako3_run(id, use_canvas, use_textarea, useDebug) {
 
 window.addEventListener('message', (e) => {
   const data = e.data
-  if (data.action !== 'konawiki3.debug.line') { return }
+  let isNotEditable = false
+  let isEditable = false
+  if (data.action == 'konawiki3.debug.line') { isNotEditable = true }
+  if (data.action == 'konawiki3.debug.line.editable') { isEditable = true }
+  if (!isNotEditable && !isEditable) { return }
   if (activeEditor === null) { return }
   if (!activeEditorIsAce) { return }
   const line = data.line
@@ -116,14 +120,16 @@ window.addEventListener('message', (e) => {
     if (m[1] <= 0) { return }
     const ed = activeEditor.editor
     activeEditorLineNo = parseInt(m[1])
-    ed.gotoLine(activeEditorLineNo)
-    ed.getSession().setAnnotations([{
-      row: (activeEditorLineNo >= 2) ? activeEditorLineNo - 1: 1,
-      column: 0,
-      text: "→",
-      type: "warning" // error/information/warning
-    }]);
-    ed.focus()
+    if (isEditable) {
+      ed.gotoLine(activeEditorLineNo)
+    } else {
+      ed.getSession().setAnnotations([{
+        row: (activeEditorLineNo >= 2) ? activeEditorLineNo - 1: 1,
+        column: 0,
+        text: "→",
+        type: "warning" // error/information/warning
+      }]);
+    }
   }
 })
 
