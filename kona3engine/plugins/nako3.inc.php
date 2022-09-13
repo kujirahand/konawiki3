@@ -14,7 +14,7 @@
  * -- size=(width)x(height) canvasの幅と高さ
  * --- use_textarea テキストエリアで表示する
  * --- nakofile=xxx data以下のファイル名を指定
- * --- debug デバッグモードで実行する
+ * --- debug デバッグモードで実行する (ただし、v3.3.72以降で使える)
  * --- run 自動実行する
  * - [使用例] #nako3(なでしこのプログラム);
 {{{
