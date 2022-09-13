@@ -43,7 +43,7 @@ function nako3_print_textarea (id, text) {
 //------------------------------------
 // なでしこのプログラムを実行する関数
 //------------------------------------
-function nako3_run(id, use_canvas, use_textarea) {
+function nako3_run(id, use_canvas, use_textarea, useDebug) {
   // wait for wnako3.js
   if (typeof(navigator.nako3) === 'undefined') {
     alert('現在「なでしこ3」を読み込み中です。しばらくお待ちください。')
@@ -81,10 +81,14 @@ function nako3_run(id, use_canvas, use_textarea) {
   // 実行
   const runAsync = async () => {
     const nako3 = navigator.nako3
-    if ({{ debug }}) {
-      nako3.debugOption.useDebug = true
-      nako3.debugOption.waitTime = 0.3
-      nako3.debugOption.messageAction = 'konawiki3.debug.line'
+    if (nako3.debugOption) {
+      if (useDebug) {
+        nako3.debugOption.useDebug = true
+        nako3.debugOption.waitTime = 0.3
+        nako3.debugOption.messageAction = 'konawiki3.debug.line'
+      } else {
+        nako3.debugOption.useDebug = false
+      }
     }
     if (use_textarea) {
       activeEditorIsAce = false
