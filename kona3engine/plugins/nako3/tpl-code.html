@@ -52,7 +52,7 @@
   const pid = {{ pid }};
   const editable = {{ editable }};
   const can_save = {{ can_save }};
-  const use_textarea = {{ editable }};
+  const use_textarea = {{ use_textarea }};
   const use_canvas = {{ use_canvas }};
   // post button
   post_button_init(pid, can_save);
@@ -60,7 +60,7 @@
   ace_editor_init(pid, use_textarea);
   
   // <自動実行のための処理>
-  if ({{ run }}) {
+  if ({{ auto_run }}) {
     const autoRun = () => {
       if (typeof(navigator.nako3) === 'undefined') {
         setTimeout(autoRun, 500)

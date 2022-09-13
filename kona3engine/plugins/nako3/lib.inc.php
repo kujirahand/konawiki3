@@ -13,7 +13,7 @@ function nako3_parse_params(&$nako3, $params) {
   $nako3['use_textarea'] = false;
   $nako3['nakofile'] = '';
   $nako3['debug'] = false;
-  $nako3['run'] = false;
+  $nako3['auto_run'] = false;
  
   // パラメータを一つずつチェック
   foreach ($params as $s) {
@@ -39,8 +39,8 @@ function nako3_parse_params(&$nako3, $params) {
       $nako3['debug'] = true;
       continue;
     }
-    if ($s == "run") {
-      $nako3['run'] = true;
+    if ($s == "auto_run") {
+      $nako3['auto_run'] = true;
       continue;
     }
     

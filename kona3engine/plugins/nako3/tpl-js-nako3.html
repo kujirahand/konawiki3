@@ -111,10 +111,10 @@ window.addEventListener('message', (e) => {
   if (m) {
     if (m[1] <= 0) { return }
     const ed = activeEditor.editor
-    ed.gotoLine(m[1])
     activeEditorLineNo = parseInt(m[1])
+    ed.gotoLine(activeEditorLineNo)
     ed.getSession().setAnnotations([{
-      row: activeEditorLineNo,
+      row: (activeEditorLineNo >= 2) ? activeEditorLineNo - 1: 1,
       column: 0,
       text: "→",
       type: "warning" // error/information/warning
