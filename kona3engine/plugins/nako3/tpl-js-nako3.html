@@ -1,7 +1,9 @@
 <!-- [tpl-js-nako3.html] -->
 <!-- 一度だけ取り込まれる部分 -->
 <script>
-// baseurl
+var activeEditor = null
+var activeEditorTypeIsAce = true
+var activeEditorLineNo = -1
 const baseurl = '{{ baseurl }}';
 
 const nako3_clear = function (id, use_canvas) {
@@ -76,13 +78,50 @@ function nako3_run(id, use_canvas, use_textarea) {
   if (resultDiv) {resultDiv.style.display = "block"}
   const canvasDom = document.querySelector(canvas_name)
   if (canvasDom) {canvasDom.style.display = "block"}
-  if (use_textarea) {
-      var body = document.getElementById('nako3_code_' + id).value
-      navigator.nako3.runReset(preCode + body, preCode)
-  } else {
-      ace_editors[id].run({ 'outputContainer': resultDiv, 'preCode': preCode })
+  // 実行
+  const runAsync = async () => {
+    const nako3 = navigator.nako3
+    if ({{ debug }}) {
+      nako3.debugOption.useDebug = true
+      nako3.debugOption.waitTime = 0.3
+      nako3.debugOption.messageAction = 'konawiki3.debug.line'
+    }
+    if (use_textarea) {
+      activeEditorIsAce = false
+      activeEditor = document.getElementById('nako3_code_' + id)
+      var body = activeEditor.value
+      await nako3.runAsync(preCode + body, preCode)
+    } else {
+      activeEditorIsAce = true
+      activeEditor = ace_editors[id]
+      await ace_editors[id].run({ 'outputContainer': resultDiv, 'preCode': preCode }).promise
+    }
   }
+  runAsync()
 }
+
+window.addEventListener('message', (e) => {
+  const data = e.data
+  if (data.action !== 'konawiki3.debug.line') { return }
+  if (activeEditor === null) { return }
+  if (!activeEditorIsAce) { return }
+  const line = data.line
+  if (typeof line !== 'string') { return }
+  const m = line.match(/l(\+?\d+):/)
+  if (m) {
+    if (m[1] <= 0) { return }
+    const ed = activeEditor.editor
+    ed.gotoLine(m[1])
+    activeEditorLineNo = parseInt(m[1])
+    ed.getSession().setAnnotations([{
+      row: activeEditorLineNo,
+      column: 0,
+      text: "→",
+      type: "warning" // error/information/warning
+    }]);
+    ed.focus()
+  }
+})
 
 </script>
 <!-- [/tpl-js-nako3.html] -->

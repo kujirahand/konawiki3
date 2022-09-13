@@ -16,7 +16,7 @@
  >{{ code }}</textarea>
 <div id="ace_editor{{pid}}"
   class="nako3_editor"
-  style="height:{{edit_height}};display:none;"
+  style="height: {{ edit_height }}; display: none;"
   data-nako3-readonly="{{ readonly }}"
   data-nako3-disable-marker="{{ data_disable_marker }}">{{code}}</div>
 <input type="hidden" name="version" value="{{ ver }}" />
@@ -36,7 +36,7 @@
 </div><!-- end of #nako3_editor_controlls_{{pid}} -->
 
 <!-- RESULT -->
-<div id="nako3result_div_{{pid}}" class="nako3row nako3info" style="display:none;"></div>
+<div id="nako3result_div_{{ pid }}" class="nako3row nako3info" style="display:none;"></div>
 
 <!-- FREE DOM AREA -->
 <div id="nako3_div_{{ pid }}" class="nako3_div"></div>
@@ -49,14 +49,28 @@
 <script>
 (function(){
   // #nako3 plugins pid={{pid}}
-  const pid = {{pid}};
-  const editable = {{editable}};
-  const can_save = {{can_save}};
-  const use_textarea = {{editable}};
+  const pid = {{ pid }};
+  const editable = {{ editable }};
+  const can_save = {{ can_save }};
+  const use_textarea = {{ editable }};
+  const use_canvas = {{ use_canvas }};
   // post button
   post_button_init(pid, can_save);
   // ace_editor
-  ace_editor_init(pid, {{use_textarea}});
+  ace_editor_init(pid, use_textarea);
+  
+  // <自動実行のための処理>
+  if ({{ run }}) {
+    const autoRun = () => {
+      if (typeof(navigator.nako3) === 'undefined') {
+        setTimeout(autoRun, 500)
+        return
+      }
+      nako3_run(pid, use_canvas, use_textarea)
+    }
+    autoRun()
+  }
+  // </自動実行のための処理>
 })();
 </script>
 
