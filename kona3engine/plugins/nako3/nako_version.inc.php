@@ -1,3 +1,3 @@
 <?php
-define('NAKO_DEFAULT_VERSION', '3.3.74');
+define('NAKO_DEFAULT_VERSION', '3.3.76');
 
