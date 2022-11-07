@@ -8,21 +8,24 @@ function kona3plugins_mathjax_execute($args) {
   if (empty($kona3conf[$plugkey])) {
     $kona3conf[$plugken] = 1;
     // use CDN
-    $mj = 'https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+    $mj = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
     $kona3conf['js'][] = $mj;
     $kona3conf['header.tags'][] = <<< EOS
-<script type="text/x-mathjax-config">
-  MathJax.Hub.Config({
-    tex2jax: {
-      inlineMath: [['\\$\\$', '\\$\\$']],
-      displayMath: [ ['\\\\[\\[\\[','\\\\]\\]\\]'] ]
-    }
-  });
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$$$', '$$$'], ['\\($', '$\\)']],
+    displayMath: [['$$$', '$$$']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
 </script>
 EOS;
   }
   $text = htmlspecialchars($text, ENT_QUOTES);
-  return "<div class='mathjax'>\\[[[\n{$text}\n\\]]]\n</div>";
+  return "<div class='mathjax'> $$$ {$text} $$$ </div>";
 }
 
 
