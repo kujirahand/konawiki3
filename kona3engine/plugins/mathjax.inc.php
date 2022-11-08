@@ -14,8 +14,8 @@ function kona3plugins_mathjax_execute($args) {
 <script>
 window.MathJax = {
   tex: {
-    inlineMath: [['$$$', '$$$'], ['\\($', '$\\)']],
-    displayMath: [['$$$', '$$$']]
+    inlineMath: [['$$$', '$$$']],
+    displayMath: [['$$$$', '$$$$']]
   },
   svg: {
     fontCache: 'global'
@@ -25,7 +25,7 @@ window.MathJax = {
 EOS;
   }
   $text = htmlspecialchars($text, ENT_QUOTES);
-  return "<div class='mathjax'> $$$ {$text} $$$ </div>";
+  return "<div class='mathjax'>$$$$ {$text} $$$$</div>";
 }
 
 
