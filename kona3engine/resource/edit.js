@@ -55,8 +55,7 @@ function editorKeydownHandler(event) {
   if (!isChanged) {
     isChanged = true;
     use_beforeunload(true);
-    $('#temporarily_save_btn').prop('disabled', false);
-    $('#save_btn').prop('disabled', false);
+    setButtonsDisabled(false);
   }
 }
 
@@ -187,11 +186,10 @@ function go_ajax(a_mode) {
     setTimeout(function() {
       info.css('backgroundColor', '#f0f0ff');
     }, 500);
-    // button
-    setButtonsDisabled(false);
   })
   .fail(function(xhr, status, error) {
     $("#edit_info").html("Sorry request failed." + error);
+    setButtonsDisabled(false);
   });
 }
 
