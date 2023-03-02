@@ -1,4 +1,6 @@
-// edit.js
+// -----------------------------------------------
+// konawiki3 - edit.js
+// -----------------------------------------------
 // global
 var outline_mode = false;
 var outline_lines = [];
@@ -42,6 +44,8 @@ function edit_init() {
       e.preventDefault();
     }
   });
+
+  // 
 }
 
 var use_unload_flag = false;

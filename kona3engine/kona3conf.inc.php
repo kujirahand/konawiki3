@@ -91,7 +91,7 @@ function kona3conf_gen() {
   // javascript files
   $kona3conf["header.tags"] = array(); // additional header
   $kona3conf["js"] = array(
-    kona3getResourceURL('jquery-3.4.1.min.js'),
+    kona3getResourceURL('jquery-3.6.3.min.js'),
     kona3getSkinURL('drawer.js', TRUE),
   );
   // css files
