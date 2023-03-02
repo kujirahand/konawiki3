@@ -15,6 +15,7 @@
       <div class="buttons">
         <input id="temporarily_save_btn"
           class="pure-button button-long"
+          disabled="true"
           type="button" value="{{'Save temp'|lang}}">
         <input id="save_btn" 
           class="pure-button button-short"
@@ -33,6 +34,10 @@
       </div>
       <div class="desc">
         <b>Tags</b> (tag1/tag2/tag3...): <input type="text" id="tags" class="info" style="width: 50%;" name="tags" value="{{ $tags }}">
+      </div>
+      <div class="desc">
+        <input type="checkbox" id="autosave" class="info" style="width:2em;" name="autosave" value="yes" checked>
+        <label for="autosave"> Auto save </label>
       </div>
     </form>
     <hr>

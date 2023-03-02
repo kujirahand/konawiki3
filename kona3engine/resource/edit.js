@@ -1,9 +1,14 @@
 // -----------------------------------------------
 // konawiki3 - edit.js
 // -----------------------------------------------
-// global
+// const
+const LS_KEY_AUTOSAVE = 'kona3:edit:autosave';
+const TIMER_INTERVAL = 1000 * 60; // 1min
+// var
 var outline_mode = false;
 var outline_lines = [];
+var isChanged = false;
+var timerIdAutosave = 0;
 
 window.addEventListener('load', edit_init, false);
 function qs(id) { return document.querySelector(id); }
@@ -16,36 +21,74 @@ href = href.replace(/(http|https)\:\/\//, '');
 var STORAGE_KEY = 'kona3:' + href;
 
 function edit_init() {
-  // edit event
-  var edit_txt = qs('#edit_txt');
-  edit_txt.addEventListener('keydown', function(e) {
-    var c = e.keyCode;
-    if (37 <= c && c <= 40) {
-      return;
-    }
-    if (c == 13) { // ENTER
-      ls_save();
-    }
-    use_beforeunload(true);
-    // console.log(e.keyCode);
-  }, false);
+  // editor key event
+  const edit_txt = qs('#edit_txt');
+  edit_txt.addEventListener('keydown', editorKeydownHandler, false);
 
   // set button event
-  $('#temporarily_save_btn').click(temporarily_save);
+  $('#temporarily_save_btn').click(clickTempSaveButton);
   // $('#outline_btn').click(change_outline);
   $('#git_save_btn').click(git_save);
-  $('#ls_load_btn').click(ls_load);
+  $('#ls_load_btn').click(loadTextFromLS);
+  $('#autosave').click(autoSaveClickHandler);
+  loadAutoSave();
   
   // shortcut
   $(window).keydown(function(e) {
     // shortcut Ctrl+S
     if ((e.metaKey || e.ctrlKey) && e.keyCode == 83) {
-      temporarily_save();
+      clickTempSaveButton();
       e.preventDefault();
     }
   });
+}
 
-  // 
+// edit_txt.onkeydown
+function editorKeydownHandler(event) {
+  const c = event.keyCode;
+  if (37 <= c && c <= 40) { // arrow key
+    return;
+  }
+  if (c == 13) { // ENTER
+    saveTextToLS();
+  }
+  if (!isChanged) {
+    isChanged = true;
+    use_beforeunload(true);
+    $('#temporarily_save_btn').prop('disabled', false);
+    $('#save_btn').prop('disabled', false);
+  }
+}
+
+// auto save setting
+function loadAutoSave() {
+  const autosaveUI = $('#autosave');
+  // default is true
+  autosaveUI.prop('checked', true);
+  // load from localStorage
+  const ls = localStorage[LS_KEY_AUTOSAVE];
+  if (ls) {
+    console.log('localStorage.'+LS_KEY_AUTOSAVE+'=', ls);
+    switch (ls) {
+      case 'yes': autosaveUI.prop('checked', true); break;
+      case 'no':  autosaveUI.prop('checked', false); break;
+    }
+  }
+  const autosave = autosaveUI.prop('checked');
+  console.log('autosave=', autosave);
+  // timer
+  if (autosave) {
+    if (timerIdAutosave > 0) { clearInterval(timerIdAutosave); }
+    timerIdAutosave = setInterval(timerAutoSaveOnTime, TIMER_INTERVAL);
+  }
+}
+function saveAutoSave(enabled) {
+  localStorage[LS_KEY_AUTOSAVE] = (enabled) ? 'yes': 'no';
+}
+function autoSaveClickHandler() {
+  const autosave = $('#autosave').prop('checked');
+  saveAutoSave(autosave);
+  loadAutoSave();
 }
 
 var use_unload_flag = false;
@@ -64,20 +107,21 @@ function use_beforeunload(b) {
   use_unload_flag = b;
 }
 
-function ls_save() {
+function saveTextToLS() {
   const edit_txt = qs('#edit_txt');
   localStorage[STORAGE_KEY] = edit_txt.value;
 }
 
-function ls_load() {
+function loadTextFromLS() {
   if (!localStorage[STORAGE_KEY]) return;
   if (!confirm('OK?')) return;
   const edit_txt = qs('#edit_txt');
   edit_txt.value = localStorage[STORAGE_KEY];
 }
 
-function temporarily_save() {
-  ls_save();
+function clickTempSaveButton() {
+  console.log('save')
+  saveTextToLS();
   save_ajax();
 }
 
@@ -90,6 +134,14 @@ function git_save() {
   go_ajax('trygit');
 }
 
+// Timer
+function timerAutoSaveOnTime() {
+  if (isChanged) {
+    if (!$('#temporarily_save_btn').prop('disabled')) {
+      clickTempSaveButton();
+    }
+  }
+}
 
 function go_ajax(a_mode) {
   var action = $("#wikiedit form").attr('action');
@@ -104,6 +156,7 @@ function go_ajax(a_mode) {
       'tags': $('#tags').val()
   })
   .done(function(msg) {
+    isChanged = false;
     // parse to json
     if (typeof(msg) == 'string') {
       try {

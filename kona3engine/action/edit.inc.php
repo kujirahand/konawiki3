@@ -87,6 +87,7 @@ function kona3_action_edit() {
         // save & show with git
         $msg = kona3_trygit($txt, $a_hash, $i_mode);
     } else if ($a_mode == "trywrite") {
+        // normal save
         $msg = kona3_trywrite($txt, $a_hash, $i_mode, $result);
     } else if ($a_mode == "trygit") {
         $msg = kona3_trygit($txt, $a_hash, $i_mode);
