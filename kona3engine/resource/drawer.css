@@ -1,4 +1,4 @@
-/* hamburger menu v0.1 */
+/* hamburger menu v0.2 */
 
 #drawer_wrapper nav {
     position: fixed;
@@ -12,6 +12,7 @@
     font-size: 14px;
     box-sizing: border-box;
     z-index: 98;
+    display: none;
 }
 #drawer_wrapper nav.menuitems ul li {
     display:block;

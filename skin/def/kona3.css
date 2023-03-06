@@ -430,6 +430,10 @@
 	padding:4px;
 }
 
+#wikimessage #new_key {
+	width: 99%;
+}
+
 #wikimessage p
 {
 	padding:10px;

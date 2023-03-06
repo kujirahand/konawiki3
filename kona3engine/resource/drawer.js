@@ -19,13 +19,17 @@ $(function(){
     win.css('top', '0px');
     win.css('height', '100%');
     win.css('width', '100%');
-    win.fadeIn();
+    nav.css({display: 'block'});
+    win.fadeIn(500);
   }
   
   function closeMenu() {
     btn.removeClass("open");
     execMenu(-300);
-    win.fadeOut();
+    win.fadeOut(500, ()=>{
+      win.addClass('close');
+      nav.css({display: 'none'});
+    })
   }
   
   function execMenu(pos) {
