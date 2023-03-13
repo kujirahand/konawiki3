@@ -5,7 +5,9 @@ function kona3_action_pdf() {
     // インストールチェック
     $lib = dirname(__DIR__).'/vendor/tecnickcom/tcpdf/tcpdf.php';
     if (!file_exists($lib)) {
-      echo "Please install TCPDF lib."; exit;
+      echo "Please install TCPDF lib. ".
+        "<a href='http://kujirahand.com/konawiki3/go.php?10'>(more)</a>";
+      exit;
     }
     include_once $lib;
     // チェック
@@ -62,7 +64,35 @@ function kona3_action_pdf() {
           $kona3conf['allpage_footer']).
         "</div><!-- end of .allpage_footer -->\n";
     }
+    $style =<<<EOS
+<style>
+h1 {
+  background-color: blue;
+  color: white;
+}
+h2 {
+  background-color: blue;
+  color: white;
+}
+h3 {
+  background-color: blue;
+  color: white;
+}
+.resmark {
+  color: blue;
+  background-color: yellow;
+  margin-left: 1em;
+}
+</style>
+EOS;
+    // ---
+    //$page_body = preg_replace(
+    // '#<div class=\'resmark\'>(.+?)</div>#g',
+    // '<blockquote>&gt; $1</blockquote>', $page_body);
+    $page_body = str_replace("<div class='resmark'>",'<div class="resmark">', $page_body);
+    // ---
     $page_body = 
+      $style.
       $allpage_header.
       $page_body.
       $allpage_footer;
@@ -70,9 +100,8 @@ function kona3_action_pdf() {
     // ==================
     // Output PDF
     // ==================
-
     // 用紙の方向、用紙サイズを指定する
-    $tcpdf = new TCPDF('L', "mm",'A4');
+    $tcpdf = new TCPDF('H', "mm",'A5');
     $tcpdf->setPrintHeader(false);
     $tcpdf->setPrintFooter(false);
     $tcpdf->AddPage();
@@ -90,11 +119,12 @@ function kona3_action_pdf() {
     if ($fontfile) {
       $font = new TCPDF_FONTS();
       $fontX = $font->addTTFfont($fontfile);  
-      $tcpdf->SetFont($fontX , '', 14);
+      $tcpdf->SetFont($fontX , '', 16);
     }
     $tcpdf->WriteHTML($page_body, true, 0, false, true, 'L');
     // 出力用バッファの内容を消去
     ob_end_clean();
-    $tcpdf->Output($page.".pdf", "D");
+    // $tcpdf->Output($page.".pdf", "D"); // ダウンロード
+    $tcpdf->Output($page.".pdf", "I"); // ブラウザ
 }
   
