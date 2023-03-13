@@ -87,7 +87,8 @@ composer install
 ## Output PDF (Option)
 
  - 設定画面で PDF 出力をtrueに設定
- - 文字化けするときは、/vendor/fonts に拡張子が.ttfのフォントを配置してください。(例:[ダウンロード](https://github.com/aosp-mirror/platform_frameworks_base/blob/master/data/fonts/DroidSansFallback.ttf))
+ - 文字化けするときは、/vendor/fonts に拡張子が.ttfのフォントを配置してください。
+ - 詳しくは[こちら](https://kujirahand.com/konawiki3/go.php?10)
 
 ## Git support (Option)
 
