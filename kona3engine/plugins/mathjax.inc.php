@@ -1,17 +1,19 @@
 <?php
+
 /** mathjax
  * [Usage] {{{#mathjax X_{i+1} = X_i^2 }}}
  * [Usage] $$$ X_{i+1} = (X_i + X^2) mod A $$$
  */
 
 
-function kona3plugins_mathjax_execute($args) {
+function kona3plugins_mathjax_execute($args)
+{
   global $kona3conf;
   $text = array_shift($args);
   //
   $plugkey = "plugins.mathjax.init";
   if (empty($kona3conf[$plugkey])) {
-    $kona3conf[$plugken] = 1;
+    $kona3conf[$plugkey] = 1;
     // use CDN
     $mj = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
     $kona3conf['js'][] = $mj;
@@ -32,5 +34,3 @@ EOS;
   $text = htmlspecialchars($text, ENT_QUOTES);
   return "<div class='mathjax'>$$$$ {$text} $$$$</div>";
 }
-
-
