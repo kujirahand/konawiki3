@@ -181,11 +181,13 @@ function go_ajax(a_mode) {
     use_beforeunload(false);    
     // effect - flash info field
     const info = $("#edit_info");
-    const oldColor = info.css('backgroundColor');
+    // const oldColor = info.css('backgroundColor');
     info.css('backgroundColor', '#ffffc0');
+    info.css('color', 'green');
     setTimeout(function() {
       info.css('backgroundColor', '#f0f0ff');
-    }, 500);
+      info.css('color', 'sivler');
+    }, 700);
   })
   .fail(function(xhr, status, error) {
     $("#edit_info").html("Sorry request failed." + error);
