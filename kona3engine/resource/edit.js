@@ -186,7 +186,7 @@ function go_ajax(a_mode) {
     info.css('color', 'green');
     setTimeout(function() {
       info.css('backgroundColor', '#f0f0ff');
-      info.css('color', 'sivler');
+      info.css('color', 'silver');
     }, 700);
   })
   .fail(function(xhr, status, error) {
