@@ -9,12 +9,16 @@
     method="post" action="{{$action}}">
     <input type="hidden" name="a_mode" value="trylogin">
     <input type="hidden" name="edit_token" value="{{$edit_token}}">
-    <label for="user">{{'User' | lang}}:</label>
-    <input id="user" type="text" name="a_user">
-    <label for="pass">{{'Password' | lang}}:</label>
-    <input id="pass" type="password" name="a_pw">
-    <input class="pure-button pure-button-primary"
-      type="submit" value="{{'Login' | lang}}">
+    <label for="user">{{'User' | lang}}:
+      <input id="user" type="text" name="a_user">
+    </label>
+    <label for="pass">{{'Password' | lang}}:
+      <input id="pass" type="password" name="a_pw">
+    </label>
+    <label for="autologin">
+      <input id="autologin" type="checkbox" name="autologin" value="yes"> {{'autologin' | lang }}
+    </label>
+    <input class="pure-button pure-button-primary" type="submit" value="{{'Login' | lang}}">
   </form>
 </div>
 <br>
@@ -28,5 +32,8 @@
 </div><!-- end of .box -->
 </div><!-- end of #wikimessage -->
 <div style="clear:both;"></div>
+
+<script src="index.php?kona3_autologin.js&resource"></script>
+<script>kona3tryAutologin()</script>
 
 {{ include parts_footer.html }}

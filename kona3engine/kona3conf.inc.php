@@ -130,8 +130,13 @@ function kona3conf_gen() {
   // Database library
   database_set(
     KONA3_DIR_PRIVATE.'/info.sqlite',
-    $DIR_TEMPLATE.'/info.sql'
+    $DIR_TEMPLATE.'/info.sql',
+    'main'
   );
-  $db = database_get();
-  kona3dbInit();
+  database_set(
+    KONA3_DIR_PRIVATE.'/autologin.sqlite',
+    $DIR_TEMPLATE.'/autologin.sql',
+    'autologin'
+  );
+  $_dbMain = database_get();
 }

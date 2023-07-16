@@ -7,14 +7,14 @@ if (!defined("KONA3_PASSWORD_SALT")) {
     "tizIu*zC57#7GtF1OjGB!pSw:Ndg%zYi_QVXf");
 }
 
-function kona3login($user, $email, $perm, $user_id) {
+function kona3login($user, $email, $perm, $user_id = 0) {
   $_SESSION[KONA3_SESSKEY_LOGIN] = [
     "user"  => $user,
-    "name"  => $user, // alias
-    "user_id" => $user_id,
     "email" => $email,
     "perm"  => $perm,
     "time"  => time(),
+    "name"  => $user, // alias
+    "user_id" => $user_id, // not used
   ];
 }
 
@@ -85,9 +85,68 @@ function kona3tryLogin($user, $pw) {
 }
 
 // Get Hash
-function kona3getHash($password, $salt2 = '') {
+function kona3getHash($password, $salt2 = '')
+{
   $s = KONA3_PASSWORD_SALT . $salt2 . "::" . $password;
   return hash("sha512", $s, FALSE);
 }
 
+function kona3_getHashAutologin($token)
+{
+  return kona3getHash($token);
+}
+
+function kona3_getAutoLoginToken($email, $perm)
+{
+  $ua = empty($_SERVER['HTTP_USER_AGENT']) ? '' : $_SERVER['HTTP_USER_AGENT'];
+  $ip = empty($_SERVER['REMOTE_ADDR']) ? '' : $_SERVER['REMOTE_ADDR'];
+  $token = bin2hex(random_bytes(32));
+  // delete old token
+  db_exec(
+    'DELETE FROM tokens WHERE email=? AND user_agent=?',
+    [$email, $ua],
+    'autologin'
+  );
+  // insert new token
+  db_exec(
+    "INSERT INTO tokens (email, token, user_agent, ip_address, perm, mtime)" .
+      "          VALUES (?,     ?,     ?,          ?,          ?,    ?)",
+    [$email, kona3_getHashAutologin($token), $ua, $ip, $perm, time()],
+    'autologin'
+  );
+  // remove old token
+  $mtimeOld = time() - (60 * 60 * 24) * 30; // 30 days
+  db_exec(
+    "DELETE FROM tokens WHERE mtime <= ?",
+    [$mtimeOld],
+    'autologin'
+  );
+  return $token;
+}
+
+function kona3_checkAutoLoginToken($email, $token)
+{
+  $ua = empty($_SERVER['HTTP_USER_AGENT']) ? '' : $_SERVER['HTTP_USER_AGENT'];
+  $ip = empty($_SERVER['REMOTE_ADDR']) ? '' : $_SERVER['REMOTE_ADDR'];
+  $row = db_get1(
+    "SELECT * FROM tokens WHERE email=? AND token=? AND user_agent=?",
+    [$email, kona3_getHashAutologin($token), $ua],
+    'autologin'
+  );
+  if ($row == NULL) {
+    return ['result' => FALSE, 'reason' => 'invalid token'];
+  }
+  $perm = $row['perm'];
+  // update mtime and token
+  /*
+    $token = bin2hex(random_bytes(32));
+    db_exec(
+        "UPDATE tokens SET token=?, ip_address=?, mtime=? WHERE user_id=? AND user_agent=?",
+        [kona3_getHashAutologin($token), $ip, time(), $userId, $ua],
+        'autologin');
+  */
+  //$user, $email, $perm, $user_id
+  kona3login($email, $email, $perm, 0);
+  return ['result' => TRUE, 'token' => $token];
+}
 

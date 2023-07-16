@@ -591,7 +591,7 @@ function kona3date($value, $mode='easy') {
     if ($value > $new_limit) {
         $opt = " <span class='new'>New!</span>";
     }
-    $fmt = konawiki_private("data_format", 'Y-m-d');
+    $fmt = kona3getConf("data_format", 'Y-m-d');
     $s = date($fmt, $value);
     //
     return "<span class='date'>{$s}</span>{$opt}";
@@ -599,8 +599,8 @@ function kona3date($value, $mode='easy') {
 
 function kona3datetime($value)
 {
-    $fmt1 = konawiki_private('date_format', 'Y-m-d');
-    $fmt2 = konawiki_private('time_format', 'H:i:s');
+    $fmt1 = kona3getConf('date_format', 'Y-m-d');
+    $fmt2 = kona3getConf('time_format', 'H:i:s');
     return date("{$fmt1} {$fmt2}", $value);
 }
 

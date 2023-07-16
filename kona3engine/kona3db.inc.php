@@ -1,31 +1,5 @@
 <?php
 // file: kona3db.inc.php
-function kona3dbInit() {
-  // check database version
-  if (!db_table_exists('meta')) {
-      db_exec("
-      CREATE TABLE IF NOT EXISTS meta (
-        name TEXT,
-        value_i INTEGER DEFAULT 0,
-        value_s TEXT DEFAULT ''
-      )");
-    db_exec("INSERT INTO meta (name,value_i)VALUES('dbversion', 0)");
-  }
-  // get dbversion
-  $r = db_get1('SELECT * FROM meta WHERE name="dbversion"');
-  // ver 11 ?
-  if ($r && $r['value_i'] < 11) {
-    db_exec("UPDATE meta SET value_i=11 WHERE name='dbversion'");
-    db_exec("
-      CREATE TABLE IF NOT EXISTS tags (
-        page_id INTEGER,
-        tag TEXT,
-        mtime INTEGER
-      );
-    ");
-  }
-}
-
 function kona3db_getPageId($page, $canCreate = FALSE) {
   $r = db_get1(
     "SELECT * FROM pages ".
@@ -44,7 +18,6 @@ function kona3db_getPageId($page, $canCreate = FALSE) {
   }
   return 0;
 }
-
 
 function kona3db_getPageNameById($page_id) {
   global $kona3db_pagenames;

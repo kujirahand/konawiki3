@@ -55,6 +55,9 @@ CREATE TABLE meta (
   value_s TEXT DEFAULT ''
 );
 
+/* meta info */
+INSERT INTO meta (name, value_i)VALUES('dbversion', 11)
+
 /** History
 2022/06/22 ver11 : add tags, meta table
 */
