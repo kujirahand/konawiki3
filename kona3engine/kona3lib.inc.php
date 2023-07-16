@@ -12,24 +12,22 @@ function kona3param($key, $def = NULL) {
     }
 }
 
-function kona3lib_parseURI() {
+function kona3parseURI($uri) {
     // (ex) /path/index.php?PageName&Action&Status&p1=***&p2=***
     // (ex) /path/index.php?page=PageName&action=Action&status=Status
     global $kona3conf;
-    $uri = $_SERVER["REQUEST_URI"];
-    $params = $_GET; // default params
     $path_args = array();
-    list($script_path, $paramStr) = explode('?', $uri.'?');
+    list($script_path, $paramStr) = explode('?', $uri . '?');
     $a = explode('&', $paramStr);
     foreach ($a as $p) {
         if (strpos($p, '=') !== false) {
             list($key, $val) = explode('=', $p, 2);
         } else {
-            $key = $p; $val = "";
+            $key = $p;
+            $val = "";
         }
         $key = urldecode($key);
         $val = urldecode($val);
-        $params[$key] = $val;
         if ($val == "") {
             $path_args[] = $key;
         }
@@ -37,14 +35,14 @@ function kona3lib_parseURI() {
     // check PageName & Action
     array_push($path_args, NULL, NULL, NULL);
     // page
-    $page = array_shift( $path_args );
-    if (isset($params['page'])) $page = $params['page'];
+    $page = array_shift($path_args);
+    if (isset($path_args['page'])) $page = $path_args['page'];
     if ($page == "") $page = $kona3conf["FrontPage"];
-    $action = array_shift( $path_args );
-    if (isset($params['action'])) $action = $params['action'];
+    $action = array_shift($path_args);
+    if (isset($path_args['action'])) $action = $path_args['action'];
     if ($action == "") $action = "show";
-    $status = array_shift( $path_args );
-    if (isset($params['status'])) $action = $params['status'];
+    $status = array_shift($path_args);
+    if (isset($path_args['status'])) $action = $path_args['status'];
 
     // Check invalid page name like /../../..
     $page = str_replace('..', '', $page);
@@ -60,6 +58,13 @@ function kona3lib_parseURI() {
             $status = '__INVALID__';
         }
     }
+    return [$page, $action, $status, $path_args, $script_path];
+}
+
+function kona3lib_parseURI() {
+    global $kona3conf;
+    $uri = $_SERVER["REQUEST_URI"];
+    list($page, $action, $status, $_path_args, $script_path) = kona3parseURI($uri);
     // set to conf
     $kona3conf['page']   = $_GET['page']   = $page;
     $kona3conf['action'] = $_GET['action'] = $action;

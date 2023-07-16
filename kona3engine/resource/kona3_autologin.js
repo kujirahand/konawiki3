@@ -13,25 +13,28 @@ function kona3setAutoLogin (email, token) {
     localStorage.setItem(AUTOLOGIN_KEY, JSON.stringify(data))
 }
 
-function kona3tryAutologin () {
+function kona3tryAutologin (autojump) {
     const data = localStorage.getItem(AUTOLOGIN_KEY)
     if (!data) { return false }
     const {email, token, time} = JSON.parse(data)
     const email3 = xorToken(email, KONA3SALT)
     const token3 = xorToken(token, KONA3SALT)
-    kona3login(email3, token3)
+    kona3login(email3, token3, autojump)
     return true;
 }
 
-function kona3login (email, token) {
-    const href = location.href + `&a_mode=autologin&token=${encodeURIComponent(token)}&email=${email}`
+function kona3login (email, token, autojump) {
+    const page = encodeURIComponent(location.href)
+    const href = `index.php?FrontPage&login&a_mode=autologin&token=${encodeURIComponent(token)}&email=${email}&page=${page}`
     fetch(href)
         .then((response) => response.json())
         .then((data) => {
             if (data.token) {
                 kona3setAutoLogin(email, data.token)
                 if (data.nextUrl) {
-                    location.href = data.nextUrl
+                    if (autojump) {
+                        location.href = data.nextUrl
+                    }
                 }
             }
         });

@@ -44,6 +44,10 @@ function kona3_action_login() {
     header('Content-Type', 'application/json');
     $email = kona3param('email', '');
     $token  = kona3param('token', '');
+    $page_ = kona3param('page', '');
+    if (strpos($page_, '?') !== FALSE) {
+      list($page, $_action, $_status, $_args, $_script_path) = kona3parseURI($page_);
+    }
     $res = kona3_checkAutoLoginToken($email, $token);
     if (!$res['result']) {
       echo json_encode([

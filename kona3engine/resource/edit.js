@@ -168,6 +168,15 @@ function go_ajax(a_mode) {
     var result = msg["result"];
     if (result != 'ok') {
       console.log(msg);
+      const code = msg['code'];
+      if (code == 'nologin') {
+        console.log('try to login!!')
+        // auto login?
+        kona3tryAutologin(false);
+        setTimeout(() => {
+          save_ajax();
+        }, 1000);
+      }
       $("#edit_info").val("[error] " + msg['reason']);
       $("#edit_info").css("color", "red");
       setButtonsDisabled(false);

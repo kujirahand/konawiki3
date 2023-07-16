@@ -23,7 +23,7 @@ function kona3_action_edit() {
         $url = kona3getPageURL($page, 'login');
         $msg = "<a href=\"$url\">{$please_login}</a>";
         if ($i_mode == 'ajax') { $msg = $please_login; }
-        kona3_edit_err($msg, $i_mode);
+        kona3_edit_err($msg, $i_mode, 'nologin');
         exit;
     }
 
@@ -193,12 +193,13 @@ function kona3_make_diff($text_a, $text_b) {
     return implode("\n", $res);
 }
 
-function kona3_edit_err($msg, $method = "web") {
+function kona3_edit_err($msg, $method = "web", $code = '') {
     global $page;
     if ($method == "ajax" || $method == "git") {
         echo json_encode(array(
             'result' => 'ng',
             'reason' => $msg,
+            'code' => $code,
         ));
     } else {
         kona3error($page, $msg);
