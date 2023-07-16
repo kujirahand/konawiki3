@@ -13,5 +13,7 @@ currently being supported with security updates.
 ## Reporting a Vulnerability
 
 If you discover any security issues, please contact us at the following email address:
-<web@kujirahand.com>
+
+- [web@kujirahand.com](mailto:web@kujirahand.com)
+
 
