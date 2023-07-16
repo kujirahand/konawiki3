@@ -19,6 +19,12 @@ function kona3login($user, $email, $perm, $user_id = 0) {
 }
 
 function kona3logout() {
+  $info = kona3getLoginInfo();
+  if ($info) {
+    $email = empty($info['email']) ? '' : $info['email'];
+    $ua = empty($_SERVER['HTTP_USER_AGENT']) ? '' : $_SERVER['HTTP_USER_AGENT'];
+    db_exec('DELETE FROM tokens WHERE email=? AND user_agent=?', [$email, $ua], 'autologin');
+  }
   unset($_SESSION[KONA3_SESSKEY_LOGIN]);
 }
 
