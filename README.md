@@ -73,7 +73,8 @@ text text text text
 
 - 1. Install WebServer and PHP7
 - 2. Download
- - ``git clone https://github.com/kujirahand/konawiki3.git``
+ - `git clone --recursive https://github.com/kujirahand/konawiki3.git`
+ - OR `git clone https://github.com/kujirahand/konawiki3.git` AND `git submodule update --init --recursive`
 
 ## Install Library (Option)
 

@@ -1,0 +1,3 @@
+[submodule "kona3engine/fw_simple"]
+	path = kona3engine/fw_simple
+	url = git@github.com:kujirahand/php_fw_simple.git
