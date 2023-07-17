@@ -163,7 +163,7 @@ function kona3setup_template($file, $params) {
   $FW_TEMPLATE_PARAMS = [];
   $DIR_TEMPLATE_CACHE = KONA3_DIR_CACHE;
   $DIR_TEMPLATE = __DIR__.'/template';
-  include_once KONA3_DIR_ENGINE.'/fw_template_engine.lib.php';
+  include_once KONA3_DIR_ENGINE.'/fw_simple/fw_template_engine.lib.php';
   template_render($file, $params);
 }
 
