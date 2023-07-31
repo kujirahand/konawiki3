@@ -10,7 +10,7 @@ function kona3plugins_ref_execute($args) {
     $size = " width='400px' "; // set default image size
     $caption = "";
     $link = "";
-    $url = array_shift($args);
+    $url = trim(array_shift($args));
     while ($args) {
         $arg = array_shift($args);
         $arg = trim($arg);
@@ -69,15 +69,15 @@ function kona3plugins_ref_execute($args) {
 function kona3plugins_ref_file_url($page, $url) {
     global $kona3conf;
     // Disallow up dir!! (1/2)
-    $url = str_replace('..', '', $url);
+    $url = trim(str_replace('..', '', $url));
 
     // is attach dir?
     $f = $kona3conf["path.attach"]."/".$url;
-    if (file_exists($f)) return $kona3conf["url.attach"]."/".$url;
+    if (file_exists($f)) { return $kona3conf["url.attach"]."/".$url; }
 
     // is data dir?
     $f = KONA3_DIR_DATA."/".$url;
-    if (file_exists($f)) return $kona3conf["url.data"]."/".$url;
+    if (file_exists($f)) { return $kona3conf["url.data"]."/".$url; }
 
     // Is this file in same directory?
     if (strpos($page, "/") !== FALSE) {
@@ -105,13 +105,13 @@ function kona3plugins_ref_file_url($page, $url) {
 }
 
 function htmlspecialchars_url($xss){
-    $s=htmlspecialchars($xss, ENT_QUOTES, 'UTF-8');
-    $s=str_replace('http:','http<',$s);
-    $s=str_replace('https:','https<',$s);
-    $s=str_replace(':','',$s);
-    $s=str_replace(';','',$s);
-    $s=str_replace('http<','http:',$s);
-    $s=str_replace('https<','https:',$s);
+    $s = htmlspecialchars($xss, ENT_QUOTES, 'UTF-8');
+    $s = str_replace('http:','http<',$s);
+    $s = str_replace('https:','https<',$s);
+    $s = str_replace(':','',$s);
+    $s = str_replace(';','',$s);
+    $s = str_replace('http<','http:',$s);
+    $s = str_replace('https<','https:',$s);
     return $s;
 }
 

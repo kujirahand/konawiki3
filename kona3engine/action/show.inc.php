@@ -33,7 +33,7 @@ function kona3_action_show() {
         $txt = "#ref({$page})"; // images
         $page_body = konawiki_parser_convert($txt);
     } else if ($ext == '.pdf' || $ext == '.xlsx' || $ext == '.docx' || $ext == '.xls' || $ext == '.doc') {
-        $txt = "#ref({$page})"; // pdf 
+        $txt = "{{{#ref\n{$page}\n}}}\n"; // pdf
         $page_body = konawiki_parser_convert($txt);
     } else {
         kona3error($page, "Sorry, System Error."); exit;
