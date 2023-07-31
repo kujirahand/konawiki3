@@ -71,16 +71,16 @@ text text text text
 
 # How to install Konawiki3
 
-- 1. Install WebServer and PHP7
+- 1. Install WebServer and PHP
 - 2. Download
- - `git clone --recursive https://github.com/kujirahand/konawiki3.git`
- - OR `git clone https://github.com/kujirahand/konawiki3.git` AND `git submodule update --init --recursive`
+  - `git clone --recursive https://github.com/kujirahand/konawiki3.git`
+  - OR `git clone https://github.com/kujirahand/konawiki3.git` AND `git submodule update --init --recursive`
 
 ## Install Library (Option)
 
 When you want to use Git or Markdown, execute shell commands.
 
-```
+```sh
 cd kona3engine
 composer install
 ```
@@ -95,10 +95,10 @@ composer install
 
 You can commit and push wiki diffs to your git repository.
 
-```
-# set your remote repository in data/
-$ cd data
-$ git remote add origin git@github.com:hoge/fuga.git
+```sh
+# set your remote repository in `/data` dir
+cd data
+git remote add origin git@github.com:hoge/fuga.git
 ```
 
 And set git_enabled to true at the config.

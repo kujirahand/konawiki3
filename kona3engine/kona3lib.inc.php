@@ -16,6 +16,7 @@ function kona3parseURI($uri) {
     // (ex) /path/index.php?PageName&Action&Status&p1=***&p2=***
     // (ex) /path/index.php?page=PageName&action=Action&status=Status
     global $kona3conf;
+    $isActionGo = empty($_GET['action']) ? FALSE : ($_GET['action'] === 'go');
     $path_args = array();
     list($script_path, $paramStr) = explode('?', $uri . '?');
     $a = explode('&', $paramStr);
@@ -57,6 +58,10 @@ function kona3parseURI($uri) {
         if (!preg_match('#^[a-zA-Z0-9_]*$#', $status)) {
             $status = '__INVALID__';
         }
+    }
+    // set action go
+    if ($isActionGo) {
+        $action = 'go';
     }
     return [$page, $action, $status, $path_args, $script_path];
 }

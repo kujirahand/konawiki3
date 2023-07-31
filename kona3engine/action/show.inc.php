@@ -4,7 +4,6 @@
 function kona3_action_show() {
     global $kona3conf;
     $page = $kona3conf["page"];
-    $page_h = htmlspecialchars($page);
 
     // check login
     kona3show_check_private($page);
@@ -60,9 +59,8 @@ function kona3_action_show() {
     }
     // tags
     $tags = '';
-    $page_id = kona3db_getPageId($page);
-    $tags_a = db_get('SELECT * FROM tags WHERE page_id=?',
-        [$page_id]);
+    $page_id = kona3db_getPageId($page, true);
+    $tags_a = db_get('SELECT * FROM tags WHERE page_id=?', [$page_id]);
     if ($tags_a) {
         $a = [];
         foreach ($tags_a as $t) {
