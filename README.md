@@ -89,7 +89,7 @@ composer install
 
  - 設定画面で PDF 出力をtrueに設定
  - 文字化けするときは、/vendor/fonts に拡張子が.ttfのフォントを配置してください。
- - 詳しくは[こちら](https://kujirahand.com/konawiki3/go.php?10)
+ - 詳しくは[こちら](https://kujirahand.com/konawiki3/index.php?PDF%E5%87%BA%E5%8A%9B%E6%A9%9F%E8%83%BD)
 
 ## Git support (Option)
 

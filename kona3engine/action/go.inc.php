@@ -1,6 +1,5 @@
 <?php
 /** KonaWiki3 go */
-
 function kona3_action_go() {
   global $kona3conf;
   $page_id = intval($kona3conf["page"]);
