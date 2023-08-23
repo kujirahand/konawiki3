@@ -458,6 +458,7 @@ function kona3getCtrlMenuArray($type) {
         } else {
             $list[] = array($FrontPage_label, $FrontPage_uri);
             $list[] = array(lang('Search'), $search_uri);
+            $list[] = array(lang('Login'), $login_uri);
         }
     } else {
         $loginInfo = kona3getLoginInfo();
