@@ -98,8 +98,9 @@ function kona3conf_gen() {
   $kona3conf["css"] = array(
     kona3getResourceURL('pure-min.css'),
     kona3getResourceURL('grids-responsive-min.css'),
+    kona3getResourceURL('kona3def.css'), // default style
+    kona3getSkinURL('kona3.css', TRUE), // skin style
     kona3getSkinURL('drawer.css', TRUE),
-    kona3getSkinURL('kona3.css', TRUE),
   );
   if ($kona3conf['analytics'] != '') {
     $kona3conf['header.tags'][] = $kona3conf['analytics'];
