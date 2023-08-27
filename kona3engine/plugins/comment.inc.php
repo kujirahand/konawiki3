@@ -122,12 +122,19 @@ function _renderCommentForm($page, $bbs_id) {
     <input type="hidden" name="m" value="write">
     <input type="hidden" name="bbs_id" value="$bbs_id">
     <input type="hidden" id="edit_token" name="edit_token" value="$edit_token">
-    <label for="name">name:</label>
-    <input id="name" type="text" name="name" value="">
-    <label for="body">body: <span class="memo">(&gt;1 &gt;2 ...)</span></label>
-    <textarea id="body" name="body" rows="4" cols="50"></textarea>
-    <label for="password">password</label>
-    <input type="password" name="pw" value="">
+    <label for="kona3comment_name">
+      name:
+      <input id="kona3comment_name" type="text" name="name" value="" autocomplete="name">
+    </label>
+    <label for="kona3comment_body">
+      body:
+      <span class="memo">(&gt;1 &gt;2 ...)</span>
+      <textarea id="kona3comment_body" name="body" rows="4" cols="50"></textarea>
+    </label>
+    <label for="kona3comment_password">
+      password
+      <input id="kona3comment_password" type="password" name="pw" value="">
+    </label>
     <input class="pure-button pure-button-primary" type="submit" value="$msg_post">
   </form>
 </div><!-- /comment_form_box -->
