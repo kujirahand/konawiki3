@@ -401,7 +401,7 @@ function kona3getSkinURL($file, $use_mtime = FALSE) {
     // mtimeをつけて出力?
     if ($use_mtime && file_exists($path)) {
         $mtime = filemtime($path);
-        return kona3getPageURL($file, "skin", "", "m=$mtime");
+        return kona3getPageURL($file, "skin", "", "sm=$mtime");
     }
     return kona3getPageURL($file, "skin");
 }

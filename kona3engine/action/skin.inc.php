@@ -40,16 +40,35 @@ function kona3_action_skin() {
       }
     }
   }
-  // output
+  // check ext
   $ext = strtolower($ext);
   $ctype = "text/plain";
   if ($ext == ".css") $ctype = "text/css";
   else if ($ext == ".js") $ctype = "text/javascript";
-  //
+  else if ($ext == ".png") $ctype = "image/png";
+  else if ($ext == ".jpg" || $ext == ".jpeg" || $ext == ".jpe") $ctype = "image/jpeg";
+  else if ($ext == ".gif") $ctype = "image/gif";
+  else if ($ext == ".ico") $ctype = "image/png";
+  else if ($ext == ".json") $ctype = "application/json";
+  // output header
+  $cache_expire_time = 60 * 60 * 3;
   header("Content-Type: $ctype");
-  //
-  $s = file_get_contents($path);
-  echo $s;
+  header("Cache-Control: max-age={$cache_expire_time}");
+  header("Expires: ".gmdate('D, d M Y H:i:s \G\M\T', time() + $cache_expire_time));
+  $last_m = gmdate('D, d M Y H:i:s \G\M\T', filemtime($path));
+  header("Last-Modified: ". $last_m);
+  header("Content-Length: ".filesize($path));
+  if ($ext == ".css") {
+    echo "/**\n";
+    echo "+[konawiki3]\n";
+    echo "| file: {$fname}\n";
+    echo "| skin: {$skin}\n";
+    echo "| mtime: {$last_m}\n";
+    echo "*/\n";
+    echo "\n";
+  }
+  // output contents
+  echo file_get_contents($path);
 }
 
 
