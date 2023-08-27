@@ -29,13 +29,10 @@ function kona3plugins_count_execute($args) {
     $html = konawiki_parser_convert($text);
     // length
     $counter = "{$mlen}字";
-    $css1 = 'background-color:#f0f0f4; padding:4px;';
-    $css2 = 'text-align:right;'.
-            'border-top:1px dotted silver;';
     return <<<EOS
-<div style="$css1" data-id="$id">
+<div class="kona3count" data-id="$id">
     {$html}
-    <div style="$css2" class="memo">{$counter}</div>
+    <div class="kona3count-foot">{$counter}</div>
 </div>
 EOS;
 }
