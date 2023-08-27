@@ -83,7 +83,7 @@ EOS;
 }}}
 EOS;
     }
-    $wiki = $wiki."\n{$search_name_n3s} / {$search_name} / ${src_link}\n";
+    $wiki = $wiki."\n{$search_name_n3s} / {$search_name} / {$src_link}\n";
     $s = konawiki_parser_convert($wiki);
 
     return $s;  
