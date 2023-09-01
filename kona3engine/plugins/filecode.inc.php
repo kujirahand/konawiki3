@@ -12,6 +12,9 @@ function kona3plugins_filecode_execute($args) {
   
   // get parameters
   $name = array_shift($args);
+  $type = array_shift($args);
+  if ($type == NULL) { $type = 'code'; }
+  // check parametes
   $name = str_replace('..', '', $name);
   $fname = kona3getWikiFile($name, false);
   if (!file_exists($fname)) {
@@ -51,11 +54,21 @@ function kona3plugins_filecode_execute($args) {
     // other file
     $htm = kona3text2html(trim($txt));
   }
-  $code =
-    "<div class='filecode'>\n".
-    "  <div class='filename'>file: {$name_}</div>\n".
-    "  <pre class='code'>$htm</pre>\n".
-    "</div>\n";
+  if ($type == 'beta') {
+    $htm = str_replace("\n", "<br>\n", $htm);
+    $code =
+      "<div class='filecode'>\n".
+      "  <div class='filename'>file: {$name_}</div>\n".
+      "  <div class='code'>{$htm}</div>\n".
+      "</div>\n";
+  }
+  else { // if ($type == 'code') {
+    $code =
+      "<div class='filecode'>\n".
+      "  <div class='filename'>file: {$name_}</div>\n".
+      "  <pre class='code'>$htm</pre>\n".
+      "</div>\n";
+  }
   return $code;
 }
 
