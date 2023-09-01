@@ -1,6 +1,9 @@
 <?php
 /**
- * #filecode(path)
+ * #filecode(path, type)
+ * options:
+ * - path: filepath
+ * - type: code or plain(beta)
  */
 
 function kona3plugins_filecode_execute($args) {
@@ -54,7 +57,7 @@ function kona3plugins_filecode_execute($args) {
     // other file
     $htm = kona3text2html(trim($txt));
   }
-  if ($type == 'beta') {
+  if ($type == 'beta' || $type == 'plain') {
     $htm = str_replace("\n", "<br>\n", $htm);
     $code =
       "<div class='filecode'>\n".
