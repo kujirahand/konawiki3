@@ -72,7 +72,7 @@ function kona3markdown_parser_parse($text)
             continue;
         }
         // LIST <ul>
-        if ($c == '-' || $c == '*') {
+        if ($c == '-' || ($c == '*' && substr($text, 0, 2) == '* ')) {
             // hr
             if (preg_match('#^(-{5,})\n#', $text, $m)) {
                 $text = substr($text, strlen($m[0]));
@@ -142,6 +142,7 @@ function kona3markdown_parser_parse($text)
         // skip CR LF
         else if ($c == "\r" || $c == "\n") {
             kona3markdown_parser_skipEOL($text);
+            $tokens[] = array("cmd"=>"eol", "text"=>"\n");
             continue;
         }
         // PLUG-INS
@@ -157,6 +158,7 @@ function kona3markdown_parser_parse($text)
             $tokens[] = kona3markdown_parser_sourceBlock($text);
         }
         else { // plain block
+            $last_text = $text;
             $plain = "";
             while ($text != "") {
                 // get line
@@ -175,14 +177,20 @@ function kona3markdown_parser_parse($text)
                 }
                 // end of paragraph?
                 if (substr($text, 0, strlen($eol)) === $eol) break;
-                // check next command
-                $c = substr($text, 0, 1);
-                if ($c == '') continue;
-                // has next command?
-                if (strpos("■●▲▼*-+# \t\{",$c) !== FALSE) break;
+                // 無限ループを抜ける
+                if ($last_text == $text) {
+                    $plain .= $text;
+                    break;
+                }
+                $last_text = $text;
             }
             $tokens[] = array("cmd"=>"plain","text"=>$plain);
-            kona3markdown_parser_skipEOL($text);
+            $c = substr($text, 0, 1);
+            if ($c == "\n") {
+                // 改行の数を遵守する
+                $plain .= '~'.$eol;
+                $text = substr($text, 1);
+            }
         }
     }
     return $tokens;
@@ -258,6 +266,9 @@ function kona3markdown_parser_render($tokens, $flag_isContents = TRUE)
         }
         else if ($cmd == "hr") {
             $html .= "<hr>".$eol;
+        }
+        else if ($cmd == "eol") {
+            $html .= $eol;
         }
         else if ($cmd == "plugin") {
             $html .= kona3markdown_parser_render_plugin($value);
