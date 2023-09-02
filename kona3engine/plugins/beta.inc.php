@@ -9,13 +9,20 @@ function kona3plugins_beta_execute($args) {
   // options
   $is_pre = False;
   $is_wiki = False;
+  $is_markdown = False;
   foreach ($args as $opt) {
     if ($opt === 'pre') { $is_pre = TRUE; continue; }
     if ($opt === 'wiki') { $is_wiki = TRUE; continue; }
+    if ($opt === 'md' || $opt === 'markdown') { $is_markdown = TRUE; continue; }
   }
   // convert to wiki
   if ($is_wiki) {
     $html = konawiki_parser_parse($text);
+    return "<div class='beta'>{$html}</div>";
+  }
+  if ($is_markdown) {
+    include_once dirname(__DIR__) . '/kona3parser_md.inc.php';
+    $html = kona3markdown_parser_convert($text);
     return "<div class='beta'>{$html}</div>";
   }
   if ($is_pre) {
