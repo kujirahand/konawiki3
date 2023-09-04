@@ -109,10 +109,9 @@ function kona3markdown_parser_parse($text)
         }
         // 1. 2. 3. ...
         else if (is_numeric($c) && preg_match('#^(\d+)\.#', $text, $m)) {
-            $text = mb_substr($text, mb_strlen($m[0]));
             $level = intval(strlen($m[1]) / 2) + 1;
             kona3markdown_parser_skipSpace($text);
-            $tokens[] = array("cmd"=>"+", "text"=>kona3markdown_parser_token($text, $eol), "level"=>$level);
+            $tokens[] = array("cmd"=>"-", "text"=>kona3markdown_parser_token($text, $eol), "level"=>$level);
         }
         // TABLE
         else if ($c == "|") {
