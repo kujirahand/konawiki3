@@ -5,12 +5,16 @@
  * [Usage] $$$ X_{i+1} = (X_i + X^2) mod A $$$
  */
 
-
 function kona3plugins_mathjax_execute($args)
 {
-  global $kona3conf;
   $text = array_shift($args);
-  //
+  kona3plugins_mathjax_include();
+  $text = htmlspecialchars($text, ENT_QUOTES);
+  return "<div class='mathjax'>$$$$ {$text} $$$$</div>";
+}
+
+function kona3plugins_mathjax_include() {
+  global $kona3conf;
   $plugkey = "plugins.mathjax.init";
   if (empty($kona3conf[$plugkey])) {
     $kona3conf[$plugkey] = 1;
@@ -31,6 +35,4 @@ window.MathJax = {
 </script>
 EOS;
   }
-  $text = htmlspecialchars($text, ENT_QUOTES);
-  return "<div class='mathjax'>$$$$ {$text} $$$$</div>";
 }
