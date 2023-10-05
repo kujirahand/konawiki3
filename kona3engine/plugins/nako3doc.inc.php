@@ -44,6 +44,9 @@ function kona3plugins_nako3doc_execute($parg) {
     // 拡張かどうか
     $extra_plugin = "";
     if (strpos($nakotype, '拡張プラグイン') !== FALSE) {
+        if (strpos($nakotype, '[[wnako]]') !== FALSE) {
+            $plugin = "https://cdn.jsdelivr.net/npm/{$plugin}@latest/{$plugin}.js";
+        }
         $extra_plugin = "{{{\n".
             "# [拡張プラグイン] 以下の宣言が必要:\n".
             "!『{$plugin}』を取り込む\n".
