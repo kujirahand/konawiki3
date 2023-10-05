@@ -22,6 +22,17 @@ function kona3plugins_beta_execute($args) {
   }
   if ($is_markdown) {
     include_once dirname(__DIR__) . '/kona3parser_md.inc.php';
+    if (strpos($text, "\\[") !== FALSE || strpos($text, '\\(')) {
+      // include mathjax
+      include_once __DIR__ . '/mathjax.inc.php';
+      kona3plugins_mathjax_include();
+      // replace
+      $text = str_replace("\\[", "$$$", $text);
+      $text = str_replace("\\]", "$$$", $text);
+      $text = str_replace("\\(", "$$$", $text);
+      $text = str_replace("\\)", "$$$", $text);
+      $text = str_replace("\\", "\\\\", $text); // markdown escape!! 重要 (`\times`が`times`になってしまう)
+    }
     $html = kona3markdown_parser_convert($text);
     return "<div class='beta'>{$html}</div>";
   }
