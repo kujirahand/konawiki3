@@ -111,3 +111,8 @@ First login by Admin User, and access config page.
 [URI] index.php?go&editConf
 ```
 
+## Plugin list
+
+```
+[URI] index.php?FrontPage&plugin&name=pluginlist
+```
