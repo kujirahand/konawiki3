@@ -1,7 +1,13 @@
 <?php
-/** #ref plugin
- * 画像を表示するプラグイン
- * [書式] #ref(image.png, w=400, h=300, 400x300, @link, *caption)
+/** 画像を表示するプラグイン
+ * - [書式] #ref(image.png, w=400, h=300, 400x300, @https, *caption)
+ * - [引数]
+ * -- image.png ... 画像ファイル名
+ * -- w=xxx ... 画像の幅を指定
+ * -- h=xxx ... 画像の高さを指定
+ * -- (num)x(num) ... (num)x(num)のサイズで表示
+ * -- @link ... 画像をリンクする
+ * -- *caption ... キャプションを指定
  */
 function kona3plugins_ref_execute($args) {
     global $kona3conf;

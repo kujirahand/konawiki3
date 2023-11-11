@@ -1,6 +1,5 @@
 <?php
-
-/**
+/** CSVデータをテーブルで表示する
  * - [書式] {{{#csv([noheader][flag=xxx][cell=xxx]) データ }}}
  * - [引数]
  * -- noheader ... 一行目をヘッダとしない

@@ -1,4 +1,11 @@
 <?php
+
+/** マークダウンを変換して表示
+ * - [書式] #markdown(code)
+ * - [引数]
+ * -- code
+ */
+
 include_once dirname(__DIR__).'/kona3parser_md.inc.php';
 // {{{#markdown ... }}} の書式で使う
 // [options]

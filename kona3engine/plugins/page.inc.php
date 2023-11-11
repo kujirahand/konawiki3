@@ -1,9 +1,9 @@
 <?php
 
-/**
- * [USAGE] #page(pagename_list)
- * - inlucde other pages (alias #include)
- * - (ex) {{{#include(LF)name1(LF)name2(LF)name3(LF)}}}
+/** 指定したページ一覧を取り込んで表示
+ * - [USAGE] #page(pagename_list)
+ * -- inlucde other pages (alias #include)
+ * -- (ex) {{{#include(LF)name1(LF)name2(LF)name3(LF)}}}
  */
 
 include_once dirname(__FILE__).'/include.inc.php';

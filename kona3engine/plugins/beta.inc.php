@@ -1,8 +1,10 @@
 <?php
-// {{{#beta ... }}} の書式で使う
-// [options]
-//   pre ... <pre>結果をタグで囲む
-//   wiki ... Wiki記法でレンダリングする
+/** 折り返し可能なテキストの囲み枠
+ * - [書式] {{{#beta ... }}} の書式で使う
+ * - [引数]
+ * -- pre ... <pre>結果をタグで囲む
+ * -- wiki ... Wiki記法でレンダリングする
+ */
 function kona3plugins_beta_execute($args) {
   // contents
   $text = array_pop($args);

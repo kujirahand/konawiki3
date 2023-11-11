@@ -1,5 +1,11 @@
 <?php
 
+/** 最近更新されたページを列挙する
+ * - [書式] #recent(count)
+ * - [引数]
+ * -- count ... 件数(省略可)
+ */
+
 function kona3plugins_recent_execute($args) {
   $limit = array_shift($args);
   $limit = intval($limit);

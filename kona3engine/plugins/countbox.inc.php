@@ -1,19 +1,11 @@
 <?php
-/** countbox plugin
 
-[USAGE] with ID
-{{{#count(id=xxx)
-abcdefg
-abcdefg
-}}}
-
-[USAGE] no ID
-{{{#count
-abcdefg
-abcdefg
-}}}
-
+/** 文字数をカウントする
+ * - [書式] {{{#count(id) ... }}}
+ * - [引数]
+ * -- id ... 識別子(省略可)
  */
+
 function kona3plugins_countbox_execute($args) {
   $text = "";
   $id = "null";

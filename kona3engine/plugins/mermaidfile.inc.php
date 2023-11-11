@@ -1,7 +1,7 @@
 <?php
 
 /** mermaid notation from file
- * [Usage] #mermaidfile(file)
+ * - [Usage] #mermaidfile(file)
  */
 
 require_once(__DIR__ . '/mermaid.inc.php');

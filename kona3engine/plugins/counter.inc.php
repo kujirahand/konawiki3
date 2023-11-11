@@ -1,4 +1,9 @@
 <?php
+/** 訪問カウンターを表示する
+ * - [書式] #counter
+ * - [引数] なし
+ */
+
 function kona3plugins_counter_execute($args) {
   global $kona3conf;
   $page = $kona3conf['page'];
