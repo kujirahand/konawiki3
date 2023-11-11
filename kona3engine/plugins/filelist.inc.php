@@ -1,5 +1,4 @@
 <?php
-
 /** ファイル一覧を列挙する
  * - [書式] #filelist(filter, option)
  * - [args]
