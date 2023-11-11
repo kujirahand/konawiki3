@@ -2,8 +2,14 @@
 /**
  * konawiki3 main library
  */
+// --------------------------------------------------------------
+ require_once __DIR__.'/konawiki_version.inc.php';
+global $kona3conf;
+$kona3conf['KONAWIKI_VERSION'] = KONAWIKI_VERSION;
+// --------------------------------------------------------------
 require_once __DIR__.'/kona3login.inc.php';
-
+// --------------------------------------------------------------
+// param
 function kona3param($key, $def = NULL) {
     if (isset($_REQUEST[$key])) {
         return $_REQUEST[$key];
@@ -424,7 +430,7 @@ function kona3getWikiName($filename) {
 function kona3getSysInfo() {
     global $kona3conf;
     $href = "https://kujirahand.com/konawiki3/";
-    $ver  = KONA3_SYSTEM_VERSION;
+    $ver  = KONAWIKI_VERSION;
     $opt = "";
     if ($kona3conf["wiki_private"]) $opt .= "(private)";
     return
