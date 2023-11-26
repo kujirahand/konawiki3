@@ -45,12 +45,13 @@
     // 拡張かどうか
     $extra_plugin = "";
     if (strpos($nakotype, '拡張プラグイン') !== FALSE) {
+        $pluginUrl = $plugin;
         if (strpos($nakotype, '[[wnako]]') !== FALSE) {
-            $plugin = "https://cdn.jsdelivr.net/npm/{$plugin}@latest/{$plugin}.js";
+            $pluginUrl = "https://cdn.jsdelivr.net/npm/{$plugin}@latest/{$plugin}.js";
         }
         $extra_plugin = "{{{\n".
             "# [拡張プラグイン] 以下の宣言が必要:\n".
-            "!『{$plugin}』を取り込む\n".
+            "!『{$pluginUrl}』を取り込む\n".
             "}}}\n";
     }
     $nakotype = str_replace('基本プラグイン,', '', $nakotype);
