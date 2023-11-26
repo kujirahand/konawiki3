@@ -1,4 +1,9 @@
 <?php
+/** 指定のパス以下にあるファイル一覧を列挙して表示
+ * - [書式] #ls(filter)
+ * - [引数]
+ * -- filter ... フィルタ
+ */
 
 function kona3plugins_ls_execute($args) {
     global $kona3conf;

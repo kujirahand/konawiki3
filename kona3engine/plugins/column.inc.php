@@ -1,5 +1,12 @@
 <?php
 
+/** コラムの囲み
+ * - [書式] {{{#column(class) ... }}}
+ * - [引数]
+ * -- class ... クラス名(省略可)
+ * - [公開設定] 公開
+ */
+
 function kona3plugins_column_execute($args) {
   if (!$args) return "";
   $class = "column";

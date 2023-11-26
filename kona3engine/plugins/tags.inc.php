@@ -1,6 +1,10 @@
 <?php
-/**
- * #tags(tag,sort=(mtime|page_id,limit=30))
+/** タグ一覧を表示する
+ * - [書式] #tags(tag,sort=(mtime|page_id),limit=30)
+ * - [引数]
+ * -- tag ... タグ名
+ * -- sort=xxx ... ソート方法(mtime|page_id)
+ * -- limit=xxx ... 表示件数
  */
 function kona3plugins_tags_execute($args) {
   $limit = 30;

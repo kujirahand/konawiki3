@@ -1,7 +1,9 @@
 <?php
-//
-// chapter plugins
-//
+/** 指定のディレクトリ以下のファイルを列挙して一行目をタイトルとして一覧表示
+ * - [書式] #chapter(dir)
+ * - [引数]
+ * -- dir ... ディレクトリ名
+ */
 function kona3plugins_chapter_execute($args) {
     global $kona3conf;
     // parametes

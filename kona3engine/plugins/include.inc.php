@@ -1,9 +1,10 @@
 <?php
 
-/**
- * [USAGE] #include(pagename_list)
- * - inlucde other pages
- * - (ex) {{{#include(LF)name1(LF)name2(LF)name3(LF)}}}
+/** 複数WIKIファイルを取り込んで表示する
+ * - [書式] #include(pagename_list)
+ * - [引数]
+ * -- pagename_list ... inlucde other pages
+ * - [利用例] {{{#include flie1 \n file2 \n file3 ... }}}
  */
 
 include_once dirname(dirname(__FILE__)).'/kona3parser.inc.php';

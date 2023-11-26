@@ -1,5 +1,9 @@
 <?php
 
+/** TSVデータをテーブルで表示する
+ * - [書式] {{{#tsv データ }}}
+ * - [引数]
+ */
 function kona3plugins_tsv_execute($args) {
   $html = "";
   $text = trim(array_shift($args));

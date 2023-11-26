@@ -1,7 +1,7 @@
 <?php
 
 /** mermaid notation
- * [Usage] {{{#mermaid ... }}}
+ * - [Usage] {{{#mermaid ... }}}
  */
 
 

@@ -1,5 +1,11 @@
 <?php
 
+/** 人気のあるページを列挙する
+ * - [書式] #popular(count)
+ * - [引数]
+ * -- count ... 件数(省略可)
+ */
+
 function kona3plugins_popular_execute($args) {
   global $kona3conf;
   

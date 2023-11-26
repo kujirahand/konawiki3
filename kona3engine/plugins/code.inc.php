@@ -1,4 +1,10 @@
 <?php
+/** pre要素で囲む
+ * - [書式] {{{#code ... }}}
+ * - [引数]
+ * -- lang ... 言語名(省略可)
+ * -- text ... テキスト
+ */
 
 function kona3plugins_code_execute($args) {
   $lang = array_shift($args);

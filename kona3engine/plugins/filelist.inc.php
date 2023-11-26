@@ -1,8 +1,10 @@
 <?php
-/** #filelist enum files
- * - [args] #filelist(filter, option)
- * - [option] thumb ... show thumbnail(64px)
- * - [option] thumb128 ... show thumbnail(128px)
+/** ファイル一覧を列挙する
+ * - [書式] #filelist(filter, option)
+ * - [args]
+ * -- filter ... ファイル名のフィルタ
+ * -- thumb ... show thumbnail(64px) [option]
+ * -- thumb128 ... show thumbnail(128px) [option]
  */
 function kona3plugins_filelist_execute($args) {
   global $kona3conf;

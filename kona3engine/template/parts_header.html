@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- konawiki version -->
+<meta name="konawiki::version" contents="{{ $KONAWIKI_VERSION }}">
+{{ if $wiki_private }}
+<meta name="konawiki::private" contents="yes">
+{{ endif }}
+
 <!-- include files -->
 {{ $head_tags | safe }}
 {{ $js_tags | safe }}

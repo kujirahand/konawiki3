@@ -1,4 +1,9 @@
 <?php
+/** 特定パスにある名前のファイルを取り込んで表示
+ * - [書式] #file(name)
+ * - [引数]
+ * -- name ... パス
+ */
 
 include_once dirname(dirname(__FILE__)).'/kona3parser.inc.php';
 

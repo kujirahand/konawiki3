@@ -1,9 +1,10 @@
 <?php
-// 
-// なでしこ3のマニュアル生成スクリプト
-// data/nako3commands.db に nadesiko3doc リポジトリのDBを配置
-//
-function kona3plugins_nako3doc_execute($parg) {
+
+/** なでしこ3のマニュアル生成スクリプト
+ * - [備考] data/nako3commands.db に nadesiko3doc リポジトリのDBを配置
+ */
+
+ function kona3plugins_nako3doc_execute($parg) {
     global $kona3conf;
     $page = $kona3conf['page'];
     // check args

@@ -1,8 +1,8 @@
 <?php
 
 /** mathjax
- * [Usage] {{{#mathjax X_{i+1} = X_i^2 }}}
- * [Usage] $$$ X_{i+1} = (X_i + X^2) mod A $$$
+ * - [Usage] {{{#mathjax X_{i+1} = X_i^2 }}}
+ * - [Usage] $$$ X_{i+1} = (X_i + X^2) mod A $$$
  */
 
 function kona3plugins_mathjax_execute($args)

@@ -1,9 +1,12 @@
 <?php
-
-/**
- * [usage] #countpages(path, pp=perPage, ignore=key1:key2:key3:key4...)
- * count text char length
+/** 指定パスのファイルの文字数を数える
+ * - [書式] #countpages(path, pp=perPage, ignore=key1:key2:key3:key4...)
+ * - [引数]
+ * -- path ... パス
+ * -- pp=xxx ... 1ページあたりの文字数
+ * -- ignore=xxx ... 無視するファイル名
  */
+
 function kona3plugins_countpages_execute($args) {
   global $kona3conf;
   $ext = '.'.kona3getConf('def_text_ext', 'txt');

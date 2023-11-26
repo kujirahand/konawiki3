@@ -1,9 +1,9 @@
 <?php
-/**
- * #filecode(path, type)
- * options:
- * - path: filepath
- * - type: code or plain(beta)
+/** ソースコードのパスを指定して囲んで表示
+ * - [書式] #filecode(path, type)
+ * - [引数]
+ * -- path: filepath
+ * -- type: code or plain(beta)
  */
 
 function kona3plugins_filecode_execute($args) {
