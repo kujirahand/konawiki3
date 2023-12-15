@@ -157,6 +157,9 @@ function kona3markdown_parser_parse($text)
         else if ($c == "~" && substr($text, 0, 3) == "~~~") {
             $tokens[] = kona3markdown_parser_sourceBlock($text);
         }
+        else if ($c == ":" && substr($text, 0, 3) == ":::") {
+            $tokens[] = kona3markdown_parser_sourceBlock($text);
+        }
         else { // plain block
             $last_text = $text;
             $plain = "";
@@ -864,12 +867,14 @@ function kona3markdown_parser_sourceBlock(&$text)
 {
     $eol = kona3markdown_public("EOL");
     $endmark = kona3markdown_parser_getStr($text, 3); // skip "```" or "~~~"
-    // get name
-    $name = kona3markdown_parser_token($text, $eol);
+    
+    // get block name
+    $name = trim(kona3markdown_parser_token($text, $eol));
+
     // create end mark
     $endmark .= $eol;
     $src = kona3markdown_parser_token($text, $endmark);
-    return array("cmd"=>"block", "text"=>$src, "params" =>[$name]);
+    return array("cmd"=>"block", "text"=>$src, "params" =>['#'.$name]);
 }
 
 function kona3markdown_public($key, $def = "") {
