@@ -870,11 +870,12 @@ function kona3markdown_parser_sourceBlock(&$text)
     
     // get block name
     $name = trim(kona3markdown_parser_token($text, $eol));
+    if (substr($name, 0, 1) != '#') { $name = '#'.$name; }
 
     // create end mark
     $endmark .= $eol;
     $src = kona3markdown_parser_token($text, $endmark);
-    return array("cmd"=>"block", "text"=>$src, "params" =>['#'.$name]);
+    return array("cmd"=>"block", "text"=>$src, "params" =>[$name]);
 }
 
 function kona3markdown_public($key, $def = "") {
