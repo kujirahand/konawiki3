@@ -866,7 +866,7 @@ function kona3markdown_parser_getPlugin($pname)
 function kona3markdown_parser_sourceBlock(&$text)
 {
     $eol = kona3markdown_public("EOL");
-    $endmark = kona3markdown_parser_getStr($text, 3); // skip "```" or "~~~"
+    $endmark = kona3markdown_parser_getStr($text, 3); // skip "```" or "~~~" or ":::"
     
     // get block name
     $name = trim(kona3markdown_parser_token($text, $eol));
