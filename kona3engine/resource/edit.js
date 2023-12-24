@@ -210,22 +210,29 @@ function setButtonsDisabled(stat) {
 }
 
 function countText() {
-  var s = ''
-  var txt = $("#edit_txt").val()
+  let s = ''
+  let txt = $("#edit_txt").val()
+  const counterTag = [['{{{#count', '}}}'], ['```#count', '```'], [':::count', ':::'], [':::#count', ':::']]
   // total
   s += 'total(' + txt.length + ') '
   // id
   while (txt) {
-    var close_tag = '}}}'
-    var i = txt.indexOf('{{{#count')
-    if (i < 0) {
-        i = txt.indexOf('```#count')
-        if (i < 0) break;
-        close_tag = '```'
+    let i = -1
+    let closeTag = ''
+    for (let tagNo = 0; tagNo < counterTag.length; tagNo++) {
+      const ctag = counterTag[tagNo]
+      const openTag = ctag[0]
+      const closeTag2 = ctag[1]
+      i = txt.indexOf(openTag)
+      if (i >= 0) {
+        closeTag = closeTag2
+        break
+      }
     }
+    if (i === -1) { break }
     // trim left side
     txt = txt.substr(i)
-    txt = txt.replace(/^[\{`]+\#(countbox|count)/, '')
+    txt = txt.replace(/^[\{`:]+\#?(countbox|count)/, '')
     // count
     var id = '*'
     var ts = ''
@@ -235,12 +242,12 @@ function countText() {
       txt = txt.substr(ti);
       var m = txt.match(/id=(.+)\)/);
       if (m) id = m[1];
-      ei = txt.indexOf(close_tag)
+      ei = txt.indexOf(closeTag)
       ts = txt.substr(0, ei);
       ts = ts.split("\n").slice(1).join("")
-      txt = txt.substr(ei + close_tag.length);
+      txt = txt.substr(ei + closeTag.length);
     } else {
-      ei = txt.indexOf(close_tag)
+      ei = txt.indexOf(closeTag)
       ts = txt.substr(0, ei);
       ts = ts.split("\n").join("")
     }
