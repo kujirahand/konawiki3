@@ -1227,3 +1227,8 @@ ul.topnavi a
   padding: 0.3em;
   color: silver;
 }
+.kona3qrcode {
+  border: 1px dotted silver;
+  padding: 0.3em;
+  margin: 0.3em;
+}

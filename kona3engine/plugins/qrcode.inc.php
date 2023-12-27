@@ -2,14 +2,19 @@
 /** 指定されたURLやデータをQRコードで出力する
  * - [書式] #qrcode(data, size=x)
  * - [引数]
- * -- lang ... 言語名(省略可)
  * -- text ... テキスト
+ * -- size=x ... QRコードのサイズ
  */
 
 function kona3plugins_qrcode_execute($args) {
   global $kona3conf;
   $plugkey = "plugins.qrcode.init";
   $text = array_shift($args);
+  $sizeParam = array_shift($args);
+  $size = 64;
+  if (preg_match('#size=(\d+)#', $sizeParam, $m)) {
+      $size = $m[1];
+  }
   $head = "";
   $domid = "???";
   if (empty($kona3conf[$plugkey])) {
@@ -23,16 +28,23 @@ EOS;
     $domid = "kona3qrcode-".$kona3conf[$plugkey];
     $head = "";
   }
-  $text = str_replace("\"", "\\\"", $text);
+  $textH = htmlspecialchars($text, ENT_QUOTES);
+  if (substr($textH, 0, 4) == "http") {
+    $textH = "<a href=\"$textH\" target=\"_new\">$textH</a>";
+  }
+  $textQ = str_replace("\"", "\\\"", $text);
   $body = <<<EOS
-<div id="$domid" class="kona3qrcode"></div>
+<div class="kona3qrcode" style="margin: 0.3em; padding: 0.5em;">
+    <div id="$domid"></div>
+    <div class="memo">$textH</div>
+</div>
 <script>
 (() => {
     const qrdom = document.getElementById("$domid");
     new QRCode(qrdom, {
-        text: "$text",
-        width: 128,
-        height: 128,
+        text: "$textQ",
+        width: $size,
+        height: $size,
         colorDark : "#000000",
         colorLight : "#ffffff",
         correctLevel : QRCode.CorrectLevel.H
