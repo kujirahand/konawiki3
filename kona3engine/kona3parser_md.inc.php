@@ -643,9 +643,12 @@ function kona3markdown_parser_tosource_block($src, $params = [])
     global $eol;
     // plugin ?
     $fname = array_shift($params);
+    $blockType = array_shift($params);
+    $fileType = array_shift($params);
+    $fileName = array_shift($params);
+
     if ($fname == null) { $fname = ''; }
-    $c = mb_substr($fname, 0, 1);
-    if ($c == "♪" || $c == "#") {
+    if ($blockType === 'plugin') {
         $fname = mb_substr($fname, 1);
         $line  = kona3markdown_parser_token($fname, "\n");
         $pname = trim(kona3markdown_parser_token($line, "("));
@@ -669,8 +672,7 @@ function kona3markdown_parser_tosource_block($src, $params = [])
         }
     }
     // no plugin
-    $fname = '';
-    if ($params) { $fname = $params[0]; }
+    $fname = $fileName;
     $fname = htmlspecialchars($fname, ENT_QUOTES);
     if ($fname != '') {
         $css = 'font-size:0.7em; background-color:#f0f0f0; color:#909090; padding:2px;';
@@ -867,15 +869,39 @@ function kona3markdown_parser_sourceBlock(&$text)
 {
     $eol = kona3markdown_public("EOL");
     $endmark = kona3markdown_parser_getStr($text, 3); // skip "```" or "~~~" or ":::"
+    $blockType = "code";
+    $fileType = "text";
+    $fileName = "";
     
     // get block name
     $name = trim(kona3markdown_parser_token($text, $eol));
-    if (substr($name, 0, 1) != '#') { $name = '#'.$name; }
+    $ch = substr($name, 0, 1);
 
+    // :::plugin
+    if ($endmark === ':::') { // plugin
+        $blockType = 'plugin';
+        $fileType = 'kona3plugin';
+        if ($ch !== '#' && $ch !== '♪') {
+            $name = '#'.$name;
+        }
+    } else {
+        // check markdown source code ```type:filename ... ```
+        if (preg_match('/^([a-zA-Z_\-]+)\:(.+)$/', $name, $m)) {
+            $fileType = $m[1];
+            $fileName = $m[2];
+        } else if (preg_match('/^[0-9a-zA-Z_\-]+/', $name)) {
+            $fileType = $name;
+        } else if ($ch == '#' || $ch == '♪') {
+            // KonaWiki Plugin format
+            $blockType = 'plugin';
+            $fileType = 'kona3plugin';
+        }
+    }
+    
     // create end mark
     $endmark .= $eol;
     $src = kona3markdown_parser_token($text, $endmark);
-    return array("cmd"=>"block", "text"=>$src, "params" =>[$name]);
+    return array("cmd"=>"block", "text"=>$src, "params" =>[$name, $blockType, $fileType, $fileName]);
 }
 
 function kona3markdown_public($key, $def = "") {
