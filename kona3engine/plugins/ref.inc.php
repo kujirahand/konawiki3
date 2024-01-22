@@ -60,13 +60,13 @@ function kona3plugins_ref_execute($args) {
     // Is image?
     if (preg_match('/\.(png|jpg|jpeg|gif|bmp|ico|svg)$/', $url)) {
         if ($link == '') { $link = $url; }
-        $caph = "<div class='memo'>".kona3text2html($caption)."</div>";
+        $caph = "<div class='memo'>".$caption."</div>";
         $code = "<div>".
             "<div><a href='$link'><img src='$url'{$size}></a></div>".
             (($caption != "") ? $caph : "").
             "</div>";
     } else {
-        if ($caption == "") $caption = $url;
+        if ($caption == "") { $caption = $url; }
         $code = "<div><a href='$url'>$caption</a></div>";
     }
     return $code;

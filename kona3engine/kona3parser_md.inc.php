@@ -500,7 +500,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
                 $plugin['disable'] = '';
             }
             if ($plugin['disable'] || !file_exists($plugin["file"])) {
-                $result .= htmlspecialchars("&".$pname."(", ENT_QUITES);
+                $result .= htmlspecialchars("&".$pname."(", ENT_QUOTES);
             } else {
                 $pparam = __kona3markdown_parser_tohtml($text, $level + 1);
                 $param_ary = explode(",", $pparam);
