@@ -35,11 +35,6 @@
         <div><input type="text" id="edit_info" class="info" readonly></div>
         <div><input type="text" id="edit_counter" class="info" readonly></div>
       </div><!-- end of info_box -->
-      <div class="desc tag_box">
-        <b>Tags</b>:
-        <input type="text" id="tags" class="info" style="width: 50%;" name="tags" value="{{ $tags }}"
-          placeholder="tag1/tag2/tag3/...">
-      </div>
       <div class="desc">
         <input type="checkbox" id="autosave" class="info" style="width:2em;" name="autosave" value="yes" checked>
         <label for="autosave"> Auto save </label>
@@ -48,6 +43,7 @@
 
     <div class="desc">
       <div style="text-align: right;">
+        <button onclick="tagsOnClick()">{{'Tags' | lang}}</button>
         <button onclick="historyOnClick()">{{'History' | lang}}</button>
         <button onclick="helpOnClick()">?</button>
       </div>
@@ -58,6 +54,11 @@
             <li>Ctrl+S ... save</li>
           </ul>
         </div>
+      </div>
+      <div id="tags_div" class="desc tag_box" class="block2" style="display: none;">
+        <b>Tags</b>:
+        <input type="text" id="tags" class="info" style="width: 50%;" name="tags" value="{{ $tags }}"
+          placeholder="tag1/tag2/tag3/...">
       </div>
       <div id="history_div" class="block2" style="display: none;">
         <ul>

@@ -328,20 +328,21 @@ function jump(url) {
   window.location.href = url;
 }
 
-function historyOnClick() {
-  const historyDiv = qs('#history_div');
-  if (historyDiv.style.display == 'none') {
-    historyDiv.style.display = 'block';
+function toggleDisplay(query) {
+  const e = qs(query);
+  if (e.style.display == 'none') {
+    e.style.display = 'block';
   } else {
-    historyDiv.style.display = 'none';
+    e.style.display = 'none';
   }
 }
 
+function historyOnClick() {
+  toggleDisplay('#history_div');
+}
 function helpOnClick() {
-  const helpDiv = qs('#help_div');
-  if (helpDiv.style.display == 'none') {
-    helpDiv.style.display = 'block';
-  } else {
-    helpDiv.style.display = 'none';
-  }
+  toggleDisplay('#help_div');
+}
+function tagsOnClick() {
+  toggleDisplay('#tags_div');
 }

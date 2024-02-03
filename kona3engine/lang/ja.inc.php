@@ -79,5 +79,6 @@ $lang_data = [
   'Page name' => 'ページ名',
   'Special Page' => '特別なページ',
   'Hint' => 'ヒント',
+  'Tags' => 'タグ',
 ];
 
