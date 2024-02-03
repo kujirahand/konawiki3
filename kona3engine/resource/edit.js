@@ -177,7 +177,7 @@ function go_ajax(a_mode) {
           save_ajax();
         }, 1000);
       }
-      $("#edit_info").val("[error] " + msg['reason']);
+      $("#edit_info").html("[error] " + msg['reason']);
       $("#edit_info").css("color", "red");
       setButtonsDisabled(false);
       return;
@@ -186,7 +186,7 @@ function go_ajax(a_mode) {
     countText();
     // set hash
     $('#a_hash').val(msg["a_hash"]);
-    $("#edit_info").val('[saved] ' + msg["a_hash"]);
+    $("#edit_info").html('[saved]');
     use_beforeunload(false);    
     // effect - flash info field
     const info = $("#edit_info");
@@ -214,7 +214,7 @@ function countText() {
   let txt = $("#edit_txt").val()
   const counterTag = [['{{{#count', '}}}'], ['```#count', '```'], [':::count', ':::'], [':::#count', ':::']]
   // total
-  s += 'total(' + txt.length + ') '
+  s += 'total(' + txt.length.toLocaleString() + ') '
   // id
   while (txt) {
     let i = -1
@@ -253,7 +253,7 @@ function countText() {
     }
     s += id + '(' + ts.length + ') '
   }
-  $("#edit_counter").val(s);
+  $("#edit_counter").html(s);
 }
 
 function edit_recover() {
