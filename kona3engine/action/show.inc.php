@@ -80,12 +80,18 @@ function kona3_action_show() {
         $allpage_footer.
         $tags;
 
+    // edit link
+    $edit_link = "";
+    if (kona3isLogin()) {
+        $edit_link = kona3getPageURL($page, "edit", "", "edit_token=" . kona3_getEditToken($page, FALSE));
+    }
     // show
     kona3template('show.html', [
         "page_title" => $page,
         "page_body"  => $page_body,
         "cnt_txt"    => $cnt_txt,
         "page_file"  => $fname,
+        "edit_link"  => $edit_link,
     ]);
 }
 

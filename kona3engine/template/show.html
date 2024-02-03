@@ -6,7 +6,12 @@
     <div class="pure-u-1 pure-u-md-19-24 page_body">
       <div id="kona3_main">
         {{ if $show_data_dir != '' }}
-          <div class="mojisu">{{ $cnt_txt }}字</div>
+          <div class="mojisu" style="float:right">{{ $cnt_txt }}字</div>
+        {{ endif }}
+        {{ if $edit_link != ''}}
+        <div>
+          <a class="pure-button" href="{{ $edit_link }}">{{ "Edit" | lang }}</a>
+        </div>
         {{ endif }}
         {{$page_body | safe}}
       </div><!-- #kona3_main -->
