@@ -9,9 +9,9 @@
           <div class="mojisu" style="float:right">{{ $cnt_txt }}字</div>
         {{ endif }}
         {{ if $edit_link != ''}}
-        <div>
+        <div class="kona3_login_bar">
           <a class="pure-button" href="{{ $edit_link }}">{{ "Edit" | lang }}</a>
-        </div>
+        </div><!-- kona3_login_bar -->
         {{ endif }}
         {{$page_body | safe}}
       </div><!-- #kona3_main -->

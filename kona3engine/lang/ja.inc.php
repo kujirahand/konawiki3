@@ -76,5 +76,8 @@ $lang_data = [
   "Invalid Wiki Name: not allow use '/'" => "不正なWIKI名: 設定によりパス記号『/』は利用できません。",
   "Invalid Wiki Name: not allow use '/' over %s times" => "不正なWIKI名: 設定によりパス記号『/』は%s回以下にしてください。",
   'autologin' => '自動ログイン',
+  'Page name' => 'ページ名',
+  'Special Page' => '特別なページ',
+  'Hint' => 'ヒント',
 ];
 

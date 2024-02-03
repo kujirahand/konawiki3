@@ -115,6 +115,9 @@ function kona3_action_edit() {
       $tags = implode('/', $a);
     }
 
+    // new button
+    $new_btn_url = kona3getPageURL($page, "new");
+
     // show
     kona3template('edit.html', array(
         "action" => $action,
@@ -125,6 +128,7 @@ function kona3_action_edit() {
         "history" => $history,
         "edit_token" => $edit_token,
         "tags" => $tags,
+        "new_btn_url" => $new_btn_url,
     ));
 }
 

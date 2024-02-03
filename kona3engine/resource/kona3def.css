@@ -397,7 +397,7 @@
 #wikimessage h4
 {
   background-color:#e0f0ff;
-  border-bottom:1px solid #ce0e0e0;
+  border-bottom:1px solid #ce0e0e;
   margin-bottom:12px;
   padding:8px;
 }
@@ -555,6 +555,12 @@
 {
   border:1px solid orange;
   padding:5px;
+}
+
+.block2
+{
+  border: 1px solid silver;
+    padding: 5px;
 }
 
 .clear
@@ -1199,8 +1205,8 @@ ul.topnavi a
 }
 
 .mojisu {
-  margin:0;
-  padding:4px;
+  margin: 4px;
+  padding: 4px;
   font-size: 0.8em;
   color: gray;
   text-align: right;
@@ -1220,6 +1226,7 @@ ul.topnavi a
   border: 1px solid #e0e0ff;
   padding: 0.8em;
 }
+
 .kona3count-foot {
   font-size: 0.8em;
   text-align: right;
@@ -1227,8 +1234,13 @@ ul.topnavi a
   padding: 0.3em;
   color: silver;
 }
+
 .kona3qrcode {
   border: 1px dotted silver;
   padding: 0.3em;
   margin: 0.3em;
+}
+
+.kona3_login_bar {
+  border: 1px solid silver;
 }

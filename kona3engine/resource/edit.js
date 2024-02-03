@@ -324,5 +324,7 @@ function html2text(s) {
   return s;
 }
 
-
+function jump(url) {
+  window.location.href = url;
+}
 
