@@ -31,58 +31,52 @@
           value="{{'New' | lang}}"
           onclick="jump('{{ $new_btn_url }}')">
       </div>
-      <div>
-        <input type="text" id="edit_info" class="info" readonly>
-      </div>
-      <div>
-        <input type="text" id="edit_counter" class="info" readonly>
-      </div>
-      <div class="desc">
-        <b>Tags</b> (tag1/tag2/tag3...): <input type="text" id="tags" class="info" style="width: 50%;" name="tags" value="{{ $tags }}">
+      <div class="info_box">
+        <div><input type="text" id="edit_info" class="info" readonly></div>
+        <div><input type="text" id="edit_counter" class="info" readonly></div>
+      </div><!-- end of info_box -->
+      <div class="desc tag_box">
+        <b>Tags</b>:
+        <input type="text" id="tags" class="info" style="width: 50%;" name="tags" value="{{ $tags }}"
+          placeholder="tag1/tag2/tag3/...">
       </div>
       <div class="desc">
         <input type="checkbox" id="autosave" class="info" style="width:2em;" name="autosave" value="yes" checked>
         <label for="autosave"> Auto save </label>
       </div>
     </form>
-    <hr>
-    
-    <div class="desc">
-      <div>Shortcut:</div>
-      <ul>
-        <li>Ctrl+S ... save</li>
-      </ul>
-    </div><!-- end of .desc -->
-    
-    <div class="desc">
-      <div>{{'History' | lang}}</div>
-      <ul>
-        {{ for $history as $i => $v }}
-        <li>
-          <a href="{{$v.link}}">
-            ({{$v.history_id}})
-            {{$v.mtime | datetime}}
-            ({{$v.size | number_format}}B)
-          </a>
-          by {{$v.user}}
-          {{ if kona3isAdmin() }}
-          <a href="{{$v.delete_link}}">{{'Delete' | lang}}</a>
-          {{ endif }}
-        </li>
-        {{ endfor }}
-      </ul>
-    </div><!-- end of .desc -->
 
     <div class="desc">
-      <div>etc...</div>
-      <ul>
-        <li>
-          <input id="ls_load_btn" type="button" class="pure-button"
-            value="{{'Load temp'| lang}}">
-        </li>
-      </ul>
-    </div><!-- end of .desc -->
-
+      <div style="text-align: right;">
+        <button onclick="historyOnClick()">{{'History' | lang}}</button>
+        <button onclick="helpOnClick()">?</button>
+      </div>
+      <div id="help_div" class="block2" style="display: none;">
+        <div>Shortcut:</div>
+        <div>
+          <ul>
+            <li>Ctrl+S ... save</li>
+          </ul>
+        </div>
+      </div>
+      <div id="history_div" class="block2" style="display: none;">
+        <ul>
+          <li><a href="#" id="ls_load_btn">😃{{'Load temp'| lang}}</a></li>
+          {{ for $history as $i => $v }}
+          <li>
+            <a href="{{$v.link}}">
+              ({{$v.history_id}})
+              {{$v.mtime | datetime}}
+              ({{$v.size | number_format}}B)
+            </a>
+            by {{$v.user}}
+            {{ if kona3isAdmin() }}
+            <a href="{{$v.delete_link}}">{{'Delete' | lang}}</a>
+            {{ endif }}
+          </li>
+          {{ endfor }}
+        </ul>
+      </div>
   </div>
 </div>
 <div style="clear:both;"></div>

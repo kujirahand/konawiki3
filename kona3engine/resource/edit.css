@@ -62,7 +62,7 @@
 
 #wikiedit input#outline_btn {
   font-size: 12px;
-  border: 1px solid gray;
+  border: 1px solid silver;
   color: black;
   padding: 8px;
   background-color: #f0f0f0;
@@ -72,7 +72,7 @@
 
 #wikiedit #edit_counter {
   background-color: #f0f0ff;
-  border: 1px dashed #ffc0c0;
+  border: none;
   margin-top: 8px;
   padding:0.5%;
   font-size: 0.8em;
@@ -81,7 +81,7 @@
 
 #wikiedit #edit_info {
   background-color: #f0f0ff;
-  border: 1px dashed #ffc0c0;
+  border: none;
   margin-top: 8px;
   padding:0.5%;
   font-size: 0.8em;
@@ -93,3 +93,14 @@
   color: gray;
 }
 
+.info_box {
+  padding: 0.3em;
+  border-bottom: 1px dotted silver;
+}
+
+.tag_box {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  padding: 0.3em;
+  border-bottom: 1px dotted silver;
+}

@@ -83,7 +83,7 @@ function kona3_action_show() {
     // edit link
     $edit_link = "";
     if (kona3isLogin()) {
-        $edit_link = kona3getPageURL($page, "edit", "", "edit_token=" . kona3_getEditToken($page, FALSE));
+        $edit_link = kona3getPageURL($page, "edit", "", "edit_token=" . kona3_getEditToken($page, TRUE));
     }
     // show
     kona3template('show.html', [

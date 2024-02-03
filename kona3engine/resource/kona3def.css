@@ -1242,5 +1242,20 @@ ul.topnavi a
 }
 
 .kona3_login_bar {
-  border: 1px solid silver;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  background-color: white;
+  padding: 0px;
+  margin: 0px;
+}
+
+.kona3_login_bar a {
+  color: #00f;
+  text-decoration: none;
+}
+
+.login_bar1 {
+  border-bottom: 1px dotted silver;
+  padding: 4px;
 }

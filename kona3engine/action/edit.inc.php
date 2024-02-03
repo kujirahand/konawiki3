@@ -30,7 +30,7 @@ function kona3_action_edit() {
     // check edit_token
     if (!kona3_checkEditToken($page)) {
         $label = lang('Edit');
-        $edit_token = kona3_getEditToken($page, FALSE);
+        $edit_token = kona3_getEditToken($page, TRUE);
         $url = kona3getPageURL($page, 'edit', '', "edit_token=".$edit_token);
         $page_html = htmlspecialchars($page, ENT_QUOTES);
         if ($i_mode == 'form') {

@@ -328,3 +328,20 @@ function jump(url) {
   window.location.href = url;
 }
 
+function historyOnClick() {
+  const historyDiv = qs('#history_div');
+  if (historyDiv.style.display == 'none') {
+    historyDiv.style.display = 'block';
+  } else {
+    historyDiv.style.display = 'none';
+  }
+}
+
+function helpOnClick() {
+  const helpDiv = qs('#help_div');
+  if (helpDiv.style.display == 'none') {
+    helpDiv.style.display = 'block';
+  } else {
+    helpDiv.style.display = 'none';
+  }
+}

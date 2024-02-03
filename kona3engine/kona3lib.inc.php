@@ -444,7 +444,7 @@ function kona3getCtrlMenuArray($type) {
     $page = $kona3conf['page'];
     //
     $new_uri = kona3getPageURL($page, 'new');
-    $edit_uri = kona3getPageURL($page, 'edit');
+    $edit_uri = kona3getPageURL($page, 'edit', '', 'edit_token='.kona3_getEditToken($page, FALSE));
     $login_uri = kona3getPageURL($page, 'login');
     $logout_uri = kona3getPageURL($page, 'logout');
     $search_uri = kona3getPageURL($page, 'search');
@@ -472,7 +472,7 @@ function kona3getCtrlMenuArray($type) {
         $userpage_uri = kona3getPageURL($user, 'user');
         //
         if (kona3isAdmin()) {
-            $list[] = array("👋🙋 $user", $userpage_uri);
+            $list[] = array("👑 $user", $userpage_uri);
         } else {
             $list[] = array("🙋 $user", $userpage_uri);
         }
