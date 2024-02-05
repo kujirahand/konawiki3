@@ -643,15 +643,25 @@ function kona3_setPluginInfo($plugin_name, $key, $value) {
 function kona3_getEditToken($key = 'default', $update = TRUE) {
     global $kona3conf;
     $sname = "konawiki3_edit_token_$key";
+    $sname_time = "konawiki3_edit_token_time_$key";
     if ($update == FALSE) {
         if (isset($_SESSION[$sname])) {
+            $ONE_DAY = 60 * 60 * 24; // 1day
+            $time = isset($_SESSION[$sname_time]) ? $_SESSION[$sname_time] : time();
+            $expire_time = $time + $ONE_DAY;
+            if (time() > $expire_time) {
+                return kona3_getEditToken($key, TRUE);
+            }
+            $_SESSION[$sname_time] = time(); // update
             $kona3conf['edit_token'] = $_SESSION[$sname];
             return $kona3conf['edit_token'];
         }
     }
+    // update token
     if (!isset($kona3conf['edit_token'])) {
-        $t = $kona3conf['edit_token'] = bin2hex(random_bytes(32));
-        $_SESSION[$sname] = $t;
+        $token = $kona3conf['edit_token'] = bin2hex(random_bytes(32));
+        $_SESSION[$sname] = $token;
+        $_SESSION[$sname_time] = time();
     }
     return $kona3conf['edit_token'];
 }
