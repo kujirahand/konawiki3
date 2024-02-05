@@ -2,7 +2,7 @@
 
 - KonaWiki3 is Wiki clone.
 - [URL] http://kujirahand.com/konawiki3/
-- [日本語](README-ja.md)
+- [日本語のREADME](README-ja.md)
 
 # Goals of KonaWiki3
 
