@@ -41,7 +41,7 @@ $lang_data = [
   'Save temp' => '一時保存',
   'Load temp' => '一時保存を読込',
   'Save &amp; Show' => '保存して表示',
-  'Save to Repo' => '編集履歴に保存',
+  'Save to Repo' => 'Gitに保存',
   'Conflict editing, Please submit and check.' => 
     '編集が衝突しました。'.
     '「保存して表示」ボタンを押して差分を確認してください。',

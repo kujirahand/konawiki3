@@ -324,7 +324,11 @@ function html2text(s) {
   return s;
 }
 
-function jump(url) {
+function jump(url, windowName) {
+  if (windowName !== undefined) {
+    window.open(url, windowName);
+    return;
+  }
   window.location.href = url;
 }
 
