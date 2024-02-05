@@ -1,0 +1,10 @@
+# access limitation
+<Files *.txt>
+Order deny,allow
+Deny from all
+</Files>
+<Files *.md>
+Order deny,allow
+Deny from all
+</Files>
+
