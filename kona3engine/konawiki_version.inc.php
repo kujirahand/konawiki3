@@ -1,2 +1,2 @@
 <?php
-define("KONAWIKI_VERSION", "3.2.5");
+define("KONAWIKI_VERSION", "3.2.6");
