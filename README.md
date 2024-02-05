@@ -1,23 +1,21 @@
 # KonaWiki3
 
- - KonaWiki3 is Wiki clone.
- - [URL] http://kujirahand.com/konawiki3/
+- KonaWiki3 is Wiki clone.
+- [URL] http://kujirahand.com/konawiki3/
+- [日本語](README-ja.md)
 
-## KonaWiki3の目標
+# Goals of KonaWiki3
 
-KonaWikiは原稿の執筆やマニュアルの作成、情報の共有に特化したシンプルなWikiです。
-Wikiのデータはただのテキストファイルなので、Gitと連携して詳細な差分を取ることもできます。
-開発者は何年もテキストエディタの代わりにKonaWiki3を使用しています。小
-さくシンプルなKonawikiを使って大きな仕事を成し遂げましょう。
+KonaWiki is a simple Wiki designed specifically for writing manuscripts, creating manuals, and sharing information.
 
-## セキュリティアップデートのお知らせ (2021/02/22)
+The data in the Wiki is just plain text files, which allows for detailed differences to be tracked in conjunction with Git.
+Developers have been using KonaWiki3 as a substitute for text editors for many years. Let's accomplish great tasks using the small and simple KonaWiki.
 
-Konawiki v3.2.3 より前のバージョンをご利用の方は最新版にアップデートしてください。
-> JVNVU#99880454 / JVN#48194211 / CVE-2020-5670
+Additionally, through the configuration options, it is possible to save in Markdown as well as KonaWiki notation. You can use your preferred notation for markup.
 
 ## KonaWiki3 is simple.
 
-It is very simple PHP wiki engine. (Looks like PukiWiki).
+It is very simple PHP wiki engine.
 
 ```
 * header
@@ -44,30 +42,6 @@ console.log('hello');
 }}}
 ```
 
-## 日本語Wiki記法のサポート
-
-KonaWiki2に由来する、日本語Wiki記法をサポートしています。
-
-```
-■大見出し
-
-text text text text
-
-●中見出し
-
-text text text text
-
-▲小見出し
-
-text text text text
-
-リスト
-
-・item1
-・item2
-・item3
-```
-
 # How to install Konawiki3
 
 - 1. Install WebServer and PHP
@@ -77,7 +51,7 @@ text text text text
 
 ## Install Library (Option)
 
-When you want to use Git or Markdown, execute shell commands.
+When you want to use Git, execute shell commands.
 
 ```sh
 cd kona3engine
@@ -86,9 +60,9 @@ composer install
 
 ## Output PDF (Option)
 
- - 設定画面で PDF 出力をtrueに設定
- - 文字化けするときは、/vendor/fonts に拡張子が.ttfのフォントを配置してください。
- - 詳しくは[こちら](https://kujirahand.com/konawiki3/index.php?PDF%E5%87%BA%E5%8A%9B%E6%A9%9F%E8%83%BD)
+- 1. Access config page, and set PDF-output TRUE
+- 2. If Mojibake then put fonts in ./vendor/fonts(.ttf)
+- [PDF output manual](https://kujirahand.com/konawiki3/index.php?PDF%E5%87%BA%E5%8A%9B%E6%A9%9F%E8%83%BD)
 
 ## Git support (Option)
 
