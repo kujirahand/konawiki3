@@ -87,6 +87,40 @@ Gitコマンドが使えるなら、コマンド一発で設置が可能です�
 - 2. [テンプレートエンジンのZIPをダウンロード](https://github.com/kujirahand/php_fw_simple/releases)
 - 3. テンプレートエンジンを解凍して `./kona3engine/fw_simple` に配置
 
+下記のような構造になるようにします。
+
+```
+- index.php
+- <data>
+- <cache>
+- <private>
++ <kona3engine>
+    + <fw_simple>
+      - README.md
+      - index.lib.php
+      ...
+    - <action>
+    - <template>
+    - <lang>
+    ...
+```
+
+### 共通
+
+データファイルの直接アクセス保護のために `data/.htaccess` を配置するのをオススメします。
+
+```
+# access limitation
+<Files *.txt>
+Order deny,allow
+Deny from all
+</Files>
+<Files *.md>
+Order deny,allow
+Deny from all
+</Files>
+```
+
 ## (オプション) Git保存機能を使う場合
 
 Git保存機能を使う時は、composerを使ってインストールしてください。
@@ -115,7 +149,7 @@ git push
 
 ## Gitと連携する場合
 
-You can commit and push wiki diffs to your git repository.
+下記のようにして、dataディレクトリをGitの管理下に置くと便利かも。
 
 ```sh
 # set your remote repository in `/data` dir
@@ -123,7 +157,7 @@ cd data
 git remote add origin git@github.com:hoge/fuga.git
 ```
 
-And set git_enabled to true at the config.
+そして、設定画面で git_enabled をTRUEに設定してください。
 
 ## 設定ページ
 

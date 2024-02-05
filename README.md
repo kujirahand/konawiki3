@@ -44,10 +44,49 @@ console.log('hello');
 
 # How to install Konawiki3
 
+[Use Git command]
+
 - 1. Install WebServer and PHP
 - 2. Download
   - `git clone --recursive https://github.com/kujirahand/konawiki3.git`
   - OR `git clone https://github.com/kujirahand/konawiki3.git` AND `git submodule update --init --recursive`
+
+[Use Uploader]
+
+- 1. Download Konawiki3 from [releases](https://github.com/kujirahand/konawiki3/releases)
+- 2. Download Template Engine from [php_fw_simple](https://github.com/kujirahand/php_fw_simple/releases)
+
+Please set directories like this.
+
+```
+- index.php
+- <data>
+- <cache>
+- <private>
++ <kona3engine>
+    + <fw_simple>
+      - README.md
+      - index.lib.php
+      ...
+    - <action>
+    - <template>
+    - <lang>
+    ...
+```
+
+And put `data/.htaccess`.
+
+```
+# access limitation
+<Files *.txt>
+Order deny,allow
+Deny from all
+</Files>
+<Files *.md>
+Order deny,allow
+Deny from all
+</Files>
+```
 
 ## Install Library (Option)
 
