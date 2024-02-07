@@ -3,7 +3,7 @@ include_once dirname(dirname(__FILE__)).'/kona3lib.inc.php';
 include_once dirname(dirname(__FILE__)).'/kona3parser.inc.php';
 
 function err404($msg) {
-  echo "404 $msg\n";
+  echo "<h1><span style='color:red'>404</span>\n$msg\n</h1>";
   exit;
 }
 

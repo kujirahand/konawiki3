@@ -111,19 +111,8 @@ function kona3show_check_private($page) {
 }
 
 function kona3show_file_not_found($page, &$ext) {
-    $updir = dirname($page);
     $PageNotFound = lang('Page Not Found.');
     $txt = "* {$page}\n{$PageNotFound}\n";
-    $txt .= "*** ls\n\n".
-        "#ls()\n";
-    // directory?
-    if ($ext == '__dir__') {
-        $txt .= "*** Directory: $page\n\n#ls()\n";
-    }
-    else if ($ext == '') {
-        $txt .= "not found.\n".$txt;
-    }
-    $ext = ".txt";
     return $txt;
 }
 
