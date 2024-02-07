@@ -156,6 +156,14 @@ function kona3setup_check_dirs() {
       "<div class='code'><code>{$help_chmod}</code></div>");
     exit;
   }
+  // check config error
+  if (KONA3_DIR_PRIVATE == KONA3_DIR_DATA || strpos(KONA3_DIR_PRIVATE, KONA3_DIR_DATA) !== FALSE) {
+    kona3_setup_help(
+      "KONA3_DIR_PRIVATE and KONA3_DIR_DATA should be different directories.<br>".
+      "<div class='code'><code>KONA3_DIR_PRIVATE = ".KONA3_DIR_PRIVATE."<br>".
+      "KONA3_DIR_DATA = ".KONA3_DIR_DATA."</code></div>");
+    exit;
+  }
 }
 
 function kona3setup_template($file, $params) {
