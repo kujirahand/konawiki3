@@ -22,7 +22,7 @@ $lang_data = [
   'Password' => 'パスワード',
   'Invalid User or Password.' => 'ユーザーかパスワードが間違っています。',
   'Success' => '処理しました。',
-  'Login successful.' => 'ログイン成功。',
+  'Login successful.' => 'ログインしました！',
   'Really?' => '本当ですか？',
   'Yes' => 'はい',
   'No' => 'いいえ',
@@ -81,5 +81,7 @@ $lang_data = [
   'Hint' => 'ヒント',
   'Tags' => 'タグ',
   'How to write KonaWiki' => 'KonaWikiの書き方',
+  'Too many login attempts.' => 'ログイン試行回数が多すぎます。',
+  'Please take a break and try again later.' => '少し時間をおいてから、再度挑戦してください。',
 ];
 
