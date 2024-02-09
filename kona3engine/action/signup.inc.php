@@ -80,15 +80,14 @@ function signup_execute($user, $email, $pw, &$msg) {
     return FALSE;
   }
   $r = db_get1(
-    "SELECT * FROM users WHERE name=?", [
+    "SELECT * FROM users WHERE name=? AND enabled=1", [
       $user]);
   if ($r != null) {
     $msg = lang('The username alredy registerd.');
     return FALSE;
   }
   $r = db_get1(
-    "SELECT * FROM users WHERE email=?", [
-      $email]);
+    "SELECT * FROM users WHERE email=? AND enabled=1", [$email]);
   if ($r != null) {
     $msg = lang('The email already registerd.');
     return FALSE;
@@ -121,8 +120,15 @@ function signup_execute($user, $email, $pw, &$msg) {
     "$wiki_title<%s>",
     $signup_url, $admin_email);
   $signup_title = "[$wiki_title] ".lang('Signup');
-  lib_send_email($email, $signup_title, $signup_body);
-  kona3showMessage(lang('Success'), lang('Please check email.'));
+  $body_msg = lang('Please check email.');
+  // localhostならばメール送信しない
+  if (preg_match('/^(localhost|localhost\:\d+)$/', $_SERVER['HTTP_HOST'])) {
+    $signup_body2 = htmlspecialchars($signup_body);
+    $body_msg .= "<pre>DEBUG:\n$signup_body2</pre>";
+  } else {
+    kona3lib_send_email($email, $signup_title, $signup_body);
+  }
+  kona3showMessage(lang('Success'), $body_msg);
   return TRUE;
 }
 

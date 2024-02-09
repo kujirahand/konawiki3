@@ -40,8 +40,8 @@ function kona3setup_config() {
     foreach ($conf as $key => $def) {
       $v = isset($_POST[$key]) ? $_POST[$key] : $def;
       $v = trim($v);
-      if ($v === 'true') { $v = TRUE; }
-      if ($v === 'false') { $v = FALSE; }
+      if (strtolower($v) === 'true') { $v = TRUE; }
+      if (strtolower($v) === 'false') { $v = FALSE; }
       $conf[$key] = $v;
     }
     // check parameters

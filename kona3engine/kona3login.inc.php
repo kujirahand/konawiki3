@@ -1,10 +1,8 @@
 <?php
 require_once __DIR__.'/jsonphp.lib.php';
 define("KONA3_SESSKEY_LOGIN", "kona3_login_info");
-
 if (!defined("KONA3_PASSWORD_SALT")) {
-  define("KONA3_PASSWORD_SALT", 
-    "tizIu*zC57#7GtF1OjGB!pSw:Ndg%zYi_QVXf");
+  define("KONA3_PASSWORD_SALT", "tizIu*zC57#7GtF1OjGB!pSw:Ndg%zYi_QVXf");
 }
 
 function kona3login($user, $email, $perm, $user_id = 0) {
@@ -59,7 +57,7 @@ function kona3isAdmin() {
 
 function kona3getAdminUsers() {
   $adminuser_json = KONA3_DIR_PRIVATE.'/kona3adminuser.json.php';
-  $users = jsonphp_load($adminuser_json, []);
+  $users = jsonphp_load($adminuser_json, [], true);
   return $users;
 }
 

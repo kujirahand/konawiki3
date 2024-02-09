@@ -28,7 +28,7 @@ function kona3conf_init(&$conf) {
   check_conf($conf, 'allpage_footer', '');
   check_conf($conf, 'analytics', '');
   check_conf($conf, 'FrontPage', 'FrontPage');
-  check_conf($conf, 'plugin_disallow', 'html,htmlshow,filelist'); //
+  check_conf($conf, 'plugin_disallow', 'html,htmlshow,filelist');
   check_conf($conf, 'git_enabled', FALSE);
   check_conf($conf, 'git_branch', 'main');
   check_conf($conf, 'git_remote_repository', 'origin');
@@ -46,6 +46,7 @@ function kona3conf_init(&$conf) {
   check_conf($conf, 'allow_upload_ext', 'txt;pdf;csv;wav;mid;mp3;mp4;ogg;zip;gz;bz2;jpg;jpeg;png;gif;svg;xml;json;ini;doc;docx;xls;xlsx;ppt;pptx');
   check_conf($conf, 'upload_max_file_size', 1024 * 1024 * 5);
   check_conf($conf, 'bbs_admin_password', 'BBS#admin!PassWord!!');
+  check_conf($conf, 'openai_apikey', '');
 }
 
 function check_conf(&$conf, $key, $def) {

@@ -704,3 +704,24 @@ function kona3getShortcutLink() {
 
 
 
+function kona3lib_send_email($to, $subject, $email_body) {
+    $admin_email = kona3getConf('admin_email', '');
+    if ($admin_email == '' || $admin_email == 'admin@example.com') {
+        return;
+    }
+    $headers = "From: $admin_email";
+    @mb_send_mail($to, $subject, $email_body, $headers);
+    //
+    // 送信したことを記録する
+    $db = database_get();
+    $stmt = $db->prepare(
+        'INSERT INTO email_logs (mailto, body, title, ctime) ' .
+            'VALUES(?, ?,?,?)'
+    );
+    $stmt->execute([$to, $email_body, $subject, time()]);
+}
+
+function kona3lib_send_email_to_admin($subject, $email_body) {
+    $admin_email = kona3getConf('admin_email', '');
+    kona3lib_send_email($admin_email, $subject, $email_body);
+}

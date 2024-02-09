@@ -80,5 +80,6 @@ $lang_data = [
   'Special Page' => '特別なページ',
   'Hint' => 'ヒント',
   'Tags' => 'タグ',
+  'How to write KonaWiki' => 'KonaWikiの書き方',
 ];
 
