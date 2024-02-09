@@ -109,8 +109,25 @@ EOS;
     // === カスタマイズできるように考慮する ===
     // ユニコードフォントがあるかチェック
     $fontfile = '';
-    $font_dir= dirname(__DIR__).'/vendor/fonts';
-    $fonts = glob($font_dir.'/*.ttf');
+    $font_dir = dirname(__DIR__).'/vendor/fonts';
+    $fonts = getFileList($font_dir, '/\.ttf$/');
+    if (!$fonts) {
+      // フォントがなければ適当にダウンロードする
+      // ZIPファイルをダウンロード
+      $font_url = "https://moji.or.jp/wp-content/ipafont/IPAexfont/ipaexg00401.zip";
+      $font_zip = $font_dir. '/ipaexg00401.zip';
+      if (!file_exists($font_zip)) {
+        // download
+        file_put_contents($font_zip, file_get_contents($font_url));
+      }
+      // 解凍
+      $zip = new ZipArchive;
+      if ($zip->open($font_zip) === TRUE) {
+        $zip->extractTo($font_dir);
+        $zip->close();
+      }
+      $fonts = getFileList($font_dir, '/\.ttf$/');
+    }
     foreach ($fonts as $f) {
       if (file_exists($f)) {
         $fontfile = $f;
@@ -121,10 +138,34 @@ EOS;
       $fontX = $font->addTTFfont($fontfile);  
       $tcpdf->SetFont($fontX , '', 16);
     }
-    $tcpdf->WriteHTML($page_body, true, 0, false, true, 'L');
+    // 不要なタグを削除
+    $page_body = preg_replace("/<strong.*?>/", "**", $page_body);
+    $page_body = preg_replace("/<\/strong>/", "**", $page_body);
+    //
+    $tcpdf->WriteHTML($page_body);
     // 出力用バッファの内容を消去
     ob_end_clean();
     // $tcpdf->Output($page.".pdf", "D"); // ダウンロード
     $tcpdf->Output($page.".pdf", "I"); // ブラウザ
 }
-  
+
+// 再帰的にファイルを検索
+function getFileList($dir, $pattern = "/^.+$/") {
+  $files = scandir($dir);
+  $files = array_filter($files, function ($file) {
+    return !in_array($file, array('.', '..'));
+  });
+  $list = array();
+  foreach ($files as $file) {
+    $fullpath = rtrim($dir, '/') . '/' . $file;
+    if (is_file($fullpath)) {
+      if (preg_match($pattern, $file)) {
+        $list[] = $fullpath;
+      }
+    }
+    if (is_dir($fullpath)) {
+      $list = array_merge($list, getFileList($fullpath));
+    }
+  }
+  return $list;
+}
