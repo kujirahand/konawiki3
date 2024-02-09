@@ -13,8 +13,8 @@
   padding: 1%;
   font-size: 1em;
   line-height: 1.7em;
-  width: 98%;
-  height: 300px;
+  width: calc(100%);
+  height: calc(60vh);
 }
 
 

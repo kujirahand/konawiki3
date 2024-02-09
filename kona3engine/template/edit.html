@@ -13,18 +13,12 @@
         <textarea id="edit_txt" name="edit_txt">{{$edit_txt}}</textarea>
       </div>
       <div class="buttons">
-        <div>
-          <input id="temporarily_save_btn" class="pure-button button-long" disabled="true" type="button"
-            value="{{'Save temp'|lang}}">
-          <input id="save_btn" class="pure-button button-short" type="submit" value="{{'Save &amp; Show'|lang}}">
-          {{ if $git_enabled }}
-          <input id="git_save_btn" type="button" class="pure-button button-short" value="{{'Save to Repo'|lang}}">
-          {{ endif }}
-        </div>
-        <div>
-          <input id="new_btn" type="button" class="pure-button button-short" value="{{'New' | lang}}"
-            onclick="jump('{{ $new_btn_url }}', '_new')">
-        </div>
+        <input id="temporarily_save_btn" class="pure-button button-long" disabled="true" type="button"
+          value="{{'Save temp'|lang}}">
+        <input id="save_btn" class="pure-button button-short" type="submit" value="{{'Save &amp; Show'|lang}}">
+        {{ if $git_enabled }}
+        <input id="git_save_btn" type="button" class="pure-button button-short" value="{{'Save to Repo'|lang}}">
+        {{ endif }}
       </div>
       <div class="info_box">
         <span id="edit_counter" class="info"></span>
