@@ -266,11 +266,11 @@ function konawiki_parser_render($tokens, $flag_isContents = TRUE)
 
         }
         else if ($cmd == "resmark") {
-            $s = konawiki_parser_tohtml($text)."<br/>\n";
+            $s = "<p>".konawiki_parser_tohtml($text)."</p>\n";
             while ($index < count($tokens)) {
                 $value = $tokens[$index];
                 if ($value["cmd"] == "resmark") {
-                    $s .= konawiki_parser_tohtml($value["text"]) . "<br/>" . $eol;
+                    $s .= "<p>" . konawiki_parser_tohtml($value["text"]) . "</p>" . $eol;
                     $index++;
                     continue;
                 } else {

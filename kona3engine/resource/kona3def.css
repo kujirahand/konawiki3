@@ -182,8 +182,13 @@
 {
   background-color:#f0f0ff;
   color:#00f;
-  margin:4px 4px 16px 32px;
-  padding:4px;
+  margin:4px 4px 12px 2em;
+  padding:8px 4px 4px 0.5em;
+}
+
+#kona3_main .resmark p {
+  border-bottom: 1px dotted silver;
+  margin: 0.5em;
 }
 
 #kona3_main .todo
