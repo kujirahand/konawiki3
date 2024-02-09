@@ -8,6 +8,7 @@
  * -- (num)x(num) ... (num)x(num)のサイズで表示
  * -- @link ... 画像をリンクする
  * -- *caption ... キャプションを指定
+ * -- left/right ... その後の文章を左寄せ/右寄せする
  */
 function kona3plugins_ref_execute($args) {
     global $kona3conf;
@@ -17,6 +18,7 @@ function kona3plugins_ref_execute($args) {
     $caption = "";
     $link = "";
     $url = trim(array_shift($args));
+    $float = "";
     while ($args) {
         $arg = array_shift($args);
         $arg = trim($arg);
@@ -27,6 +29,10 @@ function kona3plugins_ref_execute($args) {
         }
         if ($c == "@") {
             $link = substr($arg, 1);
+            continue;
+        }
+        if ($arg == "left" || $arg == "right") {
+            $float = "style = \"float:$arg; padding:0.5em;\"";
             continue;
         }
         // width x height
@@ -61,7 +67,9 @@ function kona3plugins_ref_execute($args) {
     if (preg_match('/\.(png|jpg|jpeg|gif|bmp|ico|svg)$/', $url)) {
         if ($link == '') { $link = $url; }
         $caph = "<div class='memo'>".$caption."</div>";
-        $code = "<div>".
+        $div = "<div>";
+        if ($float) { $div = "<div {$float}>"; }
+        $code = $div.
             "<div><a href='$link'><img src='$url'{$size}></a></div>".
             (($caption != "") ? $caph : "").
             "</div>";
