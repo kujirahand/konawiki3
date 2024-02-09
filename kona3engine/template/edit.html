@@ -33,6 +33,9 @@
     <div class="desc">
       <div style="text-align: right;">
         <button onclick="tagsOnClick()">{{'Tags' | lang}}</button>
+        {{ if $ai_enabled }}
+        <button onclick="aiOnClick()">{{'AI Assitant' | lang}}</button>
+        {{ endif }}
         <button onclick="historyOnClick()">{{'History' | lang}}</button>
         <button onclick="helpOnClick()">?</button>
       </div>
@@ -41,10 +44,12 @@
           <h3>Help:</h3>
           <ul>
             <li><a href="https://kujirahand.com/konawiki3/index.php?Kona3%E8%A8%98%E6%B3%95" target="_new">{{'How to write KonaWiki' | lang}}</a></li>
+            <li><a href="https://kujirahand.com/konawiki3/index.php?AI">{{'How to enabled AI'|lang}}</a></li>
           </ul>
           <h3>Shortcut:</h3>
           <ul>
-            <li>Ctrl+S ... save</li>
+            <li>{{'Save temp' | lang}} ... Ctrl+S</li>
+            <li><a id="new_btn_url" href="{{$new_btn_url}}" target="_new">{{'New' | lang}}</a> ... Ctrl+Alt+N</li>
           </ul>
         </div>
       </div>
@@ -70,7 +75,22 @@
           </li>
           {{ endfor }}
         </ul>
-      </div>
+      </div><!-- end of #history_div -->
+      {{ if $ai_enabled }}
+      <div id="ai_div" class="block2">
+        <div id="ai_input">
+          <textarea id="ai_input_text"></textarea>
+        </div>
+        <div>
+          <button id="ai_ask_btn" class="pure-button button-short">{{'Ask to AI' | lang}}</button>
+          <span id="ai_loader" style="display: none;"></span>
+        </div>
+        <div id="ai_output_area">
+          <div id="ai_output"></div>
+          <div style="text-align: right;"><button id="ai_output_clear_btn">{{'Clear Logs'|lang}}</button></div>
+        </div>
+      </div><!-- end of $ai_div -->
+      {{ endif }}
   </div>
 </div>
 <div style="clear:both;"></div>

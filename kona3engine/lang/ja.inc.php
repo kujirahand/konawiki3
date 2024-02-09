@@ -38,6 +38,7 @@ $lang_data = [
   'Close' => '閉じる',
   'You have been logged out.' => 'ログアウトしました。',
   'Add' => '追加',
+  'Save' => '保存',
   'Save temp' => '一時保存',
   'Load temp' => '一時保存を読込',
   'Save &amp; Show' => '保存して表示',
@@ -83,5 +84,8 @@ $lang_data = [
   'How to write KonaWiki' => 'KonaWikiの書き方',
   'Too many login attempts.' => 'ログイン試行回数が多すぎます。',
   'Please take a break and try again later.' => '少し時間をおいてから、再度挑戦してください。',
+  'AI Assitant' => 'AI支援',
+  'Ask to AI' => 'AIに依頼',
+  'Clear Logs' => 'ログを消す',
 ];
 

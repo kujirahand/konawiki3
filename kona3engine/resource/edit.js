@@ -31,6 +31,10 @@ function edit_init() {
   $('#git_save_btn').click(git_save);
   $('#ls_load_btn').click(loadTextFromLS);
   $('#autosave').click(autoSaveClickHandler);
+  $('#ai_ask_btn').click(aiAskClickHandler);
+  $('#ai_output_clear_btn').click(() => {
+    $('#ai_output').html('');
+  });
   loadAutoSave();
   
   // shortcut
@@ -38,6 +42,13 @@ function edit_init() {
     // shortcut Ctrl+S
     if ((e.metaKey || e.ctrlKey) && e.keyCode == 83) {
       clickTempSaveButton();
+      e.preventDefault();
+    }
+    // shortcut Ctrl+Alt+N
+    if ((e.metaKey || e.ctrlKey) && e.altKey && e.keyCode == 78) {
+      $url = document.getElementById('new_btn_url').href;
+      console.log('open new page:', $url);
+      window.open($url);
       e.preventDefault();
     }
   });
@@ -350,3 +361,73 @@ function helpOnClick() {
 function tagsOnClick() {
   toggleDisplay('#tags_div');
 }
+function aiOnClick() {
+  toggleDisplay('#ai_div');
+}
+
+var loaderTimerId = 0;
+var loaderCount = 0;
+function aiButtonEnabeld(enbaled) {
+  // button
+  $('#ai_ask_btn').prop('disabled', !enbaled);
+  // loader
+  if (!enbaled) {
+    $('#ai_loader').show();
+    if (loaderTimerId > 0) {
+      clearInterval(loaderTimerId);
+    }
+    loaderCount = 0;
+    loaderTimerId = setInterval(() => {
+      loaderCount++;
+      const tmp = '=====';
+      let s = tmp.substring(0, loaderCount % 5) + 'abcde'
+      s = s.substring(0, 5);
+      $('#ai_loader').text(s);
+    }, 100);
+  } else {
+    $('#ai_loader').hide();
+    if (loaderTimerId > 0) {
+      clearInterval(loaderTimerId);
+    }
+  }
+}
+
+function aiAskClickHandler() {
+  let text = $('#ai_input_text').val();
+  // trim
+  text = text.replace(/^\s/, '').replace(/\s$/, '')
+  if (text == '') {
+    aiInsertText('---');
+    return;
+  }
+  // ajax
+  aiButtonEnabeld(false);
+  var action = $("#wikiedit form").attr('action');
+  $.post(action,
+    {
+      'i_mode': 'ajax',
+      'edit_token': $('#edit_token').val(),
+      'q': 'ai',
+      'ai_input_text': text,
+      'a_mode': 'ai_ask',
+      'a_hash': $('#a_hash').val(),
+    })
+    .done(function (obj) {
+      aiButtonEnabeld(true);
+      const msg = obj['message'];
+      aiInsertText('' + msg);
+    })
+    .fail(function (xhr, status, error) {
+      $("#edit_info").html("Sorry AI request failed." + error);
+      aiButtonEnabeld(true);
+    });
+}
+
+function aiInsertText(text) {
+  let old = $('#ai_output').html();
+  text = text2html(text);
+  text = text.replace(/\n/g, '<br>');
+  const div = `<div class="block2">${text}</div>`
+  $('#ai_output').html(div + old);
+}
+

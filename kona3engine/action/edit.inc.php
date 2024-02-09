@@ -2,6 +2,7 @@
 
 include_once dirname(dirname(__FILE__)).'/kona3lib.inc.php';
 include_once dirname(dirname(__FILE__)).'/kona3parser.inc.php';
+include_once dirname(dirname(__FILE__)).'/kona3ai.inc.php';
 
 header('X-Frame-Options: SAMEORIGIN');
 
@@ -52,6 +53,11 @@ function kona3_action_edit() {
 
     // load body
     $txt = "";
+    // AI mode
+    if ($q == 'ai') {
+        kona3edit_ai();
+        return;
+    }
     // history mode?
     if ($q == 'history') {
         $history_id = kona3param("history_id");
@@ -117,6 +123,7 @@ function kona3_action_edit() {
 
     // new button
     $new_btn_url = kona3getPageURL($page, "new");
+    $ai_enabled = (kona3getConf('openai_apikey', '') != '');
 
     // show
     kona3template('edit.html', array(
@@ -129,6 +136,7 @@ function kona3_action_edit() {
         "edit_token" => $edit_token,
         "tags" => $tags,
         "new_btn_url" => $new_btn_url,
+        "ai_enabled" => $ai_enabled,
     ));
 }
 
@@ -383,5 +391,25 @@ function kona3_trygit(&$txt, &$a_hash, $i_mode) {
     echo "ok, saved.";
 }
 
-
-
+function kona3edit_ai() {
+    header('Content-Type: application/json');
+    $ai_input_text = kona3param('ai_input_text', '');
+    $apikey = kona3getConf('openai_apikey', '');
+    if ($apikey == '') {
+        echo json_encode(array(
+            'result' => 'ng',
+            'message' => 'OpenAI API Key is not set.',
+        ));
+        return;
+    }
+    // send to chatgpt
+    $messages = chatgpt_messages_init(
+        "You are helpful AI assitant.", 
+        $ai_input_text);
+    list($msg, $token) = chatgpt_ask($messages, $apikey);
+    // todo : tokenを数えて報告する
+    echo json_encode(array(
+        'result' => 'ok',
+        'message' => $msg,
+    ));
+}

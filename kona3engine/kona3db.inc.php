@@ -125,6 +125,7 @@ function kona3db_getPageHistory($page, $edit_token) {
         kona3getURLParams([
           "q" => "history",
           "history_id" => $v['history_id'],
+          "edit_token" => $edit_token
         ]));
       $v['delete_link'] = kona3getPageURL(
         $page, "edit", "",
