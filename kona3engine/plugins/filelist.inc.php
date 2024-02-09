@@ -5,12 +5,14 @@
  * -- filter ... ファイル名のフィルタ
  * -- thumb ... show thumbnail(64px) [option]
  * -- thumb128 ... show thumbnail(128px) [option]
+ * (memo) デフォルトでは、無効になっているプラグインです。
  */
 function kona3plugins_filelist_execute($args) {
   global $kona3conf;
   
   // check args
   $pat = array_shift($args);
+  $pat = str_replace(".", "", $pat); // 上位フォルダの表示を許さない
   $opt = [];
   foreach ($args as $arg) {
     $arg = trim($arg);
@@ -41,7 +43,7 @@ function kona3plugins_filelist_execute($args) {
     if (isset($opt['thumb']) || isset($opt['thumb128'])) {
       $width = 64;
       if (isset($opt['thumb128'])) $width = 128;
-      if (preg_match('/\.(png|gif|jpg|jpeg)$/i', $f)) {
+      if (preg_match('/\.(png|gif|jpg|jpeg|svg)$/i', $f)) {
         $thumb = "<img src='$url' width='$width'>";
       }
       else { $thumb = ''; }  

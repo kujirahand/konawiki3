@@ -7,7 +7,8 @@
  * - [利用例] {{{#include flie1 \n file2 \n file3 ... }}}
  */
 
-include_once dirname(dirname(__FILE__)).'/kona3parser.inc.php';
+include_once dirname(dirname(__FILE__)) . '/kona3parser.inc.php';
+include_once dirname(dirname(__FILE__)) . '/kona3parser_md.inc.php';
 
 function kona3plugins_include_execute($args) {
   global $kona3conf;
@@ -16,10 +17,13 @@ function kona3plugins_include_execute($args) {
   $txtlist = array();
 
   foreach($files as $name) {
+    $name = str_replace('..', '', $name); // 上のフォルダを許さない
     $name = trim($name);
     if ($name == "") continue;
     $b = kona3plugins_include_file($name, $html);
-    $txtlist[] = $html;
+    if ($b) {
+      $txtlist[] = $html;
+    }
   }
 
   return implode("\n", $txtlist);
@@ -52,10 +56,7 @@ function kona3plugins_include_file($name, &$html) {
 }
 
 function kona3plugins_include_markdown_convert($txt) {
-  require_once dirname(dirname(__FILE__)).'/vendor/autoload.php';
-  $parser = new \cebe\markdown\GithubMarkdown();
-  $txt = $parser->parse($txt);
-  return $txt;
+  return kona3markdown_parser_convert($txt);
 }
 
 

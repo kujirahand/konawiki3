@@ -8,7 +8,7 @@
  * -- (num)x(num) ... (num)x(num)のサイズで表示
  * -- @link ... 画像をリンクする
  * -- *caption ... キャプションを指定
- * -- left/right ... その後の文章を左寄せ/右寄せする
+ * -- left/right ... その後の文章を左寄せ/右寄せする(#clearで解除)
  */
 function kona3plugins_ref_execute($args) {
     global $kona3conf;

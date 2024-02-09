@@ -34,7 +34,7 @@ function kona3plugins_countpages_execute($args) {
     }
   }
   // sanitize $pattern
-  $pattern = str_replace('../', '', $pattern);
+  $pattern = str_replace('..', '', $pattern);
   // init param
   $path = rtrim(KONA3_DIR_DATA, '/');
   $cnt_txt = 0;
@@ -62,7 +62,9 @@ function kona3plugins_countpages_execute($args) {
     $lines = explode("\n", $txt);
     foreach ($lines as $line) {
       if (!preg_match("/[#♪]filecode\((.+)\)/", $line, $m)) continue;
-      $src = $path . "/" . $m[1];
+      $fname = $m[1];
+      $fname = str_replace('..', '', $fname); // 上のパスの参照を許さない
+      $src = $path . "/" . $fname;
       if (file_exists($src)) {
         $subtxt = @file_get_contents($src);
         $c = mb_strlen($subtxt);
@@ -82,8 +84,8 @@ function kona3plugins_countpages_execute($args) {
   $page_txt = floor($cnt_txt / $perpage);
   return
     "<div><span>".
-    "<b>合計 {$cnt_f}字</b>, {$page_f}p&nbsp;".
-    "(text:{$cnt_txt_f}字, {$page_txt}p)".
+    "<b>Total {$cnt_f}ch</b>, {$page_f}p&nbsp;".
+    "(text:{$cnt_txt_f}ch, {$page_txt}p)".
     "(file:{$cnt_file}, include:{$cnt_code})".
     "</span></div>";
 }
