@@ -424,6 +424,8 @@ function kona3getWikiName($filename) {
     if (preg_match('#(.+)\.(txt|md)$#', $f, $m)) {
         $f = $m[1];
     }
+    // decode「%xx%xx」format
+    $f = urldecode($f);
     return $f;
 }
 

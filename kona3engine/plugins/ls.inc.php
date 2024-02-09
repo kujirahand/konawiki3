@@ -7,7 +7,13 @@
 
 function kona3plugins_ls_execute($args) {
     global $kona3conf;
-
+    // arguments
+    $filter = array_shift($args);
+    if ($filter == null) {
+        $default_ext = $kona3conf['def_text_ext'];
+        $filter = "*.{$default_ext}";
+    }
+    //
     $page = $kona3conf['page'];  
     // .. があれば削除
     $page = str_replace('..', '', $page);
@@ -25,12 +31,11 @@ function kona3plugins_ls_execute($args) {
     $files = glob($dir."/*");
     sort($files);
 
-    # filter
-    $pat = array_shift($args);
-    if ($pat != null) {
+    // filter
+    if ($filter != null) {
         $res = array();
         foreach ($files as $f) {
-            if (fnmatch($pat, basename($f))) $res[] = $f;
+            if (fnmatch($filter, basename($f))) $res[] = $f;
         }
         $files = $res;
     }
@@ -39,9 +44,10 @@ function kona3plugins_ls_execute($args) {
     foreach ($files as $f) {
         $name = kona3getWikiName($f);
         $url = kona3getPageURL($name);
-        $name = htmlentities($name);
+        $name = htmlentities($name, ENT_QUOTES);
+        // ディレクトリは除外する
         if (is_dir($f)) {
-            $name = "&lt;$name&gt;"; 
+            continue;
         }
         $code .= "<li><a href='$url'>$name</a></li>\n";
     }
