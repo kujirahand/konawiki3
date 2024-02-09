@@ -21,7 +21,7 @@ function jsonphp_load($file, $def = null, $autoUpdate = false) {
     return $def;
   }
   $iv = jsonphp_getIV();
-  $enc_key = base64_decode($obj['enc:key']);
+  $enc_key = base64_decode(isset($obj['enc:key']) ? $obj['enc:key'] : '');
   foreach ($obj as $_key => &$val) {
     if (is_string($val) && $val != '') {
       $val = jsonphp_dec($val, $enc_key, $iv);
