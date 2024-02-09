@@ -12,12 +12,15 @@
   </div>
 
   {{ if ($show_data_dir != '') }}
-  {{ if kona3isLogin() }}
+    {{ if kona3isLogin() }}
   <div id="kona3_show_data_dir">
     <input id="show_data_dir" type="text" 
      value="{{$data_filename}}" readonly>
   </div>
+    {{ endif }}
   {{ endif }}
+  {{ if kona3isLogin() }}
+  <div class="info"><a href="https://kujirahand.com/konawiki3/" target="_new">Konawiki v{{$KONAWIKI_VERSION}}</a></div>
   {{ endif }}
 </div>
 <!-- footer.end -->
