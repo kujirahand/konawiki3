@@ -1,7 +1,6 @@
 <?php
 /**
- * konawki3 parser (UTF-8)
- * 日本語のマークアップも認識します
+ * konawki3 markdown parser (UTF-8)
  */
 include_once 'kona3lib.inc.php';
 
@@ -39,11 +38,12 @@ function kona3markdown_getRawTokens()
  */
 function kona3markdown_parser_parse($text)
 {
+    global $eol;
     // convert CRLF to LF
     $text = preg_replace('#(\r\n|\r)#',"\n", $text)."\n";
     kona3markdown_addPublic('EOL', "\n");
     kona3markdown_addPublic('raw_text', $text);
-    $eol = kona3markdown_public("EOL");
+    $eol = kona3markdown_public("EOL", "\n");
     $para_br = kona3markdown_param('para_enabled_br', true);
     //
     $level = 0;
@@ -161,39 +161,8 @@ function kona3markdown_parser_parse($text)
             $tokens[] = kona3markdown_parser_sourceBlock($text);
         }
         else { // plain block
-            $last_text = $text;
-            $plain = "";
-            while ($text != "") {
-                // get line
-                $line = kona3markdown_parser_token($text, $eol);
-                // last 1char
-                $last = mb_substr($line, mb_strlen($line) - 1, 1);
-                if ($last == '~') {
-                    $plain .= $line.$eol;
-                } else {
-                    // 段落内の改行を有効にする(option)
-                    if ($para_br && strlen($text) > 1) { // 行末なら改行を入れない
-                        $plain .= $line.'~'.$eol;
-                    } else {
-                        $plain .= $line.$eol;
-                    }
-                }
-                // end of paragraph?
-                if (substr($text, 0, strlen($eol)) === $eol) break;
-                // 無限ループを抜ける
-                if ($last_text == $text) {
-                    $plain .= $text;
-                    break;
-                }
-                $last_text = $text;
-            }
-            $tokens[] = array("cmd"=>"plain","text"=>$plain);
-            $c = substr($text, 0, 1);
-            if ($c == "\n") {
-                // 改行の数を遵守する
-                $plain .= '~'.$eol;
-                $text = substr($text, 1);
-            }
+            $line = kona3markdown_parser_token($text, $eol);
+            $tokens[] = array("cmd"=>"plain","text"=>$line);
         }
     }
     return $tokens;
@@ -302,7 +271,20 @@ function kona3markdown_parser_render($tokens, $flag_isContents = TRUE)
             $html .= "<div class='resmark'>".$s."</div>{$eol}";
         }
         else {
-            $html .= "<p>".kona3markdown_parser_tohtml($text)."</p>{$eol}";
+            $block = $text;
+            while ($index < count($tokens)) {
+                $value = $tokens[$index];
+                if ($value["cmd"] == "plain") {
+                    $block .= $eol.$value["text"];
+                    $index++;
+                    continue;
+                } else {
+                    break;
+                }
+            }
+            $block_html = kona3markdown_parser_tohtml($block);
+            $block_html = preg_replace('#\n#', '<br/>', $block_html);
+            $html .= "<p>{$block_html}</p>{$eol}";
         }
     }
     if ($flag_isContents) {
