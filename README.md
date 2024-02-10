@@ -56,10 +56,12 @@ By obtaining a [ChatGPT API key](https://platform.openai.com/api-keys) and speci
   - `git clone --recursive https://github.com/kujirahand/konawiki3.git`
   - OR `git clone https://github.com/kujirahand/konawiki3.git` AND `git submodule update --init --recursive`
 
-[Use Uploader]
+[Use Uploader to Hosting server]
 
-- 1. Download Konawiki3 from [releases](https://github.com/kujirahand/konawiki3/releases)
-- 2. Download Template Engine from [php_fw_simple](https://github.com/kujirahand/php_fw_simple/releases)
+- 1. Download Konawiki3 zip file from [releases](https://github.com/kujirahand/konawiki3/releases)
+- 2. Unzip
+- 3. chmod data, cache, private directories
+- 4. Access index.php
 
 Please set directories like this.
 

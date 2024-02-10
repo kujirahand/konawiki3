@@ -80,7 +80,7 @@ AIによる執筆サポート機能を実装しています。テキストの要
 
 Gitコマンドが使えるなら、コマンド一発で設置が可能ですし、
 [releases](https://github.com/kujirahand/konawiki3/releases)からZIPでダウンロードしてFTPSなどでアップロードして動かすこともできます。
-その際、テンプレートエンジンも一緒にアップロードするのをお忘れなく。
+詳しくは、[こちら](https://kujirahand.com/konawiki3/index.php?install)を参照してください。
 
 ### Gitを使う方法
 
