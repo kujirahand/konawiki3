@@ -392,20 +392,67 @@ function kona3_trygit(&$txt, &$a_hash, $i_mode) {
 }
 
 function kona3edit_ai() {
+    // この時点で既に認証を通過しているので安心して応答を返して良い
     header('Content-Type: application/json');
-    $ai_input_text = kona3param('ai_input_text', '');
     $apikey = kona3getConf('openai_apikey', '');
     if ($apikey == '') {
-        echo json_encode(array(
+      echo json_encode(array(
             'result' => 'ng',
             'message' => 'OpenAI API Key is not set.',
         ));
         return;
     }
+    $a_mode = kona3param('a_mode', '');
+    // ask mode
+    if ($a_mode == 'ask') {
+        kona3edit_ai_ask($apikey);
+        return;
+    }
+    // load_template
+    if ($a_mode == 'load_template') {
+        kona3edit_ai_load_template();
+        return;
+    }
+    // invalid mode
+    echo json_encode(array(
+        'result' => 'ng',
+        'message' => 'Invalid AI mode.',
+    ));
+}
+
+function kona3edit_ai_load_template()
+{
+    // read wiki data (ai_prompt)
+    $prompt_file = kona3getWikiFile('ai_prompt');
+    $prompt = file_exists($prompt_file) ? file_get_contents($prompt_file) : '';
+    if ($prompt == '') {
+        // read default template
+        $lang = kona3getLangCode();
+        $prompt_file = KONA3_DIR_ENGINE."/lang/{$lang}-ai_prompt.md";
+        $prompt = file_get_contents($prompt_file);
+    }
+    echo json_encode([
+        'result' => 'ok',
+        'message' => $prompt,
+    ]);
+}
+
+function kona3edit_ai_ask($apikey)
+{
+    // get input text
+    $ai_input_text = kona3param('ai_input_text', '');
+    if ($ai_input_text == '') {
+        echo json_encode(array(
+            'result' => 'ng',
+            'message' => 'Input text is empty.',
+        ));
+        return;
+    }
     // send to chatgpt
     $messages = chatgpt_messages_init(
-        "You are helpful AI assitant.", 
-        $ai_input_text);
+        "You are helpful AI assitant.",
+        $ai_input_text
+    );
     list($msg, $token) = chatgpt_ask($messages, $apikey);
     // todo : tokenを数えて報告する
     echo json_encode(array(

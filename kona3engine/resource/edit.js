@@ -36,6 +36,7 @@ function edit_init() {
     $('#ai_output').html('');
   });
   loadAutoSave();
+  loadAITemplate();
   
   // shortcut
   $(window).keydown(function(e) {
@@ -392,12 +393,27 @@ function aiButtonEnabeld(enbaled) {
   }
 }
 
+function aiReplaceText(text) {
+  let edit_txt = qs('#edit_txt').value;
+  edit_txt = edit_txt.replace(/\`{3}/g, '\\`\\`\\`');
+  text = text.replace(/__TEXT__/g, '```' + edit_txt + '```');
+  return text;
+}
+
 function aiAskClickHandler() {
   let text = $('#ai_input_text').val();
+  // replace
+  text = aiReplaceText(text);
   // trim
-  text = text.replace(/^\s/, '').replace(/\s$/, '')
+  text = text.replace(/^\s/, '').replace(/\s$/, '');
   if (text == '') {
     aiInsertText('---');
+    return;
+  }
+  console.log('@@@aiAskClickHandler:', text)
+  // test case
+  if (text.substring(0, 3) === '@@@') {
+    aiInsertText(text.substring(3));
     return;
   }
   // ajax
@@ -409,7 +425,7 @@ function aiAskClickHandler() {
       'edit_token': $('#edit_token').val(),
       'q': 'ai',
       'ai_input_text': text,
-      'a_mode': 'ai_ask',
+      'a_mode': 'ask',
       'a_hash': $('#a_hash').val(),
     })
     .done(function (obj) {
@@ -423,11 +439,98 @@ function aiAskClickHandler() {
     });
 }
 
+let aiBlockId = 1000
 function aiInsertText(text) {
   let old = $('#ai_output').html();
   text = text2html(text);
   text = text.replace(/\n/g, '<br>');
-  const div = `<div class="block2">${text}</div>`
+  let btn = ''
+  if (text.indexOf('ErrorLocation') >= 0) {
+    btn += `<button onclick="aiBlockReplace(${aiBlockId})">Replace</button>`;
+  } else {
+    btn += `<button onclick="aiBlockAdd(${aiBlockId})">Add</button>`
+  }
+  const div = 
+    `<div id="aiBlockDiv${aiBlockId}" class="ai_block">` +
+    `<span id="aiBlock${aiBlockId}">${text}</span>` +
+    `<div style="text-align:right;">${btn}</div></div>`
   $('#ai_output').html(div + old);
+  aiBlockId++;
+}
+function aiBlockAdd(id) {
+  const text = $('#aiBlock' + id).text();
+  const edit_txt = qs('#edit_txt');
+  edit_txt.value += "\n" + text;
 }
 
+function aiBlockReplace(id) {
+  console.log('@aiBlockReplace', id)
+  // extract JSON block
+  let block = $('#aiBlock' + id).text();
+  let edit_txt = $('#edit_txt').text();
+  if (block.indexOf('```json') >= 0) {
+    block = block.match(/```json(.+)```/s)[1];
+  }
+  try {
+    const replace_list = JSON.parse(block);
+    for (let row of replace_list) {
+      if (!row['ErrorLocation']) { continue; }
+      const loc = row['ErrorLocation'];
+      const cor = row['Correction'];
+      console.log('@replace', loc, cor)
+      edit_txt = edit_txt.replace(loc, cor);
+    }
+    $('#edit_txt').val(edit_txt);
+    $('#aiBlockDiv' + id).remove();
+  } catch (e) {
+    console.log('aiBlockReplace: JSON parse error', e);
+    alert('JSON parse error');
+    return;
+  }
+}
+
+function loadAITemplate() {
+  const action = $("#wikiedit form").attr('action');
+  console.log('@', action)
+  let params = {
+    'i_mode': 'ajax',
+    'edit_token': $('#edit_token').val(),
+    'q': 'ai',
+    'a_mode': 'load_template',
+    'a_hash': $('#a_hash').val(),
+  }
+  $.post(action, params)
+  .done(function (obj) {
+    const messageStr = obj['message'];
+    const selectBox = $('#ai_template_select');
+    const messages = messageStr.split("\n");
+    const templateData = {};
+    let key = '';
+    messages.forEach(function (message) {
+      if (message.substring(0, 2) == '# ') {
+        key = message
+        const option = document.createElement("option");
+        option.text = message;
+        selectBox.append(option);
+        templateData[key] = ''
+        return;
+      }
+      if (message.substring(0, 5) == '-----') {
+        key = '';
+        return;
+      }
+      templateData[key] += message + "\n";
+    });
+    const btn = $('#ai_template_insert_btn');
+    btn.click(function() {
+      const key = selectBox.val();
+      if (key == '') { return; }
+      const input = $('#ai_input_text');
+      input.val(templateData[key]);
+    });
+  })
+  .fail(function (xhr, status, error) {
+    $("#edit_info").html("Sorry AI request failed." + error);
+    aiButtonEnabeld(true);
+  });
+}

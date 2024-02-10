@@ -528,30 +528,35 @@ function kona3getCtrlMenu($type='bar') {
 $lang_data = null;
 function lang($msg, $def = null) {
     global $lang_data;
-    global $kona3conf;
     // Load message data
     if (!$lang_data) {
         $lang_data = [];
-        if (!empty($kona3conf['lang'])) {
-            // language should be [a-z]+
-            $lang = $kona3conf['lang'];
-            if (!preg_match('#^[a-z]+$#', $lang)) {
-                $lang = 'en';
-            }
-            // check locale file
-            $langfile = KONA3_DIR_ENGINE."/lang/$lang.inc.php";
-            if (file_exists($langfile)) {
-                @include_once($langfile); // $lang_data
-            } else {
-            }
+        $lang = kona3getLangCode();
+        $langfile = KONA3_DIR_ENGINE . "/lang/$lang.inc.php";
+        if (!file_exists($langfile)) {
+            $langfile = KONA3_DIR_ENGINE . "/lang/en.inc.php"; // default lang
         }
+        @include_once($langfile); // $lang_data
     }
-    // 値を取得
+    // get message data
     if (isset($lang_data[$msg])) {
         return $lang_data[$msg];
     }
-    // def ?
+    // default value
     return isset($def) ? $def : $msg;
+}
+
+function kona3getLangCode() {
+    // check code
+    $lang = kona3getConf('lang', 'en');
+    // language should be [a-z]+
+    if (!preg_match('#^[a-z]+$#', $lang)) {
+        $lang = 'en';
+    } else {
+        global $kona3conf;
+        $kona3conf['lang'] = 'en';
+    }
+    return $lang;
 }
 
 // get page body hash
