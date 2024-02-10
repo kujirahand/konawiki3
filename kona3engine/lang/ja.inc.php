@@ -88,5 +88,7 @@ $lang_data = [
   'Ask to AI' => 'AIに依頼',
   'How to enabled AI' => 'AIを有効にする方法',
   'Clear Logs' => 'ログを消す',
+  'Edit AI Template' => 'ひな形を編集',
+  'Invalid file extension.' => 'ファイルの拡張子が不正です。',
 ];
 

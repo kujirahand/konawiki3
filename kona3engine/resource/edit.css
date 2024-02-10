@@ -1,6 +1,4 @@
-/* css */
-
-
+/* edit.css */
 #wikiedit {
   padding:8px;
   margin: 0 auto;
@@ -111,7 +109,7 @@ textarea#edit_txt {
 }
 
 textarea#ai_input_text {
-  width: calc(100% - 12px);
+  width: calc(100% - 14px);
   height: 6em;
   margin-top: 8px;
   padding: 1%;

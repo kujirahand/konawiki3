@@ -9,6 +9,7 @@
       <input type="hidden" name="a_mode" value="trywrite">
       <input type="hidden" id="a_hash" name="a_hash" value="{{$a_hash}}">
       <input type="hidden" id="edit_token" name="edit_token" value="{{$edit_token}}">
+      <input type="hidden" id="edit_ext" name="edit_ext" value="{{$edit_ext}}">
       <div class="editor">
         <textarea id="edit_txt" name="edit_txt">{{$edit_txt}}</textarea>
       </div>
@@ -54,9 +55,11 @@
         </div>
       </div>
       <div id="tags_div" class="desc tag_box" class="block2" style="display: none;">
-        <b>Tags</b>:
-        <input type="text" id="tags" class="info" style="width: 50%;" name="tags" value="{{ $tags }}"
-          placeholder="tag1/tag2/tag3/...">
+        <div>
+          <b style="width:5em;">{{'Tags'|lang}}</b>:
+          <input type="text" id="tags" class="info" style="width: 50%;" name="tags" value="{{ $tags }}"
+            placeholder="tag1/tag2/tag3/...">
+        </div>
       </div>
       <div id="history_div" class="block2" style="display: none;">
         <ul>
@@ -78,7 +81,10 @@
       </div><!-- end of #history_div -->
       {{ if $ai_enabled }}
       <div id="ai_div" class="block2">
-        <div><select id="ai_template_select"><option>アクションを選択</option></select></div>
+        <div>
+          <select id="ai_template_select"><option>アクションを選択</option></select>
+          <a href="{{$ai_edit_template_url}}">{{'Edit AI Template' | lang}}</a>
+        </div>
         <div id="ai_input">
           <textarea id="ai_input_text"></textarea>
         </div>

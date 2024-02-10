@@ -119,8 +119,9 @@ function kona3show_file_not_found($page, &$ext) {
 function kona3show_detect_file($page, &$fname, &$ext) {
     // is text file?
     $ext = '.'.kona3getConf('def_text_ext', 'txt');
-    $fname = kona3getWikiFile($page, TRUE, $ext, FALSE);
+    $fname = koan3getWikiFileText($page);
     if (file_exists($fname)) {
+        $ext = ".".kona3getFileExt($fname);
         return TRUE;
     }
     // dir?

@@ -158,6 +158,40 @@ function kona3getPName($pname) {
     return $pname;
 }
 
+// get ext from file path
+function kona3getFileExt($path) {
+    if (preg_match('#\.([a-zA-Z0-9_]+)$#', $path, $m)) {
+        return $m[1];
+    }
+    return '';
+}
+
+// wikiname to filename (for text)
+function koan3getWikiFileText($wikiname) {
+    // (1) デフォルトのテキストファイルの存在を確認する
+    $default_ext = kona3getConf('def_text_ext', 'txt');
+    $path = kona3getWikiFile($wikiname, TRUE, ".$default_ext");
+    if (file_exists($path)) {
+        return $path; // 存在するのでそのまま返す
+    }
+    // (2) デフォルトのテキストファイルが存在しない時の処理
+    if ($default_ext == 'txt') {
+        // .mdファイルがあるか確認する
+        $path_md = kona3getWikiFile($wikiname, TRUE, '.md');
+        if (file_exists($path_md)) {
+            return $path_md;
+        }
+    } else {
+        // .txtファイルがあるか確認する
+        $path_txt = kona3getWikiFile($wikiname, TRUE, '.txt');
+        if (file_exists($path_txt)) {
+            return $path_txt;
+        }
+    }
+    // (3) どちらも存在しないので、デフォルトのテキストファイルを返す
+    return $path;
+}
+
 // wikiname to filename
 function kona3getWikiFile($wikiname, $autoExt = true, $ext = '.txt', $force_encode = FALSE) {
     global $kona3conf;
@@ -238,6 +272,11 @@ function kona3getRelativePath($wikiname) {
                 $wikiname = substr($wikiname, 1);
             }
         }
+    }
+
+    // check /path/to/data_dir/wikiname => /wikiname
+    if (substr($wikiname, 0, strlen($path_data)) === $path_data) {
+        $wikiname = substr($wikiname, strlen($path_data));
     }
 
     return $wikiname;
@@ -729,4 +768,10 @@ function kona3lib_send_email($to, $subject, $email_body) {
 function kona3lib_send_email_to_admin($subject, $email_body) {
     $admin_email = kona3getConf('admin_email', '');
     kona3lib_send_email($admin_email, $subject, $email_body);
+}
+
+function kona3jump($url, $msg = '') {
+    header("Location: $url");
+    $msg = ($msg == '') ? "Jump to <a href='$url'>$url</a>" : $msg;
+    kona3showMessage('Jump', $msg);
 }

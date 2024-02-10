@@ -19,52 +19,29 @@ function kona3_action_edit() {
     $page_id = kona3db_getPageId($page, FALSE);
 
     // check permission
-    if (!kona3isLogin()) {
-        $please_login = lang("Please login.");
-        $url = kona3getPageURL($page, 'login');
-        $msg = "<a href=\"$url\">{$please_login}</a>";
-        if ($i_mode == 'ajax') { $msg = $please_login; }
-        kona3_edit_err($msg, $i_mode, 'nologin');
-        exit;
-    }
-
+    if (!kona3edit_checkPermission($page, $i_mode)) { return; }
     // check edit_token
-    if (!kona3_checkEditToken($page)) {
-        $label = lang('Edit');
-        $edit_token = kona3_getEditToken($page, TRUE);
-        $url = kona3getPageURL($page, 'edit', '', "edit_token=".$edit_token);
-        $page_html = htmlspecialchars($page, ENT_QUOTES);
-        if ($i_mode == 'form') {
-            kona3showMessage(
-                $label,
-                "<a href='$url' class='pure-button pure-button-primary'>".
-                "$label - $page_html</a>");
-        } else {
-            kona3_edit_err(lang('Invalid edit token.'), $i_mode);
-        }
-        exit;
-    }
-    // generate edit_token
-    // (memo) 強制的に更新しないことで不要な書き込みエラーを防ぐ
+    if (!kona3edit_checkEditToken($page, $i_mode)) { return; }
+
+    // generate edit_token ... (memo) 強制的に更新しないことで不要な書き込みエラーを防ぐ
     $edit_token = kona3_getEditToken($page, FALSE);
 
+    // check $cmd or $q
     // edit_command ?
     if ($cmd != '') { return edit_command($cmd); }
+    // AI mode
+    if ($q == 'ai') { return kona3edit_ai(); }
+    if ($q == 'ai_edit_template') { return kona3ai_edit_template(); }
 
     // load body
     $txt = "";
-    // AI mode
-    if ($q == 'ai') {
-        kona3edit_ai();
-        return;
-    }
-    // history mode?
     if ($q == 'history') {
+        // history mode
         $history_id = kona3param("history_id");
         $r = kona3db_getPageHistoryById($history_id);
         $txt = isset($r['body']) ? $r['body'] : '(empty)';
-    }
-    else { // normal mode
+    } else {
+        // normal mode
         $fname = kona3getEditFile($page, $ext);
         if (!file_exists($fname)) {
             $fname = kona3getWikiFile($page, FALSE, '');
@@ -124,6 +101,7 @@ function kona3_action_edit() {
     // new button
     $new_btn_url = kona3getPageURL($page, "new");
     $ai_enabled = (kona3getConf('openai_apikey', '') != '');
+    $ai_edit_template_url = kona3getPageURL($page, "edit", "", "q=ai_edit_template&edit_token=$edit_token");
 
     // show
     kona3template('edit.html', array(
@@ -137,8 +115,47 @@ function kona3_action_edit() {
         "tags" => $tags,
         "new_btn_url" => $new_btn_url,
         "ai_enabled" => $ai_enabled,
+        "ai_edit_template_url" => $ai_edit_template_url,
+        "edit_ext" => $ext,
     ));
 }
+
+function kona3edit_checkPermission($page, $i_mode) {
+    // check permission
+    if (!kona3isLogin()) {
+        $please_login = lang("Please login.");
+        $url = kona3getPageURL($page, 'login');
+        $msg = "<a href=\"$url\">{$please_login}</a>";
+        if ($i_mode == 'ajax') {
+            $msg = $please_login;
+        }
+        kona3_edit_err($msg, $i_mode, 'nologin');
+        exit;
+    }
+    return true;
+}
+
+function kona3edit_checkEditToken($page, $i_mode) {
+    // check edit_token
+    if (!kona3_checkEditToken($page)) {
+        $label = lang('Edit');
+        $edit_token = kona3_getEditToken($page, TRUE);
+        $url = kona3getPageURL($page, 'edit', '', "edit_token=" . $edit_token);
+        $page_html = htmlspecialchars($page, ENT_QUOTES);
+        if ($i_mode == 'form') {
+            kona3showMessage(
+                $label,
+                "<a href='$url' class='pure-button pure-button-primary'>" .
+                    "$label - $page_html</a>"
+            );
+        } else {
+            kona3_edit_err(lang('Invalid edit token.'), $i_mode);
+        }
+        exit;
+    }
+    return true;
+}
+
 
 // edit command execute
 function edit_command($cmd) {
@@ -234,12 +251,20 @@ function kona3_conflict($edit_txt, &$txt, $i_mode) {
 
 function kona3getEditFile($page, &$ext) {
     // has file ext?
-    if (preg_match('#\.([a-zA-Z0-9_]+)$#', $page, $m)) {
-        $ext = strtolower($m[1]);
+    $test_ext = kona3getFileExt($page);
+    if ($test_ext != '') {
+        // ページ名に拡張子が含まれている場合は、そのままがファイル名である
+        // ただし、セキュリティ対策のため、指定の拡張子のみ許可する
+        $allow_ext_list = ['txt', 'md', 'html', 'htm', 'json', 'css', 'yaml', 'yml', 'xml', 'css', 'tsv'];
+        $ext = $test_ext;
+        if (!in_array($ext, $allow_ext_list)) {
+            kona3_edit_err(lang('Invalid file extension.'));
+            exit;
+        }
         $fname = kona3getWikiFile($page, FALSE, '');
     } else {
-        $ext = '.'.kona3getConf('def_text_ext', 'txt');
-        $fname = kona3getWikiFile($page, TRUE, $ext);
+        $fname = koan3getWikiFileText($page);
+        $ext = kona3getFileExt($fname);
     }
     return $fname;
 }
@@ -251,8 +276,9 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
     $edit_txt = kona3param('edit_txt', '');
     $a_hash_frm = kona3param('a_hash', '');
     $tags = kona3param('tags', '');
+    $edit_ext = kona3param('edit_ext', '');
 
-    $fname = kona3getEditFile($page, $ext);
+    $fname = kona3getEditFile("{$page}.{$edit_ext}", $ext);
     $user_id = kona3getUserId();
 
     $result = FALSE;
@@ -423,7 +449,7 @@ function kona3edit_ai() {
 function kona3edit_ai_load_template()
 {
     // read wiki data (ai_prompt)
-    $prompt_file = kona3getWikiFile('ai_prompt');
+    $prompt_file = kona3getWikiFile('ai_prompt.md');
     $prompt = file_exists($prompt_file) ? file_get_contents($prompt_file) : '';
     if ($prompt == '') {
         // read default template
@@ -435,6 +461,21 @@ function kona3edit_ai_load_template()
         'result' => 'ok',
         'message' => $prompt,
     ]);
+}
+
+function kona3ai_edit_template()
+{
+    // check ai_prompt.md
+    $prompt_file = KONA3_DIR_DATA."/ai_prompt.md";
+    if (!file_exists($prompt_file)) {
+        // copy template
+        $lang = kona3getLangCode();
+        $prompt_file_template = KONA3_DIR_ENGINE."/lang/$lang-ai_prompt.md";
+        file_put_contents($prompt_file, file_get_contents($prompt_file_template));
+    }
+    // jump to edit
+    $url = kona3getPageURL('ai_prompt', 'edit', '', "");
+    kona3jump($url, 'Show AI Prompt');
 }
 
 function kona3edit_ai_ask($apikey)
@@ -460,3 +501,4 @@ function kona3edit_ai_ask($apikey)
         'message' => $msg,
     ));
 }
+
