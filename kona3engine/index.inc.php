@@ -12,20 +12,20 @@ session_start();
 // Load Config data
 $file_kona3conf_json = KONA3_DIR_PRIVATE.'/kona3conf.json.php';
 if (file_exists($file_kona3conf_json)) {
-  include_once KONA3_DIR_ENGINE.'/jsonphp.lib.php';
-  $kona3conf = jsonphp_load($file_kona3conf_json, []);
+    include_once KONA3_DIR_ENGINE.'/jsonphp.lib.php';
+    $kona3conf = jsonphp_load($file_kona3conf_json, []);
 } else {
-  if (!defined('KONA3_DIR_ADMIN')) {
-    define('KONA3_DIR_INDEX', dirname(__DIR__));
-    define('KONA3_DIR_ADMIN', dirname(__DIR__).'/kona3admin');
-  }
-  $setup_php = KONA3_DIR_ADMIN.'/kona3setup.inc.php';
-  if (file_exists($setup_php)) {
-    require $setup_php;
-    konawiki3_setup(); exit;
-  } else {
-    echo "<h2><a href='https://kujirahand.com/konawiki3/index.php?install%2Fkona3dir.def.php'>You do not have setup script.</a></h2>";
-    exit;
+    if (!defined('KONA3_DIR_ADMIN')) {
+        define('KONA3_DIR_INDEX', dirname(__DIR__));
+        define('KONA3_DIR_ADMIN', dirname(__DIR__).'/kona3admin');
+    }
+    $setup_php = KONA3_DIR_ADMIN.'/kona3setup.inc.php';
+    if (file_exists($setup_php)) {
+        require $setup_php;
+        konawiki3_setup(); exit;
+    } else {
+        echo "<h2><a href='https://kujirahand.com/konawiki3/index.php?install%2Fkona3dir.def.php'>You do not have setup script.</a></h2>";
+        exit;
   }
 }
 
