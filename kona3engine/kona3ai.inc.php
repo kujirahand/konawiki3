@@ -14,7 +14,11 @@ function chatgpt_messages_init($system_message, $user_message) {
 }
 
 function chatgpt_ask($chatgpt_messages, $apikey=null, $model="gpt-3.5-turbo", $opt=[]) {
-    if ($apikey == null || $apikey == '') {
+    // check api key (ENV)
+    if (is_string($apikey) && preg_match('/^\@ENV\:(.+)$/', $apikey, $m)) {
+        $apikey = getenv($m[1]);
+    }
+    if ($apikey == null || $apikey == '') { // check apikey
         $apikey = getenv("OPENAI_API_KEY");
         if ($apikey == null || $apikey == '') {
             return ["Error: API Key is not set.", 0];
