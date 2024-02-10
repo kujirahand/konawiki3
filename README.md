@@ -42,6 +42,11 @@ console.log('hello');
 }}}
 ```
 
+### AI Writing Assistance Features
+
+We are implementing AI writing assistance features. These include summarizing texts, proofreading, rephrasing sentences, and automatically continuing writing, among others.
+By obtaining a [ChatGPT API key](https://platform.openai.com/api-keys) and specifying it in the Konawiki settings, users can access AI support functions.
+
 # How to install Konawiki3
 
 [Use Git command]

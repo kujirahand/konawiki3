@@ -66,9 +66,17 @@ console.log('hello');
 }}}
 ```
 
+## 記法はKonawikiとMarkdownを切り替えて使える！
+
 オプションで、Markdownに切り替えもできるので、好きな記法で書けるのがKonaWikiの良いところです！
 
-## Konawiki3のインストールの仕方
+## AIによる執筆サポート機能を実装
+
+AIによる執筆サポート機能を実装しています。テキストの要約や文章校正、文章の言い換え、続きの自動執筆など、AIによる執筆支援を利用できます。
+[ChatGPTのAPIキー](https://platform.openai.com/api-keys)を取得して、Konawikiの設定画面に指定するだけで、AI支援機能を利用できます。
+
+
+# Konawiki3のインストールの仕方
 
 Gitコマンドが使えるなら、コマンド一発で設置が可能ですし、
 [releases](https://github.com/kujirahand/konawiki3/releases)からZIPでダウンロードしてFTPSなどでアップロードして動かすこともできます。
