@@ -521,13 +521,14 @@ function loadAITemplate() {
       }
       templateData[key] += message + "\n";
     });
-    const btn = $('#ai_template_insert_btn');
-    btn.click(function() {
+    selectBox.change(()=>{
       const key = selectBox.val();
       if (key == '') { return; }
       const input = $('#ai_input_text');
-      input.val(templateData[key]);
-    });
+      if (templateData[key]) {
+        input.val(templateData[key]);
+      }
+    })
   })
   .fail(function (xhr, status, error) {
     $("#edit_info").html("Sorry AI request failed." + error);

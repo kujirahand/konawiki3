@@ -86,6 +86,7 @@ $lang_data = [
   'Please take a break and try again later.' => '少し時間をおいてから、再度挑戦してください。',
   'AI Assitant' => 'AI支援',
   'Ask to AI' => 'AIに依頼',
+  'How to enabled AI' => 'AIを有効にする方法',
   'Clear Logs' => 'ログを消す',
 ];
 
