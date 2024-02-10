@@ -17,11 +17,17 @@ if (file_exists($file_kona3dir_def)) {
   define('KONA3_DIR_CACHE',   __DIR__.'/cache');
 }
 
+// check template engine
+if (!file_exists(KONA3_DIR_ENGINE.'/fw_simple/fw_template_engine.lib.php')) {
+  echo "<p><a href='./kona3admin/setup-template.php'>Please install Template Engine.</a></p>\n";
+  exit;
+}
+
 // Execute kona3engine/index.inc.php
 $engine_index = KONA3_DIR_ENGINE.'/index.inc.php';
 if (!file_exists($engine_index)) {
   echo '<p><a href="https://kujirahand.com/konawiki3/index.php?install%2Fkona3dir.def.php">Please check KONA3_DIR_ENGINE</a></p>'."\n";
   exit;
 }
-require $engine_index;
+include_once $engine_index;
 
