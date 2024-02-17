@@ -80,10 +80,10 @@
         </ul>
       </div><!-- end of #history_div -->
       {{ if $ai_enabled }}
-      <div id="ai_div" class="block2">
+      <div id="ai_div" class="block2" style="display: none;">
         <div>
           <select id="ai_template_select"><option>アクションを選択</option></select>
-          <a href="{{$ai_edit_template_url}}">{{'Edit AI Template' | lang}}</a>
+          <a href="{{$ai_edit_template_url}}" target="_new">{{'Edit AI Template' | lang}}</a>
         </div>
         <div id="ai_input">
           <textarea id="ai_input_text"></textarea>

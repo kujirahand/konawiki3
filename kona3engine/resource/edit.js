@@ -395,14 +395,26 @@ function aiButtonEnabeld(enbaled) {
 }
 
 function aiReplaceText(text) {
-  let edit_txt = qs('#edit_txt').value;
-  edit_txt = edit_txt.replace(/\`{3}/g, '\\`\\`\\`');
-  text = text.replace(/__TEXT__/g, '```' + edit_txt + '```');
+  // body
+  const edit_txt = qs('#edit_txt');
+  let body = edit_txt.value;
+  // seltext
+  const ai_seltext_chk = qs('#ai_seltext_chk');
+  const sel_start = edit_txt.selectionStart;
+  const sel_end = edit_txt.selectionEnd;
+  let body_sel = body.substring(sel_start, sel_end); // selected text
+  // replace
+  body = body.replace(/\`{3}/g, '\\`\\`\\`');
+  body_sel = body_sel.replace(/\`{3}/g, '\\`\\`\\`');
+  text = text.replace(/__TEXT__/g, '```' + body + '```');
+  text = text.replace(/__TEXT_SELECTED__/g, '```' + body_sel + '```');
   return text;
 }
 
 function aiAskClickHandler() {
-  let text = $('#ai_input_text').val();
+  // get prompt
+  const ai_input_text = qs('#ai_input_text');
+  let text = ai_input_text.value;
   // replace
   text = aiReplaceText(text);
   // trim
@@ -450,6 +462,7 @@ function aiInsertText(text) {
     btn += `<button onclick="aiBlockReplace(${aiBlockId})">Replace</button>`;
   } else {
     btn += `<button onclick="aiBlockAdd(${aiBlockId})">Add</button>`
+    btn += `<button onclick="aiBlockCopy(${aiBlockId})">Copy</button>`
   }
   const div = 
     `<div id="aiBlockDiv${aiBlockId}" class="ai_block">` +
@@ -462,6 +475,10 @@ function aiBlockAdd(id) {
   const text = $('#aiBlock' + id).text();
   const edit_txt = qs('#edit_txt');
   edit_txt.value += "\n" + text;
+}
+function aiBlockCopy(id) {
+  const text = $('#aiBlock' + id).text();
+  copyToClipboard(text);
 }
 
 function aiBlockReplace(id) {
@@ -535,4 +552,14 @@ function loadAITemplate() {
     $("#edit_info").html("Sorry AI request failed." + error);
     aiButtonEnabeld(true);
   });
+}
+
+function copyToClipboard(text) {
+  if (navigator.clipboard) {
+    return navigator.clipboard.writeText(text).then(function () {
+      console.log('copied')
+    })
+  } else {
+    alert('Sorry, not supported');
+  }
 }

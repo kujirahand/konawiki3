@@ -449,7 +449,7 @@ function kona3edit_ai() {
 function kona3edit_ai_load_template()
 {
     // read wiki data (ai_prompt)
-    $prompt_file = kona3getWikiFile('ai_prompt.md');
+    $prompt_file = KONA3_DIR_DATA."/ai_prompt.md";
     $prompt = file_exists($prompt_file) ? file_get_contents($prompt_file) : '';
     if ($prompt == '') {
         // read default template

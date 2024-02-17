@@ -883,6 +883,7 @@ function kona3markdown_parser_sourceBlock(&$text)
     // create end mark
     $endmark .= $eol;
     $src = kona3markdown_parser_token($text, $endmark);
+    $src = str_replace("\n\`\`\`", "\n```", $src);
     return array("cmd"=>"block", "text"=>$src, "params" =>[$name, $blockType, $fileType, $fileName]);
 }
 
