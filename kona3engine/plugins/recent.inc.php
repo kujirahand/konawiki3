@@ -1,26 +1,37 @@
 <?php
 
 /** 最近更新されたページを列挙する
- * - [書式] #recent(count)
+ * - [書式] #recent(count[,title][,filter=xxx])
  * - [引数]
  * -- count ... 件数(省略可)
- * -- title .... テキスト一行目を表示する(省略可)
+ * -- title .... ページ名ではなくテキスト一行目を表示する(省略可)
+ * -- filter ... 正規表現でフィルタする(省略可)
+ * - [例]
+ * -- #recent(10)
  */
 
 function kona3plugins_recent_execute($args) {
   // get args
   $limit = 10;
   $title = FALSE;
+  $filter = '';
   foreach ($args as $arg) {
     $arg = trim($arg);
     if (preg_match('#^\d+$#', $arg)) {
       $limit = intval($arg);
+      continue;
     }
     if (preg_match('#count=(\d+)$#', $arg, $m)) {
       $limit = intval($m[1]);
+      continue;
     }
     if ($arg == 'title') {
       $title = TRUE;
+      continue;
+    }
+    if (preg_match('#^filter=([^\,\)]+)#', $arg, $m)) {
+      $filter = $m[1];
+      continue;
     }
   }
   // select
@@ -36,6 +47,11 @@ function kona3plugins_recent_execute($args) {
   $list = "";
   foreach ($r as $v) {
     $page = $v["name"];
+    if ($filter) {
+      if (!preg_match("#$filter#", $page)) {
+        continue;
+      }
+    }
     $mtime = $v["mtime"];
     if ($page == "FrontPage" || $page == "MenuBar" || $page == "GlobalBar") {
       continue;
@@ -49,10 +65,10 @@ function kona3plugins_recent_execute($args) {
       // print_r([$is_live, $fname, $ext]);
       $txt = trim(file_get_contents($fname));
       $a = explode("\n", $txt);
-      $page_h = $page_h . " - " . htmlspecialchars($a[0], ENT_QUOTES);
+      $page_h = htmlspecialchars($a[0], ENT_QUOTES);
       // trim
-      if (mb_strlen($page_h) > 50) {
-        $page_h = mb_strimwidth($page_h, 0, 50, "...");
+      if (mb_strlen($page_h) > 70) {
+        $page_h = mb_strimwidth($page_h, 0, 70, "...");
       }
     }
     $list .= 

@@ -64,7 +64,7 @@ function kona3plugins_ls_execute($args) {
         if (!$show_system) {
             if ($name == "MenuBar" || $name == "GlobalBar" || $name == "SideBar") { continue; }
         }
-$code .= "<li><a href='$url'>$name</a></li>\n";
+        $code .= "<li><a href='$url'>$name</a></li>\n";
     }
     $code .= "</ul>\n";
     return $code;
