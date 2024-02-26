@@ -63,6 +63,7 @@ function kona3markdown_parser_parse($text)
         $oldtext = $text;
         // check line head
         $c = mb_substr($text, 0, 1);
+        $c2 = mb_substr($text, 0, 2);
         // TITLE
         if ($c == "#") {
             $level = kona3markdown_parser_count_level($text, $c);
@@ -72,7 +73,7 @@ function kona3markdown_parser_parse($text)
             continue;
         }
         // LIST <ul>
-        if ($c == '-' || ($c == '*' && substr($text, 0, 2) == '* ')) {
+        if ($c == '-' || $c2 == '* ') {
             // hr
             if (preg_match('#^(-{5,})\n#', $text, $m)) {
                 $text = substr($text, strlen($m[0]));
@@ -147,7 +148,11 @@ function kona3markdown_parser_parse($text)
         }
         // PLUG-INS
         else if ($c == "♪") { // plugins
-            kona3markdown_parser_getStr($text, mb_strlen($c)); // skip '#'
+            kona3markdown_parser_getStr($text, mb_strlen($c)); // skip '♪'
+            $tokens[] = kona3markdown_parser_plugins($text, $c);
+        }
+        else if ($c2 == "!!") { // plugins
+            kona3markdown_parser_getStr($text, mb_strlen($c2)); // skip mark
             $tokens[] = kona3markdown_parser_plugins($text, $c);
         }
         // SOURCE BLOCK
@@ -472,27 +477,6 @@ function __kona3markdown_parser_tohtml(&$text, $level)
     while ($text <> "") {
         $c1 = mb_substr($text, 0, 1);
         $c2 = mb_substr($text, 0, 2);
-        // inline plugin
-        if (($c1 == '&') &&
-            preg_match('#^\&([\d\w_]+?);?\(#',$text, $m)) {
-            $pname  = trim($m[1]);
-            $plugin = kona3markdown_parser_getPlugin($pname);
-            $text   = substr($text, strlen($m[0]));
-            if (!isset($plugin['disable'])) {
-                $plugin['disable'] = '';
-            }
-            if ($plugin['disable'] || !file_exists($plugin["file"])) {
-                $result .= htmlspecialchars("&".$pname."(", ENT_QUOTES);
-            } else {
-                $pparam = __kona3markdown_parser_tohtml($text, $level + 1);
-                $param_ary = explode(",", $pparam);
-                include_once($plugin["file"]);
-                $p = array("cmd"=>"plugin", "text"=>$pname, "params"=>$param_ary);
-                $s = kona3markdown_parser_render_plugin($p);
-                $result .= $s;
-            }
-            continue;
-        }
         // escape
         if ($c1 == '\\') {
             $result .= mb_substr($text, 1, 1);
@@ -515,16 +499,6 @@ function __kona3markdown_parser_tohtml(&$text, $level)
             $result .= "<strong class='strong1'>$str</strong>";
             continue;
         }
-        // string1 *
-        /*
-        if ($c1 == '*') {
-            $text = mb_substr($text, 1);
-            $s = kona3markdown_parser_token($text, "*");
-            $str = kona3markdown_parser_tohtml($s);
-            $result .= "<strong class='strong1'>$str</strong>";
-            continue;
-        }
-        */
         // strong2
         if ($c2 == "__") {
             $text = mb_substr($text, 2);
@@ -533,16 +507,6 @@ function __kona3markdown_parser_tohtml(&$text, $level)
             $result .= "<strong class='strong2'>$str</strong>";
             continue;
         }
-        // string2 _
-        /*
-        if ($c1 == '_') {
-            $text = mb_substr($text, 1);
-            $s = kona3markdown_parser_token($text, "_");
-            $str = kona3markdown_parser_tohtml($s);
-            $result .= "<strong class='strong2'>$str</strong>";
-            continue;
-        }
-        */
         // strike
         if ($c2 == '~~') {
             $text = mb_substr($text, 2);
