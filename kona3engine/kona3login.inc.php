@@ -70,8 +70,7 @@ function kona3tryLogin($user, $pw) {
     $hash = $users[$user]['hash'];
     $salt = $users[$user]['salt'];
     if (kona3getHash($pw, $salt) == $hash) {
-      $email = isset($kona3conf['admin_email']) ? 
-        $kona3conf['admin_email'] : '';
+      $email = isset($kona3conf['admin_email']) ? $kona3conf['admin_email'] : '';
       kona3login($user, $email, "admin", 0);
       return TRUE;
     }
@@ -114,7 +113,7 @@ function kona3_getAutoLoginToken($email, $perm)
   // insert new token
   db_exec(
     "INSERT INTO tokens (email, token, user_agent, ip_address, perm, mtime)" .
-      "          VALUES (?,     ?,     ?,          ?,          ?,    ?)",
+    "            VALUES (?,     ?,     ?,          ?,          ?,    ?)",
     [$email, kona3_getHashAutologin($token), $ua, $ip, $perm, time()],
     'autologin'
   );

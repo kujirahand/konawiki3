@@ -11,6 +11,7 @@ function konawiki3_setup() {
 }
 
 function kona3setup_config() {
+  // editConfig page
   require_once KONA3_DIR_ENGINE.'/kona3login.inc.php';
   require_once KONA3_DIR_ENGINE.'/kona3conf.inc.php';
   if (!kona3isAdmin()) {
@@ -20,8 +21,10 @@ function kona3setup_config() {
   $file_conf = KONA3_DIR_PRIVATE.'/kona3conf.json.php';
   $conf = jsonphp_load($file_conf, []);
   kona3conf_init($conf);
+  // check arguments
   $q = empty($_POST['q']) ? '' : $_POST['q'];
   if ($q == '') {
+    // show template
     $conf['edit_token'] = kona3_getEditToken();
     if (isset($_GET['admin'])) {
       $conf['admin_email'] = $_GET['admin'];
@@ -37,6 +40,20 @@ function kona3setup_config() {
     } else {
       unset($conf['edit_key']);
     }
+    // admin password?
+    if (!empty($_POST['admin_pw1']) && !empty($_POST['admin_pw2']) && !empty($_POST['admin_email'])) {
+      $userid = $_POST['admin_email'];
+      $pw1 = $_POST['admin_pw1'];
+      $pw2 = $_POST['admin_pw2'];
+      if ($pw1 != $pw2) {
+        kona3setup_error('The master passwords do not match.');
+        exit;
+      }
+      kona3sestup_admin_write_pw($userid, $pw1);
+    }
+    unset($_POST['admin_pw1']); // unset admin_pw1 and admin_pw2
+    unset($_POST['admin_pw2']);
+    // save
     foreach ($conf as $key => $def) {
       $v = isset($_POST[$key]) ? $_POST[$key] : $def;
       $v = trim($v);
@@ -59,6 +76,8 @@ function kona3setup_config() {
     kona3setup_showMessage('<h1>Saved</h1><p><a href="./index.php">Go to FrontPage.</a></p>');
     exit;
   }
+  echo "unknown parameter [q]";
+  exit;
 }
 
 function kona3setup_error($msg) {
@@ -78,9 +97,21 @@ function kona3setup_showMessage($msg) {
   exit;
 }
 
+function kona3sestup_admin_write_pw($userid, $pw) {
+  $file_kona3users_json = kona3_get_kona3adminuser_file();
+  $salt = konawiki3_gen_pw(255);
+  $hash = kona3getHash($pw, $salt); // convert to hash
+  jsonphp_save($file_kona3users_json, [
+    $userid => [
+      'hash' => $hash,
+      'salt' => $salt,
+    ]
+  ]);
+}
+
 function kona3setup_check_admin_user() {
   require_once KONA3_DIR_ENGINE.'/kona3login.inc.php';
-  $file_kona3users_json = KONA3_DIR_PRIVATE.'/kona3adminuser.json.php';
+  $file_kona3users_json = kona3_get_kona3adminuser_file();
   if (file_exists($file_kona3users_json)) {
     return TRUE;
   }
@@ -96,14 +127,8 @@ function kona3setup_check_admin_user() {
     $pw = trim(empty($_POST['pw']) ? '' : $_POST['pw']);
     $pw2 = trim(empty($_POST['pw2']) ? '' : $_POST['pw2']);
     if ($pw != $pw2) { echo "The master passwords do not match."; exit; }
-    $salt = konawiki3_gen_pw(255);
-    $hash = kona3getHash($pw, $salt); // convert to hash
     $userid = trim(empty($_POST['userid']) ? '' : $_POST['userid']);
-    jsonphp_save($file_kona3users_json, [
-      $userid => [
-        'hash' => $hash,
-        'salt' => $salt,
-      ]]);
+    kona3sestup_admin_write_pw($userid, $pw);
     kona3login($userid, $userid, 'admin', $userid);
     $userid_ = urldecode($userid);
     echo "<h1>OK, <a href='index.php?admin={$userid_}'>Go to index page.</a></h1>";
@@ -187,3 +212,6 @@ function kona3_setup_help($msg) {
   exit;
 }
 
+function kona3_get_kona3adminuser_file() {
+  return KONA3_DIR_PRIVATE . '/kona3adminuser.json.php';
+}

@@ -133,6 +133,13 @@
   openai_apikey(for CharGPT)[<a href="https://kujirahand.com/konawiki3/index.php?AI" target="_new">help</a>]:<br>
   <input type='text' name='openai_apikey' value='{{$openai_apikey}}'><br>
   
+  <h3>Admin Password</h3>
+  <div style="border: 1px solid silver; padding: 0.4em;">
+    Password (If unchanged, leave blank.)<br>
+    <input type='password' name='admin_pw1' value=''><br>
+    Please enter again for confirmation.<br>
+    <input type='password' name='admin_pw2' value=''><br>
+  </div>
   <br>
   <input type='hidden' name='edit_token' value='{{$edit_token}}'>
   <input type='submit' value='Save'>

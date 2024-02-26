@@ -12,6 +12,5 @@ function kona3_action_editConf() {
   }  
   include_once KONA3_DIR_ADMIN.'/kona3setup.inc.php';
   kona3setup_config();
-
 }
 
