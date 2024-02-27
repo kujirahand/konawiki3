@@ -22,7 +22,7 @@ function kona3parseURI($uri) {
     // (ex) /path/index.php?PageName&Action&Status&p1=***&p2=***
     // (ex) /path/index.php?page=PageName&action=Action&status=Status
     global $kona3conf;
-    $isActionGo = empty($_GET['action']) ? FALSE : ($_GET['action'] === 'go');
+    $preAction = empty($_GET['action']) ? FALSE : $_GET['action'];
     $path_args = array();
     list($script_path, $paramStr) = explode('?', $uri . '?');
     $a = explode('&', $paramStr);
@@ -66,8 +66,8 @@ function kona3parseURI($uri) {
         }
     }
     // set action go
-    if ($isActionGo) {
-        $action = 'go';
+    if ($preAction) {
+        $action = $preAction;
     }
     return [$page, $action, $status, $path_args, $script_path];
 }
@@ -122,7 +122,7 @@ function kona3lib_execute() {
     global $kona3conf;
     $action = $kona3conf["action"];
     $actionFile = kona3getEngineFName("action", $action);
-    $actionFunc = "kona3_action_$action";
+    $actionFunc = "kona3_action_{$action}";
     $page = $kona3conf['page'];
     if (!file_exists($actionFile)) {
         $action_html = htmlspecialchars($action);

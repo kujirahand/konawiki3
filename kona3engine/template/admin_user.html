@@ -1,0 +1,22 @@
+{{ include parts_header.html }}
+<div id="wikimessage">
+  <div class="box">
+    <form method='POST' class="pure-form">
+      <input type='hidden' name='q' value='save'>
+      <h3>{{'Setup Admin User' | lang}}</h3>
+      <div class="pad">
+        {{'Please set the administrator\'s email and password'|lang}}
+      </div>
+      <div class="userform pad">
+        Email:<br>
+        <input type='text' name='userid' value=''><br>
+        Password:<br>
+        <input type='password' name='pw' value=''><br>
+        Password (confirm):<br>
+        <input type='password' name='pw2' value=''><br>
+        <input type='submit' value='{{ "Save" | lang }}'>
+      </div>
+    </form>
+  </div><!-- /box -->
+</div><!-- /wikimessage -->
+{{ include parts_footer.html }}

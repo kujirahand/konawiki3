@@ -16,7 +16,6 @@ $data =<<<EOD
 <?php
 # konawiki3 dir info
 define('KONA3_DIR_ENGINE',  '$root/kona3engine');
-define('KONA3_DIR_ADMIN',   '$root/kona3admin');
 define('KONA3_DIR_SKIN',    '$root/skin');
 define('KONA3_DIR_DATA',    __DIR__.'/data');
 define('KONA3_DIR_PRIVATE', __DIR__.'/private');

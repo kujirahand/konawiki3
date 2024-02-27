@@ -1264,3 +1264,8 @@ ul.topnavi a
   border-bottom: 1px dotted silver;
   padding: 4px;
 }
+
+.userform {
+  font-size: 1.0em;
+  line-height: 1.8em;
+}

@@ -1,42 +1,40 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Setup kona3conf</title>
-  <style>
-    body {
-      font-size: 1em;
-      background-color: #e0e0e0;
-      line-height: 2em;
-      color: black;
-    }
+{{ include parts_header.html }}
+
+<style>
     h1 {
       background-color: blue;
       color: white;
       margin: 0;
       padding: 0.3em;
     }
-    h3 {
+    #wikimessage .box {
+      background-color: #fafaff;
+    }
+    #wikimessage h3 {
+      font-size: 1.3em;
+      margin: 1.5em 0em 1.5em 0em;
+      padding: 0.4em;
+      border-top: 1px solid gray;
+      border-bottom: 1px dotted silver;
+      background-color: #f0f0ff;
+    }
+    #wikimessage input[type='text'], #wikimessage input[type='password'] {
       font-size: 1em;
       padding: 0.5em;
-      background-color: blue;
-      color: white;
-    }
-    input {
-      font-size: 1.5em;
-      padding: 0.3em;
       width: 20em;
     }
     .userform {
       padding: 1em;
     }
-  </style>
-</head>
-<body>
-<form method='POST'>
+</style>
+
+<div id="wikimessage">
+  <div class="box">
+
+<form method='POST' class="pure-form">
 <input type='hidden' name='q' value='save'>
-<h1>KonaWiki3 : Setup kona3conf</h1>
 <div class="userform">
+  <h2>{{ 'Setup Konwiki' | lang }}</h2>
   <h3>Basic</h3>
   Wiki Title:<br>
   <input type='text' name='wiki_title' value='{{$wiki_title}}'><br>
@@ -133,11 +131,11 @@
   openai_apikey(for CharGPT)[<a href="https://kujirahand.com/konawiki3/index.php?AI" target="_new">help</a>]:<br>
   <input type='text' name='openai_apikey' value='{{$openai_apikey}}'><br>
   
-  <h3>Admin Password</h3>
+  <h3>{{'Admin password'|lang}}</h3>
   <div style="border: 1px solid silver; padding: 0.4em;">
-    Password (If unchanged, leave blank.)<br>
+    Password: ({{'If unchanged, leave blank.' | lang}})<br>
     <input type='password' name='admin_pw1' value=''><br>
-    Please enter again for confirmation.<br>
+    Password (confirm):<br>
     <input type='password' name='admin_pw2' value=''><br>
   </div>
   <br>
@@ -145,5 +143,8 @@
   <input type='submit' value='Save'>
 </div>
 </form>
-<body>
-</html>
+
+</div>
+</div>
+
+{{ include parts_footer.html }}

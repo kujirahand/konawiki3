@@ -2,6 +2,34 @@
 @session_start();
 header('X-Frame-Options: SAMEORIGIN');
 
+require_once KONA3_DIR_ENGINE . '/kona3login.inc.php';
+require_once KONA3_DIR_ENGINE . '/kona3conf.inc.php';
+require_once KONA3_DIR_ENGINE . '/kona3lib.inc.php';
+require_once __DIR__ . '/editConf.inc.php';
+
+// get admin user file
+function kona3getFile_kona3adminuser_json_php() {
+  return KONA3_DIR_PRIVATE . '/kona3adminuser.json.php';
+}
+
+// default admin action
+function kona3_action_admin() {
+  // check admin file
+  $kona3adminuser_json_php = kona3getFile_kona3adminuser_json_php();
+  if (file_exists($kona3adminuser_json_php)) {
+    kona3_action_editConf();
+    return;
+  }
+  // show admin page
+  kona3setup_check_admin_user();
+}
+
+function kona3_404() {
+  header("404 not found");
+  echo "<html><body><h1>404 not found:</h1><div><a href='index.php'>index</a></div></body></html>";
+}
+
+
 // Auto setup
 function konawiki3_setup() {
   kona3setup_check_kona3dir_def();
@@ -12,8 +40,6 @@ function konawiki3_setup() {
 
 function kona3setup_config() {
   // editConfig page
-  require_once KONA3_DIR_ENGINE.'/kona3login.inc.php';
-  require_once KONA3_DIR_ENGINE.'/kona3conf.inc.php';
   if (!kona3isAdmin()) {
     echo "<html><body><a href='index.php?go&login'>Please Login.</a></body></html>";
     exit;
@@ -29,7 +55,7 @@ function kona3setup_config() {
     if (isset($_GET['admin'])) {
       $conf['admin_email'] = $_GET['admin'];
     }
-    kona3setup_template('admin_conf.html', $conf);
+    kona3template('admin_conf.html', $conf);
     exit;
   }
   if ($q == 'save') {
@@ -98,7 +124,7 @@ function kona3setup_showMessage($msg) {
 }
 
 function kona3sestup_admin_write_pw($userid, $pw) {
-  $file_kona3users_json = kona3_get_kona3adminuser_file();
+  $file_kona3users_json = kona3getFile_kona3adminuser_json_php();
   $salt = konawiki3_gen_pw(255);
   $hash = kona3getHash($pw, $salt); // convert to hash
   jsonphp_save($file_kona3users_json, [
@@ -110,8 +136,8 @@ function kona3sestup_admin_write_pw($userid, $pw) {
 }
 
 function kona3setup_check_admin_user() {
-  require_once KONA3_DIR_ENGINE.'/kona3login.inc.php';
-  $file_kona3users_json = kona3_get_kona3adminuser_file();
+  global $kona3conf;
+  $file_kona3users_json = kona3getFile_kona3adminuser_json_php();
   if (file_exists($file_kona3users_json)) {
     return TRUE;
   }
@@ -119,7 +145,7 @@ function kona3setup_check_admin_user() {
   // check $q (setup mode)
   $q = empty($_POST['q']) ? '' : $_POST['q'];
   if ($q == '') {
-    kona3setup_template('admin_user.html', []);
+    kona3template('admin_user.html', []);
     exit;
   }
   
@@ -151,7 +177,7 @@ function kona3setup_check_kona3dir_def() {
   if (!file_exists($file_kona3dir_def)) {
     if (is_writable(KONA3_DIR_INDEX)) {
       // auto generate kona3dir.def.php
-      $tmp = file_get_contents(__DIR__.'/template-kona3dir.def.php');
+      $tmp = file_get_contents(KONA3_DIR_ENGINE.'/template/template-kona3dir.def.php');
       file_put_contents($file_kona3dir_def, $tmp);
     }
   }
@@ -191,15 +217,6 @@ function kona3setup_check_dirs() {
   }
 }
 
-function kona3setup_template($file, $params) {
-  global $FW_TEMPLATE_PARAMS, $DIR_TEMPLATE_CACHE, $DIR_TEMPLATE;
-  $FW_TEMPLATE_PARAMS = [];
-  $DIR_TEMPLATE_CACHE = KONA3_DIR_CACHE;
-  $DIR_TEMPLATE = __DIR__.'/template';
-  include_once KONA3_DIR_ENGINE.'/fw_simple/fw_template_engine.lib.php';
-  template_render($file, $params);
-}
-
 // help function
 function kona3_setup_help($msg) {
   $url = 'https://kujirahand.com/konawiki3/index.php?install';
@@ -212,6 +229,3 @@ function kona3_setup_help($msg) {
   exit;
 }
 
-function kona3_get_kona3adminuser_file() {
-  return KONA3_DIR_PRIVATE . '/kona3adminuser.json.php';
-}

@@ -90,5 +90,10 @@ $lang_data = [
   'Clear Logs' => 'ログを消す',
   'Edit AI Template' => 'ひな形を編集',
   'Invalid file extension.' => 'ファイルの拡張子が不正です。',
+  'Setup Admin User' => '管理ユーザーの設定',
+  'Please set the administrator\'s email and password' => '管理者のメールアドレスとパスワードを指定してください。',
+  'Setup Konwiki' => 'Konawikiの設定',
+  'If unchanged, leave blank.' => '変更しない場合は空欄にしてください。',
+  'Admin password' => '管理者パスワード',
 ];
 
