@@ -730,7 +730,7 @@ function kona3_getEditToken($key = 'default', $update = TRUE) {
 function kona3_checkEditToken($key = 'default') {
     $sname = kona3_getEditTokenKeyName($key);
     $ses = isset($_SESSION[$sname]) ? $_SESSION[$sname] : '';
-    $get = isset($_REQUEST['edit_token']) ? $_REQUEST['edit_token'] : '';
+    $get = isset($_REQUEST['edit_token']) ? trim($_REQUEST['edit_token']) : '';
     if ($ses === '') { return FALSE; }
     return ($ses === $get);
 }

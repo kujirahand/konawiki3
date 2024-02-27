@@ -40,7 +40,7 @@ function kona3_action_login() {
         $jsSrc = kona3getPageURL('kona3_autologin.js', 'resource');
         $msg .= "<script src='$jsSrc'></script><script>kona3setAutoLogin('{$user}','{$autologinToken}');</script>";
       }
-      $editLink = kona3getPageURL($page, 'edit', '', "edit_token=".kona3_getEditToken($page));
+      $editLink = kona3getPageURL($page, 'edit', '', "edit_token=".kona3_getEditToken($page, TRUE));
       $m_success = lang('Login successful.');
       $msg .= "<a href='$editLink' class='pure-button pure-button-primary'>$m_success</a>";
       if (kona3isAdmin()) {
@@ -89,7 +89,6 @@ function kona3_action_login() {
         'result' => False,
         'message' => $res['reason'],
         'email' => $email,
-        'token' => $token,
       ]);
       exit;
     }
@@ -100,14 +99,14 @@ function kona3_action_login() {
     ]);
     exit;
   }
-  // show
+  // login form
   $kona3conf["robots"] = "noindex";
   kona3template('login.html', array(
     "page_title" => $page,
     "msg" => $msg,
     "action" => $action,
     "signup_link" => kona3getPageURL($page, 'signup'),
-    "edit_token" => kona3_getEditToken($editTokenKey),
+    "edit_token" => kona3_getEditToken($editTokenKey, TRUE),
   ));
 }
 
