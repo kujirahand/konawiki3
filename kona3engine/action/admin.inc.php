@@ -1,5 +1,4 @@
 <?php
-@session_start();
 header('X-Frame-Options: SAMEORIGIN');
 
 require_once KONA3_DIR_ENGINE . '/kona3login.inc.php';
@@ -44,14 +43,15 @@ function kona3setup_config() {
     echo "<html><body><a href='index.php?go&login'>Please Login.</a></body></html>";
     exit;
   }
+  $editTokenKey = 'admin_edit_conf';
   $file_conf = KONA3_DIR_PRIVATE.'/kona3conf.json.php';
   $conf = jsonphp_load($file_conf, []);
   kona3conf_init($conf);
   // check arguments
-  $q = empty($_POST['q']) ? '' : $_POST['q'];
+  $q = empty($_REQUEST['q']) ? '' : $_REQUEST['q'];
   if ($q == '') {
     // show template
-    $conf['edit_token'] = kona3_getEditToken();
+    $conf['edit_token'] = kona3_getEditToken($editTokenKey, TRUE);
     if (isset($_GET['admin'])) {
       $conf['admin_email'] = $_GET['admin'];
     }
@@ -60,7 +60,7 @@ function kona3setup_config() {
   }
   if ($q == 'save') {
     // check token
-    if (!kona3_checkEditToken()) {
+    if (!kona3_checkEditToken($editTokenKey)) {
       kona3error("Invalid Token", "<a href='javascript:history.back()'>Plase back</a>, and submit form again.");
       exit;
     } else {
@@ -153,7 +153,7 @@ function kona3setup_check_admin_user() {
     $pw = trim(empty($_POST['pw']) ? '' : $_POST['pw']);
     $pw2 = trim(empty($_POST['pw2']) ? '' : $_POST['pw2']);
     if ($pw != $pw2) { echo "The master passwords do not match."; exit; }
-    $userid = trim(empty($_POST['userid']) ? '' : $_POST['userid']);
+    $userid = trim(empty($_POST['email']) ? '' : $_POST['email']);
     kona3sestup_admin_write_pw($userid, $pw);
     kona3login($userid, $userid, 'admin', $userid);
     $userid_ = urldecode($userid);

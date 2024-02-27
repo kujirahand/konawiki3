@@ -14,8 +14,12 @@ function kona3setAutoLogin (email, token) {
 }
 
 function kona3tryAutologin (autojump) {
+    console.log('[kona3tryAutologin] autojump=', autojump)
     const data = localStorage.getItem(AUTOLOGIN_KEY)
-    if (!data) { return false }
+    if (!data) {
+        console.log('[kona3tryAutologin] no data')
+        return false
+    }
     const {email, token, time} = JSON.parse(data)
     const email3 = xorToken(email, KONA3SALT)
     const token3 = xorToken(token, KONA3SALT)

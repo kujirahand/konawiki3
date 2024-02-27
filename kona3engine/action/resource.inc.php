@@ -19,7 +19,8 @@ function kona3_action_resource() {
   $file = $kona3conf['path_resource'].'/'.$fname;
   if (!file_exists($file)) {
     header('HTTP/1.0 404 Not Found');
-    echo "FILE NOT FOUND: $fname";
+    header('content-type: text/plain');
+    echo "404 FILE NOT FOUND: $fname";
     exit;
   }
 

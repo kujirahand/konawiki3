@@ -686,40 +686,53 @@ function kona3_setPluginInfo($plugin_name, $key, $value) {
     $kona3conf["plugins"][$plugin_name][$key] = $value;
 }
 
-function kona3_getEditToken($key = 'default', $update = TRUE) {
+function kona3_getEditTokenKeyName($key) {
+    return "konawiki3_edit_token_{$key}";
+}
+
+function kona3_getEditTokenForceUpdate($key = 'default') {
     global $kona3conf;
-    $sname = "konawiki3_edit_token_$key";
-    $sname_time = "konawiki3_edit_token_time_$key";
-    if ($update == FALSE) {
-        if (isset($_SESSION[$sname])) {
-            $ONE_DAY = 60 * 60 * 24; // 1day
-            $time = isset($_SESSION[$sname_time]) ? $_SESSION[$sname_time] : time();
-            $expire_time = $time + $ONE_DAY;
-            if (time() > $expire_time) {
-                return kona3_getEditToken($key, TRUE);
-            }
-            $_SESSION[$sname_time] = time(); // update
-            $kona3conf['edit_token'] = $_SESSION[$sname];
-            return $kona3conf['edit_token'];
-        }
-    }
+    $sname = kona3_getEditTokenKeyName($key);
+    $sname_time = "{$sname}.time";
     // update token
-    if (!isset($kona3conf['edit_token'])) {
-        $token = $kona3conf['edit_token'] = bin2hex(random_bytes(32));
+    if (empty($kona3conf[$sname])) {
+        $token = bin2hex(random_bytes(32));
         $_SESSION[$sname] = $token;
         $_SESSION[$sname_time] = time();
+        $kona3conf[$sname] = $token;
     }
-    return $kona3conf['edit_token'];
+    return $kona3conf[$sname];
+}
+
+function kona3_getEditToken($key = 'default', $update = TRUE) {
+    global $kona3conf;
+    $sname = kona3_getEditTokenKeyName($key);
+    $sname_time = "{$sname}.time";
+    if ($update) {
+        return kona3_getEditTokenForceUpdate($key);
+    }
+    // check empty
+    if (empty($_SESSION[$sname])) {
+        return kona3_getEditTokenForceUpdate($key);
+    }
+    // check time
+    $ONE_DAY = 60 * 60 * 24; // 1day
+    $time = isset($_SESSION[$sname_time]) ? $_SESSION[$sname_time] : time();
+    $expire_time = $time + $ONE_DAY;
+    if (time() > $expire_time) {
+        return kona3_getEditTokenForceUpdate($key);
+    }
+    $_SESSION[$sname_time] = time(); // update
+    $kona3conf[$sname] = $_SESSION[$sname];
+    return $kona3conf[$sname];
 }
 
 function kona3_checkEditToken($key = 'default') {
-    $sname = "konawiki3_edit_token_$key";
+    $sname = kona3_getEditTokenKeyName($key);
     $ses = isset($_SESSION[$sname]) ? $_SESSION[$sname] : '';
     $get = isset($_REQUEST['edit_token']) ? $_REQUEST['edit_token'] : '';
-    if ($ses != '' && $ses == $get) {
-        return TRUE;
-    }
-    return FALSE;
+    if ($ses === '') { return FALSE; }
+    return ($ses === $get);
 }
 
 function kona3getShortcutLink() {

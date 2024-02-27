@@ -2,13 +2,13 @@
 // login page
 function kona3_action_login() {
   global $kona3conf;
-  $page = $kona3conf["page"];
+  $page = kona3param('page', '');
   $action = kona3getPageURL($page, "login");
-  
   $am   = kona3param('a_mode', '');
   $user = kona3param('a_user', '');
   $pw   = kona3param('a_pw',   '');
   $autologin = kona3param('autologin', '');
+  $editTokenKey = 'login_page';
   $msg = '';
   // ログイン回数の記録に利用する
   $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
@@ -16,7 +16,7 @@ function kona3_action_login() {
   // check user
   if ($am == "trylogin") {
     // check edit_token
-    if (!kona3_checkEditToken()) {
+    if (!kona3_checkEditToken($editTokenKey)) {
       $url = kona3getPageURL($page, 'login');
       kona3showMessage(lang('Invalid Token'), 
         "<a href='$url'>".lang('Login')."</a>");
@@ -47,7 +47,7 @@ function kona3_action_login() {
         // ログイン失敗が何度あったか確認
         $login_errors = db_get("SELECT * FROM meta WHERE name='login_error'", []);
         if ($login_errors) {
-          $msg .= "<div class='block'><h3>Admin memo:</h3>\n";
+          $msg .= "<div class='block2'><h3>Admin memo:</h3>\n";
           $msg .= "<p>" . lang('Recently Login Error Count') . ": " . count($login_errors) . "</p>\n";
           $msg .= "<ul>\n";
           $cnt = 0;
@@ -100,7 +100,6 @@ function kona3_action_login() {
     ]);
     exit;
   }
-  
   // show
   $kona3conf["robots"] = "noindex";
   kona3template('login.html', array(
@@ -108,7 +107,7 @@ function kona3_action_login() {
     "msg" => $msg,
     "action" => $action,
     "signup_link" => kona3getPageURL($page, 'signup'),
-    "edit_token" => kona3_getEditToken(),
+    "edit_token" => kona3_getEditToken($editTokenKey),
   ));
 }
 

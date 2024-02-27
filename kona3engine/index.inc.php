@@ -8,8 +8,6 @@ require_once __DIR__.'/konawiki_version.inc.php';
 global $kona3conf;
 $kona3conf = [];
 $kona3conf_notExists = true;
-// session
-session_start();
 // Load Config data
 $file_kona3conf_json = KONA3_DIR_PRIVATE.'/kona3conf.json.php';
 if (file_exists($file_kona3conf_json)) {
@@ -27,6 +25,9 @@ if (file_exists($file_kona3conf_json)) {
         exit;
     }
 }
+// session
+$wiki_title = isset($kona3conf['wiki_title']) ? $kona3conf['wiki_title'] : '_def';
+session_start(['name' => urlencode("kona3{$wiki_title}")]);
 
 // --------------------
 // include library
@@ -51,7 +52,7 @@ kona3conf_gen();
 // parse url
 kona3lib_parseURI();
 if ($kona3conf_notExists) {
-    if ($kona3conf['action'] != 'resource') {
+    if (!in_array($kona3conf['action'], ['resource', 'skin', 'logout'])) {
         $_GET['action'] = $kona3conf['action'] = 'admin'; 
     }
 }
