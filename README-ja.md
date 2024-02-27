@@ -1,9 +1,9 @@
-# KonaWiki3 (日本語マニュアル)
+# Konawiki3 (日本語マニュアル)
 
  - KonaWiki3 is Wiki clone.
  - [URL] http://kujirahand.com/konawiki3/
 
-## KonaWiki3の目標
+## Konawiki3の目標
 
 KonaWikiは原稿の執筆やマニュアルの作成、情報の共有に特化したシンプルなWikiです。
 Wikiのデータはただのテキストファイルなので、Gitと連携して詳細な差分を取ることもできます。
@@ -15,7 +15,7 @@ Wikiのデータはただのテキストファイルなので、Gitと連携し�
 
 ## 日本語Wiki記法をサポートしています
 
-KonaWiki2に由来する、日本語Wiki記法をサポートしています。
+日本語Wiki記法をサポートしています。
 
 ```
 ■大見出し
@@ -84,34 +84,15 @@ Gitコマンドが使えるなら、コマンド一発で設置が可能です�
 
 ### Gitを使う方法
 
-- 1. ApacheなどのWebサーバーとPHPをインストール
-- 2. 以下のどちらかのコマンドを実行
-  - 2-1. `git clone --recursive https://github.com/kujirahand/konawiki3.git`
-  - 2-2. `git clone https://github.com/kujirahand/konawiki3.git` AND `git submodule update --init --recursive`
+1. ApacheなどのWebサーバーとPHPをインストール
+2. 以下のどちらかのコマンドを実行
+  -  `git clone --recursive https://github.com/kujirahand/konawiki3.git`
+  -  `git clone https://github.com/kujirahand/konawiki3.git` AND `git submodule update --init --recursive`
 
 ### Gitを使わない方法:
 
-- 1. [KonaWiki3のreleaseからZIPをダウンロード](https://github.com/kujirahand/konawiki3/releases)
-- 2. [テンプレートエンジンのZIPをダウンロード](https://github.com/kujirahand/php_fw_simple/releases)
-- 3. テンプレートエンジンを解凍して `./kona3engine/fw_simple` に配置
-
-下記のような構造になるようにします。
-
-```
-- index.php
-- <data>
-- <cache>
-- <private>
-+ <kona3engine>
-    + <fw_simple>
-      - README.md
-      - index.lib.php
-      ...
-    - <action>
-    - <template>
-    - <lang>
-    ...
-```
+1. [KonaWiki3のreleaseからZIPをダウンロード](https://github.com/kujirahand/konawiki3/releases)
+2. [テンプレートエンジンのZIPをダウンロード](https://github.com/kujirahand/php_fw_simple/releases)
 
 ### 共通
 
@@ -120,12 +101,12 @@ Gitコマンドが使えるなら、コマンド一発で設置が可能です�
 ```
 # access limitation
 <Files *.txt>
-Order deny,allow
-Deny from all
+  Order deny,allow
+  Deny from all
 </Files>
 <Files *.md>
-Order deny,allow
-Deny from all
+  Order deny,allow
+  Deny from all
 </Files>
 ```
 

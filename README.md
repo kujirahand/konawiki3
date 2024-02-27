@@ -51,47 +51,29 @@ By obtaining a [ChatGPT API key](https://platform.openai.com/api-keys) and speci
 
 [Use Git command]
 
-- 1. Install WebServer and PHP
-- 2. Download
+1. Install WebServer and PHP
+2. Download
   - `git clone --recursive https://github.com/kujirahand/konawiki3.git`
   - OR `git clone https://github.com/kujirahand/konawiki3.git` AND `git submodule update --init --recursive`
 
 [Use Uploader to Hosting server]
 
-- 1. Download Konawiki3 zip file from [releases](https://github.com/kujirahand/konawiki3/releases)
-- 2. Unzip
-- 3. chmod data, cache, private directories
-- 4. Access index.php
+1. Download Konawiki3 zip file from [releases](https://github.com/kujirahand/konawiki3/releases)
+2. Unzip
+3. chmod data, cache, private directories
+4. Access index.php
 
-Please set directories like this.
-
-```
-- index.php
-- <data>
-- <cache>
-- <private>
-+ <kona3engine>
-    + <fw_simple>
-      - README.md
-      - index.lib.php
-      ...
-    - <action>
-    - <template>
-    - <lang>
-    ...
-```
-
-And put `data/.htaccess`.
+And write `data/.htaccess` (Apache):
 
 ```
 # access limitation
 <Files *.txt>
-Order deny,allow
-Deny from all
+  Order deny,allow
+  Deny from all
 </Files>
 <Files *.md>
-Order deny,allow
-Deny from all
+  Order deny,allow
+  Deny from all
 </Files>
 ```
 
