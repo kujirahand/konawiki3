@@ -18,7 +18,7 @@ if (file_exists($file_kona3dir_def)) {
 
 // check template engine
 if (!file_exists(KONA3_DIR_ENGINE.'/fw_simple/fw_template_engine.lib.php')) {
-  echo "<p><a href='./kona3admin/setup-template.php'>Please install Template Engine.</a></p>\n";
+  echo "<p><a href='./script/setup-template.php'>Please install Template Engine.</a></p>\n";
   exit;
 }
 

@@ -72,7 +72,7 @@ function kona3setup_config() {
       $pw1 = $_POST['admin_pw1'];
       $pw2 = $_POST['admin_pw2'];
       if ($pw1 != $pw2) {
-        kona3setup_error('The master passwords do not match.');
+        kona3setup_error('The master passwords do not match. [<a href="javascript:history.back()">Back</a>]');
         exit;
       }
       kona3sestup_admin_write_pw($userid, $pw1);
