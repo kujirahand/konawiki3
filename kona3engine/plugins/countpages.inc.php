@@ -61,8 +61,8 @@ function kona3plugins_countpages_execute($args) {
     // search #filecode(***)
     $lines = explode("\n", $txt);
     foreach ($lines as $line) {
-      if (!preg_match("/(#|♪|\!\!)filecode\((.+)\)/", $line, $m)) continue;
-      $fname = $m[1];
+      if (!preg_match("/(\#|\♪|\!\!)filecode\((.+?)\)/", trim($line), $m)) continue;
+      $fname = $m[2];
       $fname = str_replace('..', '', $fname); // 上のパスの参照を許さない
       $src = $path . "/" . $fname;
       if (file_exists($src)) {

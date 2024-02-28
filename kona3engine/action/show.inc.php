@@ -146,3 +146,4 @@ function kona3show_markdown_convert($txt) {
     require_once dirname(__DIR__).'/kona3parser_md.inc.php';
     return kona3markdown_parser_convert($txt);
 }
+

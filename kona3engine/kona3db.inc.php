@@ -167,5 +167,3 @@ function kona3db_getPageHistoryByUserId($user_id) {
   return $result;
 }
 
-
-
