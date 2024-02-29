@@ -57,21 +57,8 @@ function kona3plugins_countpages_execute($args) {
     $c = mb_strlen($txt);
     $cnt_txt += $c;
     $cnt_file++;
-    
     // search #filecode(***)
-    $lines = explode("\n", $txt);
-    foreach ($lines as $line) {
-      if (!preg_match("/(\#|\♪|\!\!)filecode\((.+?)\)/", trim($line), $m)) continue;
-      $fname = $m[2];
-      $fname = str_replace('..', '', $fname); // 上のパスの参照を許さない
-      $src = $path . "/" . $fname;
-      if (file_exists($src)) {
-        $subtxt = @file_get_contents($src);
-        $c = mb_strlen($subtxt);
-        $cnt_src += $c;
-        $cnt_code++;
-      }
-    }
+    kona3countpages_extractFileCode($txt, $cnt_src, $cnt_code);
   }
   // 
   $cnt = $cnt_txt + $cnt_src;
@@ -137,7 +124,23 @@ function enum_files($dir, $pat = NULL) {
   return $list;
 }
 
-
+function kona3countpages_extractFileCode($txt, &$cnt_src, &$cnt_code) {
+  $data_dir = rtrim(KONA3_DIR_DATA, '/');
+  // search #filecode(***)
+  $lines = explode("\n", $txt);
+  foreach ($lines as $line) {
+    if (!preg_match("/(\#|\♪|\!\!)filecode\((.+?)\)/", trim($line), $m)) continue;
+    $fname = $m[2];
+    $fname = str_replace('..', '', $fname); // 上のパスの参照を許さない
+    $src = $data_dir . "/" . $fname;
+    if (file_exists($src)) {
+      $subtxt = @file_get_contents($src);
+      $c = mb_strlen($subtxt);
+      $cnt_src += $c;
+      $cnt_code++;
+    }
+  }
+}
 
 
 

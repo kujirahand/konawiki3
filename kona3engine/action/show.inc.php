@@ -39,6 +39,11 @@ function kona3_action_show() {
     }
     // counter
     $cnt_txt = mb_strlen($txt);
+    if (kona3isLogin()) {
+        $cnt_code = 0;
+        include_once dirname(__DIR__) . '/plugins/countpages.inc.php';
+        kona3countpages_extractFileCode($txt, $cnt_txt, $cnt_code);
+    }
 
     // header and footer
     $allpage_header = '';
