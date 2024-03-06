@@ -162,6 +162,14 @@ git remote add origin git@github.com:hoge/fuga.git
 [URI] index.php?FrontPage&plugin&name=pluginlist
 ```
 
+## Dockerを使う場合
+
+ターミナルから以下のコマンドを実行すると起動します。PHPのローカルサーバーの機能を利用してKonawiki3を実行します。
+
+```
+docker-compose up
+```
+
 ## セキュリティアップデートのお知らせ (2021/02/22)
 
 Konawiki v3.2.3 より前のバージョンをご利用の方は最新版にアップデートしてください。

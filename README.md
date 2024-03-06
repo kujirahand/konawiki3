@@ -117,3 +117,11 @@ First login by Admin User, and access config page.
 ```
 [URI] index.php?FrontPage&plugin&name=pluginlist
 ```
+
+## Docker
+
+```
+docker-compose up
+```
+
+
