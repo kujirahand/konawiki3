@@ -1,9 +1,12 @@
 <?php
 /** ソースコードのパスを指定して囲んで表示
- * - [書式] #filecode(path, type)
+ * - [書式] #filecode(path, type, lineno)
  * - [引数]
  * -- path: filepath
- * -- type: code or plain(beta)
+ * -- type=(code|plain): code or plain(beta) (optional)
+ * -- lineno=nn-mm: extract lines nn to mm (optional)
+ * - [利用例]
+ * #filecode(src/ch1/hello.py, type=code, lineno=1-3)
  */
 
 function kona3plugins_filecode_execute($args) {
@@ -15,8 +18,23 @@ function kona3plugins_filecode_execute($args) {
   
   // get parameters
   $name = array_shift($args);
-  $type = array_shift($args);
-  if ($type == NULL) { $type = 'code'; }
+  $type = "code";
+  $lineno_from = 0;
+  $lineno_to = 0;
+  foreach ($args as $arg) {
+    if (preg_match('/^type=(.*)$/', $arg, $m)) {
+      $type = $m[1];
+    } else if (preg_match('/^lineno=([0-9\-\:]+?)$/', $arg, $m)) {
+      $line = $m[1];
+      if (preg_match('/^([0-9]+)[\-\:]([0-9]+)$/', $line, $m)) {
+        $lineno_from = intval($m[1]);
+        $lineno_to = intval($m[2]);
+      } else if (preg_match('/^([0-9]+)$/', $line, $m)) {
+        $lineno_from = $lineno_to = intval($m[1]);
+      }
+    }
+  }
+
   // check parametes
   $name = str_replace('..', '', $name);
   $fname = kona3getWikiFile($name, false);
@@ -33,6 +51,11 @@ function kona3plugins_filecode_execute($args) {
   }
   $url = kona3getWikiUrl($name);
   $txt = @file_get_contents($fname);
+  if ($lineno_from > 0) {
+    $lines = explode("\n", $txt);
+    $sublines = array_slice($lines, $lineno_from - 1, $lineno_to - $lineno_from + 1);
+    $txt = implode("\n", $sublines);
+  }
   $name_ = htmlspecialchars($name, ENT_QUOTES);
   if (preg_match('#\.php$#', $fname)) {
     // .php file
