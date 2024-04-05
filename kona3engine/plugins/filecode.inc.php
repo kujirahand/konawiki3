@@ -52,11 +52,21 @@ function kona3plugins_filecode_execute($args) {
   $url = kona3getWikiUrl($name);
   $txt = @file_get_contents($fname);
   if ($lineno_from > 0) {
-    $lines = explode("\n", $txt);
+    $lines = explode("\n", trim($txt));
+    $line_cnt = count($lines);
     $sublines = array_slice($lines, $lineno_from - 1, $lineno_to - $lineno_from + 1);
     $txt = implode("\n", $sublines);
+    if ($lineno_from >= 2) {
+      $txt = "…省略…\n".$txt;
+    }
+    if ($lineno_to < $line_cnt) {
+      $txt = $txt."\n…省略…\n";
+    }
   }
   $name_ = htmlspecialchars($name, ENT_QUOTES);
+  if ($lineno_from > 0) {
+    $name_ .= " (lineno=$lineno_from-$lineno_to)";
+  }
   if (preg_match('#\.php$#', $fname)) {
     // .php file
     $txt = trim($txt);
