@@ -43,7 +43,7 @@ function kona3conf_init(&$conf) {
   check_conf($conf, 'max_search_level', '2');
   check_conf($conf, 'use_pdf_out', FALSE);
   check_conf($conf, 'allow_upload', FALSE);
-  check_conf($conf, 'allow_upload_ext', 'txt;pdf;csv;wav;mid;mp3;mp4;ogg;zip;gz;bz2;jpg;jpeg;png;gif;webp;svg;xml;json;ini;doc;docx;xls;xlsx;ppt;pptx');
+  check_conf($conf, 'allow_upload_ext', 'txt;md;pdf;csv;wav;mid;mp3;mp4;ogg;zip;gz;bz2;jpg;jpeg;png;gif;webp;svg;xml;json;ini;doc;docx;xls;xlsx;ppt;pptx');
   check_conf($conf, 'upload_max_file_size', 1024 * 1024 * 5);
   check_conf($conf, 'bbs_admin_password', 'BBS#admin!PassWord!!');
   check_conf($conf, 'openai_apikey', '');
