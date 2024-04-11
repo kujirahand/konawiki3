@@ -64,7 +64,9 @@ function kona3plugins_ref_execute($args) {
         $url = $url2;
     }
     // Is image?
-    if (preg_match('/\.(png|jpg|jpeg|gif|bmp|ico|svg|webp)$/', $url)) {
+    $image_type = kona3getConf("image_pattern", "(jpg|jpeg|png|gif|ico|svg|webp)");
+    $pattern = "#\.($image_type)$#";
+    if (preg_match($pattern, $url)) {
         if ($link == '') { $link = $url; }
         $caph = "<div class='memo'>".$caption."</div>";
         $div = "<div>";
@@ -86,12 +88,15 @@ function kona3plugins_ref_file_url($page, $url) {
     $url = trim(str_replace('..', '', $url));
 
     // is attach dir?
-    $f = $kona3conf["path.attach"]."/".$url;
-    if (file_exists($f)) { return $kona3conf["url.attach"]."/".$url; }
+    $f = kona3path_join($kona3conf["path.attach"], $url);
+    if (file_exists($f)) { return kona3path_join($kona3conf["url.attach"], $url); }
 
     // is data dir?
-    $f = KONA3_DIR_DATA."/".$url;
-    if (file_exists($f)) { return $kona3conf["url.data"]."/".$url; }
+    $f = kona3path_join(KONA3_DIR_DATA, $url);
+    if (file_exists($f)) {
+        $file_url = kona3path_join($kona3conf["url.data"], $url);
+        return $file_url;
+    }
 
     // Is this file in same directory?
     if (strpos($page, "/") !== FALSE) {

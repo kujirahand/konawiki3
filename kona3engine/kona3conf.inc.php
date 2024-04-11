@@ -42,6 +42,7 @@ function kona3conf_init(&$conf) {
   check_conf($conf, 'max_search', '10');
   check_conf($conf, 'max_search_level', '2');
   check_conf($conf, 'use_pdf_out', FALSE);
+  check_conf($conf, 'image_pattern', '(png|jpg|jpeg|gif|bmp|ico|svg|webp)');
   check_conf($conf, 'allow_upload', FALSE);
   check_conf($conf, 'allow_upload_ext', 'txt;md;pdf;csv;wav;mid;mp3;mp4;ogg;zip;gz;bz2;jpg;jpeg;png;gif;webp;svg;xml;json;ini;doc;docx;xls;xlsx;ppt;pptx');
   check_conf($conf, 'upload_max_file_size', 1024 * 1024 * 5);
@@ -81,28 +82,28 @@ function kona3conf_gen() {
   // go.php?
   if (basename($script) == 'go.php') {
     $script = dirname($script).'/index.php';
-  } 
-  $kona3conf["url.index"]   = "{$scheme}://{$host}{$script}";
-  $kona3conf["url.data"]    = './data';
-  $kona3conf["url.pub"]     = './pub';
-  $kona3conf['path_resource'] = KONA3_DIR_ENGINE.'/resource'; 
-  $kona3conf["scriptname"] = 'index.php';
-
+  }
+  // set default
+  check_conf($kona3conf, 'url.index', "{$scheme}://{$host}{$script}");
+  check_conf($kona3conf, 'url.data', './data');
+  check_conf($kona3conf, 'url.pub', './pub');
+  check_conf($kona3conf, 'path_resource', KONA3_DIR_ENGINE.'/resource');
+  check_conf($kona3conf, 'scriptname', 'index.php');
 
   // javascript files
-  $kona3conf["header.tags"] = array(); // additional header
-  $kona3conf["js"] = array(
+  check_conf($kona3conf, "header.tags", []); // additional header
+  check_conf($kona3conf, 'js', [
     kona3getResourceURL('jquery-3.7.0.min.js'),
     kona3getSkinURL('drawer.js', TRUE),
-  );
+  ]);
   // css files
-  $kona3conf["css"] = array(
+  check_conf($kona3conf, "css", [
     kona3getResourceURL('pure-min.css'),
     kona3getResourceURL('grids-responsive-min.css'),
     kona3getResourceURL('kona3def.css'), // default style
     kona3getSkinURL('kona3.css', TRUE), // skin style
     kona3getSkinURL('drawer.css', TRUE),
-  );
+  ]);
   if ($kona3conf['analytics'] != '') {
     $kona3conf['header.tags'][] = $kona3conf['analytics'];
   }

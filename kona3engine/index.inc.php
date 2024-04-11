@@ -6,15 +6,20 @@
 require_once __DIR__.'/konawiki_version.inc.php';
 // global
 global $kona3conf;
-$kona3conf = [];
+if (!isset($kona3conf)) { $kona3conf = []; }
 $kona3conf_notExists = true;
 // Load Config data
 $file_kona3conf_json = KONA3_DIR_PRIVATE.'/kona3conf.json.php';
 if (file_exists($file_kona3conf_json)) {
+    // load config file
     include_once KONA3_DIR_ENGINE.'/jsonphp.lib.php';
-    $kona3conf = jsonphp_load($file_kona3conf_json, []);
+    $conf = jsonphp_load($file_kona3conf_json, []);
+    foreach ($conf as $k => $v) { // overwrite config
+        $kona3conf[$k] = $v;
+    }
     $kona3conf_notExists = false;
 } else {
+    // --- no config file ---
     // set directories
     if (!defined('KONA3_DIR_INDEX')) { define('KONA3_DIR_INDEX', dirname(__DIR__)); }
     if (!defined('KONA3_DIR_ENGINE')) { define('KONA3_DIR_ENGINE',  __DIR__); }

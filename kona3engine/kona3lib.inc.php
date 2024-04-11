@@ -789,6 +789,14 @@ function kona3jump($url, $msg = '') {
     kona3showMessage('Jump', $msg);
 }
 
+function kona3path_join($path, $file) {
+    if (substr($path, -1) == '/') {
+        return $path . $file;
+    } else {
+        return $path . '/' . $file;
+    }
+}
+
 /*
 function kona3getPageId($page, $canCreate = FALSE) {
     $kona3info = KONA3_DIR_DATA . "/.kona3info.json";
