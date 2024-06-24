@@ -38,6 +38,7 @@ function kona3_action_show() {
         kona3error($page, "Sorry, System Error."); exit;
     }
     // counter
+    $txt = str_replace("\r\n", "\n", $txt); // CRLF to LF
     $cnt_txt = mb_strlen($txt);
     if (kona3isLogin()) {
         $cnt_code = 0;

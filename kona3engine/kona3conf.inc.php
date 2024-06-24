@@ -35,6 +35,7 @@ function kona3conf_init(&$conf) {
   check_conf($conf, 'noanchor', FALSE);
   check_conf($conf, 'enc_pagename', FALSE);
   check_conf($conf, 'show_data_dir', FALSE);
+  check_conf($conf, 'show_counter', FALSE);
   check_conf($conf, 'para_enabled_br', TRUE);
   check_conf($conf, 'path_max_mkdir', 3);
   check_conf($conf, 'chmod_mkdir', '0777');
