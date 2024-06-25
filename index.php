@@ -18,7 +18,10 @@ if (file_exists($file_kona3dir_def)) {
 
 // check template engine
 if (!file_exists(KONA3_DIR_ENGINE.'/fw_simple/fw_template_engine.lib.php')) {
-  echo "<p><a href='./script/setup-template.php'>Please install Template Engine.</a></p>\n";
+  $uri = $_SERVER['REQUEST_URI'];
+  if (strpos($uri, 'index.php') === FALSE) { $uri = "$uri/index.php"; }
+  $script_uri = dirname($uri).'/script/setup-template.php';
+  echo "<p><a href='{$script_uri}'>Please install Template Engine.</a></p>\n";
   exit;
 }
 
