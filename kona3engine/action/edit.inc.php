@@ -9,6 +9,7 @@ header('X-Frame-Options: SAMEORIGIN');
 function kona3_action_edit() {
     global $kona3conf, $page;
 
+    $ext = "txt";
     $page = $kona3conf["page"];
     $action = kona3getPageURL($page, "edit");
     $a_mode = kona3param('a_mode', '');
