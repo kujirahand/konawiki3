@@ -701,7 +701,7 @@ function kona3_getEditTokenForceUpdate($key = 'default') {
         $_SESSION[$sname_time] = time();
         $kona3conf["{$sname}_token"] = $token;
     }
-    return $kona3conf[$sname];
+    return $kona3conf["{$sname}_token"];
 }
 
 function kona3_getEditToken($key = 'default', $update = TRUE) {
