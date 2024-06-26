@@ -695,11 +695,11 @@ function kona3_getEditTokenForceUpdate($key = 'default') {
     $sname = kona3_getEditTokenKeyName($key);
     $sname_time = "{$sname}.time";
     // update token
-    if (empty($kona3conf[$sname])) {
+    if (empty($kona3conf["{$sname}_token"])) {
         $token = bin2hex(random_bytes(32));
         $_SESSION[$sname] = $token;
         $_SESSION[$sname_time] = time();
-        $kona3conf[$sname] = $token;
+        $kona3conf["{$sname}_token"] = $token;
     }
     return $kona3conf[$sname];
 }
