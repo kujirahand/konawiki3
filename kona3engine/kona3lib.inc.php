@@ -695,13 +695,13 @@ function kona3_getEditTokenForceUpdate($key = 'default') {
     $sname = kona3_getEditTokenKeyName($key);
     $sname_time = "{$sname}.time";
     // update token
-    if (empty($kona3conf["{$sname}_token"])) {
+    if (empty($kona3conf[$sname])) {
         $token = bin2hex(random_bytes(32));
         $_SESSION[$sname] = $token;
         $_SESSION[$sname_time] = time();
-        $kona3conf["{$sname}_token"] = $token;
+        $kona3conf[$sname] = $token;
     }
-    return $kona3conf["{$sname}_token"];
+    return $kona3conf[$sname];
 }
 
 function kona3_getEditToken($key = 'default', $update = TRUE) {
@@ -716,7 +716,7 @@ function kona3_getEditToken($key = 'default', $update = TRUE) {
         return kona3_getEditTokenForceUpdate($key);
     }
     // check time
-    $ONE_DAY = 60 * 60 * 24; // 1day
+    $ONE_DAY = 3;// 60 * 60 * 24; // 1day
     $time = isset($_SESSION[$sname_time]) ? $_SESSION[$sname_time] : time();
     $expire_time = $time + $ONE_DAY;
     if (time() > $expire_time) {

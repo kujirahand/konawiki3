@@ -18,6 +18,7 @@ include_once __DIR__.'/kona3db.inc.php';
 // --------------------
 function kona3conf_init(&$conf) {
   check_conf($conf, 'wiki_title', 'KonaWiki3');
+  check_conf($conf, 'session_name', 'kona3session');
   check_conf($conf, 'admin_email', 'admin@example.com');
   check_conf($conf, 'wiki_private', TRUE);
   check_conf($conf, 'lang', 'ja');

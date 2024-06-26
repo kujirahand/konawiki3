@@ -31,8 +31,9 @@ if (file_exists($file_kona3conf_json)) {
     }
 }
 // session
-$wiki_title = isset($kona3conf['wiki_title']) ? $kona3conf['wiki_title'] : '_def';
-session_start(['name' => urlencode("kona3{$wiki_title}")]);
+$wiki_title = isset($kona3conf['wiki_title']) ? $kona3conf['wiki_title'] : 'KonaWiki3';
+$session_name = isset($kona3conf['session_name']) ? $kona3conf['session_name'] : 'kona3session';
+session_start(['name' => $session_name]);
 
 // --------------------
 // include library

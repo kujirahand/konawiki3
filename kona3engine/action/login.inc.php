@@ -101,13 +101,13 @@ function kona3_action_login() {
   }
   // login form
   $kona3conf["robots"] = "noindex";
-  kona3template('login.html', array(
+  kona3template('login.html', [
     "page_title" => $page,
     "msg" => $msg,
     "action" => $action,
     "signup_link" => kona3getPageURL($page, 'signup'),
     "edit_token" => kona3_getEditToken($editTokenKey, TRUE),
-  ));
+  ]);
 }
 
 
