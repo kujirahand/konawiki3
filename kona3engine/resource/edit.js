@@ -9,6 +9,7 @@ var outline_mode = false;
 var outline_lines = [];
 var isChanged = false;
 var timerIdAutosave = 0;
+var isWaiting = false; // Ajaxの待ち合わせ中
 
 window.addEventListener('load', edit_init, false);
 function qs(id) { return document.querySelector(id); }
@@ -131,6 +132,10 @@ function loadTextFromLS() {
 }
 
 function clickTempSaveButton() {
+  if (isWaiting) {
+    console.log('save - waiting')
+    return
+  }
   console.log('save')
   saveTextToLS();
   save_ajax();
@@ -147,7 +152,7 @@ function git_save() {
 
 // Timer
 function timerAutoSaveOnTime() {
-  if (isChanged) {
+  if (isChanged && !isWaiting) {
     if (!$('#temporarily_save_btn').prop('disabled')) {
       clickTempSaveButton();
     }
@@ -155,6 +160,11 @@ function timerAutoSaveOnTime() {
 }
 
 function go_ajax(a_mode) {
+  if (isWaiting) {
+    console.log("- skip go_ajax:" + a_mode)
+    return;
+  }
+  isWaiting = true;
   var action = $("#wikiedit form").attr('action');
   var text = $('#edit_txt').val();
   $.post(action,
@@ -169,6 +179,7 @@ function go_ajax(a_mode) {
   })
   .done(function(msg) {
     isChanged = false;
+    isWaiting = false;
     // parse to json
     if (typeof(msg) == 'string') {
       try {
@@ -200,7 +211,7 @@ function go_ajax(a_mode) {
     // set hash
     $('#a_hash').val(msg["a_hash"]);
     $("#edit_info").html('[saved]');
-    use_beforeunload(false);    
+    use_beforeunload(false);
     // effect - flash info field
     const info = $("#edit_info");
     // const oldColor = info.css('backgroundColor');
@@ -212,6 +223,7 @@ function go_ajax(a_mode) {
     }, 700);
   })
   .fail(function(xhr, status, error) {
+    isWaiting = false;
     $("#edit_info").html("Sorry request failed." + error);
     setButtonsDisabled(false);
   });
