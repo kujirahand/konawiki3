@@ -17,9 +17,10 @@
         <input id="temporarily_save_btn" class="pure-button button-long" disabled="true" type="button"
           value="{{'Save temp'|lang}}">
         <input id="save_btn" class="pure-button button-short" type="submit" value="{{'Save &amp; Show'|lang}}">
-        {{ if $git_enabled }}
-        <input id="git_save_btn" type="button" class="pure-button button-short" value="{{'Save to Repo'|lang}}">
-        {{ endif }}
+        
+        <input id="git_save_btn" type="button"
+          class="pure-button button-short" value="{{'Save to Repo'|lang}}"
+          {{ if !$git_enabled }} style="display: none;" {{ endif }}>
       </div>
       <div class="info_box">
         <span id="edit_counter" class="info"></span>
@@ -34,9 +35,7 @@
     <div class="desc">
       <div style="text-align: right;">
         <button onclick="tagsOnClick()">{{'Tags' | lang}}</button>
-        {{ if $ai_enabled }}
-        <button onclick="aiOnClick()">{{'AI Assitant' | lang}}</button>
-        {{ endif }}
+        <button onclick="aiOnClick()" {{ if !$ai_enabled }}style="display:none;"{{ endif }}>{{'AI Assitant' | lang}}</button>
         <button onclick="historyOnClick()">{{'History' | lang}}</button>
         <button onclick="helpOnClick()">?</button>
       </div>

@@ -11,8 +11,83 @@ var isChanged = false;
 var timerIdAutosave = 0;
 var isWaiting = false; // Ajaxの待ち合わせ中
 
-window.addEventListener('load', edit_init, false);
+// 簡単なDOM操作の関数群
 function qs(id) { return document.querySelector(id); }
+function qsa(id) { return document.querySelectorAll(id); }
+function prop(id, key) {
+  const e = qs(id);
+  if (!e) { return ''; }
+  return e.getAttribute(key);
+}
+function setEnabled(id, enabled) {
+  let e = id;
+  if (typeof(id) === 'string') { e = qs(id); }
+  if (!e) { return false; }
+  e.disabled = !enabled;
+}
+function getEnabled(id) {
+  let e = id;
+  if (typeof(id) === 'string') { e = qs(id); }
+  if (!e) { return false; }
+  return !e.disabled;
+}
+function qq(id) {
+  let e = id;
+  if (typeof(id) === 'string') {
+    e = document.querySelector(id);
+  }
+  if (!e) {
+    console.warn('qq: not found', id);
+    return null;
+  }
+  const obj = {}
+  obj.click = (f) => {
+    e.addEventListener('click', f);
+  };
+  obj.attr = (key, val) => {
+    if (val !== undefined) {
+      return e.getAttribute(key);
+    }
+    e.setAttribute(key, val);
+  };
+  obj.prop = (key, val) => {
+    if (val !== undefined) {
+      e[key] = val;
+    }
+    return e[key];
+  };
+  obj.html = (val) => {
+    if (val !== undefined) {
+      e.innerHTML = val;
+    }
+    return e.innerHTML;
+  };
+  obj.val = (val) => {
+    if (val !== undefined) {
+      e.value = val;
+    }
+    return e.value;
+  };
+  obj.css = (styleName, val) => {
+    if (val !== undefined) {
+      e.style[styleName] = val;
+    }
+    return e.style[styleName];
+  };
+  obj.on = (event, f) => {
+    e.addEventListener(event, f);
+  };
+  obj.enabled = (val) => {
+    if (val !== undefined) {
+      e.disabled = !val;
+    }
+    return !e.disabled;
+  };
+  return obj;
+}
+
+// init
+window.addEventListener('load', edit_init, false);
 
 // detect storage key
 var href = location.href;
@@ -27,17 +102,23 @@ function edit_init() {
   edit_txt.addEventListener('keydown', editorKeydownHandler, false);
 
   // set button event
-  $('#temporarily_save_btn').click(clickTempSaveButton);
-  // $('#outline_btn').click(change_outline);
-  $('#git_save_btn').click(git_save);
-  $('#ls_load_btn').click(loadTextFromLS);
-  $('#autosave').click(autoSaveClickHandler);
-  $('#ai_ask_btn').click(aiAskClickHandler);
-  $('#ai_output_clear_btn').click(() => {
-    $('#ai_output').html('');
-  });
+  qq('#temporarily_save_btn').click(clickTempSaveButton);
+  // qq('#outline_btn').click(change_outline);
+  const git_save_btn = qs('#git_save_btn');
+  if (git_save_btn) {
+    qq(git_save_btn).click(git_save);
+  }
+  qq('#ls_load_btn').click(loadTextFromLS);
+  qq('#autosave').click(autoSaveClickHandler);
+  const ai_ask_btn = qs('#ai_ask_btn');
+  if (ai_ask_btn) {
+    qq(ai_ask_btn).click(aiAskClickHandler);
+    qq('#ai_output_clear_btn').click(() => {
+      qq('#ai_output').html('');
+    });
+    loadAITemplate();
+  }
   loadAutoSave();
-  loadAITemplate();
   
   // shortcut
   $(window).keydown(function(e) {
@@ -74,7 +155,7 @@ function editorKeydownHandler(event) {
 
 // auto save setting
 function loadAutoSave() {
-  const autosaveUI = $('#autosave');
+  const autosaveUI = qq('#autosave');
   // default is true
   autosaveUI.prop('checked', true);
   // load from localStorage
@@ -98,7 +179,7 @@ function saveAutoSave(enabled) {
   localStorage[LS_KEY_AUTOSAVE] = (enabled) ? 'yes': 'no';
 }
 function autoSaveClickHandler() {
-  const autosave = $('#autosave').prop('checked');
+  const autosave = qq('#autosave').prop('checked');
   saveAutoSave(autosave);
   loadAutoSave();
 }
@@ -110,7 +191,7 @@ function use_beforeunload(b) {
     $(window).on('beforeunload', function() {
       return "Finish editing?";
     });
-    $('form').on('submit', function() {
+    qq('form').on('submit', function() {
       $(window).off('beforeunload');
     });
   } else {
@@ -142,18 +223,18 @@ function clickTempSaveButton() {
 }
 
 function save_ajax() {
-  $('#temporarily_save_btn').prop('disabled', true);
+  qq('#temporarily_save_btn').prop('disabled', true);
   go_ajax('trywrite');
 }
 function git_save() {
-  $('#git_save_btn').prop('disabled', true);
+  qq('#git_save_btn').prop('disabled', true);
   go_ajax('trygit');
 }
 
 // Timer
 function timerAutoSaveOnTime() {
   if (isChanged && !isWaiting) {
-    if (!$('#temporarily_save_btn').prop('disabled')) {
+    if (!qq('#temporarily_save_btn').prop('disabled')) {
       clickTempSaveButton();
     }
   }
@@ -165,17 +246,17 @@ function go_ajax(a_mode) {
     return;
   }
   isWaiting = true;
-  var action = $("#wikiedit form").attr('action');
-  var text = $('#edit_txt').val();
+  var action = qq('#wikiedit form').attr('action');
+  var text = qq('#edit_txt').val();
   $.post(action,
   {
       'i_mode': 'ajax',
       'a_mode': a_mode,
-      'a_hash': $('#a_hash').val(),
+      'a_hash': qq('#a_hash').val(),
       'edit_txt': text,
-      'edit_ext': $('#edit_ext').val(),
-      'edit_token': $('#edit_token').val(),
-      'tags': $('#tags').val()
+      'edit_ext': qq('#edit_ext').val(),
+      'edit_token': qq('#edit_token').val(),
+      'tags': qq('#tags').val()
   })
   .done(function(msg) {
     isChanged = false;
@@ -201,19 +282,19 @@ function go_ajax(a_mode) {
           save_ajax();
         }, 1000);
       }
-      $("#edit_info").html("[error] " + msg['reason']);
-      $("#edit_info").css("color", "red");
+      qq('#edit_info').html("[error] " + msg['reason']);
+      qq('#edit_info').css("color", "red");
       setButtonsDisabled(false);
       return;
     }
     // count
     countText();
     // set hash
-    $('#a_hash').val(msg["a_hash"]);
-    $("#edit_info").html('[saved]');
+    qq('#a_hash').val(msg["a_hash"]);
+    qq('#edit_info').html('[saved]');
     use_beforeunload(false);
     // effect - flash info field
-    const info = $("#edit_info");
+    const info = qq('#edit_info');
     // const oldColor = info.css('backgroundColor');
     info.css('backgroundColor', '#ffffc0');
     info.css('color', 'green');
@@ -224,19 +305,19 @@ function go_ajax(a_mode) {
   })
   .fail(function(xhr, status, error) {
     isWaiting = false;
-    $("#edit_info").html("Sorry request failed." + error);
+    qq('#edit_info').html("Sorry request failed." + error);
     setButtonsDisabled(false);
   });
 }
 
 function setButtonsDisabled(stat) {
-  $('#git_save_btn').prop('disabled', stat);
-  $('#temporarily_save_btn').prop('disabled', stat);
+  qq('#git_save_btn').prop('disabled', stat);
+  qq('#temporarily_save_btn').prop('disabled', stat);
 }
 
 function countText() {
   let s = ''
-  let txt = $("#edit_txt").val()
+  let txt = qq('#edit_txt').val()
   const counterTag = [['{{{#count', '}}}'], ['```#count', '```'], [':::count', ':::'], [':::#count', ':::']]
   // total
   s += 'total(' + txt.length.toLocaleString() + ') '
@@ -278,7 +359,7 @@ function countText() {
     }
     s += id + '(' + ts.length + ') '
   }
-  $("#edit_counter").html(s);
+  qq('#edit_counter').html(s);
 }
 
 function edit_recover() {
@@ -292,12 +373,12 @@ function change_outline() {
   outline_mode = !outline_mode;
   if (outline_mode == false) {
     outline_to_text();
-    $('#edit_txt').show();
-    $('#outline_btn').val('Outline');
-    $('#outline_div').html('');
+    qq('#edit_txt').show();
+    qq('#outline_btn').val('Outline');
+    qq('#outline_div').html('');
   } else {
-    $('#edit_txt').hide();
-    $('#outline_btn').val('Text');
+    qq('#edit_txt').hide();
+    qq('#outline_btn').val('Text');
     outline_build();
   }
 }
@@ -305,7 +386,7 @@ function change_outline() {
 function outline_build() {
   // alert('実装中のテスト機能です。');
   outline_lines = [];
-  var txt = $('#edit_txt').val();
+  var txt = qq('#edit_txt').val();
   var lines = txt.split("\n");
   var root = document.createElement('div');
   for (var i = 0; i < lines.length; i++) {
@@ -332,7 +413,7 @@ function outline_to_text() {
   for (var i = 0; i < outline_lines.length; i++) {
     text.push(html2text(outline_lines[i].innerHTML));
   }
-  $('#edit_txt').val(text.join("\n"));
+  qq('#edit_txt').val(text.join("\n"));
   outline_lines = [];
 }
 
@@ -383,10 +464,10 @@ var loaderTimerId = 0;
 var loaderCount = 0;
 function aiButtonEnabeld(enbaled) {
   // button
-  $('#ai_ask_btn').prop('disabled', !enbaled);
+  qq('#ai_ask_btn').prop('disabled', !enbaled);
   // loader
   if (!enbaled) {
-    $('#ai_loader').show();
+    qq('#ai_loader').show();
     if (loaderTimerId > 0) {
       clearInterval(loaderTimerId);
     }
@@ -396,10 +477,10 @@ function aiButtonEnabeld(enbaled) {
       const tmp = '=====';
       let s = tmp.substring(0, loaderCount % 5) + 'abcde'
       s = s.substring(0, 5);
-      $('#ai_loader').text(s);
+      qq('#ai_loader').text(s);
     }, 100);
   } else {
-    $('#ai_loader').hide();
+    qq('#ai_loader').hide();
     if (loaderTimerId > 0) {
       clearInterval(loaderTimerId);
     }
@@ -443,15 +524,15 @@ function aiAskClickHandler() {
   }
   // ajax
   aiButtonEnabeld(false);
-  var action = $("#wikiedit form").attr('action');
+  var action = qq('#wikiedit form').attr('action');
   $.post(action,
     {
       'i_mode': 'ajax',
-      'edit_token': $('#edit_token').val(),
+      'edit_token': qq('#edit_token').val(),
       'q': 'ai',
       'ai_input_text': text,
       'a_mode': 'ask',
-      'a_hash': $('#a_hash').val(),
+      'a_hash': qq('#a_hash').val(),
     })
     .done(function (obj) {
       aiButtonEnabeld(true);
@@ -459,14 +540,14 @@ function aiAskClickHandler() {
       aiInsertText('' + msg);
     })
     .fail(function (xhr, status, error) {
-      $("#edit_info").html("Sorry AI request failed." + error);
+      qq('#edit_info').html("Sorry AI request failed." + error);
       aiButtonEnabeld(true);
     });
 }
 
 let aiBlockId = 1000
 function aiInsertText(text) {
-  let old = $('#ai_output').html();
+  let old = qq('#ai_output').html();
   text = text2html(text);
   text = text.replace(/\n/g, '<br>');
   let btn = ''
@@ -480,24 +561,24 @@ function aiInsertText(text) {
     `<div id="aiBlockDiv${aiBlockId}" class="ai_block">` +
     `<span id="aiBlock${aiBlockId}">${text}</span>` +
     `<div style="text-align:right;">${btn}</div></div>`
-  $('#ai_output').html(div + old);
+  qq('#ai_output').html(div + old);
   aiBlockId++;
 }
 function aiBlockAdd(id) {
-  const text = $('#aiBlock' + id).text();
+  const text = qq('#aiBlock' + id).text();
   const edit_txt = qs('#edit_txt');
   edit_txt.value += "\n" + text;
 }
 function aiBlockCopy(id) {
-  const text = $('#aiBlock' + id).text();
+  const text = qq('#aiBlock' + id).text();
   copyToClipboard(text);
 }
 
 function aiBlockReplace(id) {
   console.log('@aiBlockReplace', id)
   // extract JSON block
-  let block = $('#aiBlock' + id).text();
-  let edit_txt = $('#edit_txt').text();
+  let block = qq('#aiBlock' + id).text();
+  let edit_txt = qq('#edit_txt').text();
   if (block.indexOf('```json') >= 0) {
     block = block.match(/```json(.+)```/s)[1];
   }
@@ -510,8 +591,8 @@ function aiBlockReplace(id) {
       console.log('@replace', loc, cor)
       edit_txt = edit_txt.replace(loc, cor);
     }
-    $('#edit_txt').val(edit_txt);
-    $('#aiBlockDiv' + id).remove();
+    qq('#edit_txt').val(edit_txt);
+    qq('#aiBlockDiv' + id).remove();
   } catch (e) {
     console.log('aiBlockReplace: JSON parse error', e);
     alert('JSON parse error');
@@ -520,19 +601,19 @@ function aiBlockReplace(id) {
 }
 
 function loadAITemplate() {
-  const action = $("#wikiedit form").attr('action');
+  const action = qq('#wikiedit form').attr('action');
   console.log('@', action)
   let params = {
     'i_mode': 'ajax',
-    'edit_token': $('#edit_token').val(),
+    'edit_token': qq('#edit_token').val(),
     'q': 'ai',
     'a_mode': 'load_template',
-    'a_hash': $('#a_hash').val(),
+    'a_hash': qq('#a_hash').val(),
   }
   $.post(action, params)
   .done(function (obj) {
     const messageStr = obj['message'];
-    const selectBox = $('#ai_template_select');
+    const selectBox = qq('#ai_template_select');
     const messages = messageStr.split("\n");
     const templateData = {};
     let key = '';
@@ -554,14 +635,14 @@ function loadAITemplate() {
     selectBox.change(()=>{
       const key = selectBox.val();
       if (key == '') { return; }
-      const input = $('#ai_input_text');
+      const input = qq('#ai_input_text');
       if (templateData[key]) {
         input.val(templateData[key]);
       }
     })
   })
   .fail(function (xhr, status, error) {
-    $("#edit_info").html("Sorry AI request failed." + error);
+    qq('#edit_info').html("Sorry AI request failed." + error);
     aiButtonEnabeld(true);
   });
 }
