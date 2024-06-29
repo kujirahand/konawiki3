@@ -9,83 +9,9 @@ var outline_mode = false;
 var outline_lines = [];
 var isChanged = false;
 var timerIdAutosave = 0;
-var isWaiting = false; // Ajaxの待ち合わせ中
-
-// 簡単なDOM操作の関数群
-function qs(id) { return document.querySelector(id); }
-function qsa(id) { return document.querySelectorAll(id); }
-function prop(id, key) {
-  const e = qs(id);
-  if (!e) { return ''; }
-  return e.getAttribute(key);
-}
-function setEnabled(id, enabled) {
-  let e = id;
-  if (typeof(id) === 'string') { e = qs(id); }
-  if (!e) { return false; }
-  e.disabled = !enabled;
-}
-function getEnabled(id) {
-  let e = id;
-  if (typeof(id) === 'string') { e = qs(id); }
-  if (!e) { return false; }
-  return !e.disabled;
-}
-function qq(id) {
-  let e = id;
-  if (typeof(id) === 'string') {
-    e = document.querySelector(id);
-  }
-  if (!e) {
-    console.warn('qq: not found', id);
-    return null;
-  }
-  const obj = {}
-  obj.click = (f) => {
-    e.addEventListener('click', f);
-  };
-  obj.attr = (key, val) => {
-    if (val !== undefined) {
-      return e.getAttribute(key);
-    }
-    e.setAttribute(key, val);
-  };
-  obj.prop = (key, val) => {
-    if (val !== undefined) {
-      e[key] = val;
-    }
-    return e[key];
-  };
-  obj.html = (val) => {
-    if (val !== undefined) {
-      e.innerHTML = val;
-    }
-    return e.innerHTML;
-  };
-  obj.val = (val) => {
-    if (val !== undefined) {
-      e.value = val;
-    }
-    return e.value;
-  };
-  obj.css = (styleName, val) => {
-    if (val !== undefined) {
-      e.style[styleName] = val;
-    }
-    return e.style[styleName];
-  };
-  obj.on = (event, f) => {
-    e.addEventListener(event, f);
-  };
-  obj.enabled = (val) => {
-    if (val !== undefined) {
-      e.disabled = !val;
-    }
-    return !e.disabled;
-  };
-  return obj;
-}
-
+var isProcessingAjax = false; // Ajaxの待ち合わせ中
+var isDebug = false; // このファイルのJSをデバッグする時はtrueにする
+var postId = 1;
 // init
 window.addEventListener('load', edit_init, false);
 
@@ -96,10 +22,19 @@ href = href.replace('index.php', '');
 href = href.replace(/(http|https)\:\/\//, '');
 var STORAGE_KEY = 'kona3:' + href;
 
+function elog(message) {
+  if (isDebug) {
+    console.log(message);
+  }
+}
+
 function edit_init() {
   // editor key event
   const edit_txt = qs('#edit_txt');
   edit_txt.addEventListener('keydown', editorKeydownHandler, false);
+  edit_txt.addEventListener('input', () => {
+    handleChange(true, 'input');
+  });
 
   // set button event
   qq('#temporarily_save_btn').click(clickTempSaveButton);
@@ -121,10 +56,12 @@ function edit_init() {
   loadAutoSave();
   
   // shortcut
-  $(window).keydown(function(e) {
+  qq(window).keydown(function(e) {
     // shortcut Ctrl+S
     if ((e.metaKey || e.ctrlKey) && e.keyCode == 83) {
-      clickTempSaveButton();
+      if (isChanged) {
+        ajaxSave('Shortcut:Ctrl+S');
+      }
       e.preventDefault();
     }
     // shortcut Ctrl+Alt+N
@@ -137,6 +74,22 @@ function edit_init() {
   });
 }
 
+// handle editor change event
+function handleChange(changed, reason) {
+  elog(`changed: ${changed} - ${reason}`)
+  isChanged = changed;
+  // set #change-info
+  if (isChanged) {
+    qq('#change-info').html('[c]');
+    use_beforeunload(true);
+    setButtonsDisabled(false);
+  } else {
+    qq('#change-info').html('-');
+    use_beforeunload(false);
+    setButtonsDisabled(true);
+  }
+}
+
 // edit_txt.onkeydown
 function editorKeydownHandler(event) {
   const c = event.keyCode;
@@ -145,11 +98,6 @@ function editorKeydownHandler(event) {
   }
   if (c == 13) { // ENTER
     saveTextToLS();
-  }
-  if (!isChanged) {
-    isChanged = true;
-    use_beforeunload(true);
-    setButtonsDisabled(false);
   }
 }
 
@@ -188,14 +136,14 @@ var use_unload_flag = false;
 function use_beforeunload(b) {
   if (use_unload_flag == b) return;
   if (b) {
-    $(window).on('beforeunload', function() {
+    qq(window).on('beforeunload', function() {
       return "Finish editing?";
     });
     qq('form').on('submit', function() {
-      $(window).off('beforeunload');
+      qq(window).off('beforeunload');
     });
   } else {
-    $(window).off('beforeunload');
+    qq(window).off('beforeunload');
   }
   use_unload_flag = b;
 }
@@ -213,73 +161,65 @@ function loadTextFromLS() {
 }
 
 function clickTempSaveButton() {
-  if (isWaiting) {
-    console.log('save - waiting')
-    return
-  }
-  console.log('save')
+  console.log('@clickTempSaveButton')
   saveTextToLS();
-  save_ajax();
+  ajaxSave('clickTempSaveButton');
 }
 
-function save_ajax() {
-  qq('#temporarily_save_btn').prop('disabled', true);
-  go_ajax('trywrite');
+// save to server by ajax
+function ajaxSave(source) {
+  ajaxProc('trywrite', source);
 }
+
 function git_save() {
   qq('#git_save_btn').prop('disabled', true);
-  go_ajax('trygit');
+  ajaxProc('trygit');
 }
 
 // Timer
 function timerAutoSaveOnTime() {
-  if (isChanged && !isWaiting) {
-    if (!qq('#temporarily_save_btn').prop('disabled')) {
-      clickTempSaveButton();
-    }
+  if (isChanged && !isProcessingAjax) {
+    ajaxSave('timerAutoSaveOnTime');
   }
 }
 
-function go_ajax(a_mode) {
-  if (isWaiting) {
+// Ajax procedure for save
+function ajaxProc(a_mode, source) {
+  if (isProcessingAjax) {
     console.log("- skip go_ajax:" + a_mode)
     return;
   }
-  isWaiting = true;
-  var action = qq('#wikiedit form').attr('action');
-  var text = qq('#edit_txt').val();
-  $.post(action,
-  {
-      'i_mode': 'ajax',
-      'a_mode': a_mode,
-      'a_hash': qq('#a_hash').val(),
-      'edit_txt': text,
-      'edit_ext': qq('#edit_ext').val(),
-      'edit_token': qq('#edit_token').val(),
-      'tags': qq('#tags').val()
-  })
-  .done(function(msg) {
-    isChanged = false;
-    isWaiting = false;
-    // parse to json
-    if (typeof(msg) == 'string') {
-      try {
-        msg = JSON.parse(msg);
-      } catch (e) {
-        msg = {"result":false, "reason":msg};
-      }
-    }
+  qq('#temporarily_save_btn').prop('disabled', true);
+
+  isProcessingAjax = true;
+  const text = qq('#edit_txt').val();
+  const actionUrl = qq('#wikiedit form').attr('action');
+  const pid = postId++;
+  const params = new FormData();
+  params.append('i_mode', 'ajax');
+  params.append('a_mode', a_mode);
+  params.append('a_hash', qq('#a_hash').val());
+  params.append('edit_txt', text);
+  params.append('edit_ext', qq('#edit_ext').val());
+  params.append('edit_token', qq('#edit_token').val());
+  params.append('tags', qq('#tags').val());
+  params.append('postId', pid);
+  // post
+  console.log(`@@ajaxProc::${pid}::${a_mode}::${source}`)
+  qq().post(actionUrl, params)
+  .done(msg => {
+    elog(`@@done: ${pid}`)
     // check result
-    var result = msg["result"];
+    const result = msg["result"];
     if (result != 'ok') {
-      console.log(msg);
+      console.error(`ajaxProc::error::${pid}`, msg);
       const code = msg['code'];
       if (code == 'nologin') {
         console.log('try to login!!')
         // auto login?
         kona3tryAutologin(false);
         setTimeout(() => {
-          save_ajax();
+          ajaxSave('auto login and save');
         }, 1000);
       }
       qq('#edit_info').html("[error] " + msg['reason']);
@@ -287,6 +227,9 @@ function go_ajax(a_mode) {
       setButtonsDisabled(false);
       return;
     }
+    // ok
+    handleChange(false, `ajaxProc::done::${pid}`)
+    isProcessingAjax = false;
     // count
     countText();
     // set hash
@@ -303,8 +246,9 @@ function go_ajax(a_mode) {
       info.css('color', 'silver');
     }, 700);
   })
-  .fail(function(xhr, status, error) {
-    isWaiting = false;
+  .fail(function(error) {
+    console.error('[ajax::fail]', pid, error)
+    isProcessingAjax = false;
     qq('#edit_info').html("Sorry request failed." + error);
     setButtonsDisabled(false);
   });
@@ -516,7 +460,6 @@ function aiAskClickHandler() {
     aiInsertText('---');
     return;
   }
-  console.log('@@@aiAskClickHandler:', text)
   // test case
   if (text.substring(0, 3) === '@@@') {
     aiInsertText(text.substring(3));
@@ -525,7 +468,7 @@ function aiAskClickHandler() {
   // ajax
   aiButtonEnabeld(false);
   var action = qq('#wikiedit form').attr('action');
-  $.post(action,
+  qq().post(action,
     {
       'i_mode': 'ajax',
       'edit_token': qq('#edit_token').val(),
@@ -539,7 +482,7 @@ function aiAskClickHandler() {
       const msg = obj['message'];
       aiInsertText('' + msg);
     })
-    .fail(function (xhr, status, error) {
+    .fail(function (error) {
       qq('#edit_info').html("Sorry AI request failed." + error);
       aiButtonEnabeld(true);
     });
@@ -575,7 +518,6 @@ function aiBlockCopy(id) {
 }
 
 function aiBlockReplace(id) {
-  console.log('@aiBlockReplace', id)
   // extract JSON block
   let block = qq('#aiBlock' + id).text();
   let edit_txt = qq('#edit_txt').text();
@@ -602,7 +544,6 @@ function aiBlockReplace(id) {
 
 function loadAITemplate() {
   const action = qq('#wikiedit form').attr('action');
-  console.log('@', action)
   let params = {
     'i_mode': 'ajax',
     'edit_token': qq('#edit_token').val(),
@@ -610,11 +551,11 @@ function loadAITemplate() {
     'a_mode': 'load_template',
     'a_hash': qq('#a_hash').val(),
   }
-  $.post(action, params)
+  qq().post(action, params)
   .done(function (obj) {
     const messageStr = obj['message'];
     const selectBox = qq('#ai_template_select');
-    const messages = messageStr.split("\n");
+    const messages = messageStr.split("\r").join("").split("\n");
     const templateData = {};
     let key = '';
     messages.forEach(function (message) {
@@ -623,7 +564,7 @@ function loadAITemplate() {
         const option = document.createElement("option");
         option.text = message;
         selectBox.append(option);
-        templateData[key] = ''
+        templateData[key] = '';
         return;
       }
       if (message.substring(0, 5) == '-----') {
@@ -636,12 +577,13 @@ function loadAITemplate() {
       const key = selectBox.val();
       if (key == '') { return; }
       const input = qq('#ai_input_text');
-      if (templateData[key]) {
-        input.val(templateData[key]);
+      const val = templateData[key];
+      if (val) {
+        input.val(val);
       }
     })
   })
-  .fail(function (xhr, status, error) {
+  .fail(function (error) {
     qq('#edit_info').html("Sorry AI request failed." + error);
     aiButtonEnabeld(true);
   });

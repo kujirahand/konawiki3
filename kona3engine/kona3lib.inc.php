@@ -716,7 +716,7 @@ function kona3_getEditToken($key = 'default', $update = TRUE) {
         return kona3_getEditTokenForceUpdate($key);
     }
     // check time
-    $ONE_DAY = 3;// 60 * 60 * 24; // 1day
+    $ONE_DAY = 60 * 60 * 24; // 1day
     $time = isset($_SESSION[$sname_time]) ? $_SESSION[$sname_time] : time();
     $expire_time = $time + $ONE_DAY;
     if (time() > $expire_time) {

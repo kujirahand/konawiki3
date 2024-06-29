@@ -140,7 +140,7 @@ function kona3edit_checkEditToken($page, $i_mode) {
     // check edit_token
     if (!kona3_checkEditToken($page)) {
         $label = lang('Edit');
-        $edit_token = kona3_getEditToken($page, TRUE);
+        $edit_token = kona3_getEditToken($page, FALSE);
         $url = kona3getPageURL($page, 'edit', '', "edit_token=" . $edit_token);
         $page_html = htmlspecialchars($page, ENT_QUOTES);
         if ($i_mode == 'form') {
@@ -150,7 +150,14 @@ function kona3edit_checkEditToken($page, $i_mode) {
                     "$label - $page_html</a>"
             );
         } else {
-            kona3_edit_err(lang('Invalid edit token.'), $i_mode);
+            $postId = intval(kona3param('postId', 0));
+            $edit_token = '';
+            foreach ($_SESSION as $key => $val) {
+                if (is_string($val)) {
+                    $edit_token .= "[$key=$val]";
+                }
+            }
+            kona3_edit_err(lang('Invalid edit token.') . "et=$edit_token", $i_mode, $postId);
         }
         exit;
     }
@@ -176,7 +183,7 @@ function edit_command($cmd) {
             'WHERE history_id=? AND hash=?',
             [$history_id, $hash]);
         if ($r) {
-            $edit_token = kona3_getEditToken();
+            $edit_token = kona3_getEditToken($page, FALSE);
             $url = kona3getPageURL($page, "edit", "", "edit_token=$edit_token");
             return kona3showMessage(
                 'DELETE History', 
@@ -278,6 +285,7 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
     $a_hash_frm = kona3param('a_hash', '');
     $tags = kona3param('tags', '');
     $edit_ext = kona3param('edit_ext', '');
+    $postId = intval(kona3param('postId', 0)); // option
 
     $fname = kona3getEditFile("{$page}.{$edit_ext}", $ext);
     $user_id = kona3getUserId();
@@ -291,7 +299,7 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
     // === for FILE ===
     if (file_exists($fname)) {
         if (!is_writable($fname)) {
-            kona3_edit_err(lang('Could not write file.'), $i_mode);
+            kona3_edit_err(lang('Could not write file.'), $i_mode, $postId);
             return "";
         }
     } else {
@@ -313,25 +321,25 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
             // check directories level
             if ($cnt > $max_level) {
                 if ($max_level == 0) {
-                    kona3_edit_err(lang("Invalid Wiki Name: not allow use '/'"), $i_mode);
+                    kona3_edit_err(lang("Invalid Wiki Name: not allow use '/'"), $i_mode, $postId);
                     exit;
                 }
                 kona3_edit_err(
                     sprintf(lang("Invalid Wiki Name: not allow use '/' over %s times"),
                     $max_level), 
-                    $i_mode);
+                    $i_mode, $postId);
                 exit;
             }
             // get dir mode
             $dir_mode = @octdec($kona3conf['chmod_mkdir']);
             if ($dir_mode == 0) {
-                kona3_edit_err('Invalid value: chmod_mkdir in config', $i_mode);
+                kona3_edit_err('Invalid value: chmod_mkdir in config', $i_mode, $postId);
                 exit;
             }
             // mkdir
             $b = @mkdir($dirname, $dir_mode, TRUE);
             if (!$b) {
-                kona3_edit_err('mkdir failed.', $i_mode);
+                kona3_edit_err('mkdir failed.', $i_mode, $postId);
                 exit;
             }
         }
@@ -341,7 +349,7 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
     $bytes = @file_put_contents($fname, $edit_txt);
     if ($bytes === FALSE) {
         $msg = lang('Could not write file.');
-        kona3_edit_err($msg, $i_mode);
+        kona3_edit_err($msg, $i_mode, $postId);
         $result = FALSE;
         return $msg;
     }
@@ -357,6 +365,7 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
         echo json_encode(array(
             'result' => 'ok',
             'a_hash' => kona3getPageHash($edit_txt),
+            'postId' => $postId,
         ));
         return TRUE;
     }
@@ -450,14 +459,19 @@ function kona3edit_ai() {
 function kona3edit_ai_load_template()
 {
     // read wiki data (ai_prompt)
+    // read user defined
     $prompt_file = KONA3_DIR_DATA."/ai_prompt.md";
-    $prompt = file_exists($prompt_file) ? file_get_contents($prompt_file) : '';
-    if ($prompt == '') {
-        // read default template
-        $lang = kona3getLangCode();
-        $prompt_file = KONA3_DIR_ENGINE."/lang/{$lang}-ai_prompt.md";
-        $prompt = file_get_contents($prompt_file);
+    $prompt = file_exists($prompt_file) ? @file_get_contents($prompt_file) : '';
+    // read system defined
+    $lang = kona3getLangCode();
+    $prompt_file = KONA3_DIR_ENGINE."/lang/{$lang}-ai_prompt.md";
+    if (file_exists($prompt_file)) {
+        $promptSys = file_get_contents($prompt_file);
+        if ($promptSys != '') {
+            $prompt .= $promptSys;
+        }
     }
+    //
     echo json_encode([
         'result' => 'ok',
         'message' => $prompt,
@@ -470,9 +484,21 @@ function kona3ai_edit_template()
     $prompt_file = KONA3_DIR_DATA."/ai_prompt.md";
     if (!file_exists($prompt_file)) {
         // copy template
-        $lang = kona3getLangCode();
-        $prompt_file_template = KONA3_DIR_ENGINE."/lang/$lang-ai_prompt.md";
-        file_put_contents($prompt_file, file_get_contents($prompt_file_template));
+        $template = <<<EOS
+# prompt name1
+### Instruction:
+(prompt here)
+### Input:
+__TEXT__
+-----
+# prompt name2
+### Instruction:
+(prompt here)
+### Input:
+__TEXT__
+-----
+EOS;
+        file_put_contents($prompt_file, $template);
     }
     // jump to edit
     $url = kona3getPageURL('ai_prompt', 'edit', '', "");
