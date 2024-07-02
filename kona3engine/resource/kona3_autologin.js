@@ -1,10 +1,20 @@
 /** kona3_autologin.js */
 
 const KONA3SALT = 'jSPvIkILX2Lx4gng#Uq0l_j14#'
-const HOSTNAME = encodeURIComponent(window.location.host)
-const AUTOLOGIN_KEY = `kona3_autologin_${HOSTNAME}`
+// const KONA3SALT = 'jSPvIkILX2Lx4gng#Uq0l_j14#'
+const URLNAME = encodeURIComponent(getURLKey())
+const AUTOLOGIN_KEY = `kona3_autologin_${URLNAME}`
 const kona3autologinInfo = {
     flagRedirect: false,
+}
+
+function getURLKey () {
+    let uri = window.location.href
+    uri = uri.replace(/^(http|https):\/\//, '')
+    uri = uri.split('?')[0].replace(/index\.php/, '')
+    uri = uri.replace(/\/$/, '')
+    uri = uri.replace(/[\/\:]/g, '_')
+    return uri
 }
 
 function kona3setAutoLogin (email, token) {
