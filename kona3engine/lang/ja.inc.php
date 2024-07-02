@@ -95,5 +95,6 @@ $lang_data = [
   'Setup Konwiki' => 'Konawikiの設定',
   'If unchanged, leave blank.' => '変更しない場合は空欄にしてください。',
   'Admin password' => '管理者パスワード',
+  'Replace' => '置換',
 ];
 

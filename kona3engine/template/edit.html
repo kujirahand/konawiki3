@@ -36,6 +36,7 @@
     <div class="desc">
       <div style="text-align: right;">
         <button onclick="tagsOnClick()">{{'Tags' | lang}}</button>
+        <button onclick="replaceOnClick()">{{'Replace' | lang}}</button>
         <button onclick="aiOnClick()" {{ if !$ai_enabled }}style="display:none;"{{ endif }}>{{'AI Assitant' | lang}}</button>
         <button onclick="historyOnClick()">{{'History' | lang}}</button>
         <button onclick="helpOnClick()">?</button>
@@ -59,6 +60,17 @@
           <b style="width:5em;">{{'Tags'|lang}}</b>:
           <input type="text" id="tags" class="info" style="width: 50%;" name="tags" value="{{ $tags }}"
             placeholder="tag1/tag2/tag3/...">
+        </div>
+      </div>
+      <div id="replace_div" class="desc" class="block2" style="display: none;">
+        <div>
+          <b style="width:5em;">{{'Replace'|lang}}</b>:<br>
+          <input type="text" id="replace_key" class="info" style="width: 50%;" value="" placeholder="Keyword"><br>
+          <input type="text" id="replace_val" class="info" style="width: 50%;" value="" placeholder="Replace"><br>
+          <button id="replace1_btn" onclick="replace1()">{{'Replace'|lang}} x1</button>
+          <button id="replaceA_btn" onclick="replaceAll()">{{'Replace'|lang}} all</button>
+          <input type="checkbox" id="replace_regexp" class="info" style="width:2em;" name="replace_regexp" value="yes">
+          <label for="replace_regexp">RegExp</label>
         </div>
       </div>
       <div id="history_div" class="block2" style="display: none;">

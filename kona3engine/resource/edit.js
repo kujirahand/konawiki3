@@ -598,3 +598,55 @@ function copyToClipboard(text) {
     alert('Sorry, not supported');
   }
 }
+
+function replaceOnClick() {
+  const replace_div = qq('#replace_div')
+  replace_div.toggle();
+}
+function replace1() {
+  const useRegExp = qq('#replace_regexp').val();
+  const key = qq('#replace_key').val();
+  const val = qq('#replace_val').val();
+  const selstart = qq('#edit_txt').prop('selectionStart');
+  if (key === '') { return; }
+  let index = selstart;
+  let text = qq('#edit_txt').val();
+  let textPre = text.substring(0, selstart);
+  text = text.substring(selstart);
+  if (useRegExp) {
+    const re = new RegExp(key, '');
+    const m = text.match(re);
+    if (m) {
+      text = text.replace(re, val);
+      index += (m[0].length + m.index);
+    }
+  } else {
+    const i = text.indexOf(key);
+    if (i >= 0) {
+      index += (i + val.length);
+      text = text.replace(key, val);
+    } else {
+      qq('#edit_txt').prop('selectionStart', 0).prop('selectionEnd', 0).focus();
+      setTimeout(() => {
+        if (index > 0) { replace1(); }
+      }, 10);
+      return
+    }
+  }
+  qq('#edit_txt').val(textPre + text);
+  qq('#edit_txt').prop('selectionStart', index).prop('selectionEnd', index).focus()
+  console.log('replace1', useRegExp, key, val, selstart)
+}
+function replaceAll() {
+  const useRegExp = qq('#replace_regexp').val();
+  const key = qq('#replace_key').val();
+  const val = qq('#replace_val').val();
+  let text = qq('#edit_txt').val();
+  if (useRegExp) {
+    const re = new RegExp(key, 'g');
+    text = text.replace(re, val);
+  } else {
+    text = text.split(key).join(val);
+  }
+  qq('#edit_txt').val(text).focus();
+}

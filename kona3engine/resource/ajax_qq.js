@@ -1,22 +1,5 @@
 // ajax library quick quick for konawiki3
 function qs(id) { return document.querySelector(id); }
-function prop(id, key) {
-    const e = qs(id);
-    if (!e) { return ''; }
-    return e.getAttribute(key);
-}
-function setEnabled(id, enabled) {
-    let e = id;
-    if (typeof (id) === 'string') { e = qs(id); }
-    if (!e) { return false; }
-    e.disabled = !enabled;
-}
-function getEnabled(id) {
-    let e = id;
-    if (typeof (id) === 'string') { e = qs(id); }
-    if (!e) { return false; }
-    return !e.disabled;
-}
 function qq(id) {
     const obj = {}
     const events = {}
@@ -35,43 +18,59 @@ function qq(id) {
     // set methods
     obj.ready = (f) => {
         document.addEventListener('DOMContentLoaded', f);
+        return obj;
     };
     obj.click = (f) => {
         e.addEventListener('click', f);
+        return obj;
     };
     obj.keydown = (f) => {
         e.addEventListener('keydown', f);
+        return obj;
     };
     obj.change = (f) => {
         e.addEventListener('change', f);
+        return obj;
     };
     obj.attr = (key, val) => {
         if (val !== undefined) {
-            return e.setAttribute(key, val);
+            e.setAttribute(key, val);
+            return obj;
         }
         return e.getAttribute(key, val);
     };
     obj.prop = (key, val) => {
         if (val !== undefined) {
             e[key] = val;
+            return obj;
         }
         return e[key];
     };
     obj.html = (val) => {
         if (val !== undefined) {
             e.innerHTML = val;
+            return obj;
         }
         return e.innerHTML;
     };
     obj.val = (val) => {
         if (val !== undefined) {
+            if (e.type == 'checkbox') {
+                e.checked = val;
+                return obj;
+            }
             e.value = val;
+            return obj;
+        }
+        if (e.type == 'checkbox') {
+            return e.checked;
         }
         return e.value;
     };
     obj.text = (val) => {
         if (val !== undefined) {
             e.innerText = val;
+            return obj;
         }
         return e.innerText;
     };
@@ -86,6 +85,7 @@ function qq(id) {
         }
         if (val !== undefined) {
             e.style[styleName] = val;
+            return obj;
         }
         return e.style[styleName];
     };
@@ -95,6 +95,7 @@ function qq(id) {
             events[event] = [];
         }
         events[event].push(f);
+        return obj;
     };
     obj.off = (event, f) => {
         if (f !== undefined) {
@@ -106,21 +107,34 @@ function qq(id) {
                 });
             }
         }
+        return obj;
     };
     obj.enabled = (val) => {
         if (val !== undefined) {
             e.disabled = !val;
+            return obj;
         }
         return !e.disabled;
     };
     obj.show = () => {
         e.style.display = 'block';
+        return obj;
     }
     obj.hide = () => {
         e.style.display = 'none';
+        return obj;
+    }
+    obj.toggle = () => {
+        if (e.style.display == 'none') {
+            e.style.display = 'block';
+        } else {
+            e.style.display = 'none';
+        }
+        return obj;
     }
     obj.append = (child) => {
         e.appendChild(child);
+        return obj;
     }
     // ajax method
     obj.post = (url, dataObj, callback) => {
@@ -176,9 +190,11 @@ function qq(id) {
     }
     obj.addClass = (className) => {
         e.classList.add(className);
+        return obj;
     }
     obj.removeClass = (className) => {
         e.classList.remove(className);
+        return obj;
     }
     obj.stop = () => {
         return obj;
@@ -211,6 +227,10 @@ function qq(id) {
         }, duration);
         return obj;
     }
+    obj.focus = () => {
+        e.focus();
+        return obj;
+    };
     return obj;
 }
 if (typeof $ === 'undefined') {
