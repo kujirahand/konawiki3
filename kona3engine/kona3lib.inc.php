@@ -797,6 +797,46 @@ function kona3path_join($path, $file) {
     }
 }
 
+// get plugin name
+function kona3getPluginName($pname) {
+    // check alias
+    $alias = kona3getConf("plugin_alias", []);
+    if (!empty($alias[$pname])) {
+        $pname = $alias[$pname];
+    }
+    // Sanitize path
+    $pname = str_replace('/', '', $pname);
+    $pname = str_replace('.', '', $pname);
+
+    // 日本語ファイル名のプラグインはurlencodeした名前にする
+    $pname = urlencode($pname);
+    return $pname;
+}
+
+function kona3getPluginInfo($pname)
+{
+    $uname = kona3getPluginName($pname);
+
+    // path
+    $path  = KONA3_DIR_ENGINE . "/plugins/$uname.inc.php";
+    $func  = str_replace("%", "_", $uname);
+
+    // check disabled
+    $disallow = FALSE;
+    $pd = kona3getConf('plugin.disallow', []);
+    if (isset($pd[$pname]) && $pd[$pname]) {
+        $path = '';
+        $disallow = TRUE;
+    }
+    return [
+        "file" => $path,
+        "init" => "kona3plugins_{$func}_init",
+        "func" => "kona3plugins_{$func}_execute",
+        "disallow" => $disallow,
+    ];
+}
+
+
 /*
 function kona3getPageId($page, $canCreate = FALSE) {
     $kona3info = KONA3_DIR_DATA . "/.kona3info.json";

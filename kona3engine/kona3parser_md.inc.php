@@ -778,32 +778,7 @@ function kona3markdown_parser_render_plugin($value)
 
 function kona3markdown_parser_getPlugin($pname)
 {
-    global $kona3conf;
-
-    // Sanitize path
-    $pname = str_replace('/', '', $pname);
-    $pname = str_replace('.', '', $pname);
-
-    // 日本語ファイル名のプラグインはurlencodeした名前にする
-    $uname = urlencode($pname);
-
-    // path
-    $path  = KONA3_DIR_ENGINE."/plugins/$uname.inc.php";
-    $func  = str_replace("%", "_", $uname);
-
-    // check disabled
-    $disallow = FALSE;
-    $pd = $kona3conf['plugin.disallow'];
-    if (isset($pd[$pname]) && $pd[$pname]) {
-        $path = '';
-        $disallow = TRUE;
-    }
-    return array(
-        "file" => $path,
-        "init" => "kona3plugins_{$func}_init",
-        "func" => "kona3plugins_{$func}_execute",
-        "disallow" => $disallow,
-    );
+    return kona3getPluginInfo($pname);
 }
 
 /**

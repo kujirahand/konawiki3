@@ -50,6 +50,11 @@ function kona3conf_init(&$conf) {
   check_conf($conf, 'upload_max_file_size', 1024 * 1024 * 5);
   check_conf($conf, 'bbs_admin_password', 'BBS#admin!PassWord!!');
   check_conf($conf, 'openai_apikey', '');
+  // plugin alias
+  check_conf($conf, 'plugin_alias', [
+    "画像" => "ref",
+    "なでしこ" => "nako3",
+  ]);
 }
 
 function check_conf(&$conf, $key, $def) {

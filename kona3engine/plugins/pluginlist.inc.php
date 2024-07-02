@@ -25,6 +25,10 @@ function kona3plugins_pluginlist_action() {
 function kona3__get_pluginlist() {
     global $GITHUB_PLUGIN_URL;
     $files = glob(__DIR__.'/*.inc.php');
+    $alias = kona3getConf("plugin_alias", []);
+    foreach ($alias as $pname => $aliasname) {
+        $files[] = __DIR__."/$pname.inc.php";
+    }
     sort($files);
     $index = '<ul>';
     $descript = '';
@@ -32,6 +36,11 @@ function kona3__get_pluginlist() {
         $base = basename($f);
         $base_url = urlencode($base);
         $pname = preg_replace('#\.inc\.php$#', '', $base);
+        if (!empty($alias[$pname])) {
+            $pnameOrg = $alias[$pname];
+            $base_url = urlencode($pnameOrg.'.inc.php');
+            $f = __DIR__."/$pnameOrg.inc.php";
+        }
         $pname2 = urldecode($pname);
         $url = htmlspecialchars("$GITHUB_PLUGIN_URL/$base_url");
         $txt = file_get_contents($f);
