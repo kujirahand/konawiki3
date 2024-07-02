@@ -1,6 +1,5 @@
-// 簡単なDOM操作の関数群
+// ajax library quick quick for konawiki3
 function qs(id) { return document.querySelector(id); }
-function qsa(id) { return document.querySelectorAll(id); }
 function prop(id, key) {
     const e = qs(id);
     if (!e) { return ''; }
@@ -19,6 +18,8 @@ function getEnabled(id) {
     return !e.disabled;
 }
 function qq(id) {
+    const obj = {}
+    const events = {}
     let e = id;
     if (id === undefined) { e = window } // dummy
     if (typeof (id) === 'string') {
@@ -28,8 +29,13 @@ function qq(id) {
         console.warn('qq: not found', id);
         return null;
     }
-    const obj = {}
-    const events = {}
+    if (typeof (id) === 'function') {
+        document.addEventListener('DOMContentLoaded', id);
+    }
+    // set methods
+    obj.ready = (f) => {
+        document.addEventListener('DOMContentLoaded', f);
+    };
     obj.click = (f) => {
         e.addEventListener('click', f);
     };
@@ -70,6 +76,14 @@ function qq(id) {
         return e.innerText;
     };
     obj.css = (styleName, val) => {
+        if (typeof (styleName) === 'object') {
+            for (const key in styleName) {
+                if (styleName.hasOwnProperty(key)) {
+                    e.style[key] = styleName[key];
+                }
+            }
+            return obj;
+        }
         if (val !== undefined) {
             e.style[styleName] = val;
         }
@@ -109,7 +123,7 @@ function qq(id) {
         e.appendChild(child);
     }
     // ajax method
-    obj.post = (url, dataObj) => {
+    obj.post = (url, dataObj, callback) => {
         // make FormData
         let formData = new FormData();
         if (dataObj instanceof FormData) {
@@ -142,6 +156,9 @@ function qq(id) {
                         jsonObj = { "result": false, "reason": text };
                     }
                 }
+                if (typeof (callback) == 'function') {
+                    callback(jsonObj);
+                }
                 obj._done(jsonObj);
             })
             .catch((error) => {
@@ -154,5 +171,49 @@ function qq(id) {
     obj._fail = (_f) => { }
     obj.done = (f) => { obj._done = f; return obj; }
     obj.fail = (f) => { obj._fail = f; return obj; }
+    obj.hasClass = (className) => {
+        return e.classList.contains(className);
+    }
+    obj.addClass = (className) => {
+        e.classList.add(className);
+    }
+    obj.removeClass = (className) => {
+        e.classList.remove(className);
+    }
+    obj.stop = () => {
+        return obj;
+    }
+    obj.animate = (styles, duration) => {
+        setTimeout(() => {
+            for (const key in styles) {
+                if (styles.hasOwnProperty(key)) {
+                    e.style[key] = styles[key];
+                }
+            }
+        }, duration);
+        return obj;
+    }
+    obj.fadeIn = (duration, f) => {
+        e.style.opacity = 0.5;
+        e.style.display = 'block';
+        setTimeout(() => {
+            e.style.opacity = 1;
+            if (typeof f === 'function') { f(); }
+        }, duration);
+        return obj;
+    }
+    obj.fadeOut = (duration, f) => {
+        e.style.opacity = 0.5;
+        setTimeout(() => {
+            e.style.opacity = 0;
+            e.style.display = 'none';
+            if (typeof f === 'function') { f(); }
+        }, duration);
+        return obj;
+    }
     return obj;
 }
+if (typeof $ === 'undefined') {
+    $ = qq;
+}
+

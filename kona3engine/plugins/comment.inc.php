@@ -404,31 +404,31 @@ function chtodo(event, id) {
   var e = event.target;
   var v = (e.innerHTML == "todo") ? 1 : 0;
   cv = (v == 0) ? 1 : 0;
-  var edit_token = $("#edit_token").val();
+  var edit_token = qq("#edit_token").val();
   var para = {"m": "todo", "id": id, "v": cv, "fmt": "json", "edit_token": edit_token};
-  $.post(comment_api, para, function(data){
-    var o = JSON.parse(data);
+  qq().post(comment_api, para, function(data){
+    var o = data;
     if (o["result"] == "ok") {
-      e.innerHTML = (cv == 0) ? "done": "todo";
-      $(e).attr('class', (cv == 1) ? 'todo' : 'done');
+      e.innerHTML = (cv == 0) ? "done" : "todo";
+      qq(e).attr('class', (cv == 1) ? 'todo' : 'done');
     } else {
       alert("error:" + o["reason"]);
     }
   });
 }
 // close form
-$(document).ready(function() {
+qq(document).ready(function() {
   comment_form_close();
 });
 function comment_form_open() {
-  $(".comment_form_box").show();
-  $(".comment_form_open_btn").hide();
-  $(".comment_form_close_btn").show();
+  qq(".comment_form_box").show();
+  qq(".comment_form_open_btn").hide();
+  qq(".comment_form_close_btn").show();
 }
 function comment_form_close() {
-  $(".comment_form_box").hide();
-  $(".comment_form_open_btn").show();
-  $(".comment_form_close_btn").hide();
+  qq(".comment_form_box").hide();
+  qq(".comment_form_open_btn").show();
+  qq(".comment_form_close_btn").hide();
 }
 EOS;
   $script = <<< EOS

@@ -13,7 +13,7 @@ var isProcessingAjax = false; // Ajaxの待ち合わせ中
 var isDebug = false; // このファイルのJSをデバッグする時はtrueにする
 var postId = 1;
 // init
-window.addEventListener('load', edit_init, false);
+qq(edit_init)
 
 // detect storage key
 var href = location.href;

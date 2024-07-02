@@ -1,8 +1,8 @@
-$(function(){
+qq(function(){
 
-  const btn = $('#hamburger_icon');
-  const win = $("#drawer_background");
-  const nav = $("nav.menuitems");
+  const btn = qq('#hamburger_icon');
+  const win = qq("#drawer_background");
+  const nav = qq("nav.menuitems");
   
   function toggleMenu() {
     if (btn.hasClass("open")) {
@@ -19,25 +19,25 @@ $(function(){
     win.css('top', '0px');
     win.css('height', '100%');
     win.css('width', '100%');
-    nav.css({display: 'block'});
-    win.fadeIn(500);
+    nav.css({'display': 'block'});
+    win.fadeIn(100);
   }
   
   function closeMenu() {
     btn.removeClass("open");
     execMenu(-300);
-    win.fadeOut(500, ()=>{
+    win.fadeOut(100, ()=>{
       win.addClass('close');
-      nav.css({display: 'none'});
+      nav.css({'display': 'none'});
     })
   }
   
   function execMenu(pos) {
     nav.stop().animate({
         right: pos
-    }, 200);
+    }, 100);
   }
-  btn.on("click", toggleMenu);
-  win.on("click", closeMenu);
+  btn.click(toggleMenu);
+  win.click(closeMenu);
   
 });
