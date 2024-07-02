@@ -167,3 +167,40 @@ function kona3db_getPageHistoryByUserId($user_id) {
   return $result;
 }
 
+function kona3db_getMetaStr($key, $def = '')
+{
+  $meta = db_get1("SELECT * FROM meta WHERE name=?", [$key]);
+  if ($meta) {
+    return $meta['value_s'];
+  }
+  return $def;
+}
+
+function kona3db_getMetaInt($key, $def = 0)
+{
+  $meta = db_get1("SELECT * FROM meta WHERE name=?", [$key]);
+  if ($meta) {
+    return $meta['value_i'];
+  }
+  return $def;
+}
+
+function kona3db_setMeta($key, $value_s, $value_i = 0)
+{
+  $meta = db_get1("SELECT * FROM meta WHERE name=?", [$key]);
+  if ($meta) {
+    db_exec("UPDATE meta SET value_s=?, value_i=? WHERE name=?", [$value_s, $value_i, $key]);
+  } else {
+    db_exec("INSERT INTO meta (name, value_s, value_i) VALUES (?, ?, ?)", [$key, $value_s, $value_i]);
+  }
+}
+
+function kona3db_setMetaStr($key, $val)
+{
+  kona3db_setMeta($key, $val, 0);
+}
+
+function kona3db_setMetaInt($key, $val)
+{
+  kona3db_setMeta($key, "", $val);
+}

@@ -109,7 +109,7 @@ function loadAutoSave() {
   // load from localStorage
   const ls = localStorage[LS_KEY_AUTOSAVE];
   if (ls) {
-    console.log('localStorage.'+LS_KEY_AUTOSAVE+'=', ls);
+    // console.log('localStorage.'+LS_KEY_AUTOSAVE+'=', ls);
     switch (ls) {
       case 'yes': autosaveUI.prop('checked', true); break;
       case 'no':  autosaveUI.prop('checked', false); break;
@@ -161,7 +161,7 @@ function loadTextFromLS() {
 }
 
 function clickTempSaveButton() {
-  console.log('@clickTempSaveButton')
+  elog('@clickTempSaveButton')
   saveTextToLS();
   ajaxSave('clickTempSaveButton');
 }
@@ -186,7 +186,7 @@ function timerAutoSaveOnTime() {
 // Ajax procedure for save
 function ajaxProc(a_mode, source) {
   if (isProcessingAjax) {
-    console.log("- skip go_ajax:" + a_mode)
+    elog("- skip go_ajax:" + a_mode)
     return;
   }
   qq('#temporarily_save_btn').prop('disabled', true);
@@ -205,7 +205,7 @@ function ajaxProc(a_mode, source) {
   params.append('tags', qq('#tags').val());
   params.append('postId', pid);
   // post
-  console.log(`@@ajaxProc::${pid}::${a_mode}::${source}`)
+  elog(`@@ajaxProc::${pid}::${a_mode}::${source}`)
   qq().post(actionUrl, params)
   .done(msg => {
     elog(`@@done: ${pid}`)

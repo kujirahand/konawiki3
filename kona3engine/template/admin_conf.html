@@ -26,7 +26,7 @@
 </style>
 
 <div id="wikimessage">
-  <div class="box">
+  <div class="box conf">
 
 <form method='POST' class="pure-form">
 <input type='hidden' name='q' value='save'>
@@ -130,7 +130,10 @@
 
   openai_apikey(for CharGPT)[<a href="https://kujirahand.com/konawiki3/index.php?AI" target="_new">help</a>]:<br>
   <input type='text' name='openai_apikey' value='{{$openai_apikey}}'><br>
-  
+
+  Discord webhook URL:<br>
+  <input type='text' name='discord_webhook_url' value='{{$discord_webhook_url}}'><br>
+
   <h3>{{'Admin password'|lang}}</h3>
   <div style="border: 1px solid silver; padding: 0.4em;">
     Password: ({{'If unchanged, leave blank.' | lang}})<br>

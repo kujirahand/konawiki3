@@ -376,6 +376,11 @@
   padding:1.5em;
 }
 
+#wikimessage .conf
+{
+  line-height: 1.9em;
+}
+
 #wikimessage .box_border
 {
   border: 1px solid silver;

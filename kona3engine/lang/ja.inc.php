@@ -96,5 +96,6 @@ $lang_data = [
   'If unchanged, leave blank.' => '変更しない場合は空欄にしてください。',
   'Admin password' => '管理者パスワード',
   'Replace' => '置換',
+  'The page "%s" has been updated.' => 'ページ『%s』が更新されました。',
 ];
 

@@ -836,6 +836,68 @@ function kona3getPluginInfo($pname)
     ];
 }
 
+function kona3postDiscordWebhook($page, $msg = '')
+{
+    $discord_webhook_url = kona3getConf('discord_webhook_url', '');
+    if ($discord_webhook_url == '') {
+        return;
+    }
+    // Webhook
+    $wikiTitle = kona3getConf('wiki_title', 'konawiki3');
+    // MenuやFrontPageは除外
+    if (preg_match('#^(Menu|FrontPage|GlobalBar|SideBar)$#', $page)) {
+        return;
+    }
+    // check interval
+    $last_times = json_decode(kona3db_getMetaStr('discord_webhook_last_times', '{}'), TRUE);
+    // 3時間以内のエントリのみ残す
+    $remain = [];
+    $limit = time() - 60 * 60 * 3;
+    // ~~~~~~~~~ $limit -----$val------ $now
+    foreach ($last_times as $key => $val) {
+        if ($limit < $val) {
+            $remain[$key] = $val;
+        }
+    }
+    $last_times = $remain;
+    // check interval
+    $last_t = isset($last_times[$page]) ? $last_times[$page] : 0;
+    if ($last_t == 0) { // new post
+        $last_times[$page] = time();
+        kona3db_setMetaStr('discord_webhook_last_times', json_encode($last_times));
+    } else {
+        return;
+    }
+
+    // page link
+    $app_url = kona3getPageURL($page);
+    //メッセージの内容を定義
+    $contents = sprintf(lang('The page "%s" has been updated.'), $page)."\n$app_url";
+    $message = array(
+        'username' => $wikiTitle,
+        'content'  => $contents
+    );
+    $message_json = json_encode($message);
+    // curlを利用してポスト(非同期)
+    $curl_command = sprintf(
+        'curl -X POST %s -H "Content-Type: application/json; charset=utf-8" -d %s --insecure > /dev/null 2>&1 &',
+        escapeshellarg($discord_webhook_url),
+        escapeshellarg($message_json)
+    );
+    @exec($curl_command);
+    /*
+    // PHP code
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $discord_webhook_url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8'));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($message));
+    $_resp = curl_exec($ch);
+    curl_close($ch);
+    */
+}
 
 /*
 function kona3getPageId($page, $canCreate = FALSE) {

@@ -1,8 +1,9 @@
 <?php
 
-include_once dirname(dirname(__FILE__)).'/kona3lib.inc.php';
-include_once dirname(dirname(__FILE__)).'/kona3parser.inc.php';
-include_once dirname(dirname(__FILE__)).'/kona3ai.inc.php';
+include_once dirname(__DIR__) . '/kona3lib.inc.php';
+include_once dirname(__DIR__) . '/kona3db.inc.php';
+include_once dirname(__DIR__) . '/kona3parser.inc.php';
+include_once dirname(__DIR__) . '/kona3ai.inc.php';
 
 header('X-Frame-Options: SAMEORIGIN');
 
@@ -355,6 +356,10 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
     }
     // === for Database ===
     kona3db_writePage($page, $edit_txt, $user_id, $tags);
+    // === discord ===
+    if (kona3getConf('discord_webhook_url', '') != '') {
+        kona3postDiscordWebhook($page);
+    }
     
     // result
     if ($i_mode == "git") {
