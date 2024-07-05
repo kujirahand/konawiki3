@@ -492,7 +492,7 @@ function __konawiki_parser_tohtml(&$text, $level)
         if (($c1 == '&') &&
             preg_match('#^\&([\d\w_]+?)\(#',$text, $m)) {
             $pname  = trim($m[1]);
-            $plugin = kona3getPluginInfo($pname);
+            $plugin = kona3getPluginPathInfo($pname);
             $text   = substr($text, strlen($m[0]));
             if (!isset($plugin['disable'])) {
                 $plugin['disable'] = '';
@@ -596,7 +596,7 @@ function konawiki_parser_tosource_block($src)
         }
         array_push($args, $src);
         // Call plugin function
-        $pinfo = kona3getPluginInfo($pname);
+        $pinfo = kona3getPluginPathInfo($pname);
         $path = $pinfo['file'];
         $func = $pinfo['func'];
         if (!$pinfo['disallow'] && file_exists($path)) {
@@ -760,7 +760,7 @@ function konawiki_parser_plugin_error($pname, &$res, $reason = 'No Plugin')
 function konawiki_parser_pluginInit($pname, &$res)
 {
     // check plugin
-    $plugin = kona3getPluginInfo($pname);
+    $plugin = kona3getPluginPathInfo($pname);
     $f = $plugin["file"];
     if ($plugin['disallow'] || !file_exists($f)) {
         return konawiki_parser_plugin_error($pname, $res);
@@ -779,7 +779,7 @@ function konawiki_parser_render_plugin($value)
     $pname  = $value['text'];
     $params = $value['params'];
 
-    $info = kona3getPluginInfo($pname);
+    $info = kona3getPluginPathInfo($pname);
     $func = $info['func'];
     $res = "[Plugin Error:".kona3text2html($pname)."($func)]";
 

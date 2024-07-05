@@ -778,7 +778,7 @@ function kona3markdown_parser_render_plugin($value)
 
 function kona3markdown_parser_getPlugin($pname)
 {
-    return kona3getPluginInfo($pname);
+    return kona3getPluginPathInfo($pname);
 }
 
 /**

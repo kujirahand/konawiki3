@@ -19,7 +19,7 @@ function kona3_action_plugin() {
     err404("Invalid plugin name");
   }
   // pinfo
-  $pinfo = konawiki_parser_getPlugin($name);
+  $pinfo = kona3getPluginPathInfo($name);
   if (empty($pinfo['file']) || !file_exists($pinfo['file'])) {
     err404("Invalid plugin name");
   }
