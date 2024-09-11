@@ -288,6 +288,10 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
     $edit_ext = kona3param('edit_ext', '');
     $postId = intval(kona3param('postId', 0)); // option
 
+    // ページ名の末便に拡張子があるか確認
+    if (str_ends_with($page, ".{$edit_ext}")) {
+        $page = substr($page, 0, strlen($page) - strlen(".{$edit_ext}"));
+    }
     $fname = kona3getEditFile("{$page}.{$edit_ext}", $ext);
     $user_id = kona3getUserId();
 
