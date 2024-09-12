@@ -13,7 +13,8 @@ function chatgpt_messages_init($system_message, $user_message) {
     ];
 }
 
-function chatgpt_ask($chatgpt_messages, $apikey=null, $model="gpt-3.5-turbo", $opt=[]) {
+function chatgpt_ask($chatgpt_messages, $apikey=null, $model= "gpt-4o-mini", $temperature=0, $opt=[]) {
+    $errMessage = "Error: Unable to get response from ChatGPT.";
     // check api key (ENV)
     if (is_string($apikey) && preg_match('/^\@ENV\:(.+)$/', $apikey, $m)) {
         $apikey = getenv($m[1]);
@@ -34,6 +35,10 @@ function chatgpt_ask($chatgpt_messages, $apikey=null, $model="gpt-3.5-turbo", $o
         "model" => $model,
         "messages" => $chatgpt_messages,
     ];
+    // set temperature
+    if ($temperature > 0) {
+        $data["temperature"] = $temperature;
+    }
 
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_POST, 1);
@@ -42,14 +47,28 @@ function chatgpt_ask($chatgpt_messages, $apikey=null, $model="gpt-3.5-turbo", $o
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
     $response = curl_exec($ch);
+    if ($response === false) {
+        $errorCode = curl_errno($ch); // エラーコードを取得
+        $errorMessage = curl_error($ch); // エラーメッセージを取得
+        return [$errMessage."(Error: $errorCode, $errorMessage)", 0];
+    }
     curl_close($ch);
 
+    // JSON decode
     $result = json_decode($response, true);
-    // print_r($result);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        return [$errMessage."(Response broken: )", 0];
+    }
+    // get result
     $tokens = isset($result['usage']['total_tokens']) ? $result['usage']['total_tokens'] : 0;
-    $contents = isset($result['choices'][0]['message']['content']) ? $result['choices'][0]['message']['content'] : "Error: Unable to get response from ChatGPT.";
-    // result
-    return [$contents, $tokens];
+    if (isset($result['choices'][0]['message']['content'])) {
+        $contents = $result['choices'][0]['message']['content'];
+        return [$contents, $tokens];
+    }
+    // get error
+    if (isset($result['error'])) {
+        return [$errMessage.", ".$result['error'], 0];
+    }
 }
 
 /*
