@@ -480,32 +480,65 @@ function aiAskClickHandler() {
     .done(function (obj) {
       aiButtonEnabeld(true);
       const msg = obj['message'];
+      console.log('@@@', obj)
       aiInsertText('' + msg);
+      qq('#ai_ask_cost').html(obj['token'] + 'token');
     })
     .fail(function (error) {
+      console.error(error)
       qq('#edit_info').html("Sorry AI request failed." + error);
       aiButtonEnabeld(true);
     });
 }
 
-let aiBlockId = 1000
-function aiInsertText(text) {
-  let old = qq('#ai_output').html();
-  text = text2html(text);
-  text = text.replace(/\n/g, '<br>');
+let aiBlockId = 0
+const aiBlockItems = []
+function _aiInsertText(data, isJSON = false) {
+  let old = qq('#ai_output').html()
   let btn = ''
-  if (text.indexOf('ErrorLocation') >= 0) {
-    btn += `<button onclick="aiBlockReplace(${aiBlockId})">Replace</button>`;
+  let text = ''
+  if (isJSON) {
+    aiBlockItems[aiBlockId] = data
+    const ng = text2html(data['ng'])
+    const ok = text2html(data['ok'])
+    const desc = text2html(data['desc'])
+    text = `<div><span style="color:red;">[?] ${ng}</span><br>` +
+      `<span style="color:blue;">[v] ${ok}</span></div>` +
+      `<div>${desc}</div>`
+    btn += `<button onclick="aiBlockReplace(${aiBlockId})">Replace</button>`
+    btn += `<button onclick="aiBlockFind(${aiBlockId})">Find</button>`
+    btn += `<button onclick="aiBlockCopy(${aiBlockId})">Copy</button>`
+    aiBlockId++
   } else {
+    text = text2html('' + data)
+    text = text.replace(/\n/g, '<br>')
     btn += `<button onclick="aiBlockAdd(${aiBlockId})">Add</button>`
     btn += `<button onclick="aiBlockCopy(${aiBlockId})">Copy</button>`
   }
-  const div = 
+  const div =
     `<div id="aiBlockDiv${aiBlockId}" class="ai_block">` +
     `<span id="aiBlock${aiBlockId}">${text}</span>` +
     `<div style="text-align:right;">${btn}</div></div>`
-  qq('#ai_output').html(div + old);
-  aiBlockId++;
+  qq('#ai_output').html(div + old)
+  aiBlockId++
+}
+function aiInsertText(text) {
+  // 戻り値がJSONの場合
+  if (text.indexOf('```') >= 0) {
+    text = text.replace('```json', '```')
+    const code = text.split('```')[1]
+    try {
+      const data = JSON.parse(code)
+      for (let row of data) {
+        _aiInsertText(row, true)
+      }
+      return
+    } catch (err) {
+      console.error('aiInsertText: JSON parse error', err)
+    }
+  }
+  // テキストの場合
+  _aiInsertText(text, false)
 }
 function aiBlockAdd(id) {
   const text = qq('#aiBlock' + id).text();
@@ -517,28 +550,40 @@ function aiBlockCopy(id) {
   copyToClipboard(text);
 }
 
-function aiBlockReplace(id) {
-  // extract JSON block
-  let block = qq('#aiBlock' + id).text();
-  let edit_txt = qq('#edit_txt').text();
-  if (block.indexOf('```json') >= 0) {
-    block = block.match(/```json(.+)```/s)[1];
+function aiBlockFind(id) {
+  const obj = aiBlockItems[id]
+  const ng = obj['ng']
+  const ok = obj['ok']
+  if (ng === undefined || ok === undefined) {
+    console.error('aiBlockReplace: ng or ok is undefined')
+    return
   }
-  try {
-    const replace_list = JSON.parse(block);
-    for (let row of replace_list) {
-      if (!row['ErrorLocation']) { continue; }
-      const loc = row['ErrorLocation'];
-      const cor = row['Correction'];
-      console.log('@replace', loc, cor)
-      edit_txt = edit_txt.replace(loc, cor);
-    }
-    qq('#edit_txt').val(edit_txt);
-    qq('#aiBlockDiv' + id).remove();
-  } catch (e) {
-    console.log('aiBlockReplace: JSON parse error', e);
-    alert('JSON parse error');
+  const edit_txt = qq('#edit_txt').val()
+  const start = edit_txt.indexOf(ng)
+  const end = start + ng.length
+  qq('#edit_txt').focus()
+  if (start >= 0) {
+    qq('#edit_txt').prop('selectionStart', start).prop('selectionEnd', end)
+  }
+}
+
+function aiBlockReplace(id) {
+  const obj = aiBlockItems[id];
+  const ng = obj['ng'];
+  const ok = obj['ok'];
+  if (ng === undefined || ok === undefined) {
+    console.error('aiBlockReplace: ng or ok is undefined')
     return;
+  }
+  let edit_txt = qq('#edit_txt').val();
+  // edit_txt = edit_txt.split(ng).join(ok);
+  const start = edit_txt.indexOf(ng);
+  edit_txt = edit_txt.replace(ng, ok); // 一度だけ置換
+  const end = start + ok.length;
+  qq('#edit_txt').val(edit_txt);
+  qq('#edit_txt').focus()
+  if (start >= 0) {
+    qq('#edit_txt').prop('selectionStart', start).prop('selectionEnd', end);
   }
 }
 

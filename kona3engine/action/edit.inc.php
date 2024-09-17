@@ -522,6 +522,7 @@ function kona3edit_ai_ask($apikey)
         echo json_encode(array(
             'result' => 'ng',
             'message' => 'Input text is empty.',
+            'token' => 0,
         ));
         return;
     }
@@ -535,6 +536,7 @@ function kona3edit_ai_ask($apikey)
     echo json_encode(array(
         'result' => 'ok',
         'message' => $msg,
+        'token' => $token,
     ));
 }
 
