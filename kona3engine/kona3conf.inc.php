@@ -51,6 +51,7 @@ function kona3conf_init(&$conf) {
   check_conf($conf, 'bbs_admin_password', 'BBS#admin!PassWord!!');
   check_conf($conf, 'openai_apikey', '');
   check_conf($conf, 'openai_apikey_model', 'gpt-4o-mini');
+  check_conf($conf, 'openai_api_basic_instruction', 'You are helpful AI assitant.');
   check_conf($conf, 'discord_webhook_url', '');
   // plugin alias
   check_conf($conf, 'plugin_alias', [

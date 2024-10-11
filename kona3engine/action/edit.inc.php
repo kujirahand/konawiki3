@@ -528,8 +528,9 @@ function kona3edit_ai_ask($apikey)
         return;
     }
     // send to chatgpt
+    $basic_instruction = kona3getConf('openai_api_basic_instruction', 'You are helpful AI assitant.');
     $messages = chatgpt_messages_init(
-        "You are helpful AI assitant.",
+        $basic_instruction,
         $ai_input_text
     );
     list($msg, $token) = chatgpt_ask($messages, $apikey, $ai_model);
