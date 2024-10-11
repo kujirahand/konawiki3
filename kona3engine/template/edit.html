@@ -37,9 +37,13 @@
       <div style="text-align: right;">
         <button onclick="replaceOnClick()">{{'Replace' | lang}}</button>
         <button onclick="tagsOnClick()">{{'Tags' | lang}}</button>
-        <button onclick="aiOnClick()" {{ if !$ai_enabled }}style="display:none;"{{ endif }}>{{'AI Assitant' | lang}}</button>
-        <button onclick="aiSpellCheckOnClick()" {{ if !$ai_enabled }}style="display:none;" {{ endif }}>{{'AI Spell Checker' | lang}}</button>
         <button onclick="historyOnClick()">{{'History' | lang}}</button>
+        {{ if $ai_enabled }}
+        <span id="ai_buttons">
+          <button onclick="aiOnClick()">{{'AI Assitant' | lang}}</button>
+          <button onclick="aiSpellCheckOnClick()">{{'AI Spell Checker' | lang}}</button>
+        </span>
+        {{ endif }}
         <button onclick="helpOnClick()">?</button>
       </div>
       <div id="help_div" class="block2" style="display: none;">
@@ -117,5 +121,13 @@
 <div style="clear:both;"></div>
 
 <script src="index.php?kona3_autologin.js&resource"></script>
+
+<div id="locale_list" style="display: none;">
+  <p id="locale__replace">{{'Replace' | lang}}</p>
+  <p id="locale__not_found">{{'Not found' | lang}}</p>
+  <p id="locale__find">{{'Find' | lang}}</p>
+  <p id="locale__copy">{{'Copy' | lang}}</p>
+  <p id="locale__cancel">{{'Cancel' | lang}}</p>
+</div>
 
 {{ include parts_footer.html }}

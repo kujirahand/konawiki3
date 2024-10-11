@@ -524,6 +524,12 @@ function _aiInsertText(data, isJSON = false) {
   let btn = ''
   let text = ''
   if (isJSON) {
+    // locale strings
+    const locale_replace = lang('locale__replace');
+    const lcoale_find = lang('locale__find');
+    const lcoale_copy = lang('locale__copy');
+    const lcoale_cancel = lang('locale__cancel');
+    // set block items
     aiBlockItems[aiBlockId] = data
     const ng = text2html(data['ng'])
     const ok = text2html(data['ok'])
@@ -531,10 +537,10 @@ function _aiInsertText(data, isJSON = false) {
     text = `<div><span style="color:red;">[?] ${ng}</span><br>` +
       `<span style="color:blue;">[v] ${ok}</span></div>` +
       `<div>${desc}</div>`
-    btn += `<button onclick="aiBlockReplace(${aiBlockId})">Replace</button>`
-    btn += `<button onclick="aiBlockFind(${aiBlockId})">Find</button>`
-    btn += `<button onclick="aiBlockCopy(${aiBlockId})">Copy</button>`
-    aiBlockId++
+    btn += `<button onclick="aiBlockReplace(${aiBlockId})">${locale_replace}</button>`
+    btn += `<button onclick="aiBlockFind(${aiBlockId})">${lcoale_find}</button>`
+    btn += `<button onclick="aiBlockCopy(${aiBlockId})">${lcoale_copy}</button>`
+    btn += `<button onclick="aiBlockRemove(${aiBlockId})">${lcoale_cancel}</button>`
   } else {
     text = text2html('' + data)
     text = text.replace(/\n/g, '<br>')
@@ -542,10 +548,10 @@ function _aiInsertText(data, isJSON = false) {
     btn += `<button onclick="aiBlockCopy(${aiBlockId})">Copy</button>`
   }
   const div =
-    `<div id="aiBlockDiv${aiBlockId}" class="ai_block">` +
-    `<span id="aiBlock${aiBlockId}">${text}</span>` +
-    `<div style="text-align:right;">${btn}</div></div>`
-  qq('#ai_output').html(div + old)
+    `<div id="aiBlockDiv${aiBlockId}" class="ai_block">\n` +
+    `<span id="aiBlock${aiBlockId}">${text}</span>\n` +
+    `<div style="text-align:right;">${btn}</div></div>\n`
+  qq('#ai_output').html(old + div)
   aiBlockId++
 }
 function aiInsertText(text) {
@@ -604,6 +610,7 @@ function aiBlockReplace(id) {
   let edit_txt = qq('#edit_txt').val();
   // edit_txt = edit_txt.split(ng).join(ok);
   const start = edit_txt.indexOf(ng);
+  const old_text = edit_txt;
   edit_txt = edit_txt.replace(ng, ok); // 一度だけ置換
   const end = start + ok.length;
   qq('#edit_txt').val(edit_txt);
@@ -611,6 +618,30 @@ function aiBlockReplace(id) {
   if (start >= 0) {
     qq('#edit_txt').prop('selectionStart', start).prop('selectionEnd', end);
   }
+  if (old_text === edit_txt) {
+    alert(lang('locale__not_found') + `『${ng}』`);
+  } else {
+    // close block
+    const block = qs('#aiBlockDiv' + id);
+    if (block) {
+      block.remove();
+    }
+  }
+}
+
+function aiBlockRemove(id) {
+  const block = qs('#aiBlockDiv' + id)
+  if (block) {
+    block.remove()
+  }
+}
+
+function lang(id) {
+  const e = document.getElementById(id);
+  if (e) {
+    return e.innerHTML;
+  }
+  return id;
 }
 
 function loadAITemplate() {
