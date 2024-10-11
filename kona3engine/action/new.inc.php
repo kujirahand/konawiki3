@@ -30,12 +30,17 @@ function kona3_action_new() {
   }
   
   $key_ = kona3text2html($key);
+  $diary = lang('Diary');
 
   // shortcut
   $hint_list = "";
   $menu2 = [
     ($page != "FrontPage") ? "$page/FrontPage" : "",
-    date('Y/m'), date('Y/m/d'),
+    date('Y/m'),
+    date('Y/m/d'),
+    date('Y/m/d-His'),
+    $diary . "/" . date('Y/m'),
+    $diary . "/" . date('Y/m/d'),
   ];
   foreach ($menu2 as $m) {
     if ($m == "") { continue; }
@@ -49,7 +54,7 @@ function kona3_action_new() {
   $m_edit = lang('Edit');
   $page_name = lang('Page name');
   $special_page = lang('Special Page');
-  $hint = lang('Hint');
+  $pageNameSuggestions = lang('Page Name Suggestions');
   $form = <<<EOS
 <div>
   $page_name:
@@ -63,19 +68,18 @@ function kona3_action_new() {
 </div>
 <br>
 <div class="block2">
+  <div>$pageNameSuggestions:</div>
+  <ul>
+{$hint_list}
+  </ul>
+</div>
+<br>
+<div class="block2">
   <div>$special_page:</div>
   <ul>
 {$res}
   </ul>
 </div>
-<br>
-<div class="block2">
-  <div>$hint:</div>
-  <ul>
-{$hint_list}
-  </ul>
-</div>
-
 EOS;
   // show
   kona3template('message.html', array(

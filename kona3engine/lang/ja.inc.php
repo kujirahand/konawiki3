@@ -102,5 +102,7 @@ $lang_data = [
   'Not found' => '申し訳ありませんが見つかりませんでした。',
   'Find' => '探す',
   'Cancel' => '取消',
+  'Diary' => '日記',
+  'Page Name Suggestions' => 'ページ名の候補案',
 ];
 
