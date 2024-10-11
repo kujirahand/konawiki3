@@ -518,6 +518,7 @@ function kona3edit_ai_ask($apikey)
 {
     // get input text
     $ai_input_text = kona3param('ai_input_text', '');
+    $ai_model = kona3getConf('openai_apikey_model', 'gpt-4o-mini');
     if ($ai_input_text == '') {
         echo json_encode(array(
             'result' => 'ng',
@@ -531,7 +532,7 @@ function kona3edit_ai_ask($apikey)
         "You are helpful AI assitant.",
         $ai_input_text
     );
-    list($msg, $token) = chatgpt_ask($messages, $apikey);
+    list($msg, $token) = chatgpt_ask($messages, $apikey, $ai_model);
     // todo : tokenを数えて報告する
     echo json_encode(array(
         'result' => 'ok',

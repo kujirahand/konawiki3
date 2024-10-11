@@ -391,6 +391,13 @@ function toggleDisplay(query) {
   }
 }
 
+function showDisplay(query) {
+  const e = qs(query)
+  if (e.style.display == 'none') {
+    e.style.display = 'block'
+  }
+}
+
 function historyOnClick() {
   toggleDisplay('#history_div');
 }
@@ -402,6 +409,25 @@ function tagsOnClick() {
 }
 function aiOnClick() {
   toggleDisplay('#ai_div');
+}
+function aiSpellCheckOnClick() {
+  showDisplay('#ai_div');
+  const selectBox = document.getElementById('ai_template_select');
+  selectOptionByValue(selectBox, '# 誤字脱字をチェック'); // ja
+  selectOptionByValue(selectBox, '# Check for Typos'); // en
+  // document.getElementById('ai_ask_btn')?.click();
+}
+
+function selectOptionByValue(selectElement, value) {
+  console.log('selectOptionByValue', selectElement, value)
+  const options = selectElement.options
+  for (let i = 0; i < options.length; i++) {
+    if (options[i].value === value) {
+      selectElement.selectedIndex = i
+      selectElement.dispatchEvent(new Event('change'))
+      break
+    }
+  }
 }
 
 var loaderTimerId = 0;

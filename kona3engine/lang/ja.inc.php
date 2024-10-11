@@ -97,5 +97,7 @@ $lang_data = [
   'Admin password' => '管理者パスワード',
   'Replace' => '置換',
   'The page "%s" has been updated.' => 'ページ『%s』が更新されました。',
+  'Select actions' => 'アクションを選択',
+  'AI Spell Checker' => 'AIチェック',
 ];
 

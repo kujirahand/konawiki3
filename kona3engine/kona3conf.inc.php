@@ -50,6 +50,7 @@ function kona3conf_init(&$conf) {
   check_conf($conf, 'upload_max_file_size', 1024 * 1024 * 5);
   check_conf($conf, 'bbs_admin_password', 'BBS#admin!PassWord!!');
   check_conf($conf, 'openai_apikey', '');
+  check_conf($conf, 'openai_apikey_model', 'gpt-4o-mini');
   check_conf($conf, 'discord_webhook_url', '');
   // plugin alias
   check_conf($conf, 'plugin_alias', [

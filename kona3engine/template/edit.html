@@ -38,6 +38,7 @@
         <button onclick="replaceOnClick()">{{'Replace' | lang}}</button>
         <button onclick="tagsOnClick()">{{'Tags' | lang}}</button>
         <button onclick="aiOnClick()" {{ if !$ai_enabled }}style="display:none;"{{ endif }}>{{'AI Assitant' | lang}}</button>
+        <button onclick="aiSpellCheckOnClick()" {{ if !$ai_enabled }}style="display:none;" {{ endif }}>{{'AI Spell Checker' | lang}}</button>
         <button onclick="historyOnClick()">{{'History' | lang}}</button>
         <button onclick="helpOnClick()">?</button>
       </div>
@@ -94,7 +95,7 @@
       {{ if $ai_enabled }}
       <div id="ai_div" class="block2" style="display: none;">
         <div>
-          <select id="ai_template_select"><option>アクションを選択</option></select>
+          <select id="ai_template_select"><option>{{ 'Select actions' | lang }}</option></select>
           <a href="{{$ai_edit_template_url}}" target="_new">{{'Edit AI Template' | lang}}</a>
         </div>
         <div id="ai_input">
