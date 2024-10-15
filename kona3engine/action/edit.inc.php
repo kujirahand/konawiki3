@@ -7,6 +7,12 @@ include_once dirname(__DIR__) . '/kona3ai.inc.php';
 
 header('X-Frame-Options: SAMEORIGIN');
 
+if (!function_exists('str_ends_with')) {
+    function str_ends_with($str, $end) {
+        return (@substr_compare($str, $end, -strlen($end)) == 0);
+    }
+}
+
 function kona3_action_edit() {
     global $kona3conf, $page;
 
