@@ -104,5 +104,6 @@ $lang_data = [
   'Cancel' => '取消',
   'Diary' => '日記',
   'Page Name Suggestions' => 'ページ名の候補案',
+  'Plugins List' => 'プラグインの一覧',
 ];
 
