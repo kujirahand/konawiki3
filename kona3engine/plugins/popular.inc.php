@@ -20,7 +20,9 @@ function kona3plugins_popular_execute($args) {
   }
 
   $head = "<h3>".lang('Popular')."</h3>";
-  $r = db_get("SELECT * FROM counter ".
+  $r = db_get(
+    "SELECT * FROM counter ".
+    "WHERE mtime > 0 ".
     "ORDER BY value DESC LIMIT ?",[$limit]);
   if (!$r) {
     return $head."<p>None</p>";
@@ -46,12 +48,6 @@ function kona3plugins_popular_execute($args) {
   }
   $list = "<ul class='recent'>$list</ul>";
   return $head.$list;
-}
-
-function popular_init($pdo) {
-  $sql = <<<__EOS__
-
-__EOS__;
 }
 
 

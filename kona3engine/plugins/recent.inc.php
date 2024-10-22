@@ -37,6 +37,7 @@ function kona3plugins_recent_execute($args) {
   // select
   $r = db_get(
     "SELECT * FROM pages ".
+    "WHERE mtime > 0 ".
     "ORDER BY mtime DESC ".
     "LIMIT ?",
     [$limit]);

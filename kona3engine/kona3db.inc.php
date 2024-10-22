@@ -63,9 +63,24 @@ function kona3db_writePage($page, $body, $user_id=0, $tags = NULL) {
       [$page_id, $user_id, $body, $hash, time()]);
   }
   // update pages.mtime (for #recent plugin)
-  db_exec(
-    "UPDATE pages SET mtime=? WHERE page_id=?",
-    [time(), $page_id]);
+  if (trim($body) != "") {
+    db_exec(
+      "UPDATE pages SET mtime=? WHERE page_id=?",
+      [time(), $page_id]);
+    db_exec(
+      "UPDATE counter SET mtime=? WHERE page_id=?",
+      [time(), $page_id]);
+  } else {
+    // remove page 
+    // 間違いかもしれないので履歴は削除しない!!
+    // 但し更新履歴には出さないようにしたい	  
+    db_exec(
+      "UPDATE pages SET mtime=0 WHERE page_id=?",
+      [$page_id]);
+    db_exec(
+      "UPDATE counter SET mtime=0 WHERE page_id=?",
+      [$page_id]);
+  }
   // tags
   if ($tags != NULL) {
     $tags_a = explode('/', $tags);

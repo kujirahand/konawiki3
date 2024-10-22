@@ -355,22 +355,29 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
             }
         }
     }
+    // remove file?
+    // テキストが空白ならファイルを削除
+    if (trim($edit_txt) === "") {
+        // remove
+	@unlink($fname);
+	kona3db_writePage($page, trim($edit_txt), $user_id, $tags);
+    } else {
+        // write
+	$bytes = @file_put_contents($fname, $edit_txt);
+	if ($bytes === FALSE) {
+	    $msg = lang('Could not write file.');
+            kona3_edit_err($msg, $i_mode, $postId);
+	    $result = FALSE;
+	    return $msg;
+	}
+	// === for Database ===
+	kona3db_writePage($page, $edit_txt, $user_id, $tags);
+	// === discord ===
+	if (kona3getConf('discord_webhook_url', '') != '') {
+	    kona3postDiscordWebhook($page);
+	}
+    }
 
-    // write
-    $bytes = @file_put_contents($fname, $edit_txt);
-    if ($bytes === FALSE) {
-        $msg = lang('Could not write file.');
-        kona3_edit_err($msg, $i_mode, $postId);
-        $result = FALSE;
-        return $msg;
-    }
-    // === for Database ===
-    kona3db_writePage($page, $edit_txt, $user_id, $tags);
-    // === discord ===
-    if (kona3getConf('discord_webhook_url', '') != '') {
-        kona3postDiscordWebhook($page);
-    }
-    
     // result
     if ($i_mode == "git") {
         $result = TRUE;
