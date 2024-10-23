@@ -141,8 +141,15 @@ function kona3conf_gen() {
   $FW_ADMIN_EMAIL = $kona3conf['admin_email'];
 
   // Database library
+  $file_info_sqlite = KONA3_DIR_DATA.'/.info.sqlite';
+  if (!file_exists($file_info_sqlite)) {
+    $old_info_sqlite = KONA3_DIR_PRIVATE.'/info.sqlite';
+    if (file_exists($old_info_sqlite)) {
+      @rename($old_info_sqlite, $file_info_sqlite);
+    }
+  }
   database_set(
-    KONA3_DIR_PRIVATE.'/info.sqlite',
+    $file_info_sqlite,
     $DIR_TEMPLATE.'/info.sql',
     'main'
   );
