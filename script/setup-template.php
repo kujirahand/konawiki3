@@ -33,10 +33,11 @@ if (!file_exists($zip_file)) {
   file_put_contents($zip_file, $bin);
 }
 echo "<h3>Unzip - 解凍します。</h3>\n";
-$zip = new ZipArchive();
-$zip->open($zip_file);
-$zip->extractTo($zip_dir);
-$zip->close();
+// $zip = new ZipArchive();
+// $zip->open($zip_file);
+// $zip->extractTo($zip_dir);
+// $zip->close();
+system("unzip \"{$zip_file}\" -d \"{$zip_dir}\"");
 echo "<h3>Move - 該当パスに移動します</h3>\n";
 $src = $zip_dir . "/php_fw_simple-1.0";
 $to = $template_dir;
