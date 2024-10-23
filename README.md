@@ -49,32 +49,25 @@ By obtaining a [ChatGPT API key](https://platform.openai.com/api-keys) and speci
 
 # How to install Konawiki3
 
-[Use Git command]
+## Use Git command
 
 1. Install WebServer and PHP
-2. Download
-  - `git clone --recursive https://github.com/kujirahand/konawiki3.git`
-  - OR `git clone https://github.com/kujirahand/konawiki3.git` AND `git submodule update --init --recursive`
+2. Clone repository
 
-[Use Uploader to Hosting server]
+```sh
+git clone https://github.com/kujirahand/konawiki3.git
+```
+
+## Use Uploader to Hosting server
 
 1. Download Konawiki3 zip file from [releases](https://github.com/kujirahand/konawiki3/releases)
 2. Unzip
-3. chmod data, cache, private directories
-4. Access index.php
+3. Change permissions
 
-And write `data/.htaccess` (Apache):
-
-```
-# access limitation
-<Files *.txt>
-  Order deny,allow
-  Deny from all
-</Files>
-<Files *.md>
-  Order deny,allow
-  Deny from all
-</Files>
+```sh
+chmod 766 data
+chmod 766 cache
+chmod 766 private
 ```
 
 ## Install Library (Option)

@@ -85,29 +85,18 @@ Gitコマンドが使えるなら、コマンド一発で設置が可能です�
 ### Gitを使う方法
 
 1. ApacheなどのWebサーバーとPHPをインストール
-2. 以下のどちらかのコマンドを実行
-  -  `git clone --recursive https://github.com/kujirahand/konawiki3.git`
-  -  `git clone https://github.com/kujirahand/konawiki3.git` AND `git submodule update --init --recursive`
+2. 以下のコマンドを実行
+  -  `git clone https://github.com/kujirahand/konawiki3.git`
 
 ### Gitを使わない方法:
 
 1. [KonaWiki3のreleaseからZIPをダウンロード](https://github.com/kujirahand/konawiki3/releases)
-2. [テンプレートエンジンのZIPをダウンロード](https://github.com/kujirahand/php_fw_simple/releases)
+2. 以下のようにパーミッションを変更
 
-### 共通
-
-データファイルの直接アクセス保護のために `data/.htaccess` を配置するのをオススメします。
-
-```
-# access limitation
-<Files *.txt>
-  Order deny,allow
-  Deny from all
-</Files>
-<Files *.md>
-  Order deny,allow
-  Deny from all
-</Files>
+```sh
+chmod 766 data
+chmod 766 cache
+chmod 766 private
 ```
 
 ## (オプション) Git保存機能を使う場合
