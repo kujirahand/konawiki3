@@ -1,4 +1,5 @@
 # access limitation
+
 # wiki text
 <Files *.txt>
 Order deny,allow
@@ -8,14 +9,17 @@ Deny from all
 Order deny,allow
 Deny from all
 </Files>
+
 # sqlite files
 <Files *.sqlite>
 Order deny,allow
 Deny from all
 </Files>
+
 # dot files
-<Files .*>
+<FilesiMatch "^\.(.*)$">
 Order deny,allow
 Deny from all
 </Files>
+
 
