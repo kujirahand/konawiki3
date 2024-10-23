@@ -16,15 +16,6 @@ if (file_exists($file_kona3dir_def)) {
   define('KONA3_DIR_CACHE',   __DIR__.'/cache');
 }
 
-// check template engine
-if (!file_exists(KONA3_DIR_ENGINE.'/fw_simple/fw_template_engine.lib.php')) {
-  $uri = $_SERVER['REQUEST_URI'];
-  if (strpos($uri, 'index.php') === FALSE) { $uri = "$uri/index.php"; }
-  $script_uri = dirname($uri).'/script/setup-template.php';
-  echo "<p><a href='{$script_uri}'>Please install Template Engine.</a></p>\n";
-  exit;
-}
-
 // Execute kona3engine/index.inc.php
 $engine_index = KONA3_DIR_ENGINE.'/index.inc.php';
 if (!file_exists($engine_index)) {

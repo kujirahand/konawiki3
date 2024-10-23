@@ -1,5 +1,13 @@
 <?php
 // PATH from script/setup-template.php
+echo "<h1>This is old script. Plase rewrite `index.php`</h1>\n";
+echo "<h1>古いスクリプトです。新しい`index.php`をコピーしてください。</h1>";
+echo "<p><a href='https://github.com/kujirahand/konawiki3'>konawiki3</a></p>";
+exit;
+
+
+
+
 $DIR_ROOT = dirname(__DIR__);
 $zip_dir = "{$DIR_ROOT}/cache/tmp";
 $template_dir = "{$DIR_ROOT}/kona3engine/fw_simple";

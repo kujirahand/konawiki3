@@ -1,0 +1,3 @@
+<?php
+$FW_SIMPLE_VERSION = 1.1;
+

@@ -10,7 +10,7 @@ ini_set('default_charset', 'UTF-8');
 header("Content-Type: text/html; charset=UTF-8");
 
 include_once __DIR__.'/kona3lib.inc.php';
-include_once __DIR__.'/fw_simple/fw_database.lib.php';
+include_once __DIR__.'/php_fw_simple/fw_database.lib.php';
 include_once __DIR__.'/kona3db.inc.php';
 
 // --------------------
