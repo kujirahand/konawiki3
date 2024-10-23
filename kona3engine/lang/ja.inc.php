@@ -105,5 +105,6 @@ $lang_data = [
   'Diary' => '日記',
   'Page Name Suggestions' => 'ページ名の候補案',
   'Plugins List' => 'プラグインの一覧',
+  'Please make wiki page.' => 'Wikiページが存在しないため、最初に「新規」ボタンからページを作成してください。',
 ];
 

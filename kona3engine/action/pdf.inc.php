@@ -21,7 +21,9 @@ function kona3_action_pdf() {
     // detect file type
     $wiki_live = kona3show_detect_file($page, $fname, $ext);
     if (!$wiki_live) {
-        echo "wiki file not found"; exit;
+      $msg = lang('Please make wiki page.');
+      kona3error("Page not found", $msg);
+      exit;
     }
 
     // TODO: PDFの出力キャッシュを作る?

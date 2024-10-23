@@ -13,7 +13,10 @@ function kona3_action_text() {
     // detect file type
     $wiki_live = kona3show_detect_file($page, $fname, $ext);
     if (!$wiki_live) {
-        echo "wiki file not found"; exit;
+        $msg = lang('Please make wiki page.');
+        header("Content-type: text/plain; charset=UTF-8");
+        echo $msg."\n";
+        exit;
     }
     header("Content-type: text/plain; charset=UTF-8");
     readfile($fname);
