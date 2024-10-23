@@ -16,10 +16,5 @@ Order deny,allow
 Deny from all
 </Files>
 
-# dot files
-<FilesiMatch "^\.(.*)$">
-Order deny,allow
-Deny from all
-</Files>
 
 
