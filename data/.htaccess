@@ -1,9 +1,20 @@
 # access limitation
+# wiki text
 <Files *.txt>
 Order deny,allow
 Deny from all
 </Files>
 <Files *.md>
+Order deny,allow
+Deny from all
+</Files>
+# sqlite files
+<Files *.sqlite>
+Order deny,allow
+Deny from all
+</Files>
+# dot files
+<Files .*>
 Order deny,allow
 Deny from all
 </Files>

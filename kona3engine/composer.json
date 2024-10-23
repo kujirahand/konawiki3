@@ -1,7 +1,6 @@
 {
     "require": {
-        "cebe/markdown": "^1.2",
-        "czproject/git-php": "^3.17",
-        "tecnickcom/tcpdf": "^6.4"
+        "czproject/git-php": "^4.3",
+        "tecnickcom/tcpdf": "^6.7.6"
     }
 }
