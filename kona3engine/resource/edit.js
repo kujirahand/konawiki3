@@ -444,9 +444,9 @@ function aiButtonEnabeld(enbaled) {
     loaderCount = 0;
     loaderTimerId = setInterval(() => {
       loaderCount++;
-      const tmp = '=====';
-      let s = tmp.substring(0, loaderCount % 5) + 'abcde'
-      s = s.substring(0, 5);
+      const tmp = '==========';
+      let s = tmp.substring(0, loaderCount % 10) + 'abcdeABCDE'
+      s = s.substring(0, 10);
       qq('#ai_loader').text(s);
     }, 100);
   } else {
@@ -537,10 +537,11 @@ function _aiInsertText(data, isJSON = false) {
     text = `<div><span style="color:red;">[?] ${ng}</span><br>` +
       `<span style="color:blue;">[v] ${ok}</span></div>` +
       `<div>${desc}</div>`
-    btn += `<button onclick="aiBlockReplace(${aiBlockId})">${locale_replace}</button>`
-    btn += `<button onclick="aiBlockFind(${aiBlockId})">${lcoale_find}</button>`
-    btn += `<button onclick="aiBlockCopy(${aiBlockId})">${lcoale_copy}</button>`
+    btn += `<button onclick="aiBlockReplace(${aiBlockId})">${locale_replace}</button> `
     btn += `<button onclick="aiBlockRemove(${aiBlockId})">${lcoale_cancel}</button>`
+    btn += ' - '
+    btn += `<button onclick="aiBlockFind(${aiBlockId})">${lcoale_find}</button> `
+    btn += `<button onclick="aiBlockCopy(${aiBlockId})">${lcoale_copy}</button>`
   } else {
     text = text2html('' + data)
     text = text.replace(/\n/g, '<br>')
@@ -550,7 +551,7 @@ function _aiInsertText(data, isJSON = false) {
   const div =
     `<div id="aiBlockDiv${aiBlockId}" class="ai_block">\n` +
     `<span id="aiBlock${aiBlockId}">${text}</span>\n` +
-    `<div style="text-align:right;">${btn}</div></div>\n`
+    `<div id="aiReplaceButtons">${btn}</div></div>\n`
   qq('#ai_output').html(old + div)
   aiBlockId++
 }
