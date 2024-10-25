@@ -45,6 +45,7 @@ function kona3conf_init(&$conf) {
   check_conf($conf, 'max_search_level', '2');
   check_conf($conf, 'use_pdf_out', FALSE);
   check_conf($conf, 'image_pattern', '(png|jpg|jpeg|gif|bmp|ico|svg|webp)');
+  check_conf($conf, 'data_dir_allow_pattern', '(csv|json|xml|doc|docx|xls|xlsx|ppt|pptx|pdf|zip|gz|bz2|wav|mid|mp3|mp4|ogg)');
   check_conf($conf, 'allow_upload', FALSE);
   check_conf($conf, 'allow_upload_ext', 'txt;md;pdf;csv;wav;mid;mp3;mp4;ogg;zip;gz;bz2;jpg;jpeg;png;gif;webp;svg;xml;json;ini;doc;docx;xls;xlsx;ppt;pptx');
   check_conf($conf, 'upload_max_file_size', 1024 * 1024 * 5);

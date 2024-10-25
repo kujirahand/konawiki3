@@ -101,9 +101,15 @@ function kona3_action_show() {
     ]);
 }
 
-function kona3show_check_private($page) {
+function kona3show_check_private($page, $showLoginLink = TRUE) {
     if (kona3getConf('wiki_private')) {
         if (!kona3isLogin()) {
+            header('HTTP/1.0 403 Forbidden');
+            if (!$showLoginLink) { // for FILE
+                echo "Forbidden";
+                exit;
+            }
+            // show login page
             $url = kona3getPageURL($page, "login");
             $msg_private = lang('Private Mode');
             $msg_please_login = lang('Please login.');

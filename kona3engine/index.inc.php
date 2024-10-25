@@ -58,6 +58,8 @@ if ($kona3conf_notExists) {
         $_GET['action'] = $kona3conf['action'] = 'admin'; 
     }
 }
+// check security
+kona3lib_checkSecurity();
 // execute
 kona3lib_execute();
 

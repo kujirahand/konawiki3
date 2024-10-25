@@ -1,20 +1,8 @@
-# access limitation
-
-# wiki text
-<Files *.txt>
-Order deny,allow
-Deny from all
-</Files>
-<Files *.md>
-Order deny,allow
-Deny from all
-</Files>
-
-# sqlite files
-<Files *.sqlite>
-Order deny,allow
-Deny from all
-</Files>
-
-
-
+# Deny all access
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Order Allow,Deny
+  Deny from all
+</IfModule>

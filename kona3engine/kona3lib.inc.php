@@ -937,3 +937,32 @@ function kona3getPageId($page, $canCreate = FALSE) {
     return 0;
 }
 */
+
+function kona3lib_checkSecurity() {
+    // check security version
+    $security_check_file = KONA3_DIR_PRIVATE . '/.security_check.v3_3_12.php';
+    if (file_exists($security_check_file)) {
+        return;
+    }
+    // check private/.htaccess
+    $htaccessBody = <<< EOS
+# Deny all access
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Order Allow,Deny
+  Deny from all
+</IfModule>
+EOS;
+    // cache dir
+    $cache_htaccess = KONA3_DIR_PRIVATE . '/.htaccess';
+    file_put_contents($cache_htaccess, $htaccessBody);
+    // private dir
+    $private_htaccess = KONA3_DIR_PRIVATE . '/.htaccess';
+    file_put_contents($private_htaccess, $htaccessBody);
+    // body dir
+    $body_htaccess = KONA3_DIR_DATA . '/.htaccess';
+    file_put_contents($body_htaccess, $htaccessBody);
+    file_put_contents($security_check_file, "ok");
+}

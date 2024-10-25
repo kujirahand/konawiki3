@@ -35,100 +35,69 @@
   <h3>Basic</h3>
   Wiki Title:<br>
   <input type='text' name='wiki_title' value='{{$wiki_title}}'><br>
-  
   Admin Email:<br>
   <input type='text' name='admin_email' value='{{$admin_email}}'><br>
-  
   Wiki Private(true/false):<br>
   <input type='text' name='wiki_private' value='{{$wiki_private | boolstr}}'><br>
-  
   Language (ja/en):<br>
   <input type='text' name='lang' value='{{$lang}}'><br>
-  
-  Skin:<br>
+  Skin name (def|single|nako3):<br>
   <input type='text' name='skin' value='{{$skin}}'><br>
-  
-  allow_add_user:<br>
+  allow_add_user (true|false):<br>
   <input type='text' name='allow_add_user' value='{{$allow_add_user | boolstr}}'><br>
-  
   Default text ext (txt/md):<br>
   <input type='text' name='def_text_ext' value='{{$def_text_ext}}'><br>
-
   bbs_admin_password:<br>
   <input type='text' name='bbs_admin_password' value='{{$bbs_admin_password}}'><br>
 
   <h3>Header/Footer</h3>
-  
-  allpage_header(wiki text):<br>
-  <input type='text' name='allpage_header' value='{{$allpage_header}}'><br>
-  
-  allpage_footer(wiki text):<br>
+  allpage_header (wiki text):<br>
+  <input type='text' name='allpage_header' value='{{$allpage_header}}'><br>  
+  allpage_footer (wiki text):<br>
   <input type='text' name='allpage_footer' value='{{$allpage_footer}}'><br>
-  
   analytics code (html):<br>
   <input type='text' name='analytics' value='{{$analytics}}'><br>
   
-  <h3>Git</h3>
-  
-  git_enabled(true/false):<br>
-  <input type='text' name='git_enabled' value='{{$git_enabled | boolstr}}'><br>
-  
-  git_branch:<br>
-  <input type='text' name='git_branch' value='{{$git_branch}}'><br>
-  
-  git_remote_repository:<br>
-  <input type='text' name='git_remote_repository' value='{{$git_remote_repository}}'><br>
-  
   <h3>Options</h3>
-  
   FrontPage Name:<br>
   <input type='text' name='FrontPage' value='{{$FrontPage}}'><br>
-  
   plugin_disallow (delimiter=','):<br>
   <input type='text' name='plugin_disallow' value='{{$plugin_disallow}}'><br>
-  
-  show_counter(true/false):<br>
+  show_counter (true/false):<br>
   <input type='text' name='show_counter' value='{{$show_counter | boolstr}}'><br>
-  
-  show_data_dir(true/false):<br>
+  show_data_dir (true/false):<br>
   <input type='text' name='show_data_dir' value='{{$show_data_dir | boolstr}}'><br>
-  
-  noanchor(true/false):<br>
+  data_dir_allow_pattern [Specify a pattern excluding images]:<br>
+  <input type='text' name='data_dir_allow_pattern' value='{{$data_dir_allow_pattern}}'><br>
+  noanchor (true/false):<br>
   <input type='text' name='noanchor' value='{{$noanchor | boolstr}}'><br>
-  
   enc_pagename(true/false):<br>
   <input type='text' name='enc_pagename' value='{{$enc_pagename | boolstr}}'><br>
-  
   use_pdf_out(true/false):<br>
   <input type='text' name='use_pdf_out' value='{{$use_pdf_out | boolstr}}'><br>
-  
-  allow_upload(true/false):<br>
-  <input type='text' name='allow_upload' value='{{$allow_upload | boolstr}}'><br>
-  
-  allow_upload_ext:<br>
-  <input type='text' name='allow_upload_ext' value='{{$allow_upload_ext}}'><br>
-  
-  upload_max_file_size(bytes):<br>
-  <input type='text' name='upload_max_file_size' value='{{$upload_max_file_size}}'><br>
-
   para_enabled_br(true/false):<br>
   <input type='text' name='para_enabled_br' value='{{$para_enabled_br | boolstr}}'><br>
-  
   path_max_mkdir(0:off, 1,2,3...:on):<br>
   <input type='text' name='path_max_mkdir' value='{{$path_max_mkdir}}'><br>
-  
   chmod_mkdir(default:0777):<br>
   <input type='text' name='chmod_mkdir' value='{{$chmod_mkdir}}'><br>
-  
   max_edit_size(0:no limit, unit=MB):<br>
   <input type='text' name='max_edit_size' value='{{$max_edit_size}}'><br>
-
   max_search:<br>
   <input type='text' name='max_search' value='{{$max_search}}'><br>
   max_search_level:<br>
   <input type='text' name='max_search_level' value='{{$max_search_level}}'><br>
 
+  <h3>Uploader</h3>
+  allow_upload(true/false):<br>
+  <input type='text' name='allow_upload' value='{{$allow_upload | boolstr}}'><br>
+  allow_upload_ext:<br>
+  <input type='text' name='allow_upload_ext' value='{{$allow_upload_ext}}'><br>
+  upload_max_file_size(bytes):<br>
+  <input type='text' name='upload_max_file_size' value='{{$upload_max_file_size}}'><br>
+
   <!-- ai -->
+  <h3>AI</h3>
   openai_apikey(for CharGPT)[<a href="https://kujirahand.com/konawiki3/index.php?AI" target="_new">help</a>]:<br>
   <input type='text' name='openai_apikey' value='{{$openai_apikey}}'><br>
   openai_apikey_model (ex) ( gpt-4o-mini | gpt-4o ):<br>
@@ -137,8 +106,17 @@
   <input type='text' name='openai_api_basic_instruction' value='{{$openai_api_basic_instruction}}'><br>
   <!-- /ai -->
 
+  <h3>Discord</h3>
   Discord webhook URL:<br>
   <input type='text' name='discord_webhook_url' value='{{$discord_webhook_url}}'><br>
+
+  <h3>Git</h3>
+  git_enabled(true/false):<br>
+  <input type='text' name='git_enabled' value='{{$git_enabled | boolstr}}'><br>
+  git_branch:<br>
+  <input type='text' name='git_branch' value='{{$git_branch}}'><br>
+  git_remote_repository:<br>
+  <input type='text' name='git_remote_repository' value='{{$git_remote_repository}}'><br>
 
   <h3>{{'Admin password'|lang}}</h3>
   <div style="border: 1px solid silver; padding: 0.4em;">

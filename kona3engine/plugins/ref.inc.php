@@ -17,7 +17,7 @@ function kona3plugins_ref_execute($args) {
     $size = " width='400px' "; // set default image size
     $caption = "";
     $link = "";
-    $url = trim(array_shift($args));
+    $url = $rawurl = trim(array_shift($args));
     $float = "";
     while ($args) {
         $arg = array_shift($args);
@@ -53,31 +53,36 @@ function kona3plugins_ref_execute($args) {
     }
     // make link
     $caption = htmlspecialchars($caption, ENT_QUOTES);
+    $ext = pathinfo($url, PATHINFO_EXTENSION);
     $url = htmlspecialchars_url($url);
     if (!preg_match("#^https?\:\/\/#", $url)) {
         // file link
         $url2 = kona3plugins_ref_file_url($page, $url);
         if ($url2 === '') {
             $url = htmlspecialchars($url, ENT_QUOTES);
-            return "<div class='error'>#ref:(No file:{$url})</div>";
+            return "<div class='error'>#ref({$url})</div>";
         }
         $url = $url2;
     }
     // Is image?
     $image_type = kona3getConf("image_pattern", "(jpg|jpeg|png|gif|ico|svg|webp)");
-    $pattern = "#\.($image_type)$#";
-    if (preg_match($pattern, $url)) {
+    $pattern = "#^($image_type)$#";
+    if (preg_match($pattern, $ext)) {
+        // image
         if ($link == '') { $link = $url; }
         $caph = "<div class='memo'>".$caption."</div>";
         $div = "<div>";
         if ($float) { $div = "<div {$float}>"; }
         $code = $div.
-            "<div><a href='$link'><img src='$url'{$size}></a></div>".
+            "<div><a href='$link'><img src='$url' {$size}></a></div>".
             (($caption != "") ? $caph : "").
             "</div>";
     } else {
-        if ($caption == "") { $caption = $url; }
-        $code = "<div><a href='$url'>$caption</a></div>";
+        // not image
+        if ($caption == "") {
+            $caption = htmlspecialchars($rawurl);
+        }
+        $code = "<div><a href='$url'>🔗{$caption}</a></div>";
     }
     return $code;
 }
@@ -87,39 +92,36 @@ function kona3plugins_ref_file_url($page, $url) {
     // Disallow up dir!! (1/2)
     $url = trim(str_replace('..', '', $url));
 
-    // is attach dir?
+    // in attach_dir?
     $f = kona3path_join($kona3conf["path.attach"], $url);
     if (file_exists($f)) { return kona3path_join($kona3conf["url.attach"], $url); }
 
-    // is data dir?
-    $f = kona3path_join(KONA3_DIR_DATA, $url);
-    if (file_exists($f)) {
-        $file_url = kona3path_join($kona3conf["url.data"], $url);
-        return $file_url;
-    }
-
-    // Is this file in same directory?
+    // check absolute file - Is this file in same directory?
     if (strpos($page, "/") !== FALSE) {
-        $url2 = dirname($page)."/".urldecode($url);
+        $url2 = dirname($page) . "/" . urldecode($url);
         // Disallow up dir!! (2/2)
         $url2 = str_replace('..', '', $url2);
-        $f = KONA3_DIR_DATA."/".$url2;
-        if (file_exists($f)) {
-            if ($kona3conf["url.data"] == '') {
-                $url = $url2;
-            } else {
-                $url = $kona3conf["url.data"]."/".$url2;
-            }
+        $fullpath = KONA3_DIR_DATA . "/" . $url2;
+        if (file_exists($fullpath)) {
+            $url = "index.php?" . urlencode($url2) . "&data";
             return $url;
         }
     }
 
+    // in data_dir? (full path)
+    $f = kona3path_join(KONA3_DIR_DATA, $url);
+    if (file_exists($f)) {
+        $file_url = "index.php?".urlencode($url)."&data";
+        return $file_url;
+    }
+
+    /*
     // default data
     $f = kona3getWikiFile($url, false);
     if (file_exists($f)) {
         $url = kona3getWikiUrl($url);
     }
-
+    */
     return '';
 }
 
