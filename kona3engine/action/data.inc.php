@@ -29,6 +29,9 @@ function kona3_action_data() {
   $pattern = "#\.($image_type)$#";
   if (preg_match($pattern, $fname, $m)) {
     $ctype = "image/".$m[1];
+    if ($ctype == 'image/svg') {
+      $ctype = 'image/svg+xml';
+    }
     header("Content-Type: $ctype");
     header("Content-Length: ".filesize($fullpath));
     echo file_get_contents($fullpath);
