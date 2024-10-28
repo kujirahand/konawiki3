@@ -779,7 +779,7 @@ function kona3_checkEditToken($key = 'default') {
 
 function kona3getShortcutLink() {
     // get url
-    $host = $_SERVER['HTTP_HOST'];
+    $host = empty($_SERVER['HTTP_HOST']) ? "" : $_SERVER['HTTP_HOST'];
     $scriptname = dirname($_SERVER['SCRIPT_NAME']);
     // check last path
     if (substr($scriptname, strlen($scriptname) - 1, 1) == '/') {
