@@ -213,3 +213,28 @@ function kona3db_setMetaInt($key, $val)
 {
   kona3db_setMeta($key, "", $val);
 }
+
+// subdb for plugins
+function subdb_exec($sql, $params = array())
+{
+  $dbname = "subdb";
+  return db_exec($sql, $params, $dbname);
+}
+
+function subdb_insert($sql, $params = array())
+{
+  $dbname = "subdb";
+  return db_insert($sql, $params, $dbname);
+}
+
+function subdb_get($sql, $params = array())
+{
+  $dbname = "subdb";
+  return db_get($sql, $params, $dbname);
+}
+
+function subdb_get1($sql, $params = array())
+{
+  $dbname = "subdb";
+  return db_get1($sql, $params, $dbname);
+}

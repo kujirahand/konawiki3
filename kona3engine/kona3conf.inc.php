@@ -149,15 +149,23 @@ function kona3conf_gen() {
       @rename($old_info_sqlite, $file_info_sqlite);
     }
   }
+  // main database
   database_set(
     $file_info_sqlite,
     $DIR_TEMPLATE.'/info.sql',
     'main'
   );
+  // autologin database
   database_set(
     KONA3_DIR_PRIVATE.'/autologin.sqlite',
     $DIR_TEMPLATE.'/autologin.sql',
     'autologin'
+  );
+  // subdb database
+  database_set(
+    KONA3_DIR_PRIVATE . '/subdb.sqlite',
+    $DIR_TEMPLATE . '/subdb.sql',
+    'subdb'
   );
   $_dbMain = database_get();
 }
