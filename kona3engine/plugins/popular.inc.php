@@ -20,7 +20,7 @@ function kona3plugins_popular_execute($args) {
   }
 
   $head = "<h3>".lang('Popular')."</h3>";
-  $r = db_get(
+  $r = subdb_get(
     "SELECT * FROM counter ".
     "WHERE mtime > 0 ".
     "ORDER BY value DESC LIMIT ?",[$limit]);
