@@ -8,12 +8,14 @@ include_once dirname(__DIR__) . '/kona3ai.inc.php';
 header('X-Frame-Options: SAMEORIGIN');
 
 if (!function_exists('str_ends_with')) {
-    function str_ends_with($str, $end) {
+    function str_ends_with($str, $end)
+    {
         return (@substr_compare($str, $end, -strlen($end)) == 0);
     }
 }
 
-function kona3_action_edit() {
+function kona3_action_edit()
+{
     global $kona3conf, $page;
 
     $ext = "txt";
@@ -27,19 +29,29 @@ function kona3_action_edit() {
     $page_id = kona3db_getPageId($page, FALSE);
 
     // check permission
-    if (!kona3edit_checkPermission($page, $i_mode)) { return; }
+    if (!kona3edit_checkPermission($page, $i_mode)) {
+        return;
+    }
     // check edit_token
-    if (!kona3edit_checkEditToken($page, $i_mode)) { return; }
+    if (!kona3edit_checkEditToken($page, $i_mode)) {
+        return;
+    }
 
     // generate edit_token ... (memo) 強制的に更新しないことで不要な書き込みエラーを防ぐ
     $edit_token = kona3_getEditToken($page, FALSE);
 
     // check $cmd or $q
     // edit_command ?
-    if ($cmd != '') { return edit_command($cmd); }
+    if ($cmd != '') {
+        return edit_command($cmd);
+    }
     // AI mode
-    if ($q == 'ai') { return kona3edit_ai(); }
-    if ($q == 'ai_edit_template') { return kona3ai_edit_template(); }
+    if ($q == 'ai') {
+        return kona3edit_ai();
+    }
+    if ($q == 'ai_edit_template') {
+        return kona3ai_edit_template();
+    }
 
     // load body
     $txt = "";
@@ -62,10 +74,12 @@ function kona3_action_edit() {
             if ($max_edit_size > 0) {
                 $max_bytes = 1024 * 1024 * $max_edit_size;
                 if ($sz > $max_bytes) {
-                    kona3error('File Size overflow',
-                        "<h1>File size overflow</h1>".
-                        "<p>max_edit_size: $max_edit_size MB</p>".
-                        "<p>File size: $sz B</p>");
+                    kona3error(
+                        'File Size overflow',
+                        "<h1>File size overflow</h1>" .
+                            "<p>max_edit_size: $max_edit_size MB</p>" .
+                            "<p>File size: $sz B</p>"
+                    );
                     exit;
                 }
             }
@@ -99,11 +113,11 @@ function kona3_action_edit() {
     $tags = '';
     $r = db_get('SELECT * FROM tags WHERE page_id=?', [$page_id]);
     if ($r) {
-      $a = [];
-      foreach ($r as $i) {
-        $a[] = $i['tag'];
-      }
-      $tags = implode('/', $a);
+        $a = [];
+        foreach ($r as $i) {
+            $a[] = $i['tag'];
+        }
+        $tags = implode('/', $a);
     }
 
     // new button
@@ -128,7 +142,8 @@ function kona3_action_edit() {
     ));
 }
 
-function kona3edit_checkPermission($page, $i_mode) {
+function kona3edit_checkPermission($page, $i_mode)
+{
     // check permission
     if (!kona3isLogin()) {
         $please_login = lang("Please login.");
@@ -143,7 +158,8 @@ function kona3edit_checkPermission($page, $i_mode) {
     return true;
 }
 
-function kona3edit_checkEditToken($page, $i_mode) {
+function kona3edit_checkEditToken($page, $i_mode)
+{
     // check edit_token
     if (!kona3_checkEditToken($page)) {
         $label = lang('Edit');
@@ -173,7 +189,8 @@ function kona3edit_checkEditToken($page, $i_mode) {
 
 
 // edit command execute
-function edit_command($cmd) {
+function edit_command($cmd)
+{
     global $kona3conf, $page;
 
     $page = $kona3conf["page"];
@@ -186,16 +203,18 @@ function edit_command($cmd) {
         $history_id = intval(kona3param("history_id"));
         $hash = kona3param("hash");
         $r = db_exec(
-            'DELETE FROM page_history '.
-            'WHERE history_id=? AND hash=?',
-            [$history_id, $hash]);
+            'DELETE FROM page_history ' .
+                'WHERE history_id=? AND hash=?',
+            [$history_id, $hash]
+        );
         if ($r) {
             $edit_token = kona3_getEditToken($page, FALSE);
             $url = kona3getPageURL($page, "edit", "", "edit_token=$edit_token");
             return kona3showMessage(
-                'DELETE History', 
-                "OK! (history_id=$history_id) ".
-                "<a href='$url'>Continue to edit</a>");
+                'DELETE History',
+                "OK! (history_id=$history_id) " .
+                    "<a href='$url'>Continue to edit</a>"
+            );
         } else {
             return kona3error('ng', 'Sorry, failed to delete.');
         }
@@ -203,7 +222,8 @@ function edit_command($cmd) {
     kona3error('ng', 'Unknown command');
 }
 
-function kona3_make_diff($text_a, $text_b) {
+function kona3_make_diff($text_a, $text_b)
+{
     $lines_a = explode("\n", $text_a);
     $lines_b = explode("\n", $text_b);
 
@@ -216,17 +236,18 @@ function kona3_make_diff($text_a, $text_b) {
         // same
         if ($a == $b) {
             $res[] = $a;
-            $ia++; $ib++;
+            $ia++;
+            $ib++;
             continue;
         }
         // not same
         if ($a === NULL) {
-            $res[] = '>> '.$b;
+            $res[] = '>> ' . $b;
             $ib++;
             continue;
         }
         if ($b === NULL) {
-            $res[] = '<< '.$a;
+            $res[] = '<< ' . $a;
             $ia++;
             continue;
         }
@@ -237,7 +258,8 @@ function kona3_make_diff($text_a, $text_b) {
     return implode("\n", $res);
 }
 
-function kona3_edit_err($msg, $method = "web", $code = '') {
+function kona3_edit_err($msg, $method = "web", $code = '')
+{
     global $page;
     if ($method == "ajax" || $method == "git") {
         echo json_encode(array(
@@ -250,7 +272,8 @@ function kona3_edit_err($msg, $method = "web", $code = '') {
     }
 }
 
-function kona3_conflict($edit_txt, &$txt, $i_mode) {
+function kona3_conflict($edit_txt, &$txt, $i_mode)
+{
     // エラーメッセージ
     $msg = lang("Conflict editing, Please submit and check.");
     // ajaxの場合
@@ -264,7 +287,8 @@ function kona3_conflict($edit_txt, &$txt, $i_mode) {
     return $msg;
 }
 
-function kona3getEditFile($page, &$ext) {
+function kona3getEditFile($page, &$ext)
+{
     // has file ext?
     $test_ext = kona3getFileExt($page);
     if ($test_ext != '') {
@@ -285,7 +309,8 @@ function kona3getEditFile($page, &$ext) {
 }
 
 
-function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
+function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
+{
     global $kona3conf, $page;
 
     $edit_txt = kona3param('edit_txt', '');
@@ -325,7 +350,8 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
             $data_dir = KONA3_DIR_DATA;
             $max_level = $kona3conf['path_max_mkdir'];
             if ($data_dir != substr($dirname, 0, strlen($data_dir))) {
-                kona3_edit_err('Invalid File Path.', $i_mode); exit;
+                kona3_edit_err('Invalid File Path.', $i_mode);
+                exit;
             }
             $dirname2 = substr($dirname, strlen($data_dir) + 1);
             $cnt = count(explode("/", $dirname2));
@@ -336,9 +362,13 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
                     exit;
                 }
                 kona3_edit_err(
-                    sprintf(lang("Invalid Wiki Name: not allow use '/' over %s times"),
-                    $max_level), 
-                    $i_mode, $postId);
+                    sprintf(
+                        lang("Invalid Wiki Name: not allow use '/' over %s times"),
+                        $max_level
+                    ),
+                    $i_mode,
+                    $postId
+                );
                 exit;
             }
             // get dir mode
@@ -359,31 +389,30 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
     // テキストが空白ならファイルを削除
     if (trim($edit_txt) === "") {
         // remove
-	@unlink($fname);
-	kona3db_writePage($page, trim($edit_txt), $user_id, $tags);
+        @unlink($fname);
+        kona3db_writePage($page, trim($edit_txt), $user_id, $tags);
     } else {
         // write
-	$bytes = @file_put_contents($fname, $edit_txt);
-	if ($bytes === FALSE) {
-	    $msg = lang('Could not write file.');
+        $bytes = @file_put_contents($fname, $edit_txt);
+        if ($bytes === FALSE) {
+            $msg = lang('Could not write file.');
             kona3_edit_err($msg, $i_mode, $postId);
-	    $result = FALSE;
-	    return $msg;
-	}
-	// === for Database ===
-	kona3db_writePage($page, $edit_txt, $user_id, $tags);
-	// === discord ===
-	if (kona3getConf('discord_webhook_url', '') != '') {
-	    kona3postDiscordWebhook($page);
-	}
+            $result = FALSE;
+            return $msg;
+        }
+        // === for Database ===
+        kona3db_writePage($page, $edit_txt, $user_id, $tags);
+        // === discord ===
+        if (kona3getConf('discord_webhook_url', '') != '') {
+            kona3postDiscordWebhook($page);
+        }
     }
 
     // result
     if ($i_mode == "git") {
         $result = TRUE;
         return TRUE;
-    }
-    else if ($i_mode == "ajax") {
+    } else if ($i_mode == "ajax") {
         echo json_encode(array(
             'result' => 'ok',
             'a_hash' => kona3getPageHash($edit_txt),
@@ -397,7 +426,8 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result) {
     return TRUE;
 }
 
-function kona3_trygit(&$txt, &$a_hash, $i_mode) {
+function kona3_trygit(&$txt, &$a_hash, $i_mode)
+{
     require_once dirname(dirname(__FILE__)) . '/vendor/autoload.php';
     global $kona3conf, $page;
 
@@ -431,8 +461,8 @@ function kona3_trygit(&$txt, &$a_hash, $i_mode) {
             $repo->commit("Update $page by $userId");
             $repo->push($remote_repository, array($branch));
         }
-    } catch(Exception $e) {
-        kona3_edit_err('Git Error:'.$e->getMessage(), $i_mode);
+    } catch (Exception $e) {
+        kona3_edit_err('Git Error:' . $e->getMessage(), $i_mode);
         exit;
     }
 
@@ -449,12 +479,13 @@ function kona3_trygit(&$txt, &$a_hash, $i_mode) {
     echo "ok, saved.";
 }
 
-function kona3edit_ai() {
+function kona3edit_ai()
+{
     // この時点で既に認証を通過しているので安心して応答を返して良い
     header('Content-Type: application/json');
     $apikey = kona3getConf('openai_apikey', '');
     if ($apikey == '') {
-      echo json_encode(array(
+        echo json_encode(array(
             'result' => 'ng',
             'message' => 'OpenAI API Key is not set.',
         ));
@@ -482,11 +513,11 @@ function kona3edit_ai_load_template()
 {
     // read wiki data (ai_prompt)
     // read user defined
-    $prompt_file = KONA3_DIR_DATA."/ai_prompt.md";
+    $prompt_file = KONA3_DIR_DATA . "/ai_prompt.md";
     $prompt = file_exists($prompt_file) ? @file_get_contents($prompt_file) : '';
     // read system defined
     $lang = kona3getLangCode();
-    $prompt_file = KONA3_DIR_ENGINE."/lang/{$lang}-ai_prompt.md";
+    $prompt_file = KONA3_DIR_ENGINE . "/lang/{$lang}-ai_prompt.md";
     if (file_exists($prompt_file)) {
         $promptSys = file_get_contents($prompt_file);
         if ($promptSys != '') {
@@ -503,7 +534,7 @@ function kona3edit_ai_load_template()
 function kona3ai_edit_template()
 {
     // check ai_prompt.md
-    $prompt_file = KONA3_DIR_DATA."/ai_prompt.md";
+    $prompt_file = KONA3_DIR_DATA . "/ai_prompt.md";
     if (!file_exists($prompt_file)) {
         // copy template
         $template = <<<EOS
@@ -554,4 +585,3 @@ function kona3edit_ai_ask($apikey)
         'token' => $token,
     ));
 }
-
