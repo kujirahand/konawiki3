@@ -136,6 +136,9 @@ function kona3show_check_private($page, $showLoginLink = TRUE)
 
 function kona3show_file_not_found($page, &$ext)
 {
+    global $kona3conf;
+    $kona3conf["page_not_found"] = TRUE;
+    // show page not found
     $PageNotFound = lang('Page Not Found.');
     $txt = "* {$page}\n{$PageNotFound}\n";
     return $txt;

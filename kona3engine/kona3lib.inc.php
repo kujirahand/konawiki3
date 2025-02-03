@@ -838,8 +838,13 @@ function kona3getShortcutLink()
     $base_url = "{$scheme}://{$host}{$scriptname}/go.php";
     // get shortcut
     // get page_id
-    $page = $_GET['page'];
-    $page_id = kona3db_getPageId($page);
+    $file_not_found = kona3getConf("page_not_found", FALSE);
+    if ($file_not_found) {
+        return '<!-- no shortcut -->';
+    } else {
+        $page = $_GET['page'];
+        $page_id = kona3db_getPageId($page);
+    }
     if ($page_id == 0) {
         return '<!-- no shortcut -->';
     }

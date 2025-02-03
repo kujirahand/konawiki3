@@ -1,24 +1,50 @@
 <?php
 // file: kona3db.inc.php
+define("KONA3_PAGE_ID_JSON", KONA3_DIR_DATA . "/.kona3_page_id.json");
+
+global $kona3pageIds;
+$kona3pageIds = NULL;
+
+// ページIDを取得する
 function kona3db_getPageId($page, $canCreate = FALSE)
 {
-    $r = db_get1(
-        "SELECT * FROM pages " .
-            "WHERE name = ? " .
-            "LIMIT 1",
-        [$page]
-    );
-    if ($r) {
-        $page_id = $r['page_id'];
-        return $page_id;
+    global $kona3pageIds;
+    if ($kona3pageIds === NULL) {
+        // load KONA3_PAGE_ID_JSON
+        if (file_exists(KONA3_PAGE_ID_JSON)) {
+            $kona3pageIds = json_decode(file_get_contents(KONA3_PAGE_ID_JSON), TRUE);
+        } else {
+            $kona3pageIds = [];
+            // (旧バージョンのための対応) データベースファイルがある？
+            $old_db = KONA3_DIR_DATA . "/.info.sqlite";
+            if (file_exists($old_db)) {
+                // load
+                $pdo = new PDO("sqlite:$old_db");
+                $r = $pdo->query("SELECT * FROM pages");
+                $kona3pageIds = [];
+                foreach ($r as $v) {
+                    $kona3pageIds[$v['name']] = $v['page_id'];
+                }
+                // save
+                file_put_contents(KONA3_PAGE_ID_JSON, json_encode($kona3pageIds));
+            }
+        }
     }
+    // return page id
+    if (isset($kona3pageIds[$page])) {
+        return $kona3pageIds[$page];
+    }
+    // create page id
     if ($canCreate) {
-        $page_id = db_insert(
-            "INSERT INTO pages (name, ctime, mtime)" .
-                "VALUES(?, ?, ?)",
-            [$page, time(), 0]
-        );
-        return $page_id;
+        // page_idの最大値を得る
+        $maxId = 0;
+        foreach ($kona3pageIds as $_ => $id) {
+            if ($id > $maxId) {
+                $maxId = $id;
+            }
+        }
+        $kona3pageIds[$page] = $maxId + 1;
+        file_put_contents(KONA3_PAGE_ID_JSON, json_encode($kona3pageIds, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
     }
     return 0;
 }

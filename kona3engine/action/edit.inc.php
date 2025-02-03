@@ -82,6 +82,7 @@ function kona3_action_edit()
                     exit;
                 }
             }
+            // load text
             $txt = kona3lock_load($fname);
             if ($txt === FALSE) {
                 kona3error('Could not read file.', 'Could not read file.');
