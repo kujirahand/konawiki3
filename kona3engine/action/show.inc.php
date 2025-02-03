@@ -1,7 +1,9 @@
 <?php
+
 /** KonaWiki3 show */
 
-function kona3_action_show() {
+function kona3_action_show()
+{
     global $kona3conf;
     $page = $kona3conf["page"];
 
@@ -13,8 +15,13 @@ function kona3_action_show() {
 
     // body
     if ($wiki_live) {
-        $txt = @file_get_contents($fname);
-        $kona3conf['data_filename'] = $fname;
+        // load file
+        $txt = kona3lock_load($fname);
+        if ($txt === FALSE) {
+            $txt = kona3show_file_not_found($page, $ext);
+        } else {
+            $kona3conf['data_filename'] = $fname;
+        }
     } else {
         $txt = kona3show_file_not_found($page, $ext);
     }
@@ -35,7 +42,8 @@ function kona3_action_show() {
         $txt = "{{{#ref\n{$page}\n}}}\n"; // pdf
         $page_body = konawiki_parser_convert($txt);
     } else {
-        kona3error($page, "Sorry, System Error."); exit;
+        kona3error($page, "Sorry, System Error.");
+        exit;
     }
     // counter
     $txt = str_replace("\r\n", "\n", $txt); // CRLF to LF
@@ -51,17 +59,19 @@ function kona3_action_show() {
     $allpage_footer = '';
     if (!empty($kona3conf['allpage_header'])) {
         $allpage_header =
-            "<div class='allpage_header'>". 
+            "<div class='allpage_header'>" .
             konawiki_parser_convert(
-                $kona3conf['allpage_header']).
-                "</div><!-- end of .allpage_hader -->\n";
+                $kona3conf['allpage_header']
+            ) .
+            "</div><!-- end of .allpage_hader -->\n";
     }
     if (!empty($kona3conf['allpage_footer'])) {
-        $allpage_footer = 
-            "<div class='allpage_footer'>".
+        $allpage_footer =
+            "<div class='allpage_footer'>" .
             konawiki_parser_convert(
-                $kona3conf['allpage_footer']).
-                "</div><!-- end of .allpage_footer -->\n";
+                $kona3conf['allpage_footer']
+            ) .
+            "</div><!-- end of .allpage_footer -->\n";
     }
     // tags
     $tags = '';
@@ -76,14 +86,14 @@ function kona3_action_show() {
             $url = kona3getPageURL($page, 'plugin', '', "name=tags&tag=$tag_u");
             $a[] = "<a href='$url'>$tag_h</a>";
         }
-        $tags = '<div class="desc" style="text-align:right;font-size:0.8em;color:gray;">Tags: '.
-            implode('/', $a).'</div>';
+        $tags = '<div class="desc" style="text-align:right;font-size:0.8em;color:gray;">Tags: ' .
+            implode('/', $a) . '</div>';
     }
     //
-    $page_body = 
-        $allpage_header.
-        $page_body.
-        $allpage_footer.
+    $page_body =
+        $allpage_header .
+        $page_body .
+        $allpage_footer .
         $tags;
 
     // edit link
@@ -101,7 +111,8 @@ function kona3_action_show() {
     ]);
 }
 
-function kona3show_check_private($page, $showLoginLink = TRUE) {
+function kona3show_check_private($page, $showLoginLink = TRUE)
+{
     if (kona3getConf('wiki_private')) {
         if (!kona3isLogin()) {
             header('HTTP/1.0 403 Forbidden');
@@ -114,26 +125,29 @@ function kona3show_check_private($page, $showLoginLink = TRUE) {
             $msg_private = lang('Private Mode');
             $msg_please_login = lang('Please login.');
             kona3error(
-                $page, 
-                "<div>$msg_private</div><div>&nbsp;</div>".
-                "<div><a href='$url'>$msg_please_login</a></div>");
+                $page,
+                "<div>$msg_private</div><div>&nbsp;</div>" .
+                    "<div><a href='$url'>$msg_please_login</a></div>"
+            );
             exit;
         }
     }
 }
 
-function kona3show_file_not_found($page, &$ext) {
+function kona3show_file_not_found($page, &$ext)
+{
     $PageNotFound = lang('Page Not Found.');
     $txt = "* {$page}\n{$PageNotFound}\n";
     return $txt;
 }
 
-function kona3show_detect_file($page, &$fname, &$ext) {
+function kona3show_detect_file($page, &$fname, &$ext)
+{
     // is text file?
-    $ext = '.'.kona3getConf('def_text_ext', 'txt');
+    $ext = '.' . kona3getConf('def_text_ext', 'txt');
     $fname = koan3getWikiFileText($page);
     if (file_exists($fname)) {
-        $ext = ".".kona3getFileExt($fname);
+        $ext = "." . kona3getFileExt($fname);
         return TRUE;
     }
     // dir?
@@ -154,8 +168,8 @@ function kona3show_detect_file($page, &$fname, &$ext) {
     return FALSE;
 }
 
-function kona3show_markdown_convert($txt) {
-    require_once dirname(__DIR__).'/kona3parser_md.inc.php';
+function kona3show_markdown_convert($txt)
+{
+    require_once dirname(__DIR__) . '/kona3parser_md.inc.php';
     return kona3markdown_parser_convert($txt);
 }
-

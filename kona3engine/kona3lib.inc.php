@@ -1,16 +1,18 @@
 <?php
+
 /**
  * konawiki3 main library
  */
 // --------------------------------------------------------------
- require_once __DIR__.'/konawiki_version.inc.php';
+require_once __DIR__ . '/konawiki_version.inc.php';
 global $kona3conf;
 $kona3conf['KONAWIKI_VERSION'] = KONAWIKI_VERSION;
 // --------------------------------------------------------------
-require_once __DIR__.'/kona3login.inc.php';
+require_once __DIR__ . '/kona3login.inc.php';
 // --------------------------------------------------------------
 // param
-function kona3param($key, $def = NULL) {
+function kona3param($key, $def = NULL)
+{
     if (isset($_REQUEST[$key])) {
         return $_REQUEST[$key];
     } else {
@@ -18,7 +20,8 @@ function kona3param($key, $def = NULL) {
     }
 }
 
-function kona3parseURI($uri) {
+function kona3parseURI($uri)
+{
     // (ex) /path/index.php?PageName&Action&Status&p1=***&p2=***
     // (ex) /path/index.php?page=PageName&action=Action&status=Status
     global $kona3conf;
@@ -72,7 +75,8 @@ function kona3parseURI($uri) {
     return [$page, $action, $status, $path_args, $script_path];
 }
 
-function kona3lib_parseURI() {
+function kona3lib_parseURI()
+{
     global $kona3conf;
     $uri = $_SERVER["REQUEST_URI"];
     list($page, $action, $status, $_path_args, $script_path) = kona3parseURI($uri);
@@ -91,7 +95,8 @@ function kona3lib_parseURI() {
     );
     kona3getPageTitleLink();
 }
-function kona3getPageTitleLink() {
+function kona3getPageTitleLink()
+{
     global $kona3conf;
 
     $page_title = $page = $kona3conf["page"];
@@ -118,7 +123,8 @@ function kona3getPageTitleLink() {
 }
 
 // execute
-function kona3lib_execute() {
+function kona3lib_execute()
+{
     global $kona3conf;
     $action = $kona3conf["action"];
     $actionFile = kona3getEngineFName("action", $action);
@@ -131,35 +137,42 @@ function kona3lib_execute() {
     }
     include_once($actionFile);
     if (!function_exists($actionFunc)) {
-        kona3error($page, "[System Error] Action not found."); exit;
+        kona3error($page, "[System Error] Action not found.");
+        exit;
     }
     call_user_func($actionFunc);
 }
 
 // get file path from kona3engine dir
-function kona3getEngineFName($dir, $pname) {
+function kona3getEngineFName($dir, $pname)
+{
     global $kona3conf;
     $pname = kona3getPName($pname);
-    $af = KONA3_DIR_ENGINE."/$dir/$pname.inc.php";
+    $af = KONA3_DIR_ENGINE . "/$dir/$pname.inc.php";
     return $af;
 }
 
 // get config data
-function kona3getConf($key, $def = FALSE) {
+function kona3getConf($key, $def = FALSE)
+{
     global $kona3conf;
-    if (empty($kona3conf[$key])) { return $def; }
+    if (empty($kona3conf[$key])) {
+        return $def;
+    }
     return $kona3conf[$key];
 }
 
 // pname(Plugin name) is only alhpabet and number and %_-
-function kona3getPName($pname) {
+function kona3getPName($pname)
+{
     // sanitize path
     $pname = preg_replace("/([^a-zA-Z0-9\_\-\%]+)/", "", $pname);
     return $pname;
 }
 
 // get ext from file path
-function kona3getFileExt($path) {
+function kona3getFileExt($path)
+{
     if (preg_match('#\.([a-zA-Z0-9_]+)$#', $path, $m)) {
         return $m[1];
     }
@@ -167,7 +180,8 @@ function kona3getFileExt($path) {
 }
 
 // wikiname to filename (for text)
-function koan3getWikiFileText($wikiname) {
+function koan3getWikiFileText($wikiname)
+{
     // (1) デフォルトのテキストファイルの存在を確認する
     $default_ext = kona3getConf('def_text_ext', 'txt');
     $path = kona3getWikiFile($wikiname, TRUE, ".$default_ext");
@@ -193,7 +207,8 @@ function koan3getWikiFileText($wikiname) {
 }
 
 // wikiname to filename
-function kona3getWikiFile($wikiname, $autoExt = true, $ext = '.txt', $force_encode = FALSE) {
+function kona3getWikiFile($wikiname, $autoExt = true, $ext = '.txt', $force_encode = FALSE)
+{
     global $kona3conf;
     $path_data = KONA3_DIR_DATA;
 
@@ -202,7 +217,9 @@ function kona3getWikiFile($wikiname, $autoExt = true, $ext = '.txt', $force_enco
         $kona3conf['enc_pagename'] = FALSE;
     }
     $encode = $kona3conf['enc_pagename'];
-    if ($force_encode) { $encode = $force_encode; }
+    if ($force_encode) {
+        $encode = $force_encode;
+    }
 
     // check path traversal (1/2)
     $wikiname = str_replace('..', '', $wikiname);
@@ -224,7 +241,8 @@ function kona3getWikiFile($wikiname, $autoExt = true, $ext = '.txt', $force_enco
 }
 
 // wikiname to url
-function kona3getWikiUrl($wikiname) {
+function kona3getWikiUrl($wikiname)
+{
     global $kona3conf;
     $path_url = $kona3conf["url.data"];
     $file_path = kona3getRelativePath($wikiname);
@@ -239,17 +257,18 @@ function kona3getWikiUrl($wikiname) {
 }
 
 // get wiki data
-function kona3getWikiPage($wikiname, $def = '') {
-    $ext = '.'.kona3getConf('def_text_ext', 'txt');
+function kona3getWikiPage($wikiname, $def = '')
+{
+    $ext = '.' . kona3getConf('def_text_ext', 'txt');
     $file = kona3getWikiFile($wikiname, TRUE, $ext);
     if (file_exists($file)) {
         $text = @file_get_contents($file);
         if ($ext == '.txt') {
-            require_once __DIR__.'/kona3parser.inc.php';
+            require_once __DIR__ . '/kona3parser.inc.php';
             $html = konawiki_parser_convert($text);
             return $html;
         } else {
-            require_once __DIR__.'/kona3parser_md.inc.php';
+            require_once __DIR__ . '/kona3parser_md.inc.php';
             $html = kona3markdown_parser_convert($text);
             return $html;
         }
@@ -258,7 +277,8 @@ function kona3getWikiPage($wikiname, $def = '') {
 }
 
 // relative path from KONA3_DIR_DATA
-function kona3getRelativePath($wikiname) {
+function kona3getRelativePath($wikiname)
+{
     global $kona3conf;
     $path_data = KONA3_DIR_DATA;
 
@@ -284,22 +304,24 @@ function kona3getRelativePath($wikiname) {
 
 
 // show error page
-function kona3error($title, $msg) {
+function kona3error($title, $msg)
+{
     $title = htmlspecialchars($title);
-    $err = "<div class='error_box'>".
-        "<h3 class='error'>$title</h3>".
-        "<div class='error pad'>$msg</div>".
+    $err = "<div class='error_box'>" .
+        "<h3 class='error'>$title</h3>" .
+        "<div class='error pad'>$msg</div>" .
         "</div>";
     kona3template("message.html", array(
         'page_body'  => $err,
     ));
     exit;
 }
-function kona3showMessage($title, $msg, $tpl = '') {
+function kona3showMessage($title, $msg, $tpl = '')
+{
     $title = htmlspecialchars($title);
-    $body = "<div>".
-        "<h3>$title</h3>".
-        "<div class='pad'>$msg</div>".
+    $body = "<div>" .
+        "<h3>$title</h3>" .
+        "<div class='pad'>$msg</div>" .
         "</div>";
     if ($tpl == '') {
         $tpl = 'message.html';
@@ -310,13 +332,14 @@ function kona3showMessage($title, $msg, $tpl = '') {
     exit;
 }
 
-function kona3template_prepare($name, $params) {
+function kona3template_prepare($name, $params)
+{
     global $kona3conf;
     // header tags
     $head_tags = "";
     if (isset($kona3conf['header.tags'])) {
-        foreach($kona3conf['header.tags'] as $tag) {
-            $head_tags .= $tag."\n";
+        foreach ($kona3conf['header.tags'] as $tag) {
+            $head_tags .= $tag . "\n";
         }
     }
     $kona3conf['head_tags'] = $head_tags;
@@ -326,8 +349,8 @@ function kona3template_prepare($name, $params) {
     if (isset($kona3conf['css'])) {
         $csslist = $kona3conf['css'];
         $csslist = array_unique($csslist);
-        foreach($csslist as $c) {
-            $css .= "<link rel=\"stylesheet\" type=\"text/css\"\n".
+        foreach ($csslist as $c) {
+            $css .= "<link rel=\"stylesheet\" type=\"text/css\"\n" .
                 " href=\"{$c}\">\n";
         }
     }
@@ -338,8 +361,8 @@ function kona3template_prepare($name, $params) {
     if (isset($kona3conf['js'])) {
         $jslist = $kona3conf['js'];
         $jslist = array_unique($jslist);
-        foreach($jslist as $j) {
-            $js .= "<script type=\"text/javascript\"\n".
+        foreach ($jslist as $j) {
+            $js .= "<script type=\"text/javascript\"\n" .
                 " src=\"$j\"></script>\n";
         }
     }
@@ -357,34 +380,38 @@ function kona3template_prepare($name, $params) {
         $kona3conf['page'] = 'FrontPage';
     }
     if (empty($kona3conf['data_filename'])) {
-        $kona3conf['data_filename'] = 
+        $kona3conf['data_filename'] =
             kona3getWikiFile($kona3conf['page']);
     }
 }
 
 // Show template
-function kona3template($name, $params) {
+function kona3template($name, $params)
+{
     global $kona3conf, $FW_TEMPLATE_PARAMS;
     kona3template_prepare($name, $params);
     $FW_TEMPLATE_PARAMS = $kona3conf;
     template_render($name, $params);
 }
 
-function kona3getPage() {
+function kona3getPage()
+{
     global $kona3conf;
     $page = $kona3conf["page"];
     return $page;
 }
 
-function kona3getURLParams($params) {
+function kona3getURLParams($params)
+{
     $a = [];
     foreach ($params as $k => $v) {
-        $a[] = urlencode($k)."=".urlencode($v);
+        $a[] = urlencode($k) . "=" . urlencode($v);
     }
     return implode("&", $a);
 }
 
-function kona3getPageURL($page = "", $action = "", $stat = "", $paramStr = "") {
+function kona3getPageURL($page = "", $action = "", $stat = "", $paramStr = "")
+{
     global $kona3conf;
     if ($page == "") $page = $kona3conf["page"];
     $page_ = urlencode($page);
@@ -406,18 +433,19 @@ function kona3getPageURL($page = "", $action = "", $stat = "", $paramStr = "") {
 
     // パラメータを追加
     if ($action != "") {
-        $url .= "&".$action_;
+        $url .= "&" . $action_;
     }
     if ($stat != "") {
-        $url .= "&".$stat_;
+        $url .= "&" . $stat_;
     }
     if ($paramStr != "") {
-        $url .= "&".$paramStr;
+        $url .= "&" . $paramStr;
     }
     return $url;
 }
 
-function kona3getResourceURL($file, $use_mtime = FALSE) {
+function kona3getResourceURL($file, $use_mtime = FALSE)
+{
     global $kona3conf;
     // remove dir travasal
     $file = str_replace('..', '', $file);
@@ -430,7 +458,8 @@ function kona3getResourceURL($file, $use_mtime = FALSE) {
     return kona3getPageURL($file, "resource");
 }
 
-function kona3getSkinURL($file, $use_mtime = FALSE) {
+function kona3getSkinURL($file, $use_mtime = FALSE)
+{
     global $kona3conf;
     $skin = $kona3conf['skin'];
     // check invalid skin pattern
@@ -451,14 +480,16 @@ function kona3getSkinURL($file, $use_mtime = FALSE) {
     return kona3getPageURL($file, "skin");
 }
 
-function kona3text2html($text) {
+function kona3text2html($text)
+{
     return htmlentities($text, ENT_QUOTES, 'UTF-8');
 }
 
 // filename to wikiname
-function kona3getWikiName($filename) {
+function kona3getWikiName($filename)
+{
     global $kona3conf;
-    $path_data = KONA3_DIR_DATA.'/';
+    $path_data = KONA3_DIR_DATA . '/';
     $f = str_replace($path_data, "", $filename);
     if (preg_match('#(.+)\.(txt|md)$#', $f, $m)) {
         $f = $m[1];
@@ -468,24 +499,26 @@ function kona3getWikiName($filename) {
     return $f;
 }
 
-function kona3getSysInfo() {
+function kona3getSysInfo()
+{
     global $kona3conf;
     $href = "https://kujirahand.com/konawiki3/";
     $ver  = KONAWIKI_VERSION;
     $opt = "";
     if ($kona3conf["wiki_private"]) $opt .= "(private)";
     return
-        "<span class='konawiki3copyright'>".
-        "<a href=\"$href\">Konawiki3 v.{$ver} {$opt}</a>".
+        "<span class='konawiki3copyright'>" .
+        "<a href=\"$href\">Konawiki3 v.{$ver} {$opt}</a>" .
         "</span>";
 }
 
-function kona3getCtrlMenuArray($type) {
+function kona3getCtrlMenuArray($type)
+{
     global $kona3conf;
     $page = $kona3conf['page'];
     //
     $new_uri = kona3getPageURL($page, 'new');
-    $edit_uri = kona3getPageURL($page, 'edit', '', 'edit_token='.kona3_getEditToken($page, FALSE));
+    $edit_uri = kona3getPageURL($page, 'edit', '', 'edit_token=' . kona3_getEditToken($page, FALSE));
     $login_uri = kona3getPageURL($page, 'login');
     $logout_uri = kona3getPageURL($page, 'logout');
     $search_uri = kona3getPageURL($page, 'search');
@@ -495,7 +528,7 @@ function kona3getCtrlMenuArray($type) {
     $FrontPage_uri = kona3getPageURL($kona3conf['FrontPage']);
     $users_uri = kona3getPageURL($page, 'users');
     //
-    $FrontPage_label = '🏠 '.$kona3conf['FrontPage'];
+    $FrontPage_label = '🏠 ' . $kona3conf['FrontPage'];
     //
     $list = array();
     if (!kona3isLogin()) {
@@ -531,7 +564,8 @@ function kona3getCtrlMenuArray($type) {
     return $list;
 }
 
-function kona3getCtrlMenu($type='bar') {
+function kona3getCtrlMenu($type = 'bar')
+{
     $list = kona3getCtrlMenuArray($type);
     // render
     if ($type == 'bar') {
@@ -558,14 +592,15 @@ function kona3getCtrlMenu($type='bar') {
                 $ha[] = "<li></li>";
             }
         }
-        return '<ul>'.implode("", $ha).'</ul>';
+        return '<ul>' . implode("", $ha) . '</ul>';
     }
     return '[ctrl_menu-error-no-type--]';
 }
 
 // localize
 $lang_data = null;
-function lang($msg, $def = null) {
+function lang($msg, $def = null)
+{
     global $lang_data;
     // Load message data
     if (!$lang_data) {
@@ -585,7 +620,8 @@ function lang($msg, $def = null) {
     return isset($def) ? $def : $msg;
 }
 
-function kona3getLangCode() {
+function kona3getLangCode()
+{
     // check code
     $lang = kona3getConf('lang', 'en');
     // language should be [a-z]+
@@ -599,21 +635,25 @@ function kona3getLangCode() {
 }
 
 // get page body hash
-function kona3getPageHash($body) {
+function kona3getPageHash($body)
+{
     return hash("sha256", $body);
 }
 
 
 // for template
-function t_url($v) {
+function t_url($v)
+{
     echo kona3getPageURL($v);
 }
-function t_edit_url($v) {
+function t_edit_url($v)
+{
     echo kona3getPageURL($v, 'edit');
 }
 
 
-function kona3date($value, $mode='easy') {
+function kona3date($value, $mode = 'easy')
+{
     // for time=0
     if ($value === 0) return "@";
     // to_int
@@ -668,7 +708,8 @@ function kona3datetime($value)
 }
 
 // plugin info
-function kona3_getPluginInfo($plugin_name, $key, $def = FALSE) {
+function kona3_getPluginInfo($plugin_name, $key, $def = FALSE)
+{
     global $kona3conf;
     if (isset($kona3conf["plugins"][$plugin_name][$key])) {
         return $kona3conf["plugins"][$plugin_name][$key];
@@ -676,7 +717,8 @@ function kona3_getPluginInfo($plugin_name, $key, $def = FALSE) {
     return $def;
 }
 
-function kona3_setPluginInfo($plugin_name, $key, $value) {
+function kona3_setPluginInfo($plugin_name, $key, $value)
+{
     global $kona3conf;
     if (!isset($kona3conf['plugins'])) {
         $kona3conf['plugins'] = [];
@@ -728,11 +770,13 @@ function kona3getPluginPathInfo($pname)
     ];
 }
 
-function kona3_getEditTokenKeyName($key) {
+function kona3_getEditTokenKeyName($key)
+{
     return "konawiki3_edit_token_{$key}";
 }
 
-function kona3_getEditTokenForceUpdate($key = 'default') {
+function kona3_getEditTokenForceUpdate($key = 'default')
+{
     global $kona3conf;
     $sname = kona3_getEditTokenKeyName($key);
     $sname_time = "{$sname}.time";
@@ -746,7 +790,8 @@ function kona3_getEditTokenForceUpdate($key = 'default') {
     return $kona3conf[$sname];
 }
 
-function kona3_getEditToken($key = 'default', $update = TRUE) {
+function kona3_getEditToken($key = 'default', $update = TRUE)
+{
     global $kona3conf;
     $sname = kona3_getEditTokenKeyName($key);
     $sname_time = "{$sname}.time";
@@ -769,21 +814,25 @@ function kona3_getEditToken($key = 'default', $update = TRUE) {
     return $kona3conf[$sname];
 }
 
-function kona3_checkEditToken($key = 'default') {
+function kona3_checkEditToken($key = 'default')
+{
     $sname = kona3_getEditTokenKeyName($key);
     $ses = isset($_SESSION[$sname]) ? $_SESSION[$sname] : '';
     $get = isset($_REQUEST['edit_token']) ? trim($_REQUEST['edit_token']) : '';
-    if ($ses === '') { return FALSE; }
+    if ($ses === '') {
+        return FALSE;
+    }
     return ($ses === $get);
 }
 
-function kona3getShortcutLink() {
+function kona3getShortcutLink()
+{
     // get url
     $host = empty($_SERVER['HTTP_HOST']) ? "" : $_SERVER['HTTP_HOST'];
     $scriptname = dirname($_SERVER['SCRIPT_NAME']);
     // check last path
     if (substr($scriptname, strlen($scriptname) - 1, 1) == '/') {
-      $scriptname = substr(0, strlen($scriptname) - 1);
+        $scriptname = substr(0, strlen($scriptname) - 1);
     }
     $scheme = (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on')) ? 'https' : 'http';
     $base_url = "{$scheme}://{$host}{$scriptname}/go.php";
@@ -791,19 +840,22 @@ function kona3getShortcutLink() {
     // get page_id
     $page = $_GET['page'];
     $page_id = kona3db_getPageId($page);
-    if ($page_id == 0) { return '<!-- no shortcut -->'; }
+    if ($page_id == 0) {
+        return '<!-- no shortcut -->';
+    }
     $url = "{$base_url}?{$page_id}";
     // get real url
     $real_url = kona3getPageURL($page);
     $page_h = htmlspecialchars($page, ENT_QUOTES);
-    return "".
-        "<a href=\"$real_url\">$page_h</a><br>".
+    return "" .
+        "<a href=\"$real_url\">$page_h</a><br>" .
         "<a href=\"$url\">$url</a><br>";
 }
 
 
 
-function kona3lib_send_email($to, $subject, $email_body) {
+function kona3lib_send_email($to, $subject, $email_body)
+{
     $admin_email = kona3getConf('admin_email', '');
     if ($admin_email == '' || $admin_email == 'admin@example.com') {
         return;
@@ -820,18 +872,21 @@ function kona3lib_send_email($to, $subject, $email_body) {
     $stmt->execute([$to, $email_body, $subject, time()]);
 }
 
-function kona3lib_send_email_to_admin($subject, $email_body) {
+function kona3lib_send_email_to_admin($subject, $email_body)
+{
     $admin_email = kona3getConf('admin_email', '');
     kona3lib_send_email($admin_email, $subject, $email_body);
 }
 
-function kona3jump($url, $msg = '') {
+function kona3jump($url, $msg = '')
+{
     header("Location: $url");
     $msg = ($msg == '') ? "Jump to <a href='$url'>$url</a>" : $msg;
     kona3showMessage('Jump', $msg);
 }
 
-function kona3path_join($path, $file) {
+function kona3path_join($path, $file)
+{
     if (substr($path, -1) == '/') {
         return $path . $file;
     } else {
@@ -875,7 +930,7 @@ function kona3postDiscordWebhook($page, $msg = '')
     // page link
     $app_url = kona3getPageURL($page);
     //メッセージの内容を定義
-    $contents = sprintf(lang('The page "%s" has been updated.'), $page)."\n$app_url";
+    $contents = sprintf(lang('The page "%s" has been updated.'), $page) . "\n$app_url";
     $message = array(
         'username' => $wikiTitle,
         'content'  => $contents
@@ -938,7 +993,8 @@ function kona3getPageId($page, $canCreate = FALSE) {
 }
 */
 
-function kona3lib_checkSecurity() {
+function kona3lib_checkSecurity()
+{
     // check security version
     $security_check_file = KONA3_DIR_PRIVATE . '/.security_check.v3_3_12.php';
     if (file_exists($security_check_file)) {
@@ -965,4 +1021,49 @@ EOS;
     $body_htaccess = KONA3_DIR_DATA . '/.htaccess';
     file_put_contents($body_htaccess, $htaccessBody);
     file_put_contents($security_check_file, "ok");
+}
+
+// file lock save
+function kona3lock_save($path, $contents, $retry = 3, $usleep = 100000)
+{
+    for ($try = 0; $try < $retry; $try++) {
+        $fp = fopen($path, 'c+');
+        if (!$fp) {
+            return FALSE;
+        }
+        if (flock($fp, LOCK_EX)) {
+            ftruncate($fp, 0);
+            fwrite($fp, $contents);
+            flock($fp, LOCK_UN);
+            fclose($fp);
+            return TRUE;
+        }
+        fclose($fp);
+        usleep($usleep);
+    }
+    return FALSE;
+}
+
+// file lock load
+function kona3lock_load($path, $retry = 3, $usleep = 100000)
+{
+    // ファイルかどうかチェック
+    if (is_file($path) === FALSE) {
+        return FALSE;
+    }
+    for ($try = 0; $try < $retry; $try++) {
+        $fp = fopen($path, 'r');
+        if (!$fp) {
+            return FALSE;
+        }
+        if (flock($fp, LOCK_SH)) {
+            $contents = fread($fp, filesize($path));
+            flock($fp, LOCK_UN);
+            fclose($fp);
+            return $contents;
+        }
+        fclose($fp);
+        usleep($usleep);
+    }
+    return FALSE;
 }

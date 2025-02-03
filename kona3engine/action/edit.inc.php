@@ -66,8 +66,7 @@ function kona3_action_edit()
         if (!file_exists($fname)) {
             $fname = kona3getWikiFile($page, FALSE, '');
         }
-        if (file_exists($fname)) {
-            $txt = @file_get_contents($fname);
+        if (is_file($fname)) {
             // check filesize
             $sz = @filesize($fname);
             $max_edit_size = intval(kona3getConf('max_edit_size', '0'));
@@ -82,6 +81,11 @@ function kona3_action_edit()
                     );
                     exit;
                 }
+            }
+            $txt = kona3lock_load($fname);
+            if ($txt === FALSE) {
+                kona3error('Could not read file.', 'Could not read file.');
+                exit;
             }
         }
     }
@@ -393,8 +397,8 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
         kona3db_writePage($page, trim($edit_txt), $user_id, $tags);
     } else {
         // write
-        $bytes = @file_put_contents($fname, $edit_txt);
-        if ($bytes === FALSE) {
+        $b = kona3lock_save($fname, $edit_txt);
+        if ($b === FALSE) {
             $msg = lang('Could not write file.');
             kona3_edit_err($msg, $i_mode, $postId);
             $result = FALSE;
