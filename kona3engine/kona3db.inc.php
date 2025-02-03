@@ -27,7 +27,7 @@ function kona3db_getPageId($page, $canCreate = FALSE)
                     // ファイルの存在チェック
                     $file = koan3getWikiFileText($v['name']);
                     if (file_exists($file)) {
-                        echo $v['name'] . " => " . $v['page_id'] . "\n";
+                        // echo $v['name'] . " => " . $v['page_id'] . "\n";
                         $kona3pageIds[$v['name']] = $v['page_id'];
                     }
                 }
