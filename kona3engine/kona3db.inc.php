@@ -57,23 +57,16 @@ function kona3db_getPageId($page, $canCreate = FALSE)
 
 function kona3db_getPageNameById($page_id)
 {
-    global $kona3db_pagenames;
-    if (isset($kona3db_pagenames[$page_id])) {
-        return $kona3db_pagenames[$page_id];
+    // load page_id
+    global $kona3pageIds;
+    if ($kona3pageIds === NULL) {
+        kona3db_getPageId(kona3getConf("FrontPage"), FALSE);
     }
-    if (!isset($kona3db_pagenames)) {
-        $kona3db_pagenames = [];
-    }
-
-    $r = db_get1(
-        "SELECT * FROM pages " .
-            "WHERE page_id = ? " .
-            "LIMIT 1",
-        [$page_id]
-    );
-    if ($r) {
-        $name = $kona3db_pagenames[$page_id] = $r['name'];
-        return $name;
+    // search
+    foreach ($kona3pageIds as $name => $id) {
+        if ($id == $page_id) {
+            return $name;
+        }
     }
     return '';
 }
