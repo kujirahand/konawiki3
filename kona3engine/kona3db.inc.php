@@ -12,7 +12,8 @@ function kona3db_getPageId($page, $canCreate = FALSE)
     if ($kona3pageIds === NULL) {
         // load KONA3_PAGE_ID_JSON
         if (file_exists(KONA3_PAGE_ID_JSON)) {
-            $kona3pageIds = json_decode(file_get_contents(KONA3_PAGE_ID_JSON), TRUE);
+            $jsonData = kona3lock_load(KONA3_PAGE_ID_JSON);
+            $kona3pageIds = json_decode($jsonData, TRUE);
         } else {
             $kona3pageIds = [];
             // (旧バージョンのための対応) データベースファイルがある？
@@ -23,10 +24,15 @@ function kona3db_getPageId($page, $canCreate = FALSE)
                 $r = $pdo->query("SELECT * FROM pages");
                 $kona3pageIds = [];
                 foreach ($r as $v) {
-                    $kona3pageIds[$v['name']] = $v['page_id'];
+                    // ファイルの存在チェック
+                    $file = koan3getWikiFileText($v['name']);
+                    if (file_exists($file)) {
+                        echo $v['name'] . " => " . $v['page_id'] . "\n";
+                        $kona3pageIds[$v['name']] = $v['page_id'];
+                    }
                 }
                 // save
-                file_put_contents(KONA3_PAGE_ID_JSON, json_encode($kona3pageIds));
+                kona3lock_save(KONA3_PAGE_ID_JSON, json_encode($kona3pageIds, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
             }
         }
     }
@@ -44,7 +50,7 @@ function kona3db_getPageId($page, $canCreate = FALSE)
             }
         }
         $kona3pageIds[$page] = $maxId + 1;
-        file_put_contents(KONA3_PAGE_ID_JSON, json_encode($kona3pageIds, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        kona3lock_save(KONA3_PAGE_ID_JSON, json_encode($kona3pageIds, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
     }
     return 0;
 }
