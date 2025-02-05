@@ -4,6 +4,8 @@ define("KONA3_PAGE_ID_JSON", KONA3_DIR_DATA . "/.kona3_page_id.json");
 
 global $kona3pageIds;
 $kona3pageIds = NULL;
+global $kona3pageIdCache;
+$kona3pageIdCache = [];
 
 // ページIDを取得する
 function kona3db_getPageId($page, $canCreate = FALSE)
@@ -21,7 +23,7 @@ function kona3db_getPageId($page, $canCreate = FALSE)
             if (file_exists($old_db)) {
                 // load
                 $pdo = new PDO("sqlite:$old_db");
-                $r = $pdo->query("SELECT * FROM pages");
+                $r = $pdo->query("SELECT * FROM pages"); // 自動的にJSONに移行
                 $kona3pageIds = [];
                 foreach ($r as $v) {
                     // ファイルの存在チェック
@@ -59,12 +61,19 @@ function kona3db_getPageNameById($page_id)
 {
     // load page_id
     global $kona3pageIds;
+    global $kona3pageIdCache;
+    // load data
     if ($kona3pageIds === NULL) {
         kona3db_getPageId(kona3getConf("FrontPage"), FALSE);
+    }
+    // check cache
+    if (isset($kona3pageIdCache[$page_id])) {
+        return $kona3pageIdCache[$page_id];
     }
     // search
     foreach ($kona3pageIds as $name => $id) {
         if ($id == $page_id) {
+            $kona3pageIdCache[$page_id] = $name;
             return $name;
         }
     }

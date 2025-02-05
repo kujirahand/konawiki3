@@ -962,42 +962,6 @@ function kona3postDiscordWebhook($page, $msg = '')
     */
 }
 
-/*
-function kona3getPageId($page, $canCreate = FALSE) {
-    $kona3info = KONA3_DIR_DATA . "/.kona3info.json";
-    $info = [];
-    if (!file_exists($kona3info)) {
-        $pages = db_get("SELECT * FROM pages");
-        if ($pages) {
-            $info['pages'] = [];
-            $info['meta'] = ['max_page_id' => 0];
-            $max_page_id = 0;
-            foreach ($pages as $p) {
-                $page_id = $p['page_id'];
-                $name = $p['name'];
-                $info['pages'][$name] = $page_id;
-                if ($max_page_id < $page_id) { $max_page_id = $page_id; }
-            }
-            $info['meta']['max_page_id'] = $max_page_id + 1;
-        }
-        file_put_contents($kona3info, json_encode($info, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-    } else {
-        $info = json_decode(file_get_contents($kona3info), TRUE);
-    }
-    if (isset($info['pages'][$page])) {
-        return $info['pages'][$page];
-    }
-    if ($canCreate) {
-        $page_id = $info['meta']['max_page_id'];
-        $info['pages'][$page] = $page_id;
-        $info['meta']['max_page_id'] = $page_id + 1;
-        file_put_contents($kona3info, json_encode($info, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-        return $page_id;
-    }
-    return 0;
-}
-*/
-
 function kona3lib_checkSecurity()
 {
     // check security version
