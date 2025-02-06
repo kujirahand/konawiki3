@@ -7,8 +7,11 @@
 // Charset Setting
 mb_internal_encoding("UTF-8");
 mb_detect_encoding("UTF-8,SJIS,EUC-JP,JIS,ASCII");
-ini_set('default_charset', 'UTF-8');
-header("Content-Type: text/html; charset=UTF-8");
+// Web interface
+if (php_sapi_name() !== 'cli') {
+    ini_set('default_charset', 'UTF-8');
+    header("Content-Type: text/html; charset=UTF-8");
+}
 
 include_once __DIR__ . '/kona3lib.inc.php';
 include_once __DIR__ . '/php_fw_simple/fw_database.lib.php';
@@ -99,8 +102,8 @@ function kona3conf_gen()
     $baseurl = ".";
     // URL
     $scheme = isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http';
-    $host = $_SERVER['HTTP_HOST'];
-    $script = $_SERVER['SCRIPT_NAME'];
+    $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
+    $script = isset($_SERVER['SCRIPT_NAME']) ? $_SERVER['SCRIPT_NAME'] : '/index.php';
     // go.php?
     if (basename($script) == 'go.php') {
         $script = dirname($script) . '/index.php';

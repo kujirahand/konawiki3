@@ -78,19 +78,21 @@ function kona3parseURI($uri)
 function kona3lib_parseURI()
 {
     global $kona3conf;
-    $uri = $_SERVER["REQUEST_URI"];
+    $uri = isset($_SERVER["REQUEST_URI"]) ? $_SERVER["REQUEST_URI"] : "";
+    $script_name = isset($_SERVER["SCRIPT_NAME"]) ? $_SERVER["SCRIPT_NAME"] : "";
+    $host = isset($_SERVER["HTTP_HOST"]) ? $_SERVER["HTTP_HOST"] : "localhost";
     list($page, $action, $status, $_path_args, $script_path) = kona3parseURI($uri);
     // set to conf
     $kona3conf['page']   = $_GET['page']   = $page;
     $kona3conf['action'] = $_GET['action'] = $action;
     $kona3conf['status'] = $_GET['status'] = $status;
     //
-    $script = $kona3conf['scriptname'] = basename($_SERVER['SCRIPT_NAME']);
+    $script = $kona3conf['scriptname'] = basename($script_name);
     $script_dir = preg_replace("#/{$script}$#", "", $script_path);
     $kona3conf['baseurl'] = sprintf(
         "%s://%s%s",
         isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http',
-        $_SERVER['HTTP_HOST'],
+        $host,
         $script_dir
     );
     kona3getPageTitleLink();
