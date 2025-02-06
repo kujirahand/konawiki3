@@ -64,7 +64,7 @@ function kona3db_getPageNameById($page_id, $default = '')
 
 function kona3db_writePage($page, $body, $user_id = 0, $tags = NULL)
 {
-    $page_id = kona3db_getPageId($page, TRUE);
+    $page_id = kona3db_getPageId($page, TRUE); // in kona3db_writePage
     $hash = kona3getHash($body);
     // check 1 hour history
     $recent_time = time() - (60 * 60 * 1);

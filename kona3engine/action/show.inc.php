@@ -6,6 +6,7 @@ function kona3_action_show()
 {
     global $kona3conf;
     $page = $kona3conf["page"];
+    $file_exists = FALSE;
 
     // check login
     kona3show_check_private($page);
@@ -21,6 +22,7 @@ function kona3_action_show()
             $txt = kona3show_file_not_found($page, $ext);
         } else {
             $kona3conf['data_filename'] = $fname;
+            $file_exists = TRUE;
         }
     } else {
         $txt = kona3show_file_not_found($page, $ext);
@@ -75,19 +77,21 @@ function kona3_action_show()
     }
     // tags
     $tags = '';
-    $page_id = kona3db_getPageId($page, true);
-    $tags_a = db_get('SELECT * FROM tags WHERE page_id=?', [$page_id]);
-    if ($tags_a) {
-        $a = [];
-        foreach ($tags_a as $t) {
-            $tag = $t['tag'];
-            $tag_h = htmlspecialchars($tag);
-            $tag_u = urlencode($tag);
-            $url = kona3getPageURL($page, 'plugin', '', "name=tags&tag=$tag_u");
-            $a[] = "<a href='$url'>$tag_h</a>";
+    if ($file_exists) {
+        $page_id = kona3db_getPageId($page, TRUE); // exists page
+        $tags_a = db_get('SELECT * FROM tags WHERE page_id=?', [$page_id]);
+        if ($tags_a) {
+            $a = [];
+            foreach ($tags_a as $t) {
+                $tag = $t['tag'];
+                $tag_h = htmlspecialchars($tag);
+                $tag_u = urlencode($tag);
+                $url = kona3getPageURL($page, 'plugin', '', "name=tags&tag=$tag_u");
+                $a[] = "<a href='$url'>$tag_h</a>";
+            }
+            $tags = '<div class="desc" style="text-align:right;font-size:0.8em;color:gray;">Tags: ' .
+                implode('/', $a) . '</div>';
         }
-        $tags = '<div class="desc" style="text-align:right;font-size:0.8em;color:gray;">Tags: ' .
-            implode('/', $a) . '</div>';
     }
     //
     $page_body =
