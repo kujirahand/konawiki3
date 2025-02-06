@@ -7,7 +7,7 @@
 require_once __DIR__ . '/konawiki_version.inc.php';
 // check directories
 if (!defined('KONA3_DIR_PRIVATE')) {
-    define('KONA3_DIR_PRIVATE', __DIR__ . '/private');
+    define('KONA3_DIR_PRIVATE', dirname(__DIR__) . '/private');
 }
 if (!defined('KONA3_DIR_ENGINE')) {
     define('KONA3_DIR_ENGINE', __DIR__);

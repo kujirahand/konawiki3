@@ -81,6 +81,9 @@ function kona3conf_gen()
     if (!defined('KONA3_DIR_DATA')) {
         define('KONA3_DIR_DATA', dirname(__DIR__) . '/data');
     }
+    if (!defined('KONA3_DIR_PRIVATE')) {
+        define('KONA3_DIR_PRIVATE', dirname(__DIR__) . '/private');
+    }
     if (!defined('KONA3_DIR_SKIN')) {
         define('KONA3_DIR_SKIN', dirname(__DIR__) . '/skin');
     }
@@ -154,20 +157,24 @@ function kona3conf_gen()
     $DIR_TEMPLATE = KONA3_DIR_ENGINE . '/template';
     $DIR_TEMPLATE_CACHE = KONA3_DIR_CACHE;
     $FW_ADMIN_EMAIL = $kona3conf['admin_email'];
-
     // Database library
-    $file_info_sqlite = KONA3_DIR_DATA . '/.info.sqlite';
-    if (!file_exists($file_info_sqlite)) {
-        $old_info_sqlite = KONA3_DIR_PRIVATE . '/info.sqlite';
-        if (file_exists($old_info_sqlite)) {
-            @rename($old_info_sqlite, $file_info_sqlite);
+    $file_info_sqlite = KONA3_DIR_PRIVATE . '/info.sqlite';
+    $old_file_info_sqlite = KONA3_DIR_DATA . '/.info.sqlite';
+    if (!file_exists($file_info_sqlite)) { // rename old file
+        // 古いDBファイルがあれば、新しいパスに移動する
+        if (file_exists($old_file_info_sqlite)) {
+            // ファイルを異動する前にpage_idを移行する
+            kona3_conf_read_old_page_ids($old_file_info_sqlite);
+            @kona3db_getPageId(kona3getConf("FrontPage"), FALSE);
+            // ファイルを移動する
+            @rename($old_file_info_sqlite, $file_info_sqlite);
         }
     }
     // main database
     database_set(
-        $file_info_sqlite,
-        $DIR_TEMPLATE . '/info.sql',
-        'main'
+        $file_info_sqlite, // DB file path
+        $DIR_TEMPLATE . '/info.sql', // SQL file path
+        'main' // Name of DB
     );
     // autologin database
     database_set(
@@ -181,5 +188,36 @@ function kona3conf_gen()
         $DIR_TEMPLATE . '/subdb.sql',
         'subdb'
     );
-    $_dbMain = database_get();
+    try {
+        database_get('main');
+    } catch (Exception $e) {
+        echo "<pre><h1>DB ERROR</h1>\n";
+        echo "[FILE] $file_info_sqlite\n";
+        throw $e;
+    }
+}
+
+// (旧v.3.3.11以前のDB対応) データベースファイルがあればそれを読み込む
+function kona3_conf_read_old_page_ids($old_db_path)
+{
+    $kona3pageIds = [];
+    // v3.3.11 以前のバージョンのデータベース
+    if (file_exists($old_db_path)) {
+        // load
+        $pdo = new PDO("sqlite:$old_db_path");
+        $r = $pdo->query("SELECT * FROM pages"); // 自動的にJSONに移行
+        $kona3pageIds = [];
+        foreach ($r as $v) {
+            // ファイルの存在チェック
+            $file = koan3getWikiFileText($v['name']);
+            if (file_exists($file)) {
+                // echo $v['name'] . " => " . $v['page_id'] . "\n";
+                $kona3pageIds[$v['name']] = $v['page_id'];
+            }
+        }
+        $pdo = null;
+        // save
+        kona3lock_save(KONA3_PAGE_ID_JSON, json_encode($kona3pageIds, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+    }
+    return $kona3pageIds;
 }

@@ -8,10 +8,10 @@ function database_set($file_db, $file_sql, $dbname = 'main')
 {
     global $FW_DB_INFO;
     $FW_DB_INFO[$dbname] = [
-    'file_db' => $file_db,
-    'file_sql' => $file_sql,
-    'handle' => null,
-  ];
+        'file_db' => $file_db,
+        'file_sql' => $file_sql,
+        'handle' => null,
+    ];
 }
 
 function database_get($dbname = 'main')
@@ -37,7 +37,7 @@ function database_get($dbname = 'main')
     if (! file_exists($file_db)) {
         $need_init = true;
     }
-    $pdo = new PDO('sqlite:'.$file_db);
+    $pdo = new PDO('sqlite:' . $file_db);
     $FW_DB_INFO[$dbname]['handle'] = $pdo;
     // エラーで例外を投げる
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -120,8 +120,8 @@ function db_get1($sql, $params = array(), $dbname = 'main')
 function db_table_exists($table, $dbname = 'main')
 {
     $r = db_get1(
-        "SELECT * FROM sqlite_master ".
-        "WHERE type='table' AND name=?",
+        "SELECT * FROM sqlite_master " .
+            "WHERE type='table' AND name=?",
         [$table],
         $dbname
     );
