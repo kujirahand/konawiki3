@@ -5,7 +5,7 @@ require_once __DIR__ . '/kona3conf.inc.php';
 global $kona3pageIds, $kona3pageIdCache;
 // init global
 $kona3pageIds = NULL;
-$kona3pageIdCache = [];
+$kona3pageIdCache = NULL;
 
 // ページIDを取得する
 function kona3db_getPageId($page, $canCreate = FALSE)
@@ -50,7 +50,10 @@ function kona3db_getPageNameById($page_id, $default = '')
     if ($kona3pageIds === NULL) {
         // load
         kona3db_getPageId(kona3getConf("FrontPage"), FALSE);
-        // make cache
+    }
+    // make cache
+    if ($kona3pageIdCache === NULL) {
+        $kona3pageIdCache = [];
         foreach ($kona3pageIds as $name => $id) {
             $kona3pageIdCache[$id] = $name;
         }

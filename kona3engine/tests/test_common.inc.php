@@ -35,10 +35,10 @@ function test_assert($line, $b, $desc = 'assert')
 
 function test_eq($line, $a, $b, $desc = 'eq')
 {
-    return test_assert($line, $a === $b, "$desc: $a === $b");
+    return test_assert($line, $a === $b, "$desc: `$a` === `$b`");
 }
 
 function test_ne($line, $a, $b, $desc = 'eq')
 {
-    return test_assert($line, $a !== $b, "$desc: $a !== $b");
+    return test_assert($line, $a !== $b, "$desc: `$a` !== `$b`");
 }
