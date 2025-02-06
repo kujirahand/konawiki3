@@ -1028,7 +1028,12 @@ function kona3lock_load($path, $retry = 3, $usleep = 100000)
             return FALSE;
         }
         if (flock($fp, LOCK_SH)) {
-            $contents = fread($fp, filesize($path));
+            $size = filesize($path);
+            if ($size > 0) {
+                $contents = fread($fp, $size);
+            } else {
+                $contents = '';
+            }
             flock($fp, LOCK_UN);
             fclose($fp);
             return $contents;
