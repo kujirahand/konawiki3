@@ -853,8 +853,8 @@ function kona3getShortcutLink()
     $real_url = kona3getPageURL($page);
     $page_h = htmlspecialchars($page, ENT_QUOTES);
     return "" .
-        "<a href=\"$real_url\">$page_h</a><br>" .
-        "<a href=\"$url\">$url</a><br>";
+        "<a href=\"$real_url\">$page_h</a>&nbsp;" .
+        "(<a href=\"$url\">{$page_id}</a>)";
 }
 
 

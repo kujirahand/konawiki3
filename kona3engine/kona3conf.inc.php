@@ -74,11 +74,18 @@ function kona3conf_gen()
 {
     global $kona3conf;
 
+    // Directories
+    if (!defined('KONA3_DIR_DATA')) {
+        define('KONA3_DIR_DATA', dirname(__DIR__) . '/data');
+    }
     if (!defined('KONA3_DIR_SKIN')) {
         define('KONA3_DIR_SKIN', dirname(__DIR__) . '/skin');
     }
     if (!defined('KONA3_DIR_CACHE')) {
         define('KONA3_DIR_CACHE', dirname(__DIR__) . '/cache');
+    }
+    if (!defined('KONA3_PAGE_ID_JSON')) {
+        define("KONA3_PAGE_ID_JSON", KONA3_DIR_DATA . "/.kona3_page_id.json");
     }
 
     // robots

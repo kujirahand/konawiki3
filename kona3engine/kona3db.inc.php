@@ -1,10 +1,10 @@
 <?php
 // file: kona3db.inc.php
-define("KONA3_PAGE_ID_JSON", KONA3_DIR_DATA . "/.kona3_page_id.json");
-
-global $kona3pageIds;
+require_once __DIR__ . '/kona3conf.inc.php';
+// global
+global $kona3pageIds, $kona3pageIdCache;
+// init global
 $kona3pageIds = NULL;
-global $kona3pageIdCache;
 $kona3pageIdCache = [];
 
 // ページIDを取得する
@@ -17,25 +17,8 @@ function kona3db_getPageId($page, $canCreate = FALSE)
             $jsonData = kona3lock_load(KONA3_PAGE_ID_JSON);
             $kona3pageIds = json_decode($jsonData, TRUE);
         } else {
-            $kona3pageIds = [];
-            // (旧バージョンのための対応) データベースファイルがある？
-            $old_db = KONA3_DIR_DATA . "/.info.sqlite";
-            if (file_exists($old_db)) {
-                // load
-                $pdo = new PDO("sqlite:$old_db");
-                $r = $pdo->query("SELECT * FROM pages"); // 自動的にJSONに移行
-                $kona3pageIds = [];
-                foreach ($r as $v) {
-                    // ファイルの存在チェック
-                    $file = koan3getWikiFileText($v['name']);
-                    if (file_exists($file)) {
-                        // echo $v['name'] . " => " . $v['page_id'] . "\n";
-                        $kona3pageIds[$v['name']] = $v['page_id'];
-                    }
-                }
-                // save
-                kona3lock_save(KONA3_PAGE_ID_JSON, json_encode($kona3pageIds, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-            }
+            // 旧バージョンのデータベースを確認する
+            $kona3pageIds = kona3db_getPageId_loadOldDB();
         }
     }
     // return page id
@@ -57,27 +40,51 @@ function kona3db_getPageId($page, $canCreate = FALSE)
     return 0;
 }
 
-function kona3db_getPageNameById($page_id)
+// ページIDから名前を取得する
+function kona3db_getPageNameById($page_id, $default = '')
 {
     // load page_id
     global $kona3pageIds;
     global $kona3pageIdCache;
     // load data
     if ($kona3pageIds === NULL) {
+        // load
         kona3db_getPageId(kona3getConf("FrontPage"), FALSE);
+        // make cache
+        foreach ($kona3pageIds as $name => $id) {
+            $kona3pageIdCache[$id] = $name;
+        }
     }
     // check cache
     if (isset($kona3pageIdCache[$page_id])) {
         return $kona3pageIdCache[$page_id];
     }
-    // search
-    foreach ($kona3pageIds as $name => $id) {
-        if ($id == $page_id) {
-            $kona3pageIdCache[$page_id] = $name;
-            return $name;
+    return $default;
+}
+
+// (旧v.3.3.11以前のDB対応) データベースファイルがあればそれを読み込む
+function kona3db_getPageId_loadOldDB()
+{
+    $kona3pageIds = [];
+    // v3.3.11 以前のバージョンのデータベース
+    $old_db = KONA3_DIR_DATA . "/.info.sqlite";
+    if (file_exists($old_db)) {
+        // load
+        $pdo = new PDO("sqlite:$old_db");
+        $r = $pdo->query("SELECT * FROM pages"); // 自動的にJSONに移行
+        $kona3pageIds = [];
+        foreach ($r as $v) {
+            // ファイルの存在チェック
+            $file = koan3getWikiFileText($v['name']);
+            if (file_exists($file)) {
+                // echo $v['name'] . " => " . $v['page_id'] . "\n";
+                $kona3pageIds[$v['name']] = $v['page_id'];
+            }
         }
+        // save
+        kona3lock_save(KONA3_PAGE_ID_JSON, json_encode($kona3pageIds, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
     }
-    return '';
+    return $kona3pageIds;
 }
 
 function kona3db_writePage($page, $body, $user_id = 0, $tags = NULL)
