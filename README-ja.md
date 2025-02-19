@@ -38,7 +38,7 @@ text text text text
 ・item3
 ```
 
-## PukiWikiに似た記法を採用
+## Konawiki記法について
 
 とてもシンプルなPukiWikiっぽいWiki記法もサポート！
 
