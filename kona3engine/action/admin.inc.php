@@ -66,7 +66,8 @@ function kona3setup_config()
     if ($q == 'save') {
         // check token
         if (!kona3_checkEditToken($editTokenKey)) {
-            kona3error("Invalid Token", "<a href='javascript:history.back()'>Plase back</a>, and submit form again.");
+            $backMsg = lang('Please go back and resubmit the form.');
+            kona3error(lang("Invalid Token"), "<a href='javascript:history.back()'>{$backMsg}</a>");
             exit;
         } else {
             unset($conf['edit_key']);
