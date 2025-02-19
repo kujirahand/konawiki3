@@ -774,7 +774,7 @@ function kona3getPluginPathInfo($pname)
 
 function kona3_getEditTokenKeyName($key)
 {
-    return "konawiki3_edit_token_{$key}";
+    return "konawiki3_edit_token::{$key}";
 }
 
 function kona3_getEditTokenForceUpdate($key = 'default')

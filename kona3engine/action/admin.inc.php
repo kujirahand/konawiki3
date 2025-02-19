@@ -67,7 +67,11 @@ function kona3setup_config()
         // check token
         if (!kona3_checkEditToken($editTokenKey)) {
             $backMsg = lang('Please go back and resubmit the form.');
-            kona3error(lang("Invalid Token"), "<a href='javascript:history.back()'>{$backMsg}</a>");
+            $sessionMsg = lang("If it doesn't work no matter how many times you try, please initialize the session.");
+            kona3error(
+                lang("Invalid Token"),
+                "<a href='javascript:history.back()'>{$backMsg}</a><br>{$sessionMsg}"
+            );
             exit;
         } else {
             unset($conf['edit_key']);
@@ -154,7 +158,6 @@ function kona3sestup_admin_write_pw($userid, $pw)
 
 function kona3setup_check_admin_user()
 {
-    global $kona3conf;
     $file_kona3users_json = kona3getFile_kona3adminuser_json_php();
     if (file_exists($file_kona3users_json)) {
         return TRUE;
@@ -178,7 +181,9 @@ function kona3setup_check_admin_user()
         kona3sestup_admin_write_pw($userid, $pw);
         kona3login($userid, $userid, 'admin', $userid);
         $userid_ = urldecode($userid);
-        echo "<h1>Success! <a href='index.php?admin={$userid_}'>Please access the FrontPage.</a></h1>";
+        $success = lang('Success!');
+        $FrontPageMsg = lang('Please access the `FrontPage`.');
+        echo "<h1>{$success} <a href='index.php?admin={$userid_}'>$FrontPageMsg</a></h1>";
         exit;
     }
     echo 'q param error';

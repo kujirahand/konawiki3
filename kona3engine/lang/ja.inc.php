@@ -109,4 +109,7 @@ $lang_data = [
     'Please make wiki page.' => 'Wikiページが存在しないため、最初に「新規」ボタンからページを作成してください。',
     'Please review the settings.' => '下記の設定を確認して[Save]ボタンを押してください。この設定はいつでも変更できます。',
     'Please go back and resubmit the form.' => '→こちらから前のページに戻り改めてフォームを送信してください。',
+    'Success!' => '成功しました！',
+    'Please access the `FrontPage`.' => '`FrontPage`にアクセスしましょう。',
+    'If it doesn\'t work no matter how many times you try, please initialize the session.' => '何度試してもうまく動かない場合、セッションを初期化してください。',
 ];
