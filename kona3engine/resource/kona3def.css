@@ -1274,3 +1274,7 @@ ul.topnavi a
   font-size: 1.0em;
   line-height: 1.8em;
 }
+
+.plugin_warn {
+  background-color: #fff0f0;
+}
