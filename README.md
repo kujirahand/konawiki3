@@ -1,21 +1,21 @@
-# KonaWiki3
+# Konawiki3
 
-- KonaWiki3 is Wiki clone.
+Konawiki is a simple Wiki designed specifically for writing manuscripts, creating manuals, and sharing information.
+
+- Konawiki3 is Wiki clone.
 - [URL] http://kujirahand.com/konawiki3/
 - [日本語のREADME](README-ja.md)
 
-# Goals of KonaWiki3
-
-KonaWiki is a simple Wiki designed specifically for writing manuscripts, creating manuals, and sharing information.
+# Goals of Konawiki3
 
 The data in the Wiki is just plain text files, which allows for detailed differences to be tracked in conjunction with Git.
-Developers have been using KonaWiki3 as a substitute for text editors for many years. Let's accomplish great tasks using the small and simple KonaWiki.
+You can use Konawiki3 instead of a text editor. Let's accomplish great tasks using the small and simple Konawiki.
 
-Additionally, through the configuration options, it is possible to save in Markdown as well as KonaWiki notation. You can use your preferred notation for markup.
+Additionally, through the configuration options, it is possible to save in `Markdown` as well as `Konawiki notation`. You can use your preferred notation for markup.
 
-## KonaWiki3 is simple.
+## Konawiki3 is simple.
 
-It is very simple PHP wiki engine.
+It is very simple wiki engine.
 
 ```
 * header

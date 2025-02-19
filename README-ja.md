@@ -1,16 +1,17 @@
 # Konawiki3 (日本語マニュアル)
 
- - KonaWiki3 is Wiki clone.
+Konawikiは原稿の執筆やマニュアルの作成、情報の共有に特化したシンプルなWikiです。
+
+ - Konawiki3 is Wiki clone.
  - [URL] http://kujirahand.com/konawiki3/
 
 ## Konawiki3の目標
 
-KonaWikiは原稿の執筆やマニュアルの作成、情報の共有に特化したシンプルなWikiです。
 Wikiのデータはただのテキストファイルなので、Gitと連携して詳細な差分を取ることもできます。
-開発者は何年もテキストエディタの代わりにKonaWiki3を使用しています。
+テキストエディタの代わりにKonawiki3を使用できます。
 小さくシンプルなKonawikiを使って大きな仕事を成し遂げましょう。
 
-なお、設定オプションで、KonaWiki記法だけでなく、Markdownで保存することも可能です。
+なお、設定オプションで、Konawiki記法だけでなく、Markdownで保存することも可能です。
 好きな記法を利用してマークアップできます。
 
 ## 日本語Wiki記法をサポートしています
@@ -68,7 +69,7 @@ console.log('hello');
 
 ## 記法はKonawikiとMarkdownを切り替えて使える！
 
-オプションで、Markdownに切り替えもできるので、好きな記法で書けるのがKonaWikiの良いところです！
+オプションで、Markdownに切り替えもできるので、好きな記法で書けるのがKonawikiの良いところです！
 
 ## AIによる執筆サポート機能を実装
 
@@ -90,7 +91,7 @@ Gitコマンドが使えるなら、コマンド一発で設置が可能です�
 
 ### Gitを使わない方法:
 
-1. [KonaWiki3のreleaseからZIPをダウンロード](https://github.com/kujirahand/konawiki3/releases)
+1. [Konawiki3のreleaseからZIPをダウンロード](https://github.com/kujirahand/konawiki3/releases)
 2. 以下のようにパーミッションを変更
 
 ```sh
