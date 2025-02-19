@@ -389,26 +389,32 @@ function nako3doc_list_kana($mode)
     $wiki = "* [[命令一覧]] / [[カナ順:命令一覧/カナ順]]\n";
 
     // 同名の命令があればプラグインを明示
+    $names = [];
     for ($i = 0; $i < count($ra) - 1; $i++) {
-        $name1 = $ra[$i + 0]['name'];
-        $name2 = $ra[$i + 1]['name'];
-        if ($name1 != $name2) {
+        $j = $i;
+        $name1 = $ra[$i]['name'];
+        if (!empty($names[$name1])) {
+            $j = $names[$name1];
+        } else {
+            $names[$name1] = $i;
+        }
+        if ($i == $j) {
             if (isset($ra[$i]['name_show'])) continue;
             $ra[$i]['name_show'] = $ra[$i]['name'];
             $ra[$i]['kana_show'] = $ra[$i]['kana'];
             continue;
         }
         $plugin1 = $ra[$i]['plugin'];
-        $plugin2 = $ra[$i + 1]['plugin'];
+        $plugin2 = $ra[$j]['plugin'];
         $plugin1 = str_replace('plugin_', '', $plugin1);
         $plugin2 = str_replace('plugin_', '', $plugin2);
         $plugin1 = str_replace('nadesiko3-', '', $plugin1);
         $plugin2 = str_replace('nadesiko3-', '', $plugin2);
         $kana1 = $ra[$i]['kana'];
-        $ra[$i + 0]['name_show'] = "$name1($plugin1)";
-        $ra[$i + 1]['name_show'] = "$name1($plugin2)";
-        $ra[$i + 0]['kana_show'] = "$kana1($plugin1)";
-        $ra[$i + 1]['kana_show'] = "$kana1($plugin2)";
+        $ra[$i]['name_show'] = "$name1 ($plugin1)";
+        $ra[$j]['name_show'] = "$name1 ($plugin2)";
+        $ra[$i]['kana_show'] = "$kana1 ($plugin1)";
+        $ra[$j]['kana_show'] = "$kana1 ($plugin2)";
     }
 
     $ch = $chLast = '';
