@@ -16,6 +16,8 @@ function kona3db_getPageId($page, $canCreate = FALSE)
         if (file_exists(KONA3_PAGE_ID_JSON)) {
             $jsonData = kona3lock_load(KONA3_PAGE_ID_JSON);
             $kona3pageIds = json_decode($jsonData, TRUE);
+        } else {
+            $kona3pageIds = [];
         }
     }
     // return page id
