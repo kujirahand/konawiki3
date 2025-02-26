@@ -193,6 +193,10 @@ function kona3conf_gen()
     } catch (Exception $e) {
         echo "<pre><h1>DB ERROR</h1>\n";
         echo "[FILE] $file_info_sqlite\n";
+        echo "<p><a href='https://github.com/kujirahand/konawiki3'>Please setup konawiki3.</a></p>";
+        if (!is_dir(KONA3_DIR_PRIVATE)) {
+            echo "<p>Please make `private` dir.</p>";
+        }
         throw $e;
     }
 }

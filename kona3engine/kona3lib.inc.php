@@ -779,41 +779,40 @@ function kona3_getEditTokenKeyName($key)
 
 function kona3_getEditTokenForceUpdate($key = 'default')
 {
-    global $kona3conf;
     $sname = kona3_getEditTokenKeyName($key);
     $sname_time = "{$sname}.time";
-    // update token
-    if (empty($kona3conf[$sname])) {
+    // generate new token
+    if (empty($_SESSION[$sname])) {
         $token = bin2hex(random_bytes(32));
         $_SESSION[$sname] = $token;
         $_SESSION[$sname_time] = time();
-        $kona3conf[$sname] = $token;
     }
-    return $kona3conf[$sname];
+    return $_SESSION[$sname];
 }
 
 function kona3_getEditToken($key = 'default', $update = TRUE)
 {
-    global $kona3conf;
     $sname = kona3_getEditTokenKeyName($key);
     $sname_time = "{$sname}.time";
+    $limit = 60 * 60 * 24; // 1day
+
+    // force update?
     if ($update) {
         return kona3_getEditTokenForceUpdate($key);
     }
+
     // check empty
     if (empty($_SESSION[$sname])) {
         return kona3_getEditTokenForceUpdate($key);
     }
-    // check time
-    $ONE_DAY = 60 * 60 * 24; // 1day
+
+    // check expire
     $time = isset($_SESSION[$sname_time]) ? $_SESSION[$sname_time] : time();
-    $expire_time = $time + $ONE_DAY;
-    if (time() > $expire_time) {
+    if (time() - $time >  $limit) {
         return kona3_getEditTokenForceUpdate($key);
     }
-    $_SESSION[$sname_time] = time(); // update
-    $kona3conf[$sname] = $_SESSION[$sname];
-    return $kona3conf[$sname];
+
+    return $_SESSION[$sname];
 }
 
 function kona3_checkEditToken($key = 'default')
@@ -821,9 +820,12 @@ function kona3_checkEditToken($key = 'default')
     $sname = kona3_getEditTokenKeyName($key);
     $ses = isset($_SESSION[$sname]) ? $_SESSION[$sname] : '';
     $get = isset($_REQUEST['edit_token']) ? trim($_REQUEST['edit_token']) : '';
-    if ($ses === '') {
+    if ($ses == '') {
         return FALSE;
     }
+    // CSRFトークンが一致したら即座に無効化（使い捨て）
+    unset($_SESSION[$sname]);
+    unset($_SESSION[$sname.".time"]);
     return ($ses === $get);
 }
 

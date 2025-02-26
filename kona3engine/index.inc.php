@@ -1,10 +1,15 @@
 <?php
-
 /**
  * KonaWiki3 kona3engine/index.inc.php
  */
-// konawiki version
+// global
+global $kona3conf;
+if (!isset($kona3conf)) { $kona3conf = []; }
+$kona3conf_notExists = true;
+
+ // konawiki version
 require_once __DIR__ . '/konawiki_version.inc.php';
+
 // check directories
 if (!defined('KONA3_DIR_PRIVATE')) {
     define('KONA3_DIR_PRIVATE', dirname(__DIR__) . '/private');
@@ -12,12 +17,6 @@ if (!defined('KONA3_DIR_PRIVATE')) {
 if (!defined('KONA3_DIR_ENGINE')) {
     define('KONA3_DIR_ENGINE', __DIR__);
 }
-// global
-global $kona3conf;
-if (!isset($kona3conf)) {
-    $kona3conf = [];
-}
-$kona3conf_notExists = true;
 
 // Load Config data
 $file_kona3conf_json = KONA3_DIR_PRIVATE . '/kona3conf.json.php';
@@ -68,6 +67,7 @@ kona3conf_init($kona3conf);
 kona3conf_gen();
 // parse url
 kona3lib_parseURI();
+// execute
 if ($kona3conf_notExists) {
     if (!in_array($kona3conf['action'], ['resource', 'skin', 'logout'])) {
         $_GET['action'] = $kona3conf['action'] = 'admin';

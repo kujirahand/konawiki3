@@ -48,7 +48,7 @@ function kona3setup_config()
         echo "<html><body><a href='index.php?go&login'>Please Login.</a></body></html>";
         exit;
     }
-    $editTokenKey = 'admin_edit_conf';
+    $editTokenKey = 'kona3setup_config';
     $file_conf = KONA3_DIR_PRIVATE . '/kona3conf.json.php';
     $conf = jsonphp_load($file_conf, []);
     kona3conf_init($conf);
@@ -66,11 +66,16 @@ function kona3setup_config()
     if ($q == 'save') {
         // check token
         if (!kona3_checkEditToken($editTokenKey)) {
+            echo "<pre>";
+            print_r($_POST);
+            print_r($_SESSION);
+            echo "</pre>";
             $backMsg = lang('Please go back and resubmit the form.');
             $sessionMsg = lang("If it doesn't work no matter how many times you try, please initialize the session.");
             kona3error(
                 lang("Invalid Token"),
-                "<a href='javascript:history.back()'>{$backMsg}</a><br>{$sessionMsg}"
+                "<a href='javascript:history.back()'>{$backMsg}</a><br>{$sessionMsg}" . 
+                "<p class='font-size:0.5em;text-align:right;'><a href='index.php?all&reset'>Reset</a></p>"
             );
             exit;
         } else {
