@@ -1278,3 +1278,7 @@ ul.topnavi a
 .plugin_warn {
   background-color: #fff0f0;
 }
+
+#wikimessage input[type="submit"] {
+  padding: 0.6em;
+}

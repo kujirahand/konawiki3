@@ -772,6 +772,9 @@ function kona3getPluginPathInfo($pname)
     ];
 }
 
+// -----------------------------------------------
+// CSRF token functions
+// -----------------------------------------------
 function kona3_getEditTokenKeyName($key)
 {
     return "konawiki3_edit_token::{$key}";
@@ -790,7 +793,7 @@ function kona3_getEditTokenForceUpdate($key = 'default')
     return $_SESSION[$sname];
 }
 
-function kona3_getEditToken($key = 'default', $update = TRUE)
+function kona3_getEditToken($key = 'default', $update = FALSE)
 {
     $sname = kona3_getEditTokenKeyName($key);
     $sname_time = "{$sname}.time";
@@ -819,15 +822,33 @@ function kona3_checkEditToken($key = 'default')
 {
     $sname = kona3_getEditTokenKeyName($key);
     $ses = isset($_SESSION[$sname]) ? $_SESSION[$sname] : '';
-    $get = isset($_REQUEST['edit_token']) ? trim($_REQUEST['edit_token']) : '';
+    $get = isset($_POST['edit_token']) ? trim($_POST['edit_token']) : '';
     if ($ses == '') {
         return FALSE;
     }
-    // CSRFトークンが一致したら即座に無効化（使い捨て）
-    unset($_SESSION[$sname]);
-    unset($_SESSION[$sname.".time"]);
     return ($ses === $get);
 }
+
+function kona3_getEditTokenForm($page = 'default', $action = 'edit', $label = 'Edit', $style = '')
+{
+    // style
+    if ($style !== '') {
+        $style = "style='$style'";
+    }
+    // get token
+    $edit_token = kona3_getEditToken($page);
+    $url = kona3getPageURL($page, $action);
+    // html
+    $html = implode("\n", [
+        "<form method='POST' action='$url'>",
+        "<input type='hidden' name='edit_token' value='$edit_token'>",
+        "<input type='submit' class='pure-button pure-button-primary' value='$label' $style>",
+        "</form>",
+    ]);
+    return $html;
+}
+
+// -----------------------------------------------
 
 function kona3getShortcutLink()
 {

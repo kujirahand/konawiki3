@@ -99,19 +99,22 @@ function kona3_action_show()
         $page_body .
         $allpage_footer .
         $tags;
-
-    // edit link
-    $edit_link = "";
-    if (kona3isLogin()) {
-        $edit_link = kona3getPageURL($page, "edit", "", "edit_token=" . kona3_getEditToken($page, FALSE));
-    }
+    $is_login = kona3isLogin();
+    $edit_button_html = $is_login ? kona3_getEditTokenForm(
+        $page,
+        'edit',
+        lang('Edit'),
+        'font-size: 0.8em; background-color: white; color: blue; padding: 0.4em;'
+    ) : '';
     // show
     kona3template('show.html', [
         "page_title" => $page,
         "page_body"  => $page_body,
         "cnt_txt"    => $cnt_txt,
         "page_file"  => $fname,
-        "edit_link"  => $edit_link,
+        // for edit
+        "is_login" => $is_login,
+        "edit_button_html" => $edit_button_html,
     ]);
 }
 

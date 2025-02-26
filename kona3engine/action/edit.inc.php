@@ -168,24 +168,37 @@ function kona3edit_checkEditToken($page, $i_mode)
     // check edit_token
     if (!kona3_checkEditToken($page)) {
         $label = lang('Edit');
-        $edit_token = kona3_getEditToken($page, FALSE);
-        $url = kona3getPageURL($page, 'edit', '', "edit_token=" . $edit_token);
+        $edit_token = kona3_getEditToken($page, TRUE);
+        $url = kona3getPageURL($page, 'edit', '');
         $page_html = htmlspecialchars($page, ENT_QUOTES);
+        $label_page = "$label &gt; $page_html";
+        $msg = lang('Invalid edit token.');
+        // form or ajax
         if ($i_mode == 'form') {
+            /*
+            // DEBUG CSRF
+            echo "<pre>";
+            print_r($_POST);
+            print_r($_SESSION);
+            echo "</pre>";
+            */
+            $form = kona3_getEditTokenForm($page, 'edit', $label_page);
             kona3showMessage(
-                $label,
-                "<a href='$url' class='pure-button pure-button-primary'>" .
-                    "$label - $page_html</a>"
+                "$label > $page_html",
+                "$msg<br>$form"
             );
-        } else {
+        } else { // ajax
             $postId = intval(kona3param('postId', 0));
             $edit_token = '';
+            /*
+            // check all session
             foreach ($_SESSION as $key => $val) {
                 if (is_string($val)) {
                     $edit_token .= "[$key=$val]";
                 }
             }
-            kona3_edit_err(lang('Invalid edit token.') . "et=$edit_token", $i_mode, $postId);
+            */
+            kona3_edit_err(lang('Invalid edit token.') . "token=$edit_token", $i_mode, $postId);
         }
         exit;
     }
