@@ -520,7 +520,7 @@ function kona3getCtrlMenuArray($type)
     $page = $kona3conf['page'];
     //
     $new_uri = kona3getPageURL($page, 'new');
-    $edit_uri = kona3getPageURL($page, 'edit', '', 'edit_token=' . kona3_getEditToken($page, FALSE));
+    $edit_uri = kona3getPageURL($page, 'edit', '');
     $login_uri = kona3getPageURL($page, 'login');
     $logout_uri = kona3getPageURL($page, 'logout');
     $search_uri = kona3getPageURL($page, 'search');

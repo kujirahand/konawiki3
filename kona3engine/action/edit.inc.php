@@ -18,13 +18,12 @@ function kona3_action_edit()
 {
     global $kona3conf, $page;
 
+    // get parameters
     $ext = "txt";
     $page = $kona3conf["page"];
     $action = kona3getPageURL($page, "edit");
     $a_mode = kona3param('a_mode', '');
     $i_mode = kona3param('i_mode', 'form'); // or ajax
-    $q = kona3param("q");
-    $cmd = kona3param("cmd");
     $git_enabled = $kona3conf["git_enabled"];
     $page_id = kona3db_getPageId($page, FALSE);
 
@@ -32,26 +31,22 @@ function kona3_action_edit()
     if (!kona3edit_checkPermission($page, $i_mode)) {
         return;
     }
-    // check edit_token
-    if (!kona3edit_checkEditToken($page, $i_mode)) {
-        return;
+
+    // check $cmd
+    $cmd = kona3param("cmd");
+    if ($cmd != '') {
+        return edit_command($cmd);
+    }
+    // check $q
+    $q = kona3param("q");
+    if ($q == 'ai') {
+        return kona3edit_ai_ajax($page);
+    } else if ($q == 'ai_edit_template') {
+        return kona3ai_edit_template();
     }
 
     // generate edit_token ... (memo) 強制的に更新しないことで不要な書き込みエラーを防ぐ
     $edit_token = kona3_getEditToken($page, FALSE);
-
-    // check $cmd or $q
-    // edit_command ?
-    if ($cmd != '') {
-        return edit_command($cmd);
-    }
-    // AI mode
-    if ($q == 'ai') {
-        return kona3edit_ai();
-    }
-    if ($q == 'ai_edit_template') {
-        return kona3ai_edit_template();
-    }
 
     // load body
     $txt = "";
@@ -92,7 +87,14 @@ function kona3_action_edit()
     }
     $a_hash = kona3getPageHash($txt);
 
+
     // Check mode
+    if ($a_mode !== '') {
+        // check edit_token
+        if (!kona3edit_checkEditToken($page, $i_mode)) {
+            return;
+        }
+    }
     if ($a_mode == "trywrite" && $i_mode == "form" && $git_enabled) {
         // save & show with git
         $msg = kona3_trygit($txt, $a_hash, $i_mode);
@@ -210,7 +212,9 @@ function kona3edit_checkEditToken($page, $i_mode)
 function edit_command($cmd)
 {
     global $kona3conf, $page;
-
+    if (!kona3edit_checkEditToken($page, 'form')) {
+        return;
+    }
     $page = $kona3conf["page"];
     $action = kona3getPageURL($page, "edit");
 
@@ -497,9 +501,13 @@ function kona3_trygit(&$txt, &$a_hash, $i_mode)
     echo "ok, saved.";
 }
 
-function kona3edit_ai()
+function kona3edit_ai_ajax($page)
 {
     // この時点で既に認証を通過しているので安心して応答を返して良い
+    if (!kona3edit_checkEditToken($page, 'ajax')) {
+        return;
+    }
+
     header('Content-Type: application/json');
     $apikey = kona3getConf('openai_apikey', '');
     if ($apikey == '') {
