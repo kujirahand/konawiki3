@@ -51,7 +51,7 @@ function kona3setup_config()
     $editTokenKey = 'kona3setup_config';
     $file_conf = KONA3_DIR_PRIVATE . '/kona3conf.json.php';
     $conf = jsonphp_load($file_conf, []);
-    kona3conf_init($conf);
+    kona3conf_setWikiConf($conf);
     // check arguments
     $q = empty($_REQUEST['q']) ? '' : $_REQUEST['q'];
     if ($q == '') {

@@ -13,8 +13,12 @@ include_once __DIR__ . '/kona3db.inc.php';
 // --------------------
 function kona3conf_init()
 {
+    global $kona3conf;
+    if (empty($kona3conf)) {
+        $kona3conf = [];
+    }
     kona3conf_setPHPConf();
-    kona3conf_setWikiConf();
+    kona3conf_setWikiConf($kona3conf);
     kona3conf_checkDirs();
     kona3conf_setURI();
     kona3conf_setHeaderFooter();
@@ -34,10 +38,8 @@ function kona3conf_setPHPConf()
     }
 }
 
-function kona3conf_setWikiConf()
+function kona3conf_setWikiConf(&$kona3conf)
 {
-    global $kona3conf;
-
     // default settings
     $defaultConf = [
         'KONAWIKI_VERSION' => KONAWIKI_VERSION,
@@ -83,7 +85,7 @@ function kona3conf_setWikiConf()
             "なでしこ" => "nako3",
         ],
     ];
-    kona3conf_setDefault($defaultConf);
+    kona3conf_setDefault($kona3conf, $defaultConf);
 
     // -------------------------------------------
     // plugin diallow
@@ -103,9 +105,8 @@ function check_conf(&$conf, $key, $def)
     }
 }
 
-function kona3conf_setDefault($defaultValues)
+function kona3conf_setDefault(&$kona3conf, $defaultValues)
 {
-    global $kona3conf;
     foreach ($defaultValues as $key => $value) {
         if (!isset($kona3conf[$key])) {
             $kona3conf[$key] = $value;
@@ -165,7 +166,7 @@ function kona3conf_setURI()
         'path_resource' => KONA3_DIR_ENGINE . '/resource',
         'scriptname' => 'index.php',
     ];
-    kona3conf_setDefault($urlValues);
+    kona3conf_setDefault($kona3conf, $urlValues);
 
     // check
     $url_data = $kona3conf["url.data"];
