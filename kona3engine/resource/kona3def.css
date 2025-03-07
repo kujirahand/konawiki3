@@ -1282,3 +1282,12 @@ ul.topnavi a
 #wikimessage input[type="submit"] {
   padding: 0.6em;
 }
+
+.footnote {
+  font-size: 0.8em;
+  color: gray;
+  margin: 1em 1em 1em 2em;
+  padding: 1em 1em 1em 1em;
+  background-color: #fcfcfc;
+  border: 1px solid #c0e4ee;
+}

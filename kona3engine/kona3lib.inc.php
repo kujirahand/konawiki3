@@ -526,9 +526,9 @@ function kona3getCtrlMenuArray($type)
     $search_uri = kona3getPageURL($page, 'search');
     $pdf_uri = kona3getPageURL($page, 'pdf');
     $attach_uri = kona3getPageURL($page, 'attach');
-    $email_logs_uri = kona3getPageURL($page, 'emailLogs');
     $FrontPage_uri = kona3getPageURL($kona3conf['FrontPage']);
-    $users_uri = kona3getPageURL($page, 'users');
+    // $email_logs_uri = kona3getPageURL($page, 'emailLogs');
+    // $users_uri = kona3getPageURL($page, 'users');
     //
     $FrontPage_label = '🏠 ' . $kona3conf['FrontPage'];
     //
