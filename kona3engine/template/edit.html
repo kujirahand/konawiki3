@@ -75,8 +75,9 @@
           <input type="text" id="replace_val" class="info" style="width: 50%;" value="" placeholder="Replace"><br>
           <button id="replace1_btn" onclick="replace1()">{{'Replace'|lang}} x1</button>
           <button id="replaceA_btn" onclick="replaceAll()">{{'Replace'|lang}} all</button>
+          <button id="replace_undo_btn" onclick="replaceUndo()">{{'Undo'|lang}}</button>
           <input type="checkbox" id="replace_regexp" class="info" style="width:2em;" name="replace_regexp" value="yes">
-          <label for="replace_regexp">RegExp</label>
+          <label for="replace_regexp">{{ 'RegExp' | lang }}</label>
         </div>
       </div>
       <div id="history_div" class="block2" style="display: none;">
