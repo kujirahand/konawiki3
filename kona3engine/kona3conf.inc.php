@@ -84,6 +84,7 @@ function kona3conf_setWikiConf(&$kona3conf)
             "画像" => "ref",
             "なでしこ" => "nako3",
         ],
+        'mermaid_cli' => '',
     ];
     kona3conf_setDefault($kona3conf, $defaultConf);
 
