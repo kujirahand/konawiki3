@@ -43,6 +43,9 @@ EOS;
         $pageDir = dirname($pagePath); // ページのディレクトリを取得
         $full_svg = $pageDir . "/" . $filename . ".svg"; // フルパスを作成
         $full_mmd = $pageDir . "/" . $filename . ".mmd"; // フルパスを作成
+        // ファイルへのリンクを作成
+        $url_svg = kona3getWikiUrl($full_svg); // URLを取得
+        $result .= "<div><a href=\"{$url_svg}\" target=\"_blank\">→ svg</a></div>\n";
         // mermaild-cliを使ってSVGファイルを出力
         if (file_exists($full_mmd)) {
             $old = file_get_contents($full_mmd);
