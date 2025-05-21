@@ -2,6 +2,7 @@
 
 /** mermaid notation
  * - [Usage] {{{#mermaid(filename) ... }}}
+ * - [Usage] {{{#mermaid(file=filename) ... }}}
  * filename --- もし、mermaid-cliがインストールされているなら、SVGファイルを出力する
  * 設定ファイルで「mermaid_cli」を指定する必要がある
  */
@@ -35,6 +36,7 @@ EOS;
     $mermaid_cli = kona3getConf("mermaid_cli", "");
     if ($filename && $mermaid_cli) {
         // 正規化 - [a-zA-Z0-9\-_]のみにする
+        $filename = preg_replace("/^file=/", "", $filename); // file=を削除
         $filename = preg_replace("/\.svg$/", "", $filename); // .svgを削除
         $filename = preg_replace("/[^a-zA-Z0-9\-\_\.]/", "_", $filename);
         // WIKIページから相対的なファイル名を求める
