@@ -11,8 +11,13 @@
 function kona3plugins_mermaid_execute($args)
 {
     global $kona3conf;
-    $filename = array_shift($args);
-    $text = array_shift($args);
+    if (count($args) >= 2) {
+        $filename = array_shift($args);
+        $text = array_shift($args);
+    } else {
+        $filename = "";
+        $text = array_shift($args);
+    }
     $head = '';
     //
     $text_html = htmlspecialchars($text);
