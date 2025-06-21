@@ -13,6 +13,7 @@ $lang_data = [
     'PDF' => '📃 PDF',
     'Attach' => '📂 添付',
     'Upload' => 'アップロード',
+    'Print' => '印刷',
     'Filename' => 'ファイル名',
     'Optional' => '省略可',
     'Private Mode' => '⛔ 非公開モード',
