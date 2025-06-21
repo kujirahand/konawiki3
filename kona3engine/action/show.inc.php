@@ -2,7 +2,7 @@
 
 /** KonaWiki3 show */
 
-function kona3_action_show()
+function kona3_action_show($actionMode = "")
 {
     global $kona3conf;
     $page = $kona3conf["page"];
@@ -106,8 +106,14 @@ function kona3_action_show()
         lang('Edit'),
         'font-size: 0.8em; background-color: white; color: blue; padding: 0.4em;'
     ) : '';
+
     // show
-    kona3template('show.html', [
+    $templateFile = 'show.html';
+    if ($actionMode == 'print') {
+        $templateFile = 'print.html';
+    }
+
+    kona3template($templateFile, [
         "page_title" => $page,
         "page_body"  => $page_body,
         "cnt_txt"    => $cnt_txt,
