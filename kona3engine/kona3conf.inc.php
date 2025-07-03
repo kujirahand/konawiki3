@@ -239,12 +239,6 @@ function kona3conf_setDatabase()
         $DIR_TEMPLATE . '/info.sql', // SQL file path
         'main' // Name of DB
     );
-    // autologin database
-    database_set(
-        KONA3_DIR_PRIVATE . '/autologin.sqlite',
-        $DIR_TEMPLATE . '/autologin.sql',
-        'autologin'
-    );
     // subdb database
     database_set(
         KONA3_DIR_PRIVATE . '/subdb.sqlite',
