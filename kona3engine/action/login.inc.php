@@ -8,7 +8,7 @@ function kona3_action_login()
     $page = kona3param('page', '');
     $action = kona3getPageURL($page, "login");
     $am   = kona3param('a_mode', '');
-    $user = kona3param('a_user', '');
+    $user = kona3param('a_email', '');
     $pw   = kona3param('a_pw',   '');
     $editTokenKey = 'login_page';
     $msg = '';
