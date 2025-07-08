@@ -1,6 +1,6 @@
 <?php
 /** コラムの囲み
- * - [書式] {{{#column_md(class) ... }}}
+ * - [書式] {{{#md(class) ... }}}
  * - [引数]
  * -- class ... クラス名(省略可)
  * - [公開設定] 公開
@@ -8,7 +8,7 @@
 
 require_once dirname(__DIR__).'/kona3parser_md.inc.php';
 
-function kona3plugins_column_md_execute($args) {
+function kona3plugins_md_execute($args) {
   if (!$args) return "";
   $class = "column";
   if (count($args) >= 2) {
