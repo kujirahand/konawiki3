@@ -3,7 +3,7 @@
 /** 最近更新されたページを列挙する
  * - [書式] #recent(count[,title][,filter=xxx])
  * - [引数]
- * -- count ... 件数(省略可)
+ * -- count ... 件数(省略すると10件)
  * -- title .... ページ名ではなくテキスト一行目を表示する(省略可)
  * -- filter ... 正規表現でフィルタする(省略可)
  * - [例]
@@ -35,26 +35,27 @@ function kona3plugins_recent_execute($args)
             continue;
         }
     }
-    // select
+    // select - page_idをユニークにして最新のエントリを取得
     $r = db_get(
-        "SELECT * FROM page_history " .
-            "WHERE mtime > 0 " .
-            "ORDER BY mtime DESC " .
-            "LIMIT ?",
+        "SELECT ph1.* FROM page_history ph1 " .
+            "INNER JOIN ( " .
+            "    SELECT page_id, MAX(mtime) as max_mtime " .
+            "    FROM page_history " .
+            "    WHERE mtime > 0 " .
+            "    GROUP BY page_id " .
+            "    ORDER BY max_mtime DESC " .
+            "    LIMIT ? " .
+            ") ph2 ON ph1.page_id = ph2.page_id AND ph1.mtime = ph2.max_mtime " .
+            "ORDER BY ph1.mtime DESC",
         [$limit]
     );
     $head = "<h3>" . lang('Recent') . "</h3>";
     if (!$r) {
         return $head . "<p>None</p>";
     }
-    $uniq_ids = [];
     $list = "";
     foreach ($r as $v) {
         $page_id = $v["page_id"];
-        if (isset($uniq_ids[$page_id])) {
-            continue;
-        }
-        $uniq_ids[$page_id] = TRUE;
         $page = kona3db_getPageNameById($page_id);
         if ($filter) {
             if (!preg_match("#$filter#", $page)) {
@@ -63,6 +64,9 @@ function kona3plugins_recent_execute($args)
         }
         $mtime = $v["mtime"];
         if ($page == "FrontPage" || $page == "MenuBar" || $page == "GlobalBar") {
+            continue;
+        }
+        if ($page == "") {
             continue;
         }
         $url = kona3getPageURL($page);
