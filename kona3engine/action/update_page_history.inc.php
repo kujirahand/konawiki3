@@ -10,10 +10,36 @@ function kona3_action_update_page_history()
         kona3error("Login Required", "You must be logged in to perform this action.");
         return;
     }
+    // user_id=0の人だけが実行可能
+    $info = kona3getLoginInfo();
+    $user_id = $info['user_id'];
+    if ($user_id != 0) {
+        kona3error("Invalid User", "You must be logged in as a valid user.");
+        return;
+    }
 
     $data_dir = KONA3_DIR_DATA;
     echo "<pre>";
+    
+    // リンクを表示
+    $current_url = $_SERVER['REQUEST_URI'];
+    $base_url = preg_replace('/[\?\&]clear=\w+/', '', $current_url);
+    $separator = (strpos($base_url, '?') !== false) ? '&' : '?';
+    
+    echo "=== [操作メニュー] ===\n";
+    echo "- [1] <a href='{$base_url}' style='color: blue; text-decoration: underline;'>通常実行（履歴を残して追加）</a>\n";
+    echo "- [2] <a href='{$base_url}{$separator}clear=all' style='color: red; text-decoration: underline;'>全削除してやり直し</a>\n";
+    echo "========================\n\n";
+
     echo "データディレクトリ: ".htmlspecialchars($data_dir)."\n";
+    
+    // clearパラメータのチェック
+    $clear = isset($_GET['clear']) ? $_GET['clear'] : '';
+    if ($clear === 'all') {
+        echo "=== page_historyテーブルを全削除します ===\n";
+        $stmt = db_exec("DELETE FROM page_history");
+        echo "=== 削除完了 ===\n\n";
+    }
     
     if (!is_dir($data_dir)) {
         echo "エラー: データディレクトリが見つかりません: $data_dir\n";
@@ -109,26 +135,36 @@ function process_text_file($file_path, $data_dir) {
 }
 
 function get_or_create_page_id($page_name, $mtime) {
-    // 既存のページIDを確認
-    $existing_page = db_get1(
-        "SELECT page_id FROM pages WHERE name = ?",
-        [$page_name]
-    );
+    $page_id_file = KONA3_DIR_DATA . '/.kona3_page_id.json';
     
-    if ($existing_page) {
-        // 既存ページの更新日時も更新
-        db_exec(
-            "UPDATE pages SET mtime = ? WHERE page_id = ?",
-            [$mtime, $existing_page['page_id']]
-        );
-        return $existing_page['page_id'];
+    // JSONファイルからページID一覧を読み込み
+    $page_ids = [];
+    if (file_exists($page_id_file)) {
+        $json_content = file_get_contents($page_id_file);
+        if ($json_content !== false) {
+            $page_ids = json_decode($json_content, true) ?: [];
+        }
     }
     
-    // 新しいページを作成
-    $page_id = db_insert(
-        "INSERT INTO pages (name, ctime, mtime) VALUES (?, ?, ?)",
-        [$page_name, $mtime, $mtime]
-    );
+    // 既存のページIDを確認
+    if (isset($page_ids[$page_name])) {
+        return $page_ids[$page_name];
+    }
     
-    return $page_id;
+    // 新しいページIDを生成（既存の最大ID + 1）
+    $max_id = 0;
+    foreach ($page_ids as $name => $id) {
+        if ($id > $max_id) {
+            $max_id = $id;
+        }
+    }
+    $new_page_id = $max_id + 1;
+    
+    // 新しいページを追加
+    $page_ids[$page_name] = $new_page_id;
+    
+    // JSONファイルに保存
+    file_put_contents($page_id_file, json_encode($page_ids, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    
+    return $new_page_id;
 }

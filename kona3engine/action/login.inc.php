@@ -33,7 +33,7 @@ function kona3_action_login()
         "msg" => $msg,
         "action" => $action,
         "signup_link" => kona3getPageURL($page, 'signup'),
-        "edit_token" => kona3_getEditToken($editTokenKey, TRUE),
+        "edit_token" => kona3_getEditToken($editTokenKey, FALSE),
     ]);
 }
 
