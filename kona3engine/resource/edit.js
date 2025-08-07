@@ -717,6 +717,20 @@ function replaceOnClick() {
   replace_div.toggle()
 }
 
+function miscOnClick() {
+  const misc_div = qq('#misc_div')
+  misc_div.toggle()
+}
+
+function convertToMarkdownClick() {
+  if (typeof(convertToMarkdown) === undefined) {
+    alert('please include resource/edit_wiki.js')
+    return
+  }
+  const edit_txt = qq('#edit_txt')
+  edit_txt.val(convertToMarkdown(edit_txt.val()))
+}
+
 function replace1() {
   const useRegExp = qq('#replace_regexp').val()
   const key = qq('#replace_key').val()
