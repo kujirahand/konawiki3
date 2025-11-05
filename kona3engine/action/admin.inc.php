@@ -104,12 +104,18 @@ function kona3setup_config()
             $conf[$key] = $v;
         }
         // check parameters
+        if (!isset($conf['FrontPage'])) {
+            $conf['FrontPage'] = 'FrontPage';
+        }
         if (strpos($conf['FrontPage'], '/') !== FALSE) {
             kona3setup_error('FrontPage could not include "/".');
             exit;
         }
         if (trim($conf['FrontPage']) == '') {
             $conf['FrontPage'] = 'FrontPage';
+        }
+        if (!isset($conf['skin'])) {
+            $conf['skin'] = 'def';
         }
         if (preg_match('#[^a-zA-Z0-9\_\-]#', $conf['skin'])) {
             kona3setup_error('Skin name could not include path flag "/" and special chars.');
