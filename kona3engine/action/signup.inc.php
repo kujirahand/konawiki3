@@ -20,6 +20,7 @@ function kona3_action_signup() {
   $pw = trim(kona3param("a_pw", ""));
   $pw2 = trim(kona3param("a_pw2", ""));
   $token = trim(kona3param("a_token", ""));
+  $code = trim(kona3param("a_code", ""));
   
   // --- ユーザー登録処理（フォーム送信時） ---
   if ($mode == "try") {
@@ -47,14 +48,27 @@ function kona3_action_signup() {
       if ($ok) return;
     }
   }
-  // --- メール認証リンクからの有効化処理 ---
-  if ($mode == "email") {
+  // --- 認証コード入力画面表示 ---
+  if ($mode == "verify") {
+    kona3template('signup_verify.html', array(
+      "action" => $action,
+      "email" => $email,
+      "msg" => "",
+    ));
+    exit;
+  }
+  // --- 認証コードによる有効化処理 ---
+  if ($mode == "verify_code") {
     $r = db_get1(
       "SELECT * FROM users WHERE email=? AND token=?",
-      [$email, $token]);
+      [$email, $code]);
     if ($r == null) {
-      kona3error(lang("Invalid Token"), 
-        lang('Invalid Token in email'));
+      // コードが間違っている場合、再度入力画面を表示
+      kona3template('signup_verify.html', array(
+        "action" => $action,
+        "email" => $email,
+        "msg" => lang('Invalid verification code'),
+      ));
       exit;
     }
     // ユーザー有効化
@@ -101,11 +115,12 @@ function signup_execute($user, $email, $pw, &$msg) {
   }
   // --- ユーザー情報をDBに登録（enabled=0で仮登録） ---
   try {
-    $token = bin2hex(random_bytes(64));
+    // 6桁の数字コードを生成
+    $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     $id = db_insert("INSERT INTO users".
       "(name, email, password, token, enabled, ctime, mtime)".
       "VALUES(?,?,?,?,?,?,?)",[
-        $user, $email, kona3getHash($pw), $token, 0, time(), time()
+        $user, $email, kona3getHash($pw), $code, 0, time(), time()
       ]);
   } catch (Exception $e) {
     kona3error("Database Error", $e->getMessage());
@@ -115,19 +130,13 @@ function signup_execute($user, $email, $pw, &$msg) {
   global $kona3conf;
   $wiki_title = $kona3conf['wiki_title'];
   $admin_email = $kona3conf['admin_email'];
-  $signup_url = kona3getPageURL("user", "signup", "", 
-    kona3getURLParams([
-      "a_mode" => "email",
-      "a_token" => $token,
-      "a_email" => $email,
-    ]));
   $signup_body = sprintf(
-    lang("Please access here: %s")."\n".
+    lang("Verification code message")."\n".
     "------------\n".
     "$wiki_title<%s>",
-    $signup_url, $admin_email);
+    $code, $admin_email);
   $signup_title = "[$wiki_title] ".lang('Signup');
-  $body_msg = lang('Please check email.');
+  $body_msg = lang('Please check email for code.');
   // --- localhostの場合はメール送信せずデバッグ表示 ---
   if (preg_match('/^(localhost|localhost\:\d+)$/', $_SERVER['HTTP_HOST'])) {
     $signup_body2 = htmlspecialchars($signup_body);
@@ -135,8 +144,16 @@ function signup_execute($user, $email, $pw, &$msg) {
   } else {
     kona3lib_send_email($email, $signup_title, $signup_body);
   }
-  // --- 完了メッセージ表示 ---
-  kona3showMessage(lang('Success'), $body_msg);
+  // --- コード入力画面へのリンクを表示 ---
+  $verify_url = kona3getPageURL("user", "signup", "", 
+    kona3getURLParams([
+      "a_mode" => "verify",
+      "a_email" => $email,
+    ]));
+  kona3showMessage(lang('Success'), 
+    $body_msg . "<br><br>" .
+    "<a class='pure-button pure-button-primary' href='$verify_url'>" . 
+    lang('Enter verification code') . "</a>");
   return TRUE;
 }
 

@@ -56,6 +56,18 @@ $lang_data = [
     'Eメールを送信しました。確認して登録を完了してください。' .
         '迷惑メールフォルダに分類されてしまっている可能性も' .
         'あるので併せてご確認ください。',
+    'Please check email for code.' =>
+    'Eメールに6桁の認証コードを送信しました。' .
+        'メールを確認して、次の画面で認証コードを入力してください。',
+    'Verification code message' =>
+    "この度は新規登録ありがとうございます。\n" .
+        "下記の6桁の認証コードを入力して登録を完了してください。\n\n" .
+        "【認証コード】 %s\n",
+    'Enter verification code' => '認証コードを入力',
+    'Verification code' => '認証コード',
+    'Verification code instruction' => 'メールで送信された6桁の認証コードを入力してください。',
+    'Invalid verification code' => '認証コードが正しくありません。もう一度確認して入力してください。',
+    'Verify' => '認証する',
     'Please access here: %s' =>
     "この度は新規登録ありがとうございます。\n" .
         "下記のURLにアクセスすると完成です。\n" .
