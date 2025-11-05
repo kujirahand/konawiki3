@@ -23,11 +23,11 @@ if (!defined("KONA3_PASSWORD_SALT")) {
 function kona3login($user, $email, $perm, $user_id = 0) {
   $_SESSION[KONA3_SESSKEY_LOGIN] = [
     "user"  => $user,      // ユーザー名
+    "name"  => $user,      // エイリアス（互換用）
     "email" => $email,     // メールアドレス
     "perm"  => $perm,      // 権限
     "time"  => time(),     // ログイン時刻
-    "name"  => $user,      // エイリアス（互換用）
-    "user_id" => $user_id, // ユーザーID（未使用）
+    "user_id" => $user_id, // ユーザーID
   ];
 }
 

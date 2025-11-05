@@ -138,20 +138,37 @@ function kona3db_getUserById($user_id)
     if (!isset($kona3db_users)) {
         $kona3db_users = [];
     }
-    if (isset($kona3db_users[$user_id])) {
-        return $kona3db_users[$user_id];
+    $isNumericId = is_int($user_id) || (is_string($user_id) && ctype_digit($user_id));
+    $cacheKey = $isNumericId ? intval($user_id) : (string)$user_id;
+    if (isset($kona3db_users[$cacheKey])) {
+        return $kona3db_users[$cacheKey];
     }
-    if ($user_id == 0) {
-        $u = kona3getLoginInfo();
-        $Kona3db_users[0] = $u;
-        return $u;
+    if (!$isNumericId) {
+        $info = [
+            'user_id' => $cacheKey,
+            'user' => $cacheKey,
+            'name' => $cacheKey,
+        ];
+        $kona3db_users[$cacheKey] = $info;
+        return $info;
+    }
+    $intId = intval($user_id);
+    if ($intId === 0) {
+        $adminName = lang('Admin');
+        $info = [
+            'user_id' => 0,
+            'user' => $adminName,
+            'name' => $adminName,
+        ];
+        $kona3db_users[$cacheKey] = $info;
+        return $info;
     }
     // select
     $r = db_get1(
         "SELECT * FROM users WHERE user_id=?",
-        [$user_id]
+        [$intId]
     );
-    $kona3db_users[$user_id] = $r;
+    $kona3db_users[$cacheKey] = $r;
     return $r;
 }
 
@@ -172,7 +189,7 @@ function kona3db_getPageHistory($page, $edit_token)
     );
     if ($r) {
         foreach ($r as &$v) {
-            $v['user'] = kona3db_getUserNameById($v['user_id']);
+            $v['user'] = kona3db_resolveHistoryUserName($v['user_id']);
             $v['link'] = kona3getPageURL(
                 $page,
                 "edit",
@@ -198,6 +215,34 @@ function kona3db_getPageHistory($page, $edit_token)
         }
     }
     return $r;
+}
+
+function kona3db_resolveHistoryUserName($rawUserId)
+{
+    if ($rawUserId === null) {
+        return '';
+    }
+    if (is_string($rawUserId)) {
+        $rawUserId = trim($rawUserId);
+        if ($rawUserId === '') {
+            return '';
+        }
+        if (!ctype_digit($rawUserId)) {
+            return $rawUserId;
+        }
+    }
+    if (is_numeric($rawUserId)) {
+        $intId = intval($rawUserId);
+        if ($intId === 0) {
+            return lang('Admin');
+        }
+        $name = kona3db_getUserNameById($intId);
+        if ($name !== '') {
+            return $name;
+        }
+        return (string)$rawUserId;
+    }
+    return (string)$rawUserId;
 }
 
 function kona3db_getPageHistoryById($history_id)
