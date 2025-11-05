@@ -180,6 +180,7 @@ function kona3tags_clearPageTags($page) {
     
     // 全タグファイルを走査
     $files = glob(kona3tags_getDir() . '/*.json');
+    if ($files === false) $files = [];
     foreach ($files as $filepath) {
         $json = file_get_contents($filepath);
         $pages = json_decode($json, true);
