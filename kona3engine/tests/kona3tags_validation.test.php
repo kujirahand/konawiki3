@@ -59,7 +59,7 @@ $html = kona3plugins_tags_getTags('ValidTag', 'mtime', 30);
 $pages = kona3tags_getPages('ValidTag');
 test_eq(__LINE__, 2, count($pages), "ValidTag should have 2 pages after validation");
 
-// TestPageが含まれているか確認
+// テストページが含まれているか確認
 $page_names = array_map(function($p) { return $p['page']; }, $pages);
 test_assert(__LINE__, in_array($test_page1, $page_names), "TagValidationTest1 should remain");
 test_assert(__LINE__, in_array($test_page2, $page_names), "TagValidationTest2 should remain");
