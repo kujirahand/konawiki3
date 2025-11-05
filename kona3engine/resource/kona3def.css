@@ -1294,3 +1294,79 @@ ul.topnavi a
   background-color: #fcfcfc;
   border: 1px solid #c0e4ee;
 }
+
+/** Tag System */
+.kona3-tag {
+  display: inline-block;
+  margin: 0 4px 4px 0;
+  padding: 4px 8px;
+  background-color: #f1f8ff;
+  border: 1px solid #c8e1ff;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.kona3-tag a {
+  color: #0366d6;
+  text-decoration: none;
+}
+
+.kona3-tag a:hover {
+  text-decoration: underline;
+}
+
+.kona3-tags-list {
+  margin: 1em 0;
+}
+
+.kona3-tags-list h3 {
+  font-size: 1.2em;
+  margin-bottom: 0.5em;
+}
+
+.kona3-tags-list ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.kona3-tags-list li {
+  margin: 0.3em 0;
+}
+
+.kona3-taglist {
+  margin: 1em 0;
+}
+
+.kona3-taglist h3 {
+  font-size: 1.2em;
+  margin-bottom: 0.5em;
+}
+
+.kona3-taglist .tag-cloud {
+  list-style: none;
+  padding-left: 0;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.kona3-taglist .tag-item {
+  margin: 0 8px 8px 0;
+  padding: 4px 6px;
+  background-color: #f6f8fa;
+  border: 1px solid #d1d5da;
+  border-radius: 4px;
+}
+
+.kona3-taglist .tag-cloud a {
+  color: #0366d6;
+  text-decoration: none;
+}
+
+.kona3-taglist .tag-cloud a:hover {
+  background-color: #f6f8ff;
+}
+
+.kona3-taglist .tag-count {
+  color: #6a737d;
+  font-size: 0.9em;
+}
