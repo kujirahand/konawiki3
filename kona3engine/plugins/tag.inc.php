@@ -25,7 +25,7 @@ function kona3plugins_tag_execute($args) {
     
     // タグをリンク付きで表示
     $tag_h = htmlspecialchars($tag);
-    $url = kona3getPageURL($page) . '&plugin&name=tags&tag=' . urlencode($tag);
+    $url = kona3getPageURL($page, 'plugin', '', 'name=tags&tag=' . urlencode($tag));
     
-    return '<span class="kona3-tag"><a href="' . $url . '" title="このタグのページ一覧">🏷️' . $tag_h . '</a></span>';
+    return '<span class="kona3-tag"><a href="' . $url . '" title="' . $tag_h . '">🏷️ ' . $tag_h . '</a></span>';
 }

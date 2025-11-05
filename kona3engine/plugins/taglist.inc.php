@@ -12,7 +12,7 @@ function kona3plugins_taglist_execute($args) {
     }
     
     $html = '<div class="kona3-taglist">';
-    $html .= '<h3>📚 全タグ一覧</h3>';
+    $html .= '<h3>📚 Tag list</h3>';
     $html .= '<ul class="tag-cloud">';
     
     global $kona3conf;
@@ -22,13 +22,13 @@ function kona3plugins_taglist_execute($args) {
         $pages = kona3tags_load($tag);
         $count = count($pages);
         $tag_h = htmlspecialchars($tag);
-        $url = kona3getPageURL($page) . '&plugin&name=tags&tag=' . urlencode($tag);
+        $url = kona3getPageURL($page, 'plugin', '', 'name=tags&tag=' . urlencode($tag));
         
-        $html .= '<li>';
+        $html .= '<span class="tag-item">';
         $html .= '<a href="' . $url . '" title="' . $count . '件のページ">';
-        $html .= '🏷️' . $tag_h . ' <span class="tag-count">(' . $count . ')</span>';
+        $html .= '🏷️ ' . $tag_h . ' <span class="tag-count">(' . $count . ')</span>';
         $html .= '</a>';
-        $html .= '</li> ';
+        $html .= '</span> ';
     }
     
     $html .= '</ul>';

@@ -1349,12 +1349,12 @@ ul.topnavi a
   flex-wrap: wrap;
 }
 
-.kona3-taglist .tag-cloud li {
+.kona3-taglist .tag-item {
   margin: 0 8px 8px 0;
-  padding: 6px 12px;
+  padding: 4px 6px;
   background-color: #f6f8fa;
   border: 1px solid #d1d5da;
-  border-radius: 6px;
+  border-radius: 4px;
 }
 
 .kona3-taglist .tag-cloud a {
@@ -1363,7 +1363,7 @@ ul.topnavi a
 }
 
 .kona3-taglist .tag-cloud a:hover {
-  text-decoration: underline;
+  background-color: #f6f8ff;
 }
 
 .kona3-taglist .tag-count {
