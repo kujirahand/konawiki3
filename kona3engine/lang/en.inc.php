@@ -27,6 +27,9 @@ $lang_data = [
     'Verification code instruction' => 'Please enter the 6-digit verification code sent to your email.',
     'Invalid verification code' => 'The verification code is incorrect. Please check and try again.',
     'Verify' => 'Verify',
+    'Resend verification code' => 'Resend verification code',
+    'Verification code has been resent' => 'A new verification code has been sent to your email. Please check your email.',
+    'Code not found' => 'Verification code not found. Please register again from the beginning.',
     'Success' => 'Success',
     'Signup' => 'Sign Up',
 ];

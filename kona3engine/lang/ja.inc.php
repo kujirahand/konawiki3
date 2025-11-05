@@ -68,6 +68,9 @@ $lang_data = [
     'Verification code instruction' => 'メールで送信された6桁の認証コードを入力してください。',
     'Invalid verification code' => '認証コードが正しくありません。もう一度確認して入力してください。',
     'Verify' => '認証する',
+    'Resend verification code' => '認証コードを再送信',
+    'Verification code has been resent' => '新しい認証コードをメールで送信しました。メールをご確認ください。',
+    'Code not found' => '認証コードが見つかりません。もう一度最初から登録してください。',
     'Please access here: %s' =>
     "この度は新規登録ありがとうございます。\n" .
         "下記のURLにアクセスすると完成です。\n" .

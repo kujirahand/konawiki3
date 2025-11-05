@@ -57,6 +57,51 @@ function kona3_action_signup() {
     ));
     exit;
   }
+  // --- 認証コードの再送信処理 ---
+  if ($mode == "resend") {
+    // メールアドレスで未認証のユーザーを検索
+    $r = db_get1(
+      "SELECT * FROM users WHERE email=? AND enabled=0",
+      [$email]);
+    if ($r == null) {
+      kona3template('signup_verify.html', array(
+        "action" => $action,
+        "email" => $email,
+        "msg" => lang('Code not found'),
+      ));
+      exit;
+    }
+    // 新しい6桁の認証コードを生成
+    $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    // DBの認証コードを更新
+    db_exec("UPDATE users SET token=?, mtime=? WHERE email=? AND enabled=0",
+      [$code, time(), $email]);
+    // 認証メール送信
+    global $kona3conf;
+    $wiki_title = $kona3conf['wiki_title'];
+    $admin_email = $kona3conf['admin_email'];
+    $signup_body = sprintf(
+      lang("Verification code message")."\n".
+      "------------\n".
+      "$wiki_title<%s>",
+      $code, $admin_email);
+    $signup_title = "[$wiki_title] ".lang('Signup');
+    // localhostの場合はデバッグ表示
+    if (preg_match('/^(localhost|localhost\:\d+)$/', $_SERVER['HTTP_HOST'])) {
+      $signup_body2 = htmlspecialchars($signup_body);
+      $msg = lang('Verification code has been resent') . "<pre>DEBUG:\n$signup_body2</pre>";
+    } else {
+      kona3lib_send_email($email, $signup_title, $signup_body);
+      $msg = lang('Verification code has been resent');
+    }
+    // 認証コード入力画面に戻る
+    kona3template('signup_verify.html', array(
+      "action" => $action,
+      "email" => $email,
+      "msg" => $msg,
+    ));
+    exit;
+  }
   // --- 認証コードによる有効化処理 ---
   if ($mode == "verify_code") {
     $r = db_get1(
@@ -100,6 +145,7 @@ function signup_execute($user, $email, $pw, &$msg) {
     $msg = lang('The username alredy registerd.');
     return FALSE;
   }
+  // 有効化済みのユーザー名チェック
   $r = db_get1(
     "SELECT * FROM users WHERE name=? AND enabled=1", [
       $user]);
@@ -107,24 +153,42 @@ function signup_execute($user, $email, $pw, &$msg) {
     $msg = lang('The username alredy registerd.');
     return FALSE;
   }
+  // 有効化済みのメールアドレスチェック
   $r = db_get1(
     "SELECT * FROM users WHERE email=? AND enabled=1", [$email]);
   if ($r != null) {
     $msg = lang('The email already registerd.');
     return FALSE;
   }
-  // --- ユーザー情報をDBに登録（enabled=0で仮登録） ---
-  try {
-    // 6桁の数字コードを生成
-    $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-    $id = db_insert("INSERT INTO users".
-      "(name, email, password, token, enabled, ctime, mtime)".
-      "VALUES(?,?,?,?,?,?,?)",[
-        $user, $email, kona3getHash($pw), $code, 0, time(), time()
-      ]);
-  } catch (Exception $e) {
-    kona3error("Database Error", $e->getMessage());
-    exit;
+  // --- 未認証の既存ユーザーチェック ---
+  // 同じメールアドレスで未認証のユーザーが既に存在する場合
+  $existing = db_get1(
+    "SELECT * FROM users WHERE email=? AND enabled=0", [$email]);
+  
+  // 6桁の数字コードを生成
+  $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+  
+  if ($existing != null) {
+    // 既存の未認証ユーザーの情報を更新（認証コードを新規生成）
+    try {
+      db_exec("UPDATE users SET name=?, password=?, token=?, mtime=? WHERE email=? AND enabled=0",
+        [$user, kona3getHash($pw), $code, time(), $email]);
+    } catch (Exception $e) {
+      kona3error("Database Error", $e->getMessage());
+      exit;
+    }
+  } else {
+    // --- ユーザー情報をDBに新規登録（enabled=0で仮登録） ---
+    try {
+      $id = db_insert("INSERT INTO users".
+        "(name, email, password, token, enabled, ctime, mtime)".
+        "VALUES(?,?,?,?,?,?,?)",[
+          $user, $email, kona3getHash($pw), $code, 0, time(), time()
+        ]);
+    } catch (Exception $e) {
+      kona3error("Database Error", $e->getMessage());
+      exit;
+    }
   }
   // --- 認証メール送信処理 ---
   global $kona3conf;
