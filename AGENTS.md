@@ -322,7 +322,7 @@ require_once __DIR__ . '/test_common.inc.php';
 
 $cond_a = "a";
 $cond_b = "a";
-test_eq($cond_a, $cond_b, "test_eq example");
+test_eq(__LINE__, $cond_a, $cond_b, "test_eq example");
 ```
 
 ### ローカル開発
