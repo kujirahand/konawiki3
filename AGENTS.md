@@ -302,7 +302,28 @@ global $kona3conf;  // 設定配列
 global $page;       // 現在のページ名
 ```
 
-## テスト・デプロイ
+## テストの方法
+
+`kona3engine/tests/` にユニットテストがあります。
+下記のコマンドを実行してテストできます。
+
+```sh
+cd kona3engine/tests/
+./test.sh
+```
+
+### テストを作成する手順
+
+`tests/` に新しいテストファイル(hoge.test.php)を作成します。そして、下記のように記述します。
+
+```php
+<?php
+require_once __DIR__ . '/test_common.inc.php';
+
+$cond_a = "a";
+$cond_b = "a";
+test_eq($cond_a, $cond_b, "test_eq example");
+```
 
 ### ローカル開発
 
