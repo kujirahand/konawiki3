@@ -4,7 +4,7 @@
  * - [説明]
  * -- システムに登録されている全てのタグを一覧表示します。
  */
-function konawiki_plugin_taglist($args) {
+function kona3plugins_taglist_execute($args) {
     $all_tags = kona3tags_getAllTags();
     
     if (empty($all_tags)) {

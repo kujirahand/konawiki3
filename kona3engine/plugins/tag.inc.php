@@ -7,7 +7,7 @@
  * -- ページにタグを追加します。複数のタグを付ける場合は、複数回呼び出してください。
  * -- 例: #tag(PHP) #tag(プログラミング)
  */
-function konawiki_plugin_tag($args) {
+function kona3plugins_tag_execute($args) {
     global $kona3conf;
     
     $page = $kona3conf['page'];
