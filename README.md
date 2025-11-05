@@ -47,6 +47,13 @@ console.log('hello');
 We are implementing AI writing assistance features. These include summarizing texts, proofreading, rephrasing sentences, and automatically continuing writing, among others.
 By obtaining a [ChatGPT API key](https://platform.openai.com/api-keys) and specifying it in the Konawiki settings, users can access AI support functions.
 
+### Tag System for Page Organization
+
+A file-based tag system is built in. By adding `#tag(TagName)` to a page, you can organize pages by category.
+Use tags to classify pages, and display a list of pages with a specific tag using `#tags(TagName)`.
+
+For more details, see the [Tag System Documentation](docs/TAG_SYSTEM.md).
+
 # How to install Konawiki3
 
 ## Use Git command
