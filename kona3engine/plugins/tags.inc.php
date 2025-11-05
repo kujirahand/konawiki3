@@ -28,13 +28,25 @@ function kona3plugins_tags_getTags($tag, $sort = 'mtime', $limit = 30) {
   // 新しいファイルベースのタグシステムから取得
   $pages = kona3tags_getPages($tag, $sort, $limit);
   
+  // 各ページの内容をチェックして、タグが実際に埋め込まれているか確認
+  $valid_pages = [];
+  foreach ($pages as $p) {
+    $page = $p['page'];
+    if (kona3plugins_tags_hasTagInPage($page, $tag)) {
+      $valid_pages[] = $p;
+    } else {
+      // タグが見つからない場合は削除
+      kona3tags_removePageTag($page, $tag);
+    }
+  }
+  
   $code = "";
-  if ($pages && count($pages) > 0) {
+  if ($valid_pages && count($valid_pages) > 0) {
     $tag_h = htmlspecialchars($tag);
     $code .= "<div class='kona3-tags-list'>\n";
     $code .= "<h3>🏷️ Tag: {$tag_h}</h3>\n";
     $code .= "<ul>";
-    foreach ($pages as $p) {
+    foreach ($valid_pages as $p) {
       $page = $p['page'];
       $page_h = htmlspecialchars($page);
       $url = kona3getPageURL($page);
@@ -47,6 +59,33 @@ function kona3plugins_tags_getTags($tag, $sort = 'mtime', $limit = 30) {
     $code = "<div class='kona3-tags-list'><p>タグ「{$tag_h}」が設定されているページはありません。</p></div>";
   }
   return $code;
+}
+
+/**
+ * ページ内に指定したタグが埋め込まれているかチェックする
+ * @param string $page ページ名
+ * @param string $tag タグ名
+ * @return bool タグが見つかった場合true
+ */
+function kona3plugins_tags_hasTagInPage($page, $tag) {
+  // ページファイルを取得
+  $filepath = koan3getWikiFileText($page);
+  if (!file_exists($filepath)) {
+    return false;
+  }
+  
+  // ページの内容を読み込む
+  $body = file_get_contents($filepath);
+  if (empty($body)) {
+    return false;
+  }
+  
+  // #tag(TAG) の形式でタグが埋め込まれているかチェック
+  // エスケープされた正規表現でチェック
+  $tag_escaped = preg_quote($tag, '/');
+  $pattern = '/#tag\s*\(\s*' . $tag_escaped . '\s*\)/i';
+  
+  return preg_match($pattern, $body) > 0;
 }
 
 function kona3plugins_tags_action() {
