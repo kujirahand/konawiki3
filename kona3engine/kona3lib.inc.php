@@ -823,7 +823,7 @@ function kona3_getEditToken($key = 'default', $update = FALSE)
 function kona3_checkEditToken($key = 'default')
 {
     $sname = kona3_getEditTokenKeyName($key);
-    $ses = isset($_SESSION[$sname]) ? $_SESSION[$sname] : '';
+    $ses = isset($_SESSION[$sname]) ? trim($_SESSION[$sname]) : '';
     // Check both POST and GET for edit_token
     $get = isset($_POST['edit_token']) ? trim($_POST['edit_token']) : '';
     if ($get === '') {

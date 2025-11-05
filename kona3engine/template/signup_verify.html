@@ -1,0 +1,37 @@
+{{ include parts_header.html }}
+
+<div id="wikimessage">
+<div class="box">
+<div id="loginform">
+  <h2>{{'Enter verification code' | lang}}</h2>
+  <p>{{'Verification code instruction' | lang}}</p>
+  <div class="error">{{ $msg | safe }}</div>
+  <div><form
+    class="pure-form pure-form-stacked" 
+    method="post" action="{{$action}}">
+    <input type="hidden" name="a_mode" value="verify_code">
+    <input type="hidden" name="a_email" value="{{$email}}">
+    <!-- verification code -->
+    <label for="code">{{'Verification code' | lang}}:</label>
+    <input id="code" type="text" name="a_code" 
+      maxlength="6" pattern="[0-9]{6}"
+      placeholder="000000" required
+      style="font-size: 24px; letter-spacing: 0.5em; width: 200px;">
+    <!-- submit -->
+    <input class="pure-button pure-button-primary"
+      type="submit" value="{{'Verify' | lang}}">
+    </form></div>
+  <!-- resend verification code link -->
+  <div style="margin-top: 20px; text-align: center;">
+    <a href="{{$action}}&a_mode=resend&a_email={{$email | url_encode}}" 
+       class="pure-button">
+      {{'Resend verification code' | lang}}
+    </a>
+  </div>
+</div>
+<br>
+</div><!-- end of .box -->
+</div><!-- end of #wikimessage -->
+<div style="clear:both;"></div>
+
+{{ include parts_footer.html }}

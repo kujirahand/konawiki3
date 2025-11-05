@@ -158,6 +158,13 @@ test_ne(__LINE__, $token1, $token3, "CSRFトークン: 異なるキーで異な�
 $token4 = kona3_getEditToken('test_key_force', FALSE);
 test_assert(__LINE__, !empty($token4) && is_string($token4), "CSRFトークン: 強制更新で新しいトークンも生成できる");
 
+// トークン検証のテスト（空白文字のトリミング対策）
+$token5 = kona3_getEditToken('trim_test');
+$_SESSION[kona3_getEditTokenKeyName('trim_test')] = $token5;
+$_POST['edit_token'] = " " . $token5 . " "; // 前後に空白を追加
+test_assert(__LINE__, kona3_checkEditToken('trim_test'), "CSRFトークン: 前後の空白は無視される");
+unset($_POST['edit_token']);
+
 // --- HTMLエスケープの包括的テスト ---
 
 // JavaScriptイベントハンドラー
