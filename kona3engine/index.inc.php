@@ -15,6 +15,7 @@ require_once 'kona3conf.inc.php';
 require_once 'kona3lib.inc.php';
 require_once 'kona3parser.inc.php';
 require_once 'kona3db.inc.php';
+require_once 'kona3tags.inc.php';
 
 function kona3index_main()
 {

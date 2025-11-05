@@ -106,17 +106,11 @@ function kona3db_writePage($page, $body, $user_id = 0, $tags = NULL)
             [$page_id]
         );
     }
-    // tags
+    // tags (deprecated - now using file-based tag system)
+    // タグはプラグイン #tag() で管理されるようになりました
     if ($tags != NULL) {
-        $tags_a = explode('/', $tags);
-        db_exec("DELETE FROM tags WHERE page_id=?", [$page_id]);
-        foreach ($tags_a as $name) {
-            $name = trim($name);
-            db_exec(
-                "INSERT INTO tags (page_id, tag, mtime)VALUES(?, ?, ?)",
-                [$page_id, $name, time()]
-            );
-        }
+        // 互換性のため引数は残しますが、何もしません
+        // タグは #tag(TAG1) プラグインで管理されます
     }
     return TRUE;
 }
