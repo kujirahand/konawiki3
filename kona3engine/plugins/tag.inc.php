@@ -20,6 +20,11 @@ function kona3plugins_tag_execute($args) {
         return '<span style="color:red;">エラー: タグ名が空です</span>';
     }
     
+    // タグ名のバリデーション（ドットは使用不可）
+    if (strpos($tag, '.') !== false) {
+        return '<span style="color:red;">エラー: タグ名にドット(.)は使用できません</span>';
+    }
+    
     // タグを追加
     kona3tags_addPageTag($page, $tag);
     

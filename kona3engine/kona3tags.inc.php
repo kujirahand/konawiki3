@@ -70,7 +70,8 @@ function kona3tags_migrateFromSQLite() {
  * タグファイルのパスを取得
  */
 function kona3tags_getFilePath($tag) {
-    $tag_safe = preg_replace('/[^a-zA-Z0-9_\-\.]+/', '_', $tag);
+    // ドットは除外（ファイル拡張子と混同するため）
+    $tag_safe = preg_replace('/[^a-zA-Z0-9_\-]+/', '_', $tag);
     return kona3tags_getDir() . '/' . $tag_safe . '.json';
 }
 
