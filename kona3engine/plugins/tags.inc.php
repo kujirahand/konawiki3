@@ -83,7 +83,7 @@ function kona3plugins_tags_hasTagInPage($page, $tag) {
   // #tag(TAG) の形式でタグが埋め込まれているかチェック
   // エスケープされた正規表現でチェック
   $tag_escaped = preg_quote($tag, '/');
-  $pattern = '/#tag\s*\(\s*' . $tag_escaped . '\s*\)/i';
+  $pattern = '/#tag\s*\(\s*' . $tag_escaped . '\s*\)/';
   
   return preg_match($pattern, $body) > 0;
 }
