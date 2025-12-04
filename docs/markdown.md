@@ -5,7 +5,7 @@ Konawiki3 supports saving pages in `Markdown` format. When a page is saved with 
 ## Konawiki Markdown Features
 
 - Standard Markdown syntax is supported, including headings, lists, links, images, code blocks, and more.
-- Extended features such as plubins.
+- Extended features such as plugins.
 
 ### Using Plugins in Markdown
 
