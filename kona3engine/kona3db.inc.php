@@ -107,11 +107,7 @@ function kona3db_writePage($page, $body, $user_id = 0, $tags = NULL)
         );
     }
     // tags (deprecated - now using file-based tag system)
-    // タグはプラグイン #tag() で管理されるようになりました
-    if ($tags != NULL) {
-        // 互換性のため引数は残しますが、何もしません
-        // タグは #tag(TAG1) プラグインで管理されます
-    }
+    // 互換性のため$tag引数は残しますが、何もしません
     return TRUE;
 }
 
@@ -409,6 +405,8 @@ function kona3db_loadPageMeta($page)
  */
 function kona3db_getPageMetaFile($page)
 {
+    global $kona3conf;
+    
     // ページ名から拡張子を除去
     $pageName = $page;
     $ext = kona3getFileExt($page);
@@ -416,8 +414,22 @@ function kona3db_getPageMetaFile($page)
         $pageName = substr($page, 0, -(strlen($ext) + 1));
     }
     
-    // メタ情報ファイルのパスを生成
-    $metaFile = kona3getWikiFile($pageName, TRUE, '.meta.json');
+    // kona3getWikiFileを使用してパスを生成（パストラバーサル対策が含まれる）
+    // data/.meta/{タイトル}.json の形式で保存
+    $wikiFile = kona3getWikiFile($pageName, TRUE, '.json');
+    
+    // data/ を data/.meta/ に変換（先頭のプレフィックスのみ置換）
+    $dataDir = KONA3_DIR_DATA;
+    $metaDir = $dataDir . '/.meta';
+    $dataDirPrefix = $dataDir . '/';
+    if (strpos($wikiFile, $dataDirPrefix) === 0) {
+        $metaFile = $metaDir . '/' . substr($wikiFile, strlen($dataDirPrefix));
+    } else {
+        // kona3getWikiFileは常にKONA3_DIR_DATAで始まるパスを返すため、
+        // この分岐に到達することはないはずだが、安全のためにログを出力
+        error_log("kona3db_getPageMetaFile: Unexpected path format: " . $wikiFile);
+        return FALSE;
+    }
     
     return $metaFile;
 }

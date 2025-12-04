@@ -166,9 +166,9 @@ git remote add origin git@github.com:hoge/fuga.git
 docker-compose up
 ```
 
-## セキュリティアップデートのお知らせ (2021/02/22)
+## 開発に際して
 
-Konawiki v3.2.3 より前のバージョンをご利用の方は最新版にアップデートしてください。
+タスクランナーの`just`を利用しています。
+テストを実行するには、`just test`を実行します。
 
-> JVNVU#99880454 / JVN#48194211 / CVE-2020-5670
 

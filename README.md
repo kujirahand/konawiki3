@@ -6,18 +6,18 @@ Konawiki3 is a simple Wiki designed specifically for writing manuscripts, creati
 - [URL] http://kujirahand.com/konawiki3/
 - [日本語のREADME](README-ja.md)
 
-# Goals of Konawiki3
+## Goals of Konawiki3
 
 The data in the Wiki is **just plain text** files, which allows for detailed differences to be tracked in conjunction with Git.
 You can use Konawiki3 instead of a text editor. Let's accomplish great tasks using the small and simple Konawiki.
 
 Additionally, through the configuration options, it is possible to save in `Markdown` as well as `Konawiki notation`. You can use your preferred notation for markup.
 
-## Konawiki3 is simple.
+## Konawiki notation example
 
-It is very simple wiki engine.
+Konawiki notation is a simple markup language. Here are some examples:
 
-```
+```text
 * header
 
 text text text text
@@ -54,9 +54,9 @@ Use tags to classify pages, and display a list of pages with a specific tag usin
 
 For more details, see the [Tag System Documentation](docs/TAG_SYSTEM.md).
 
-# How to install Konawiki3
+## How to install Konawiki3
 
-## Use Git command
+### Use Git command
 
 1. Install WebServer and PHP
 2. Clone repository
@@ -65,7 +65,7 @@ For more details, see the [Tag System Documentation](docs/TAG_SYSTEM.md).
 git clone https://github.com/kujirahand/konawiki3.git
 ```
 
-## Use Uploader to Hosting server
+### Use Uploader to Hosting server
 
 1. Download Konawiki3 zip file from [releases](https://github.com/kujirahand/konawiki3/releases)
 2. Unzip
@@ -108,20 +108,17 @@ And set git_enabled to true at the config.
 
 First login by Admin User, and access config page.
 
-```
+```text
 [URI] index.php?go&editConf
 ```
 
 ## Plugin list
 
-```
+```text
 [URI] index.php?FrontPage&plugin&name=pluginlist
 ```
 
-## Docker
+## For Development
 
-```
-docker-compose up
-```
-
-
+We use the `just` task runner.
+To run tests, execute `just test`.
