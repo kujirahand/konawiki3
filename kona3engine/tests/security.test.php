@@ -155,15 +155,20 @@ $token3 = kona3_getEditToken('another_key');
 test_ne(__LINE__, $token1, $token3, "CSRFトークン: 異なるキーで異なるトークン");
 
 // 強制更新 (セッション破壊が必要なので、トークンの存在チェックのみ)
-$token4 = kona3_getEditToken('test_key_force', FALSE);
-test_assert(__LINE__, !empty($token4) && is_string($token4), "CSRFトークン: 強制更新で新しいトークンも生成できる");
+$token4a = kona3_getEditToken('test_key_force', TRUE);
+$token4b = kona3_getEditToken('test_key_force', TRUE);
+test_assert(__LINE__, !empty($token4a) && is_string($token4a), "CSRFトークン: 強制更新で新しいトークンも生成できる");
+test_ne(__LINE__, $token4a, $token4b, "CSRFトークン: 強制更新で異なるトークンが生成される");
 
 // トークン検証のテスト（空白文字のトリミング対策）
-$token5 = kona3_getEditToken('trim_test');
-$_SESSION[kona3_getEditTokenKeyName('trim_test')] = $token5;
-$_POST['edit_token'] = " " . $token5 . " "; // 前後に空白を追加
-test_assert(__LINE__, kona3_checkEditToken('trim_test'), "CSRFトークン: 前後の空白は無視される");
-unset($_POST['edit_token']);
+$editTokenKey = 'edit_token';
+$token5 = kona3_getEditToken($editTokenKey);
+$_POST[$editTokenKey] = $token5;
+test_eq(__LINE__, $token5, $_SESSION[kona3_getEditTokenKeyName($editTokenKey)], "CSRFトークンのチェック");
+test_assert(__LINE__, kona3_checkEditToken($editTokenKey), "CSRFトークンのチェック");
+$_POST[$editTokenKey] = " " . $token5 . " "; // 前後に空白を追加
+test_assert(__LINE__, kona3_checkEditToken($editTokenKey), "CSRFトークン: 前後の空白は無視される");
+unset($_POST[$editTokenKey]);
 
 // --- HTMLエスケープの包括的テスト ---
 

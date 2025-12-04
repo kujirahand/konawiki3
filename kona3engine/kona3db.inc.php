@@ -333,3 +333,91 @@ function subdb_get1($sql, $params = array())
     $dbname = "subdb";
     return db_get1($sql, $params, $dbname);
 }
+
+/**
+ * ページのメタ情報を保存する
+ * @param string $page ページ名
+ * @param array $meta メタ情報の配列
+ * @return bool 成功した場合はTRUE
+ */
+function kona3db_savePageMeta($page, $meta)
+{
+    // ページIDを取得
+    $page_id = kona3db_getPageId($page, TRUE);
+    if ($page_id === 0) {
+        return FALSE;
+    }
+    
+    // メタ情報にpage_idとpageを追加
+    $meta['page_id'] = $page_id;
+    $meta['page'] = $page;
+    
+    // タイムスタンプを更新
+    if (!isset($meta['created_at'])) {
+        $meta['created_at'] = time();
+    }
+    $meta['updated_at'] = time();
+    
+    // メタ情報ファイルのパスを取得
+    $metaFile = kona3db_getPageMetaFile($page);
+    
+    // ディレクトリが存在しない場合は作成
+    $dir = dirname($metaFile);
+    if (!file_exists($dir)) {
+        global $kona3conf;
+        $dir_mode = @octdec($kona3conf['chmod_mkdir']);
+        if ($dir_mode == 0) {
+            $dir_mode = 0755;
+        }
+        @mkdir($dir, $dir_mode, TRUE);
+    }
+    
+    // JSON形式で保存
+    $jsonData = json_encode($meta, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    return kona3lock_save($metaFile, $jsonData);
+}
+
+/**
+ * ページのメタ情報を読み込む
+ * @param string $page ページ名
+ * @return array|null メタ情報の配列、存在しない場合はnull
+ */
+function kona3db_loadPageMeta($page)
+{
+    $metaFile = kona3db_getPageMetaFile($page);
+    
+    // ファイルが存在しない場合はnullを返す
+    if (!file_exists($metaFile)) {
+        return null;
+    }
+    
+    // ファイルを読み込む
+    $jsonData = kona3lock_load($metaFile);
+    if ($jsonData === FALSE) {
+        return null;
+    }
+    
+    // JSONをデコード
+    $meta = json_decode($jsonData, TRUE);
+    return $meta;
+}
+
+/**
+ * ページのメタ情報ファイルのパスを取得
+ * @param string $page ページ名
+ * @return string メタ情報ファイルのパス
+ */
+function kona3db_getPageMetaFile($page)
+{
+    // ページ名から拡張子を除去
+    $pageName = $page;
+    $ext = kona3getFileExt($page);
+    if ($ext != '') {
+        $pageName = substr($page, 0, -(strlen($ext) + 1));
+    }
+    
+    // メタ情報ファイルのパスを生成
+    $metaFile = kona3getWikiFile($pageName, TRUE, '.meta.json');
+    
+    return $metaFile;
+}
