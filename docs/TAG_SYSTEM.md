@@ -80,7 +80,7 @@ data/.kona3_tag/
 
 - [meta_info.md を参照](docs/meta_info.md)
 
-## 旧バージョンの　SQLiteからの移行
+## 旧バージョンのSQLiteからの移行
 
 ### 自動移行
 
