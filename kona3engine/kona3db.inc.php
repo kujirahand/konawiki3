@@ -405,6 +405,8 @@ function kona3db_loadPageMeta($page)
  */
 function kona3db_getPageMetaFile($page)
 {
+    global $kona3conf;
+    
     // ページ名から拡張子を除去
     $pageName = $page;
     $ext = kona3getFileExt($page);
@@ -412,18 +414,33 @@ function kona3db_getPageMetaFile($page)
         $pageName = substr($page, 0, -(strlen($ext) + 1));
     }
     
+    // enc_pagename設定を取得
+    if (empty($kona3conf['enc_pagename'])) {
+        $kona3conf['enc_pagename'] = FALSE;
+    }
+    $encode = $kona3conf['enc_pagename'];
+    
     // メタ情報ファイルのパスを生成
     // data/.meta/{タイトル}.json の形式で保存
     $dataDir = KONA3_DIR_DATA;
     $metaDir = $dataDir . '/.meta';
     
-    // 階層構造を持つページの場合
+    // 階層構造を持つページの場合、各パーツをエンコード
     $pathParts = explode('/', $pageName);
-    $fileName = array_pop($pathParts);
+    $encodedParts = array();
+    foreach ($pathParts as $part) {
+        $enc = $part;
+        if ($encode) {
+            $enc = urlencode($part);
+        }
+        $encodedParts[] = $enc;
+    }
     
-    if (count($pathParts) > 0) {
+    $fileName = array_pop($encodedParts);
+    
+    if (count($encodedParts) > 0) {
         // サブディレクトリがある場合
-        $subDir = implode('/', $pathParts);
+        $subDir = implode('/', $encodedParts);
         $metaFile = $metaDir . '/' . $subDir . '/' . $fileName . '.json';
     } else {
         // ルートディレクトリの場合
