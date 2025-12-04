@@ -107,11 +107,7 @@ function kona3db_writePage($page, $body, $user_id = 0, $tags = NULL)
         );
     }
     // tags (deprecated - now using file-based tag system)
-    // タグはプラグイン #tag() で管理されるようになりました
-    if ($tags != NULL) {
-        // 互換性のため引数は残しますが、何もしません
-        // タグは #tag(TAG1) プラグインで管理されます
-    }
+    // 互換性のため$tag引数は残しますが、何もしません
     return TRUE;
 }
 
@@ -417,7 +413,22 @@ function kona3db_getPageMetaFile($page)
     }
     
     // メタ情報ファイルのパスを生成
-    $metaFile = kona3getWikiFile($pageName, TRUE, '.meta.json');
+    // data/.meta/{タイトル}.json の形式で保存
+    $dataDir = KONA3_DIR_DATA;
+    $metaDir = $dataDir . '/.meta';
+    
+    // 階層構造を持つページの場合
+    $pathParts = explode('/', $pageName);
+    $fileName = array_pop($pathParts);
+    
+    if (count($pathParts) > 0) {
+        // サブディレクトリがある場合
+        $subDir = implode('/', $pathParts);
+        $metaFile = $metaDir . '/' . $subDir . '/' . $fileName . '.json';
+    } else {
+        // ルートディレクトリの場合
+        $metaFile = $metaDir . '/' . $fileName . '.json';
+    }
     
     return $metaFile;
 }
