@@ -427,6 +427,10 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
         $oldTags = isset($meta['tags']) ? $meta['tags'] : [];
         if ($tags !== '') {
             $tagArray = array_map('trim', explode('/', $tags));
+            // タグの長さを20文字に制限
+            $tagArray = array_map(function($tag) {
+                return mb_strlen($tag) > 20 ? mb_substr($tag, 0, 20) : $tag;
+            }, $tagArray);
             $meta['tags'] = $tagArray;
         } else {
             $meta['tags'] = [];
