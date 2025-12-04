@@ -29,9 +29,7 @@ $metaFile = kona3db_getPageMetaFile('TestPage');
 test_assert(__LINE__, strpos($metaFile, 'TestPage.json') !== FALSE, "Simple page name with encoding (no special chars)");
 
 $metaFile = kona3db_getPageMetaFile('Test/Page');
-// When enc_pagename is TRUE, "Test/Page" should become "Test%2FPage" - wait no, the slash is a directory separator
-// Actually, looking at kona3getWikiFile, it splits by '/' first, then encodes each part
-// So "Test/Page" would have parts ["Test", "Page"], each encoded, resulting in "Test/Page" still
+// Slashes are directory separators, so each part is encoded separately
 test_assert(__LINE__, strpos($metaFile, 'Test/Page.json') !== FALSE, "Hierarchical page name parts encoded separately");
 
 // Test 3: Special characters with enc_pagename = TRUE
@@ -39,7 +37,6 @@ echo "Test 3: Special characters with enc_pagename = TRUE\n";
 $kona3conf['enc_pagename'] = TRUE;
 
 $metaFile = kona3db_getPageMetaFile('Test Page');
-// urlencode encodes spaces as '+', not '%20'
 test_assert(__LINE__, strpos($metaFile, 'Test+Page.json') !== FALSE, "Space should be encoded as + (urlencode behavior)");
 
 $metaFile = kona3db_getPageMetaFile('Test&Page');
@@ -64,7 +61,6 @@ echo "Test 5: Hierarchical with special characters\n";
 $kona3conf['enc_pagename'] = TRUE;
 
 $metaFile = kona3db_getPageMetaFile('Parent Dir/Child Page');
-// urlencode encodes spaces as '+', not '%20'
 test_assert(__LINE__, strpos($metaFile, 'Parent+Dir/Child+Page.json') !== FALSE, "Hierarchical path with spaces encoded");
 
 // Test 6: With file extension
