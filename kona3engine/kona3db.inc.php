@@ -412,22 +412,21 @@ function kona3db_getPageMetaFile($page)
         $pageName = substr($page, 0, -(strlen($ext) + 1));
     }
     
-    // メタ情報ファイルのパスを生成
+    // kona3getWikiFileを使用してパスを生成（パストラバーサル対策が含まれる）
     // data/.meta/{タイトル}.json の形式で保存
+    $wikiFile = kona3getWikiFile($pageName, TRUE, '.json');
+    
+    // data/ を data/.meta/ に変換（先頭のプレフィックスのみ置換）
     $dataDir = KONA3_DIR_DATA;
     $metaDir = $dataDir . '/.meta';
-    
-    // 階層構造を持つページの場合
-    $pathParts = explode('/', $pageName);
-    $fileName = array_pop($pathParts);
-    
-    if (count($pathParts) > 0) {
-        // サブディレクトリがある場合
-        $subDir = implode('/', $pathParts);
-        $metaFile = $metaDir . '/' . $subDir . '/' . $fileName . '.json';
+    $dataDirPrefix = $dataDir . '/';
+    if (strpos($wikiFile, $dataDirPrefix) === 0) {
+        $metaFile = $metaDir . '/' . substr($wikiFile, strlen($dataDirPrefix));
     } else {
-        // ルートディレクトリの場合
-        $metaFile = $metaDir . '/' . $fileName . '.json';
+        // kona3getWikiFileは常にKONA3_DIR_DATAで始まるパスを返すため、
+        // この分岐に到達することはないはずだが、安全のためにログを出力
+        error_log("kona3db_getPageMetaFile: Unexpected path format: " . $wikiFile);
+        return FALSE;
     }
     
     return $metaFile;
