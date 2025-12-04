@@ -144,6 +144,7 @@ function use_beforeunload(b) {
       return "Finish editing?"
     })
     qq('form').on('submit', function () {
+      syncTagsToHidden() // タグを同期
       qq(window).off('beforeunload')
     })
   } else {
@@ -193,6 +194,9 @@ function ajaxProc(a_mode, source) {
     elog("- skip go_ajax:" + a_mode)
     return
   }
+  // タグを同期
+  syncTagsToHidden()
+  
   qq('#temporarily_save_btn').prop('disabled', true)
 
   isProcessingAjax = true
@@ -831,5 +835,14 @@ function replaceUndo() {
     let text = qq('#edit_txt').val()
     qq('#edit_txt').val(replaceUndoBuffer)
     replaceUndoBuffer = text
+  }
+}
+
+// Sync tags from visible input to hidden input
+function syncTagsToHidden() {
+  const tagsVisible = document.getElementById('tags_visible')
+  const tagsHidden = document.getElementById('tags')
+  if (tagsVisible && tagsHidden) {
+    tagsHidden.value = tagsVisible.value
   }
 }

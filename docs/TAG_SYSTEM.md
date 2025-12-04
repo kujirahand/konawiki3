@@ -9,13 +9,7 @@ KonaWiki3のタグシステムは、SQLiteベースからファイルベース�
 
 ### タグを追加する
 
-ページ内で `#tag(タグ名)` プラグインを使用します。
-
-```
-#tag(PHP)
-#tag(プログラミング)
-#tag(Web開発)
-```
+編集画面で、タグ入力欄にタグをスラッシュ(`/`)区切りで入力します。
 
 ### タグ付きページ一覧を表示する
 
@@ -45,16 +39,22 @@ KonaWiki3のタグシステムは、SQLiteベースからファイルベース�
 
 ## データ保存形式
 
-タグ情報は `data/.kona3_tag/` ディレクトリにJSON形式で保存されます。
+タグ情報は、下記の2カ所に保存されます。
 
-```
+1. `data/.kona3_tag/{タグ名}.json` ディレクトリにJSON形式で保存されます。
+2. 各ページのタグ情報は、`{タイトル}.meta.json` ファイルに保存されます。
+
+`data/.kona3_tag/{タグ名}.json` ディレクトリ構造例:
+
+```text
 data/.kona3_tag/
   ├── PHP.json
   ├── プログラミング.json
   └── Web開発.json
 ```
 
-各JSONファイルの内容:
+`data/.kona3_tag/{タグ名}.json` JSONファイルの内容:
+
 ```json
 [
   {
@@ -72,13 +72,16 @@ data/.kona3_tag/
 
 ページごとのタグ情報は、`{タイトル}.meta.json` ファイルに保存されます。
 
-## SQLiteからの移行
+- [meta_info.md を参照](docs/meta_info.md)
+
+## 旧バージョンの　SQLiteからの移行
 
 ### 自動移行
 
 初回起動時に `data/.kona3_tag/` ディレクトリが存在しない場合、自動的にSQLiteの `tags` テーブルからデータを移行します。
 
 移行処理は以下の手順で実行されます:
+
 1. SQLiteの `tags` テーブルからすべてのタグデータを読み込む
 2. タグごとにJSONファイルを作成
 3. SQLiteの `tags` テーブルを空にする
@@ -156,15 +159,7 @@ $all_tags = kona3tags_getAllTags();
 タグシステムのテストは以下のコマンドで実行できます:
 
 ```bash
-cd kona3engine/tests
-./test.sh
-```
-
-または個別にテストを実行:
-
-```bash
-php kona3tags.test.php          # 基本機能のテスト
-php kona3tags_migration.test.php # 移行処理のテスト
+just test
 ```
 
 ## 注意事項

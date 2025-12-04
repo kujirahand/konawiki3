@@ -4,6 +4,7 @@ include_once dirname(__DIR__) . '/kona3lib.inc.php';
 include_once dirname(__DIR__) . '/kona3db.inc.php';
 include_once dirname(__DIR__) . '/kona3parser.inc.php';
 include_once dirname(__DIR__) . '/kona3ai.inc.php';
+include_once dirname(__DIR__) . '/kona3tags.inc.php';
 
 header('X-Frame-Options: SAMEORIGIN');
 
@@ -122,16 +123,6 @@ function kona3_action_edit()
     $meta = kona3db_loadPageMeta($page);
     if ($meta !== null && isset($meta['tags']) && is_array($meta['tags'])) {
         $tags = implode('/', $meta['tags']);
-    } else {
-        // フォールバック: データベースからタグを読み込む
-        $r = db_get('SELECT * FROM tags WHERE page_id=?', [$page_id]);
-        if ($r) {
-            $a = [];
-            foreach ($r as $i) {
-                $a[] = $i['tag'];
-            }
-            $tags = implode('/', $a);
-        }
     }
 
     // new button
@@ -406,6 +397,9 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
         @unlink($fname);
         kona3db_writePage($page, trim($edit_txt), $user_id, $tags);
         
+        // タグもクリア
+        kona3tags_clearPageTags($page);
+        
         // メタ情報も削除
         $metaFile = kona3db_getPageMetaFile($page);
         if (file_exists($metaFile)) {
@@ -430,6 +424,7 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
             $meta = [];
         }
         // タグ情報を更新
+        $oldTags = isset($meta['tags']) ? $meta['tags'] : [];
         if ($tags !== '') {
             $tagArray = array_map('trim', explode('/', $tags));
             $meta['tags'] = $tagArray;
@@ -437,6 +432,18 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
             $meta['tags'] = [];
         }
         kona3db_savePageMeta($page, $meta);
+        
+        // === for Tag Files ===
+        // 古いタグを削除
+        foreach ($oldTags as $oldTag) {
+            if (!in_array($oldTag, $meta['tags'])) {
+                kona3tags_removePageTag($page, $oldTag);
+            }
+        }
+        // 新しいタグを追加
+        foreach ($meta['tags'] as $tag) {
+            kona3tags_addPageTag($page, $tag);
+        }
         
         // === discord ===
         if (kona3getConf('discord_webhook_url', '') != '') {

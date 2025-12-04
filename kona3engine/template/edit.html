@@ -10,6 +10,7 @@
       <input type="hidden" id="a_hash" name="a_hash" value="{{$a_hash}}">
       <input type="hidden" id="edit_token" name="edit_token" value="{{$edit_token}}">
       <input type="hidden" id="edit_ext" name="edit_ext" value="{{$edit_ext}}">
+      <input type="hidden" id="tags" name="tags" value="{{ $tags }}">
       <div class="editor">
         <textarea id="edit_txt" name="edit_txt">{{$edit_txt}}</textarea>
       </div>
@@ -65,8 +66,8 @@
       <div id="tags_div" class="desc tag_box" class="block2" style="display: none;">
         <div>
           <b style="width:5em;">{{'Tags'|lang}}</b>:
-          <input type="text" id="tags" class="info" style="width: 50%;" name="tags" value="{{ $tags }}"
-            placeholder="tag1/tag2/tag3/...">
+          <input type="text" id="tags_visible" class="info" style="width: 50%;" value="{{ $tags }}"
+            placeholder="tag1/tag2/tag3/..." onchange="syncTagsToHidden()">
         </div>
       </div>
       <div id="replace_div" class="desc" class="block2" style="display: none;">

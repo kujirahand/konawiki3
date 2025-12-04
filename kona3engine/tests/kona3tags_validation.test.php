@@ -23,29 +23,42 @@ $test_page1 = 'TagValidationTest1';
 $test_page2 = 'TagValidationTest2';
 $test_page3 = 'TagValidationTest3';
 
-// ページ1: タグを含むページ
-$body1 = "■テストページ1\n\nこのページにはタグがあります。\n\n#tag(ValidTag)\n#tag(TestTag)";
+// ページ1: タグを含むページ（メタ情報で設定）
+$body1 = "■テストページ1\n\nこのページにはタグがあります。";
 $filepath1 = koan3getWikiFileText($test_page1);
 file_put_contents($filepath1, $body1);
 kona3db_writePage($test_page1, $body1, 0);
 
-// ページ2: タグを含むページ
-$body2 = "■テストページ2\n\n別のページ\n\n#tag(ValidTag)";
+// メタ情報を設定
+$meta1 = kona3db_loadPageMeta($test_page1);
+if ($meta1 === null) $meta1 = [];
+$meta1['tags'] = ['ValidTag', 'TestTag'];
+kona3db_savePageMeta($test_page1, $meta1);
+
+// ページ2: タグを含むページ（メタ情報で設定）
+$body2 = "■テストページ2\n\n別のページ";
 $filepath2 = koan3getWikiFileText($test_page2);
 file_put_contents($filepath2, $body2);
 kona3db_writePage($test_page2, $body2, 0);
 
-// ページ3: タグを含まないページ（手動でタグだけ追加）
-$body3 = "■テストページ3\n\nタグプラグインを使わないページ";
+// メタ情報を設定
+$meta2 = kona3db_loadPageMeta($test_page2);
+if ($meta2 === null) $meta2 = [];
+$meta2['tags'] = ['ValidTag'];
+kona3db_savePageMeta($test_page2, $meta2);
+
+// ページ3: タグを含まないページ（手動でタグファイルだけ追加）
+$body3 = "■テストページ3\n\nタグが設定されていないページ";
 $filepath3 = koan3getWikiFileText($test_page3);
 file_put_contents($filepath3, $body3);
 kona3db_writePage($test_page3, $body3, 0);
+// メタ情報にタグを設定しない
 
 echo "Test 1: Add tags to pages\n";
 kona3tags_addPageTag($test_page1, 'ValidTag');
 kona3tags_addPageTag($test_page1, 'TestTag');
 kona3tags_addPageTag($test_page2, 'ValidTag');
-kona3tags_addPageTag($test_page3, 'ValidTag'); // このページには実際にタグプラグインがない
+kona3tags_addPageTag($test_page3, 'ValidTag'); // このページにはメタ情報にタグが設定されていない
 
 // タグの状態を確認
 $pages = kona3tags_getPages('ValidTag');
@@ -55,7 +68,7 @@ echo "Test 2: Check tag validation in #tags plugin\n";
 // #tagsプラグインを実行してバリデーションを実行
 $html = kona3plugins_tags_getTags('ValidTag', 'mtime', 30);
 
-// バリデーション後、タグプラグインを含まないページは除去されているはず
+// バリデーション後、メタ情報にタグがないページは除去されているはず
 $pages = kona3tags_getPages('ValidTag');
 test_eq(__LINE__, 2, count($pages), "ValidTag should have 2 pages after validation");
 

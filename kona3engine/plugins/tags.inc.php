@@ -62,30 +62,20 @@ function kona3plugins_tags_getTags($tag, $sort = 'mtime', $limit = 30) {
 }
 
 /**
- * ページ内に指定したタグが埋め込まれているかチェックする
+ * ページに指定したタグが設定されているかチェックする
+ * メタ情報ファイルからタグをチェック
  * @param string $page ページ名
  * @param string $tag タグ名
  * @return bool タグが見つかった場合true
  */
 function kona3plugins_tags_hasTagInPage($page, $tag) {
-  // ページファイルを取得
-  $filepath = koan3getWikiFileText($page);
-  if (!file_exists($filepath)) {
-    return false;
+  // メタ情報ファイルからタグをチェック
+  $meta = kona3db_loadPageMeta($page);
+  if ($meta !== null && isset($meta['tags']) && is_array($meta['tags'])) {
+    return in_array($tag, $meta['tags']);
   }
   
-  // ページの内容を読み込む
-  $body = file_get_contents($filepath);
-  if (empty($body)) {
-    return false;
-  }
-  
-  // #tag(TAG) の形式でタグが埋め込まれているかチェック
-  // エスケープされた正規表現でチェック
-  $tag_escaped = preg_quote($tag, '/');
-  $pattern = '/#tag\s*\(\s*' . $tag_escaped . '\s*\)/';
-  
-  return preg_match($pattern, $body) > 0;
+  return false;
 }
 
 function kona3plugins_tags_action() {
