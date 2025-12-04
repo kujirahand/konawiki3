@@ -20,6 +20,9 @@ function kona3tags_initDir() {
         mkdir($tag_dir, 0777, true);
         // SQLiteからの移行処理
         kona3tags_migrateFromSQLite();
+    } else {
+        // 既存のタグファイルを新形式に移行
+        kona3tags_migrateOldFormat();
     }
 }
 
@@ -67,11 +70,23 @@ function kona3tags_migrateFromSQLite() {
 }
 
 /**
+ * 古い形式のタグファイルを新形式に移行する
+ * 注: 実際には古い形式もサポートしているため、この関数は何もしない
+ */
+function kona3tags_migrateOldFormat() {
+    // 旧形式（ページリストのみ）と新形式（tag + pages）の両方をサポート
+    // 旧形式のファイルも読み込めるため、特別な移行処理は不要
+}
+
+/**
  * タグファイルのパスを取得
  */
 function kona3tags_getFilePath($tag) {
-    // ドットは除外（ファイル拡張子と混同するため）
-    $tag_safe = preg_replace('/[^a-zA-Z0-9_\-]+/', '_', $tag);
+    // URLエンコードしてマルチバイト文字を保持
+    // タグ名は20文字に制限されているため、ファイル名の長さ制限内に収まる
+    $tag_safe = rawurlencode($tag);
+    // ドット(.)は%2Eに手動で変換（ファイル拡張子と混同しないため）
+    $tag_safe = str_replace('.', '%2E', $tag_safe);
     return kona3tags_getDir() . '/' . $tag_safe . '.json';
 }
 
@@ -95,6 +110,12 @@ function kona3tags_load($tag) {
         return [];
     }
     
+    // 新形式（tag + pagesフィールド）の場合
+    if (isset($data['tag']) && isset($data['pages'])) {
+        return $data['pages'];
+    }
+    
+    // 旧形式（ページリストのみ）の場合
     return $data;
 }
 
@@ -107,7 +128,12 @@ function kona3tags_save($tag, $pages) {
     kona3tags_initDir();
     
     $filepath = kona3tags_getFilePath($tag);
-    $json = json_encode($pages, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    // タグ名とページリストを保存
+    $data = [
+        'tag' => $tag,
+        'pages' => $pages
+    ];
+    $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     
     kona3lock_save($filepath, $json);
 }
@@ -120,6 +146,11 @@ function kona3tags_save($tag, $pages) {
 function kona3tags_addPageTag($page, $tag) {
     $tag = trim($tag);
     if ($tag === '') return;
+    
+    // タグの長さを20文字に制限
+    if (mb_strlen($tag) > 20) {
+        $tag = mb_substr($tag, 0, 20);
+    }
     
     $page_id = kona3db_getPageId($page, TRUE);
     $pages = kona3tags_load($tag);
@@ -184,9 +215,20 @@ function kona3tags_clearPageTags($page) {
     if ($files === false) $files = [];
     foreach ($files as $filepath) {
         $json = file_get_contents($filepath);
-        $pages = json_decode($json, true);
+        $data = json_decode($json, true);
         
-        if (!is_array($pages)) continue;
+        if (!is_array($data)) continue;
+        
+        // 新形式の場合
+        if (isset($data['tag']) && isset($data['pages'])) {
+            $pages = $data['pages'];
+            $tag = $data['tag'];
+        } else {
+            // 旧形式の場合
+            $pages = $data;
+            $basename = basename($filepath, '.json');
+            $tag = rawurldecode($basename);
+        }
         
         $new_pages = [];
         foreach ($pages as $p) {
@@ -196,8 +238,8 @@ function kona3tags_clearPageTags($page) {
         }
         
         if (count($new_pages) > 0) {
-            $json = json_encode($new_pages, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-            kona3lock_save($filepath, $json);
+            // 新形式で保存
+            kona3tags_save($tag, $new_pages);
         } else {
             // タグにページがなくなったらファイルを削除
             unlink($filepath);
@@ -218,15 +260,24 @@ function kona3tags_getPageTags($page) {
     
     foreach ($files as $filepath) {
         $json = file_get_contents($filepath);
-        $pages = json_decode($json, true);
+        $data = json_decode($json, true);
         
-        if (!is_array($pages)) continue;
+        if (!is_array($data)) continue;
+        
+        // 新形式の場合
+        if (isset($data['tag']) && isset($data['pages'])) {
+            $pages = $data['pages'];
+            $tag = $data['tag'];
+        } else {
+            // 旧形式の場合：ファイル名からタグ名を復元
+            $basename = basename($filepath, '.json');
+            $tag = rawurldecode($basename);
+            $pages = $data;
+        }
         
         foreach ($pages as $p) {
             if ($p['page'] === $page) {
-                // ファイル名からタグ名を取得
-                $basename = basename($filepath, '.json');
-                $tags[] = $basename;
+                $tags[] = $tag;
                 break;
             }
         }
@@ -275,8 +326,20 @@ function kona3tags_getAllTags() {
     $files = glob(kona3tags_getDir() . '/*.json');
     
     foreach ($files as $filepath) {
-        $basename = basename($filepath, '.json');
-        $tags[] = $basename;
+        $json = file_get_contents($filepath);
+        $data = json_decode($json, true);
+        
+        if (!is_array($data)) continue;
+        
+        // 新形式の場合
+        if (isset($data['tag'])) {
+            $tags[] = $data['tag'];
+        } else {
+            // 旧形式の場合：ファイル名からタグ名を復元
+            $basename = basename($filepath, '.json');
+            $tag = rawurldecode($basename);
+            $tags[] = $tag;
+        }
     }
     
     sort($tags);

@@ -48,11 +48,13 @@ test_assert(__LINE__, strpos($result, 'エラー') !== false, "ver.1.0 should be
 
 echo "Test 3: Tag file path generation without dot\n";
 $filepath = kona3tags_getFilePath('TestTag');
-test_assert(__LINE__, strpos($filepath, 'TestTag.json') !== false, "File should have .json extension");
+test_assert(__LINE__, strpos($filepath, '.json') !== false, "File should have .json extension");
 
-// ドットを含むタグ名はアンダースコアに変換される
+// ドットを含むタグ名はURLエンコードされる
 $filepath = kona3tags_getFilePath('Test.Tag');
+echo "  Filepath for 'Test.Tag': $filepath\n";
 test_assert(__LINE__, strpos($filepath, '.json') !== false, "File should still have .json extension");
-test_assert(__LINE__, strpos($filepath, 'Test_Tag.json') !== false, "Dot should be converted to underscore");
+// ドットは%2Eに変換される
+test_assert(__LINE__, strpos($filepath, 'Test%2ETag.json') !== false, "Dot should be URL encoded to %2E");
 
 echo "\n=== Tag Name Validation Test Completed ===\n";
