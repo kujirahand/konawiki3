@@ -22,10 +22,12 @@ KonaWiki 3 では、ページのメタ情報（タグ情報など）を各ペー
 
 ```text
 data/
-  |- page1.txt
+  |- category/
+  |    |- page1.txt
   |- page2.md
   |- .meta/
-      |- page1.json
+      |- category/
+      |    |- page1.json
       |- page2.json
 ```
 
