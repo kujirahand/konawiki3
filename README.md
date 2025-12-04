@@ -1,6 +1,6 @@
 # Konawiki3
 
-Konawiki is a simple Wiki designed specifically for writing manuscripts, creating manuals, and sharing information.
+Konawiki3 is a simple Wiki designed specifically for writing manuscripts, creating manuals, and sharing information.
 
 - Konawiki3 is Wiki clone.
 - [URL] http://kujirahand.com/konawiki3/
