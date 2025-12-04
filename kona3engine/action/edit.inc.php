@@ -45,8 +45,9 @@ function kona3_action_edit()
         return kona3ai_edit_template();
     }
 
-    // generate edit_token ... (memo) 強制的に更新しないことで不要な書き込みエラーを防ぐ
-    $edit_token = kona3_getEditToken($page, FALSE);
+    // generate edit_token
+    // (memo) 強制的に更新しないことで不要な書き込みエラーを防ぐ
+    $edit_token = kona3_getEditToken("edit_token", FALSE);
 
     // load body
     $txt = "";
@@ -87,7 +88,6 @@ function kona3_action_edit()
     }
     $a_hash = kona3getPageHash($txt);
 
-
     // Check mode
     if ($a_mode !== '') {
         // check edit_token
@@ -118,13 +118,20 @@ function kona3_action_edit()
 
     // tags
     $tags = '';
-    $r = db_get('SELECT * FROM tags WHERE page_id=?', [$page_id]);
-    if ($r) {
-        $a = [];
-        foreach ($r as $i) {
-            $a[] = $i['tag'];
+    // メタ情報ファイルからタグを読み込む
+    $meta = kona3db_loadPageMeta($page);
+    if ($meta !== null && isset($meta['tags']) && is_array($meta['tags'])) {
+        $tags = implode('/', $meta['tags']);
+    } else {
+        // フォールバック: データベースからタグを読み込む
+        $r = db_get('SELECT * FROM tags WHERE page_id=?', [$page_id]);
+        if ($r) {
+            $a = [];
+            foreach ($r as $i) {
+                $a[] = $i['tag'];
+            }
+            $tags = implode('/', $a);
         }
-        $tags = implode('/', $a);
     }
 
     // new button
@@ -168,22 +175,15 @@ function kona3edit_checkPermission($page, $i_mode)
 function kona3edit_checkEditToken($page, $i_mode)
 {
     // check edit_token
-    if (!kona3_checkEditToken($page)) {
+    if (!kona3_checkEditToken("edit_token")) {
         $label = lang('Edit');
-        $edit_token = kona3_getEditToken($page, TRUE);
+        $edit_token = kona3_getEditToken("edit_token", TRUE);
         $url = kona3getPageURL($page, 'edit', '');
         $page_html = htmlspecialchars($page, ENT_QUOTES);
         $label_page = "$label &gt; $page_html";
         $msg = lang('Invalid edit token.');
         // form or ajax
         if ($i_mode == 'form') {
-            /*
-            // DEBUG CSRF
-            echo "<pre>";
-            print_r($_POST);
-            print_r($_SESSION);
-            echo "</pre>";
-            */
             $form = kona3_getEditTokenForm($page, 'edit', $label_page);
             kona3showMessage(
                 "$label > $page_html",
@@ -192,14 +192,6 @@ function kona3edit_checkEditToken($page, $i_mode)
         } else { // ajax
             $postId = intval(kona3param('postId', 0));
             $edit_token = '';
-            /*
-            // check all session
-            foreach ($_SESSION as $key => $val) {
-                if (is_string($val)) {
-                    $edit_token .= "[$key=$val]";
-                }
-            }
-            */
             kona3_edit_err(lang('Invalid edit token.') . "token=$edit_token", $i_mode, $postId);
         }
         exit;
@@ -413,6 +405,12 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
         // remove
         @unlink($fname);
         kona3db_writePage($page, trim($edit_txt), $user_id, $tags);
+        
+        // メタ情報も削除
+        $metaFile = kona3db_getPageMetaFile($page);
+        if (file_exists($metaFile)) {
+            @unlink($metaFile);
+        }
     } else {
         // write
         $b = kona3lock_save($fname, $edit_txt);
@@ -424,6 +422,22 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
         }
         // === for Database ===
         kona3db_writePage($page, $edit_txt, $user_id, $tags);
+        
+        // === for Meta Info ===
+        // メタ情報を保存
+        $meta = kona3db_loadPageMeta($page);
+        if ($meta === null) {
+            $meta = [];
+        }
+        // タグ情報を更新
+        if ($tags !== '') {
+            $tagArray = array_map('trim', explode('/', $tags));
+            $meta['tags'] = $tagArray;
+        } else {
+            $meta['tags'] = [];
+        }
+        kona3db_savePageMeta($page, $meta);
+        
         // === discord ===
         if (kona3getConf('discord_webhook_url', '') != '') {
             kona3postDiscordWebhook($page);

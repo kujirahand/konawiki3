@@ -20,6 +20,16 @@ function kona3param($key, $def = NULL)
     }
 }
 
+/** get $_POST[$key] with default value */
+function kona3post($key, $def = NULL)
+{
+    if (isset($_POST[$key])) {
+        return $_POST[$key];
+    } else {
+        return $def;
+    }
+}
+
 function kona3parseURI($uri)
 {
     // (ex) /path/index.php?PageName&Action&Status&p1=***&p2=***
@@ -784,21 +794,19 @@ function kona3_getEditTokenKeyName($key)
 
 function kona3_getEditTokenForceUpdate($key = 'default')
 {
-    $sname = kona3_getEditTokenKeyName($key);
-    $sname_time = "{$sname}.time";
+    $snameKey = kona3_getEditTokenKeyName($key);
+    $snameTime = kona3_getEditTokenKeyName("{$key}.time");
     // generate new token
-    if (empty($_SESSION[$sname])) {
-        $token = bin2hex(random_bytes(32));
-        $_SESSION[$sname] = $token;
-        $_SESSION[$sname_time] = time();
-    }
-    return $_SESSION[$sname];
+    $token = bin2hex(random_bytes(128));
+    $_SESSION[$snameKey] = $token;
+    $_SESSION[$snameTime] = time();
+    return $_SESSION[$snameKey];
 }
 
 function kona3_getEditToken($key = 'default', $update = FALSE)
 {
-    $sname = kona3_getEditTokenKeyName($key);
-    $sname_time = "{$sname}.time";
+    $snameKey = kona3_getEditTokenKeyName($key);
+    $snameTime = kona3_getEditTokenKeyName("{$key}.time");
     $limit = 60 * 60 * 24; // 1day
 
     // force update?
@@ -807,32 +815,29 @@ function kona3_getEditToken($key = 'default', $update = FALSE)
     }
 
     // check empty
-    if (empty($_SESSION[$sname])) {
+    if (empty($_SESSION[$snameKey])) {
         return kona3_getEditTokenForceUpdate($key);
     }
 
     // check expire
-    $time = isset($_SESSION[$sname_time]) ? $_SESSION[$sname_time] : time();
+    $time = isset($_SESSION[$snameTime]) ? $_SESSION[$snameTime] : time();
     if (time() - $time >  $limit) {
         return kona3_getEditTokenForceUpdate($key);
     }
 
-    return $_SESSION[$sname];
+    return $_SESSION[$snameKey];
 }
 
 function kona3_checkEditToken($key = 'default')
 {
     $sname = kona3_getEditTokenKeyName($key);
-    $ses = isset($_SESSION[$sname]) ? trim($_SESSION[$sname]) : '';
-    // Check both POST and GET for edit_token
-    $get = isset($_POST['edit_token']) ? trim($_POST['edit_token']) : '';
-    if ($get === '') {
-        $get = isset($_GET['edit_token']) ? trim($_GET['edit_token']) : '';
-    }
-    if ($ses == '') {
+    $sessionValue = isset($_SESSION[$sname]) ? trim($_SESSION[$sname]) : '';
+    if ($sessionValue == '') {
         return FALSE;
     }
-    return ($ses === $get);
+    // Check token
+    $postValue = trim(kona3post($key, ''));
+    return ($sessionValue === $postValue);
 }
 
 function kona3_getEditTokenForm($page = 'default', $action = 'edit', $label = 'Edit', $style = '')
@@ -842,7 +847,7 @@ function kona3_getEditTokenForm($page = 'default', $action = 'edit', $label = 'E
         $style = "style='$style'";
     }
     // get token
-    $edit_token = kona3_getEditToken($page);
+    $edit_token = kona3_getEditToken("edit_token");
     $url = kona3getPageURL($page, $action);
     // html
     $html = implode("\n", [

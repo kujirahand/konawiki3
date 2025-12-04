@@ -79,11 +79,27 @@ function kona3_action_show($actionMode = "")
     $tags = '';
     if ($file_exists) {
         $page_id = kona3db_getPageId($page, TRUE); // exists page
-        $tags_a = db_get('SELECT * FROM tags WHERE page_id=?', [$page_id]);
-        if ($tags_a) {
+        
+        // メタ情報ファイルからタグを読み込む
+        $meta = kona3db_loadPageMeta($page);
+        $tags_array = [];
+        
+        if ($meta !== null && isset($meta['tags']) && is_array($meta['tags'])) {
+            $tags_array = $meta['tags'];
+        } else {
+            // フォールバック: データベースからタグを読み込む
+            $tags_a = db_get('SELECT * FROM tags WHERE page_id=?', [$page_id]);
+            if ($tags_a) {
+                foreach ($tags_a as $t) {
+                    $tags_array[] = $t['tag'];
+                }
+            }
+        }
+        
+        // タグをHTMLに変換
+        if (!empty($tags_array)) {
             $a = [];
-            foreach ($tags_a as $t) {
-                $tag = $t['tag'];
+            foreach ($tags_array as $tag) {
                 $tag_h = htmlspecialchars($tag);
                 $tag_u = urlencode($tag);
                 $url = kona3getPageURL($page, 'plugin', '', "name=tags&tag=$tag_u");
