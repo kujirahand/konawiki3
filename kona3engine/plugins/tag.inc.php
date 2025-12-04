@@ -4,7 +4,7 @@
  * - [引数]
  * -- TAG1 ... タグ名
  * - [説明]
- * -- ページにタグを追加します。複数のタグを付ける場合は、複数回呼び出してください。
+ * -- ページに指定タグのリンクを追加します。
  * -- 例: #tag(PHP) #tag(プログラミング)
  */
 function kona3plugins_tag_execute($args) {
@@ -24,9 +24,6 @@ function kona3plugins_tag_execute($args) {
     if (strpos($tag, '.') !== false) {
         return '<span style="color:red;">エラー: タグ名にドット(.)は使用できません</span>';
     }
-    
-    // タグを追加
-    kona3tags_addPageTag($page, $tag);
     
     // タグをリンク付きで表示
     $tag_h = htmlspecialchars($tag);

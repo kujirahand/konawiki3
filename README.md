@@ -8,7 +8,7 @@ Konawiki3 is a simple Wiki designed specifically for writing manuscripts, creati
 
 # Goals of Konawiki3
 
-The data in the Wiki is just plain text files, which allows for detailed differences to be tracked in conjunction with Git.
+The data in the Wiki is **just plain text** files, which allows for detailed differences to be tracked in conjunction with Git.
 You can use Konawiki3 instead of a text editor. Let's accomplish great tasks using the small and simple Konawiki.
 
 Additionally, through the configuration options, it is possible to save in `Markdown` as well as `Konawiki notation`. You can use your preferred notation for markup.
