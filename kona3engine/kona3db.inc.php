@@ -405,6 +405,8 @@ function kona3db_loadPageMeta($page)
  */
 function kona3db_getPageMetaFile($page)
 {
+    global $kona3conf;
+    
     // ページ名から拡張子を除去
     $pageName = $page;
     $ext = kona3getFileExt($page);
