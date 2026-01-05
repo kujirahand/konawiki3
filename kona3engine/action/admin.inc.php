@@ -48,7 +48,7 @@ function kona3setup_config()
         echo "<html><body><a href='index.php?go&login'>Please Login.</a></body></html>";
         exit;
     }
-    $editTokenKey = 'kona3setup_config';
+    $editTokenKey = 'edit_token';
     $file_conf = KONA3_DIR_PRIVATE . '/kona3conf.json.php';
     $conf = jsonphp_load($file_conf, []);
     kona3conf_setWikiConf($conf);
