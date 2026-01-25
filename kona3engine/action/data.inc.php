@@ -38,10 +38,10 @@ function kona3_action_data() {
     exit;
   }
   // data_dir_allow_pattern
-  $allow_pattern = kona3getConf("data_dir_allow_pattern", "(csv|json|xml|doc|docx|xls|xlsx|ppt|pptx|pdf|zip|gz|bz2|wav|mid|mp3|mp4|ogg)");
+  $allow_pattern = kona3getConf("data_dir_allow_pattern", "(csv|json|xml|doc|docx|xls|xlsx|ppt|pptx|pdf|zip|gz|bz2|wav|mid|mp3|mp4|ogg|mmd|mermaid)");
   $pattern = "#\.($allow_pattern)$#";
   if (!preg_match($pattern, $fname)) {
-    header('HTTP/1.0 404 Not Found');
+    header('HTTP/1.0 415 Unsupported Media Type');
     echo $fileNotFound;
     exit;
   }
