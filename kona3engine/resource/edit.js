@@ -270,7 +270,7 @@ function setButtonsDisabled(stat) {
 function countText() {
   let s = ''
   let txt = qq('#edit_txt').val()
-  const counterTag = [['{{{#count', '}}}'], ['```#count', '```'], [':::count', ':::'], [':::#count', ':::']]
+  const counterTag = [['{{{#count', '}}}'], ['```#count', '```'], [':::count', ':::'], [':::#count', ':::'], [':::summary', ':::'], ['{{{#summary', '}}}']]
   // total
   s += 'total(' + txt.length.toLocaleString() + ') '
   // id
@@ -290,7 +290,7 @@ function countText() {
     if (i === -1) { break }
     // trim left side
     txt = txt.substr(i)
-    txt = txt.replace(/^[\{`:]+\#?(countbox|count)/, '')
+    txt = txt.replace(/^[\{`:]+\#?(countbox|count|summary)/, '')
     // count
     var id = '*'
     var ts = ''
