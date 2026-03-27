@@ -71,7 +71,8 @@ function kona3conf_setWikiConf(&$kona3conf)
         'max_search_level' => '2',
         'use_pdf_out' => FALSE,
         'image_pattern' => '(png|jpg|jpeg|gif|bmp|ico|svg|webp)',
-        'data_dir_allow_pattern' => '(csv|json|xml|doc|docx|xls|xlsx|ppt|pptx|pdf|zip|gz|bz2|wav|mid|mp3|mp4|ogg)',
+        # data_dir_allow_pattern (※テキストデータを直接ダウンロードさせないように限定したデータのみ許可)
+        'data_dir_allow_pattern' => '(csv|json|xml|doc|docx|xls|xlsx|ppt|pptx|pdf|zip|gz|bz2|wav|mid|mp3|mp4|ogg|mmd|mermaid|yaml|yml)',
         'allow_upload' => FALSE,
         'allow_upload_ext' => 'txt;md;pdf;csv;wav;mid;mp3;mp4;ogg;zip;gz;bz2;jpg;jpeg;png;gif;webp;svg;xml;json;ini;doc;docx;xls;xlsx;ppt;pptx',
         'upload_max_file_size' => 1024 * 1024 * 5,

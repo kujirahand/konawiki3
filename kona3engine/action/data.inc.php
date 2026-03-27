@@ -4,6 +4,7 @@ include_once __DIR__.'/show.inc.php';
 
 function kona3_action_data() {
   $fileNotFound = "<html><body><h1>404 File not found.</h1><a href='index.php'>-&gt; index</a></body></html>\n\n";
+  $fileNotAllowed = "<html><body><h1>415 Unsupported Media Type.</h1><a href='index.php'>-&gt; index</a></body></html>\n\n";
   $fname = kona3getConf('page');
   // check login
   if (kona3show_check_private($fname)) {
@@ -38,11 +39,13 @@ function kona3_action_data() {
     exit;
   }
   // data_dir_allow_pattern
-  $allow_pattern = kona3getConf("data_dir_allow_pattern", "(csv|json|xml|doc|docx|xls|xlsx|ppt|pptx|pdf|zip|gz|bz2|wav|mid|mp3|mp4|ogg|mmd|mermaid)");
+  $allow_pattern = kona3getConf(
+    "data_dir_allow_pattern",
+    "(csv|json|xml|doc|docx|xls|xlsx|ppt|pptx|pdf|zip|gz|bz2|wav|mid|mp3|mp4|ogg|mmd|mermaid)");
   $pattern = "#\.($allow_pattern)$#";
   if (!preg_match($pattern, $fname)) {
     header('HTTP/1.0 415 Unsupported Media Type');
-    echo $fileNotFound;
+    echo $fileNotAllowed;
     exit;
   }
   // output contents
