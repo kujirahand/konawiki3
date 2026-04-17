@@ -174,6 +174,15 @@ function kona3getConf($key, $def = FALSE)
     return $kona3conf[$key];
 }
 
+// set config data, and return old value
+function kona3setConf($key, $value, $def = FALSE)
+{
+    global $kona3conf;
+    $old = isset($kona3conf[$key]) ? $kona3conf[$key] : $def;
+    $kona3conf[$key] = $value;
+    return $old;
+}
+
 // pname(Plugin name) is only alhpabet and number and %_-
 function kona3getPName($pname)
 {

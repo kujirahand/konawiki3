@@ -12,6 +12,8 @@ function kona3_action_show($actionMode = "")
     kona3show_check_private($page);
 
     // detect file type
+    $ext = '';
+    $fname = '';
     $wiki_live = kona3show_detect_file($page, $fname, $ext);
 
     // body
@@ -30,6 +32,7 @@ function kona3_action_show($actionMode = "")
 
     // convert
     $ext = strtolower($ext);
+    kona3setConf('page_ext', $ext);
     if ($ext == ".txt") {
         $page_body = konawiki_parser_convert($txt);
     } else if ($ext == ".md") {

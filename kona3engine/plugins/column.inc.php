@@ -17,6 +17,12 @@ function kona3plugins_column_execute($args) {
   if (!preg_match("/^([0-9a-zA-Z\-\_]+)$/",$class)) {
       $class = "column";
   }
-  $html = konawiki_parser_convert($body, FALSE);
+  // check ext
+  $ext = kona3getConf('page_ext', '.'.kona3getConf('def_text_ext', 'txt'));
+  if ($ext == ".md") {
+      $html = kona3show_markdown_convert($body);
+  } else {
+      $html = konawiki_parser_convert($body, FALSE);
+  }
   return "<div class='$class'>{$html}</div>";
 }
