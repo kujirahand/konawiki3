@@ -27,7 +27,7 @@ function kona3plugins_color_talk_execute($args) {
             $line2 = $matches[2];
             if (isset($color_map[$format])) {
                 $color = $color_map[$format];
-                $result .= "<li><span style='color: {$color};'>{$line2}</span></li>\n";
+                $result .= "<li><span style='color: {$color};'><b>{$format}</b> {$line2}</span></li>\n";
                 continue;
             }
         }
