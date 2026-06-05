@@ -11,7 +11,6 @@
  * ```
  */
 
-
 function kona3plugins_mermaid_execute($args)
 {
     global $kona3conf;
@@ -45,7 +44,7 @@ EOS;
     $error = "";
     $svg_link = "";
     $mermaid_cli = kona3getConf("mermaid_cli", "");
-    if ($filename && $mermaid_cli) {
+    if ($filename) {
         // 正規化 - [a-zA-Z0-9\-_]のみにする
         $filename = preg_replace("/^file=/", "", $filename); // file=を削除
         $filename = preg_replace("/\.svg$/", "", $filename); // .svgを削除
@@ -57,17 +56,20 @@ EOS;
         $full_svg = $pageDir . "/" . $filename . ".svg"; // フルパスを作成
         $full_mmd = $pageDir . "/" . $filename . ".mmd"; // フルパスを作成
         // ファイルへのリンクを作成
-        $url_svg = kona3getWikiUrl($full_svg); // URLを取得
+        $url_svg = str_replace(KONA3_DIR_DATA, '', $full_svg);
+        $url_svg = "index.php?".urlencode($url_svg)."&data";
         $svg_link .= "<span><a href=\"{$url_svg}\" target=\"_blank\">(↓svg)</a></span>\n";
         file_put_contents($full_mmd, $text); // mmdファイルを作成
         // mermaid_cli($full_mmd, $full_svg); // SVGファイルを作成
         // $mermaid_cli = kona3getConf("mermaid_cli", "mmdc");
         if (!file_exists($full_svg)) {
-            $cmd_a = [escapeshellarg($mermaid_cli), "-i", escapeshellarg($full_mmd), "-o", escapeshellarg($full_svg)];
-            $cmd = implode(" ", $cmd_a) . " 2>&1";
-            $error = htmlspecialchars(system($cmd, $retcode), ENT_QUOTES);
-            if ($error) {
-                $error = "<div class='error'>$error</div>";
+            if ($mermaid_cli) {
+                $cmd_a = [escapeshellarg($mermaid_cli), "-i", escapeshellarg($full_mmd), "-o", escapeshellarg($full_svg)];
+                $cmd = implode(" ", $cmd_a) . " 2>&1";
+                $error = htmlspecialchars(system($cmd, $retcode), ENT_QUOTES);
+                if ($error) {
+                    $error = "<div class='error'>$error</div>";
+                }
             }
         }
     }
