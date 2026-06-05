@@ -33,6 +33,17 @@ function kona3plugins_include_execute($args) {
 }
 
 function kona3plugins_include_file($name, &$html) {
+  // auto detect
+  $fname = kona3getWikiFile($name, false);
+  if (file_exists($fname)) {
+    $txt = file_get_contents($fname);
+    if (preg_match('/\.md$/', $fname)) {
+      $html = kona3plugins_include_markdown_convert($txt);
+    } else {
+      $html = konawiki_parser_convert($txt);
+    }
+    return true;
+  }
   // text
   $fname = kona3getWikiFile($name, true, '.txt');
   if (file_exists($fname)) {
