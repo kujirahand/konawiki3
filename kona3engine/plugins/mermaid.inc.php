@@ -1,21 +1,31 @@
 <?php
 
 /** mermaid notation
- * - [Usage] {{{#mermaid(filename) ... }}}
- * - [Usage] {{{#mermaid(file=filename) ... }}}
- * filename --- もし、mermaid-cliがインストールされているなら、SVGファイルを出力する
+ * - [Usage] {{{#mermaid(caption,filename) ... }}}
+ * caption --- キャプション
+ * filename --- もし、mermaid-cliがインストールされているならSVGファイルを出力する
  * 設定ファイルで「mermaid_cli」を指定する必要がある
+ * ```
+ * npm install -g @mermaid-js/mermaid-cli
+ * which mmdc # コマンドの場所を確認して、konawiki3の設定に指定
+ * ```
  */
 
 
 function kona3plugins_mermaid_execute($args)
 {
     global $kona3conf;
-    if (count($args) >= 2) {
-        $filename = array_shift($args);
+    $caption = "";
+    $filename = "";
+    $text = "";
+    if (count($args) >= 3) {
+        $caption = array_shift($args);
+        $filename = array_shift($args); 
+        $text = array_shift($args);
+    } else if (count($args) >= 2) {
+        $caption = array_shift($args);
         $text = array_shift($args);
     } else {
-        $filename = "";
         $text = array_shift($args);
     }
     $head = '';
@@ -26,18 +36,14 @@ function kona3plugins_mermaid_execute($args)
         $kona3conf[$plugkey] = 1;
         $head = <<<EOS
 <script type="module">
-  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.6.0/dist/mermaid.esm.min.mjs';
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.esm.min.mjs';
   mermaid.initialize({ startOnLoad: true });
 </script>
 EOS;
     }
-    $body = <<<EOS
-<div class="svg">
-  <pre class="mermaid">{$text_html}</pre>
-</div>
-EOS;
-    $result = $head . "\n" . $body . "\n";
     // export SVGファイル
+    $error = "";
+    $svg_link = "";
     $mermaid_cli = kona3getConf("mermaid_cli", "");
     if ($filename && $mermaid_cli) {
         // 正規化 - [a-zA-Z0-9\-_]のみにする
@@ -52,21 +58,27 @@ EOS;
         $full_mmd = $pageDir . "/" . $filename . ".mmd"; // フルパスを作成
         // ファイルへのリンクを作成
         $url_svg = kona3getWikiUrl($full_svg); // URLを取得
-        $result .= "<div><a href=\"{$url_svg}\" target=\"_blank\">→ svg</a></div>\n";
-        // mermaild-cliを使ってSVGファイルを出力
-        if (file_exists($full_mmd)) {
-            $old = file_get_contents($full_mmd);
-            if (trim($old) == trim($text)) {
-                // 変更がなければ、何もしない
-                return $result;
-            }
-        }
+        $svg_link .= "<span><a href=\"{$url_svg}\" target=\"_blank\">(↓svg)</a></span>\n";
         file_put_contents($full_mmd, $text); // mmdファイルを作成
         // mermaid_cli($full_mmd, $full_svg); // SVGファイルを作成
         // $mermaid_cli = kona3getConf("mermaid_cli", "mmdc");
-        $cmd_a = [escapeshellarg($mermaid_cli), "-i", escapeshellarg($full_mmd), "-o", escapeshellarg($full_svg)];
-        $cmd = implode(" ", $cmd_a) . " 2>&1";
-        $result .= htmlspecialchars(system($cmd, $retcode), ENT_QUOTES);
+        if (!file_exists($full_svg)) {
+            $cmd_a = [escapeshellarg($mermaid_cli), "-i", escapeshellarg($full_mmd), "-o", escapeshellarg($full_svg)];
+            $cmd = implode(" ", $cmd_a) . " 2>&1";
+            $error = htmlspecialchars(system($cmd, $retcode), ENT_QUOTES);
+            if ($error) {
+                $error = "<div class='error'>$error</div>";
+            }
+        }
     }
+    $body = <<<EOS
+<!-- mermaid -->
+<div class="svg">
+  <pre class="mermaid">{$text_html}</pre>
+  <div class="memo">{$caption} {$svg_link} {$error}</div>
+</div>
+<!-- /mermaid -->
+EOS;
+    $result = $head . "\n" . $body . "\n";
     return $result;
 }
