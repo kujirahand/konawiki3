@@ -11,8 +11,7 @@ include_once dirname(dirname(__FILE__)) . '/kona3parser.inc.php';
 include_once dirname(dirname(__FILE__)) . '/kona3parser_md.inc.php';
 
 function kona3plugins_include_execute($args) {
-  global $kona3conf;
-  $files_str = array_shift($args);
+  $files_str = implode("\n", $args);
   $files = explode("\n", $files_str);
   $txtlist = array();
 
@@ -20,9 +19,13 @@ function kona3plugins_include_execute($args) {
     $name = str_replace('..', '', $name); // 上のフォルダを許さない
     $name = trim($name);
     if ($name == "") continue;
+    $html = "";
     $b = kona3plugins_include_file($name, $html);
     if ($b) {
       $txtlist[] = $html;
+    } else {
+      $name_esc = htmlspecialchars($name);
+      $txtlist[] = "<div class='kona3plugins_include_error'>Error: $name_esc is not found.</div>";
     }
   }
 
@@ -31,32 +34,22 @@ function kona3plugins_include_execute($args) {
 
 function kona3plugins_include_file($name, &$html) {
   // text
-  $fname = kona3getWikiFile($name, 'txt');
+  $fname = kona3getWikiFile($name, true, '.txt');
   if (file_exists($fname)) {
     $txt = file_get_contents($fname);
     $html = konawiki_parser_convert($txt);
     return true;  
   }
   // md
-  $fname = kona3getWikiFile($name, 'md');
+  $fname = kona3getWikiFile($name, true, '.md');
   if (file_exists($fname)) {
     $txt = file_get_contents($fname);
     $html = kona3plugins_include_markdown_convert($txt);
     return true;
   }
-  // dir?
-  $fname = kona3getWikiFile($name, false);
-  if (is_dir($fname)) return false;
-  // else
-  $m_edit = lang('Edit');
-  $url = kona3getPageURL($name, 'edit');
-  $name_html = htmlspecialchars($name);
-  $html = "<a href=\"$url\" class=\"pure-button\">$m_edit: $name_html</a>";
   return false;
 }
 
 function kona3plugins_include_markdown_convert($txt) {
   return kona3markdown_parser_convert($txt);
 }
-
-
