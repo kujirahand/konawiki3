@@ -11,6 +11,30 @@
  * ```
  */
 
+function kona3plugins_mermaid_write_source($full_mmd, $text)
+{
+    $current_text = file_exists($full_mmd) ? file_get_contents($full_mmd) : false;
+    if ($current_text === $text) {
+        return false;
+    }
+    file_put_contents($full_mmd, $text);
+    clearstatcache(true, $full_mmd);
+    return true;
+}
+
+function kona3plugins_mermaid_needs_regenerate($full_mmd, $full_svg)
+{
+    clearstatcache(true, $full_mmd);
+    clearstatcache(true, $full_svg);
+    if (!file_exists($full_svg)) {
+        return true;
+    }
+    if (!file_exists($full_mmd)) {
+        return true;
+    }
+    return filemtime($full_mmd) > filemtime($full_svg);
+}
+
 function kona3plugins_mermaid_execute($args)
 {
     global $kona3conf;
@@ -59,17 +83,16 @@ EOS;
         $url_svg = str_replace(KONA3_DIR_DATA, '', $full_svg);
         $url_svg = "index.php?".urlencode($url_svg)."&data";
         $svg_link .= "<span><a href=\"{$url_svg}\" target=\"_blank\">(↓svg)</a></span>\n";
-        file_put_contents($full_mmd, $text); // mmdファイルを作成
+        kona3plugins_mermaid_write_source($full_mmd, $text); // mmdファイルを作成
         // mermaid_cli($full_mmd, $full_svg); // SVGファイルを作成
         // $mermaid_cli = kona3getConf("mermaid_cli", "mmdc");
-        if (!file_exists($full_svg)) {
-            if ($mermaid_cli) {
-                $cmd_a = [escapeshellarg($mermaid_cli), "-i", escapeshellarg($full_mmd), "-o", escapeshellarg($full_svg)];
-                $cmd = implode(" ", $cmd_a) . " 2>&1";
-                $error = htmlspecialchars(system($cmd, $retcode), ENT_QUOTES);
-                if ($error) {
-                    $error = "<div class='error'>$error</div>";
-                }
+        $update = kona3plugins_mermaid_needs_regenerate($full_mmd, $full_svg);
+        if ($update && $mermaid_cli) {
+            $cmd_a = [escapeshellarg($mermaid_cli), "-i", escapeshellarg($full_mmd), "-o", escapeshellarg($full_svg)];
+            $cmd = implode(" ", $cmd_a) . " 2>&1";
+            $error = htmlspecialchars(system($cmd, $retcode), ENT_QUOTES);
+            if ($error) {
+                $error = "<div class='error'>$error</div>";
             }
         }
     }
