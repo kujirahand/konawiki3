@@ -41,52 +41,15 @@ function kona3conf_setPHPConf()
 function kona3conf_setWikiConf(&$kona3conf)
 {
     // default settings
-    $defaultConf = [
+    $defaultConf = kona3conf_getDefaultValues();
+    $systemDefaultConf = [
         'KONAWIKI_VERSION' => KONAWIKI_VERSION,
-        'wiki_title' => 'KonaWiki3',
-        'session_name' => 'kona3session',
-        'admin_email' => 'admin@example.com',
-        'wiki_private' => TRUE,
-        'lang' => 'ja',
-        'skin' => 'def',
-        'def_text_ext' => 'txt',
-        'allow_add_user' => FALSE,
-        'allpage_header' => '',
-        'allpage_footer' => '',
-        'analytics' => '',
-        'FrontPage' => 'FrontPage',
-        'plugin_disallow' => 'html,htmlshow,filelist',
-        'git_enabled' => FALSE,
-        'git_branch' => 'main',
-        'git_remote_repository' => 'origin',
-        'noanchor' => FALSE,
-        'enc_pagename' => FALSE,
-        'show_data_dir' => FALSE,
-        'show_counter' => FALSE,
-        'para_enabled_br' => TRUE,
-        'path_max_mkdir' => 3,
-        'chmod_mkdir' => '0777',
-        'max_edit_size' => '3',
-        'max_search' => '10',
-        'max_search_level' => '2',
-        'use_pdf_out' => FALSE,
-        'image_pattern' => '(png|jpg|jpeg|gif|bmp|ico|svg|webp)',
-        # data_dir_allow_pattern (※テキストデータを直接ダウンロードさせないように限定したデータのみ許可)
-        'data_dir_allow_pattern' => '(csv|json|xml|doc|docx|xls|xlsx|ppt|pptx|pdf|zip|gz|bz2|wav|mid|mp3|mp4|ogg|mmd|mermaid|yaml|yml)',
-        'allow_upload' => FALSE,
-        'allow_upload_ext' => 'txt;md;pdf;csv;wav;mid;mp3;mp4;ogg;zip;gz;bz2;jpg;jpeg;png;gif;webp;svg;xml;json;ini;doc;docx;xls;xlsx;ppt;pptx',
-        'upload_max_file_size' => 1024 * 1024 * 5,
-        'bbs_admin_password' => 'BBS#admin!PassWord!!',
-        'openai_apikey' => '',
-        'openai_apikey_model' => 'gpt-4o-mini',
-        'openai_api_basic_instruction' => 'You are helpful AI assitant.',
-        'discord_webhook_url' => '',
         'plugin_alias' => [
             "画像" => "ref",
             "なでしこ" => "nako3",
         ],
-        'mermaid_cli' => '',
     ];
+    $defaultConf = array_merge($defaultConf, $systemDefaultConf);
     kona3conf_setDefault($kona3conf, $defaultConf);
 
     // -------------------------------------------
@@ -98,6 +61,197 @@ function kona3conf_setWikiConf(&$kona3conf)
         $plugin_disallow_kv[$name] = TRUE;
     }
     $kona3conf["plugin.disallow"] = $plugin_disallow_kv;
+}
+
+function kona3conf_getConfigItems()
+{
+    return [
+        'Basic' => [
+            'wiki_title' => ['label' => 'Wiki Title', 'default' => 'KonaWiki3', 'type' => 'string'],
+            'session_name' => ['label' => 'Session Name', 'default' => 'kona3session', 'type' => 'string'],
+            'admin_email' => ['label' => 'Admin Email', 'default' => 'admin@example.com', 'type' => 'string'],
+            'wiki_private' => ['label' => 'Wiki Private', 'default' => TRUE, 'type' => 'bool'],
+            'lang' => ['label' => 'Language', 'default' => 'ja', 'type' => 'select', 'items' => ['ja', 'en']],
+            'skin' => ['label' => 'Skin name', 'default' => 'def', 'type' => 'select', 'items' => kona3conf_getSkinItems()],
+            'allow_add_user' => ['label' => 'Allow Add User', 'default' => FALSE, 'type' => 'bool'],
+            'def_text_ext' => ['label' => 'Default Text Ext', 'default' => 'txt', 'type' => 'select', 'items' => ['txt', 'md']],
+            'bbs_admin_password' => ['label' => 'BBS Admin Password', 'default' => 'BBS#admin!PassWord!!', 'type' => 'string'],
+        ],
+        'Header/Footer' => [
+            'allpage_header' => ['label' => 'All Page Header', 'default' => '', 'type' => 'string', 'note' => 'wiki text'],
+            'allpage_footer' => ['label' => 'All Page Footer', 'default' => '', 'type' => 'string', 'note' => 'wiki text'],
+            'analytics' => ['label' => 'Analytics Code', 'default' => '', 'type' => 'string', 'note' => 'html'],
+        ],
+        'Options' => [
+            'FrontPage' => ['label' => 'FrontPage Name', 'default' => 'FrontPage', 'type' => 'string'],
+            'plugin_disallow' => ['label' => 'Disabled Plugins', 'default' => 'html,htmlshow,filelist', 'type' => 'string', 'note' => "delimiter=','"],
+            'show_counter' => ['label' => 'Show Counter', 'default' => FALSE, 'type' => 'bool'],
+            'show_data_dir' => ['label' => 'Show Data Directory', 'default' => FALSE, 'type' => 'bool'],
+            'data_dir_allow_pattern' => [
+                'label' => 'Data Directory Allow Pattern',
+                'default' => '(csv|json|xml|doc|docx|xls|xlsx|ppt|pptx|pdf|zip|gz|bz2|wav|mid|mp3|mp4|ogg|mmd|mermaid|yaml|yml)',
+                'type' => 'string',
+                'note' => 'Specify a pattern excluding images',
+            ],
+            'noanchor' => ['label' => 'No Anchor', 'default' => FALSE, 'type' => 'bool'],
+            'enc_pagename' => ['label' => 'Encode Page Name', 'default' => FALSE, 'type' => 'bool'],
+            'use_pdf_out' => ['label' => 'Use PDF Output', 'default' => FALSE, 'type' => 'bool'],
+            'para_enabled_br' => ['label' => 'Paragraph BR', 'default' => TRUE, 'type' => 'bool'],
+            'path_max_mkdir' => ['label' => 'Path Max Mkdir', 'default' => 3, 'type' => 'number', 'note' => '0:off, 1,2,3...:on'],
+            'chmod_mkdir' => ['label' => 'Chmod Mkdir', 'default' => '0777', 'type' => 'string'],
+            'max_edit_size' => ['label' => 'Max Edit Size', 'default' => 3, 'type' => 'number', 'note' => '0:no limit, unit=MB'],
+            'max_search' => ['label' => 'Max Search', 'default' => 10, 'type' => 'number'],
+            'max_search_level' => ['label' => 'Max Search Level', 'default' => 2, 'type' => 'number'],
+        ],
+        'Uploader' => [
+            'image_pattern' => ['label' => 'Image Pattern', 'default' => '(png|jpg|jpeg|gif|bmp|ico|svg|webp)', 'type' => 'string'],
+            'allow_upload' => ['label' => 'Allow Upload', 'default' => FALSE, 'type' => 'bool'],
+            'allow_upload_ext' => [
+                'label' => 'Allow Upload Ext',
+                'default' => 'txt;md;pdf;csv;wav;mid;mp3;mp4;ogg;zip;gz;bz2;jpg;jpeg;png;gif;webp;svg;xml;json;ini;doc;docx;xls;xlsx;ppt;pptx',
+                'type' => 'string',
+            ],
+            'upload_max_file_size' => ['label' => 'Upload Max File Size', 'default' => 1024 * 1024 * 5, 'type' => 'number', 'note' => 'bytes'],
+        ],
+        'AI' => [
+            'openai_apikey' => ['label' => 'OpenAI API Key', 'default' => '', 'type' => 'string', 'note' => 'for ChatGPT'],
+            'openai_apikey_model' => ['label' => 'OpenAI API Model', 'default' => 'gpt-4o-mini', 'type' => 'select', 'items' => ['gpt-4o-mini', 'gpt-4o']],
+            'openai_api_basic_instruction' => ['label' => 'OpenAI Basic Instruction', 'default' => 'You are helpful AI assitant.', 'type' => 'string'],
+            'mermaid_cli' => ['label' => 'Mermaid CLI', 'default' => '', 'type' => 'string'],
+        ],
+        'Discord' => [
+            'discord_webhook_url' => ['label' => 'Discord Webhook URL', 'default' => '', 'type' => 'string'],
+        ],
+        'Git' => [
+            'git_enabled' => ['label' => 'Git Enabled', 'default' => FALSE, 'type' => 'bool'],
+            'git_branch' => ['label' => 'Git Branch', 'default' => 'main', 'type' => 'string'],
+            'git_remote_repository' => ['label' => 'Git Remote Repository', 'default' => 'origin', 'type' => 'string'],
+        ],
+    ];
+}
+
+function kona3conf_getDefaultValues()
+{
+    $defaults = [];
+    foreach (kona3conf_getConfigItems() as $items) {
+        foreach ($items as $key => $item) {
+            $defaults[$key] = $item['default'];
+        }
+    }
+    return $defaults;
+}
+
+function kona3conf_getFlatConfigItems()
+{
+    $flatItems = [];
+    foreach (kona3conf_getConfigItems() as $items) {
+        foreach ($items as $key => $item) {
+            $flatItems[$key] = $item;
+        }
+    }
+    return $flatItems;
+}
+
+function kona3conf_getConfigFormItems($conf)
+{
+    $categories = kona3conf_getConfigItems();
+    foreach ($categories as &$items) {
+        foreach ($items as $key => &$item) {
+            $item['name'] = $key;
+            if (!isset($item['note'])) {
+                $item['note'] = '';
+            }
+            $value = array_key_exists($key, $conf) ? $conf[$key] : $item['default'];
+            $item['input_html'] = kona3conf_renderConfigInput($key, $item, $value);
+        }
+    }
+    return $categories;
+}
+
+function kona3conf_renderConfigInput($key, $item, $value)
+{
+    $type = isset($item['type']) ? $item['type'] : 'string';
+    $id = 'conf_' . preg_replace('/[^a-zA-Z0-9_\-]/', '_', $key);
+    $name = htmlspecialchars($key, ENT_QUOTES, 'UTF-8');
+    $idEsc = htmlspecialchars($id, ENT_QUOTES, 'UTF-8');
+    if ($type === 'bool') {
+        $selectedTrue = $value ? ' selected' : '';
+        $selectedFalse = $value ? '' : ' selected';
+        return "<select id=\"{$idEsc}\" name=\"{$name}\">" .
+            "<option value=\"true\"{$selectedTrue}>true</option>" .
+            "<option value=\"false\"{$selectedFalse}>false</option>" .
+            "</select>";
+    }
+    if ($type === 'select') {
+        $items = isset($item['items']) ? $item['items'] : [];
+        $valueStr = (string)$value;
+        if (!in_array($valueStr, $items, TRUE)) {
+            $items[] = $valueStr;
+        }
+        $html = "<select id=\"{$idEsc}\" name=\"{$name}\">";
+        foreach ($items as $option) {
+            $optionStr = (string)$option;
+            $optionEsc = htmlspecialchars($optionStr, ENT_QUOTES, 'UTF-8');
+            $selected = ($optionStr === $valueStr) ? ' selected' : '';
+            $html .= "<option value=\"{$optionEsc}\"{$selected}>{$optionEsc}</option>";
+        }
+        $html .= '</select>';
+        return $html;
+    }
+    $inputType = ($type === 'number') ? 'number' : 'text';
+    $valueEsc = htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+    return "<input type=\"{$inputType}\" id=\"{$idEsc}\" name=\"{$name}\" value=\"{$valueEsc}\">";
+}
+
+function kona3conf_normalizeConfigValue($value, $item)
+{
+    $type = isset($item['type']) ? $item['type'] : 'string';
+    if (is_string($value)) {
+        $value = trim($value);
+    }
+    if ($type === 'bool') {
+        if (is_bool($value)) {
+            return $value;
+        }
+        $valueLower = strtolower((string)$value);
+        return in_array($valueLower, ['1', 'true', 'on', 'yes'], TRUE);
+    }
+    if ($type === 'number') {
+        if ($value === '') {
+            return $item['default'];
+        }
+        if (is_numeric($value)) {
+            return (strpos((string)$value, '.') !== FALSE) ? (float)$value : (int)$value;
+        }
+        return $item['default'];
+    }
+    if ($type === 'select') {
+        $valueStr = (string)$value;
+        $items = isset($item['items']) ? $item['items'] : [];
+        return in_array($valueStr, $items, TRUE) ? $valueStr : $item['default'];
+    }
+    return $value;
+}
+
+function kona3conf_getSkinItems()
+{
+    $skins = ['def'];
+    if (defined('KONA3_DIR_SKIN') && is_dir(KONA3_DIR_SKIN)) {
+        $dirs = scandir(KONA3_DIR_SKIN);
+        foreach ($dirs as $dir) {
+            if ($dir === '.' || $dir === '..') {
+                continue;
+            }
+            if (is_dir(KONA3_DIR_SKIN . '/' . $dir) && preg_match('/^[a-zA-Z0-9_\-]+$/', $dir)) {
+                $skins[] = $dir;
+            }
+        }
+    } else {
+        $skins = array_merge($skins, ['single', 'nako3']);
+    }
+    $skins = array_values(array_unique($skins));
+    sort($skins);
+    return $skins;
 }
 
 function check_conf(&$conf, $key, $def)
