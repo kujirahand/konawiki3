@@ -60,6 +60,7 @@ function kona3setup_config()
         if (isset($_GET['admin'])) {
             $conf['admin_email'] = $_GET['admin'];
         }
+        $conf['config_items'] = kona3conf_getConfigFormItems($conf);
         kona3template('admin_conf.html', $conf);
         exit;
     }
@@ -90,18 +91,11 @@ function kona3setup_config()
         unset($_POST['admin_pw1']); // unset admin_pw1 and admin_pw2
         unset($_POST['admin_pw2']);
         // save
-        foreach ($conf as $key => $def) {
-            $v = isset($_POST[$key]) ? $_POST[$key] : $def;
-            if (is_string($v)) {
-                $v = trim($v);
-                if (strtolower($v) === 'true') {
-                    $v = TRUE;
-                }
-                if (strtolower($v) === 'false') {
-                    $v = FALSE;
-                }
+        $configItems = kona3conf_getFlatConfigItems();
+        foreach ($configItems as $key => $item) {
+            if (array_key_exists($key, $_POST)) {
+                $conf[$key] = kona3conf_normalizeConfigValue($_POST[$key], $item);
             }
-            $conf[$key] = $v;
         }
         // check parameters
         if (!isset($conf['FrontPage'])) {
@@ -122,6 +116,8 @@ function kona3setup_config()
             exit;
         }
         // save
+        unset($conf['plugin.disallow']);
+        unset($conf['config_items']);
         jsonphp_save($file_conf, $conf);
         kona3setup_showMessage('<h1>Saved</h1><p><a href="./index.php">Go to FrontPage.</a></p>');
         exit;

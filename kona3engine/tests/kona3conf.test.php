@@ -184,6 +184,40 @@ test_eq(__LINE__, isset($kona3conf['wiki_title']), true, "デフォルト設定:
 test_eq(__LINE__, isset($kona3conf['lang']), true, "デフォルト設定: langが設定されている");
 test_eq(__LINE__, isset($kona3conf['skin']), true, "デフォルト設定: skinが設定されている");
 
+// --- 管理画面の設定項目定義 ---
+
+$config_items = kona3conf_getConfigItems();
+test_assert(__LINE__, isset($config_items['Basic']['wiki_private']), "設定項目定義: wiki_privateが定義されている");
+test_eq(__LINE__, $config_items['Basic']['wiki_private']['type'], 'bool', "設定項目定義: wiki_privateはbool");
+test_eq(__LINE__, $config_items['Basic']['lang']['type'], 'select', "設定項目定義: langはselect");
+test_eq(__LINE__, $config_items['Options']['max_search']['type'], 'number', "設定項目定義: max_searchはnumber");
+
+$default_values = kona3conf_getDefaultValues();
+test_eq(__LINE__, $default_values['wiki_title'], 'KonaWiki3', "設定項目定義: デフォルト値が作成される");
+test_eq(__LINE__, $default_values['def_text_ext'], 'txt', "設定項目定義: selectのデフォルト値が作成される");
+
+$flat_items = kona3conf_getFlatConfigItems();
+test_assert(__LINE__, isset($flat_items['allow_upload']), "設定項目定義: フラットな項目一覧が取得できる");
+test_eq(__LINE__, kona3conf_normalizeConfigValue('false', $flat_items['wiki_private']), FALSE, "設定値正規化: bool false");
+test_eq(__LINE__, kona3conf_normalizeConfigValue('true', $flat_items['wiki_private']), TRUE, "設定値正規化: bool true");
+test_eq(__LINE__, kona3conf_normalizeConfigValue('12', $flat_items['max_search']), 12, "設定値正規化: number int");
+test_eq(__LINE__, kona3conf_normalizeConfigValue('1e3', $flat_items['max_search']), 1000, "設定値正規化: number scientific notation");
+test_eq(__LINE__, kona3conf_normalizeConfigValue('md', $flat_items['def_text_ext']), 'md', "設定値正規化: select valid");
+test_eq(__LINE__, kona3conf_normalizeConfigValue('html', $flat_items['def_text_ext']), 'txt', "設定値正規化: select invalidはdefault");
+test_eq(__LINE__, $flat_items['openai_api_basic_instruction']['default'], 'You are helpful AI assistant.', "設定項目定義: OpenAI初期文言");
+
+$form_items = kona3conf_getConfigFormItems([
+    'wiki_private' => 'false',
+    'lang' => 'en',
+    'max_search' => 25,
+    'def_text_ext' => 'html',
+]);
+test_assert(__LINE__, strpos($form_items['Basic']['wiki_private']['input_html'], '<select') !== FALSE, "設定フォーム: boolはselect");
+test_assert(__LINE__, strpos($form_items['Basic']['wiki_private']['input_html'], 'value="false" selected') !== FALSE, "設定フォーム: boolの選択状態");
+test_assert(__LINE__, strpos($form_items['Basic']['lang']['input_html'], 'value="en" selected') !== FALSE, "設定フォーム: selectの選択状態");
+test_assert(__LINE__, strpos($form_items['Basic']['def_text_ext']['input_html'], 'value="txt" selected') !== FALSE, "設定フォーム: invalid selectはdefault表示");
+test_assert(__LINE__, strpos($form_items['Options']['max_search']['input_html'], 'type="number"') !== FALSE, "設定フォーム: number入力");
+
 // --- 定数のテスト ---
 
 test_eq(__LINE__, defined('KONA3_DIR_DATA'), true, "定数: KONA3_DIR_DATAが定義されている");
