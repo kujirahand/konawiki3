@@ -20,10 +20,14 @@
 
 #kona3_main h2
 {
-	border-top:solid 1px #e0c0c0;
-	border-bottom:solid 1px #e0c0c0;
+	border: none;
+	border-left: 5px solid #ff8080;
 	background-color: #fffcfc;
-	color:#004;
+	color: #503020;
+	font-size: 1.3em;
+	font-weight: 700;
+	margin: 1.8em 0 1em;
+	padding: 0.5em 0.8em;
 }
 
 #kona3_main h3
@@ -81,4 +85,96 @@
 	font-weight:400;
 	margin:12px 0 4px;
 	padding:6px;
+}
+
+/* dark theme overrides for nako3 skin */
+body.dark-theme #kona3_header_title a {
+	color: #ffb3a7;
+}
+body.dark-theme #kona3_layout_header {
+	background-color: #241818;
+	border-bottom: 1px solid #452828;
+}
+
+body.dark-theme #kona3_main h1 {
+	background-color: #2c1a1a;
+	border-bottom: solid 1px #452828;
+}
+
+body.dark-theme #kona3_main h2 {
+	border: none !important;
+	border-left: 5px solid #ff8080 !important;
+	background-color: transparent !important;
+	color: #f1f5f9 !important;
+	padding: 0.2em 0 0.2em 0.8em !important;
+}
+
+body.dark-theme #kona3_main h3 {
+	border: none !important;
+	border-bottom: 2px solid #8c5858 !important;
+	color: #f0e0e0 !important;
+}
+
+body.dark-theme #kona3_main h4,
+body.dark-theme #kona3_main h5,
+body.dark-theme #kona3_main h6 {
+	border-bottom: solid 1px #452828;
+}
+
+body.dark-theme #kona3_main .contents .blognavi {
+	background-color: #2e2e1a;
+	color: #ff9e40;
+}
+
+body.dark-theme #kona3_main a:hover {
+	background-color: #22272e;
+	color: #79c0ff;
+}
+
+body.dark-theme #kona3_main a:link,
+body.dark-theme #kona3_main a:active,
+body.dark-theme pre.code span.tag,
+body.dark-theme pre.code span.keyword {
+	color: #58a6ff;
+}
+
+body.dark-theme #kona3_main a:visited {
+	color: #a2c4ff;
+}
+
+body.dark-theme #kona3_main div.date {
+	color: #aaa;
+}
+
+body.dark-theme #wikinavi h1,
+body.dark-theme #wikinavi h2,
+body.dark-theme #wikinavi h3,
+body.dark-theme #wikinavi h4,
+body.dark-theme #wikinavi h5,
+body.dark-theme #wikinavi h6 {
+	background-color: #241c1c;
+	color: #f0e0e0;
+}
+
+body.dark-theme #kona3_menubar ul li a {
+	color: #cdd9e5 !important;
+}
+
+body.dark-theme #kona3_menubar ul li a:hover {
+	background-color: #2d2222 !important;
+	color: #ffb3a7 !important;
+}
+
+body.dark-theme strong.strong1 {
+	background: linear-gradient(transparent 60%, rgba(255, 213, 79, 0.25) 60%) !important;
+	color: inherit !important;
+	font-weight: 700 !important;
+	text-decoration: none !important;
+}
+
+body.dark-theme strong.strong2 {
+	background: linear-gradient(transparent 60%, rgba(77, 208, 225, 0.25) 60%) !important;
+	color: inherit !important;
+	font-weight: 700 !important;
+	text-decoration: none !important;
 }
