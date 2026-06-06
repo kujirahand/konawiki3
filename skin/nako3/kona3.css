@@ -166,15 +166,15 @@ body.dark-theme #kona3_menubar ul li a:hover {
 }
 
 body.dark-theme strong.strong1 {
-	background: none !important;
-	color: #ffd54f !important;
+	background: linear-gradient(transparent 60%, rgba(255, 213, 79, 0.25) 60%) !important;
+	color: inherit !important;
 	font-weight: 700 !important;
 	text-decoration: none !important;
 }
 
 body.dark-theme strong.strong2 {
-	background: none !important;
-	color: #4dd0e1 !important;
+	background: linear-gradient(transparent 60%, rgba(77, 208, 225, 0.25) 60%) !important;
+	color: inherit !important;
 	font-weight: 700 !important;
 	text-decoration: none !important;
 }
