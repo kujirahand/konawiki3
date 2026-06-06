@@ -193,6 +193,7 @@ function kona3conf_setHeaderFooter()
         kona3getResourceURL('pure-min.css'),
         kona3getResourceURL('grids-responsive-min.css'),
         kona3getResourceURL('kona3def.css', TRUE), // default style
+        kona3getResourceURL('darkmode.css', TRUE), // dark mode styles
         kona3getSkinURL('kona3.css', TRUE), // skin style
         kona3getSkinURL('drawer.css', TRUE),
     ]);

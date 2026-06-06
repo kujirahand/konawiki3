@@ -40,4 +40,41 @@ qq(function(){
   btn.click(toggleMenu);
   win.click(closeMenu);
   
+  // ダークモード切り替え
+  const themeToggle = qq('#dark_mode_toggle');
+  if (themeToggle) {
+    themeToggle.click(function(e) {
+      if (e) { e.preventDefault(); }
+      const body = qq('body');
+      if (body.hasClass('dark-theme')) {
+        body.removeClass('dark-theme');
+        try {
+          localStorage.setItem('kona3_theme', 'light');
+        } catch (err) {
+          console.warn("Storage access failed:", err);
+        }
+        themeToggle.text('🌙 Dark Mode');
+        themeToggle.attr('aria-pressed', 'false');
+      } else {
+        body.addClass('dark-theme');
+        try {
+          localStorage.setItem('kona3_theme', 'dark');
+        } catch (err) {
+          console.warn("Storage access failed:", err);
+        }
+        themeToggle.text('☀️ Light Mode');
+        themeToggle.attr('aria-pressed', 'true');
+      }
+    });
+
+    // 初期状態のボタン表示調整
+    if (qq('body').hasClass('dark-theme')) {
+      themeToggle.text('☀️ Light Mode');
+      themeToggle.attr('aria-pressed', 'true');
+    } else {
+      themeToggle.text('🌙 Dark Mode');
+      themeToggle.attr('aria-pressed', 'false');
+    }
+  }
+  
 });

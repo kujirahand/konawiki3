@@ -24,6 +24,18 @@
 {{if $robots != ''}}<meta name="robots" content="{{$robots}}">{{endif}}
 </head>
 <body>
+<script>
+  (function() {
+    try {
+      var theme = localStorage.getItem('kona3_theme');
+      if (theme === 'dark' || (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.body.classList.add('dark-theme');
+      }
+    } catch (e) {
+      console.warn("Storage access failed:", e);
+    }
+  })();
+</script>
 
 <!-- #kona3_layout_header -->
 <div id="kona3_layout_header">
@@ -47,7 +59,9 @@
     <!-- 飛び出すメニュー -->
     <nav class="menuitems">
       {{ e:echo kona3getCtrlMenu('list') }}
-      <ul><li></li></ul>
+      <ul>
+        <li><a href="#" id="dark_mode_toggle">🌙 Dark Mode</a></li>
+      </ul>
       {{ e:echo kona3getWikiPage('GlobalBar', '') }}
     </nav>
   </div>

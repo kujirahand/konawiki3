@@ -1,0 +1,279 @@
+/* Dark Mode Override for KonaWiki3 */
+
+body.dark-theme {
+  background-color: #121212 !important;
+  color: #e0e0e0 !important;
+}
+
+/* layout & header */
+body.dark-theme #kona3_layout_header {
+  background-color: #1e1e1e !important;
+  border-bottom: 1px solid #333 !important;
+}
+
+body.dark-theme #kona3_header_title a {
+  color: #3793ef !important;
+}
+
+body.dark-theme #kona3_header_title .pagename {
+  color: #aaa !important;
+}
+
+/* main content headings */
+body.dark-theme #kona3_main h1 {
+  background-color: #1a1a2e !important;
+  border-bottom: solid 1px #444 !important;
+  color: #e0e0ff !important;
+}
+
+body.dark-theme #kona3_main h2 {
+  border-top: solid 1px #444 !important;
+  border-bottom: solid 1px #444 !important;
+  color: #d0d0ff !important;
+}
+
+body.dark-theme #kona3_main h3 {
+  border-bottom: dotted 1px #444 !important;
+  color: #c0c0ff !important;
+}
+
+body.dark-theme #kona3_main h4,
+body.dark-theme #kona3_main h5,
+body.dark-theme #kona3_main h6 {
+  border-bottom: solid 1px #333 !important;
+  color: #b0b0b0 !important;
+}
+
+/* links */
+body.dark-theme #kona3_main a:link,
+body.dark-theme #kona3_main a:active,
+body.dark-theme #kona3_main a:visited {
+  color: #3793ef !important;
+}
+
+body.dark-theme #kona3_main a:hover {
+  background-color: #333 !important;
+  color: #fff !important;
+}
+
+/* tables */
+body.dark-theme #kona3_main table {
+  color: #e0e0e0 !important;
+}
+
+body.dark-theme #kona3_main table tbody {
+  border-left: 1px solid #444 !important;
+  border-top: 1px solid #444 !important;
+}
+
+body.dark-theme #kona3_main table th {
+  background-color: #2a2a2a !important;
+  border-bottom: 1px solid #444 !important;
+  border-right: 1px solid #444 !important;
+  color: #d0d0ff !important;
+}
+
+body.dark-theme #kona3_main table td {
+  background-color: #1a1a1a !important;
+  border-bottom: 1px solid #444 !important;
+  border-right: 1px solid #444 !important;
+  color: #e0e0e0 !important;
+}
+
+/* forms and inputs */
+body.dark-theme input,
+body.dark-theme textarea,
+body.dark-theme select,
+body.dark-theme button {
+  background-color: #222 !important;
+  color: #e0e0e0 !important;
+  border: 1px solid #555 !important;
+}
+
+body.dark-theme input[type="submit"],
+body.dark-theme button {
+  background-color: #333 !important;
+  cursor: pointer;
+}
+
+body.dark-theme input[type="submit"]:hover,
+body.dark-theme button:hover {
+  background-color: #444 !important;
+}
+
+/* wikimessage & panels */
+body.dark-theme #wikimessage .bodypad {
+  background-color: #1e1e1e !important;
+}
+
+body.dark-theme #wikimessage .box {
+  background-color: #1a1a2e !important;
+}
+
+body.dark-theme #wikimessage .box_border {
+  border: 1px solid #444 !important;
+}
+
+/* drawer/hamburger list menu in dark mode */
+body.dark-theme #drawer_wrapper nav.menuitems ul li {
+  background-color: #222 !important;
+  border-bottom: 1px dotted #333 !important;
+}
+
+body.dark-theme #drawer_wrapper nav.menuitems ul li a {
+  color: #bbb !important;
+}
+
+body.dark-theme #drawer_wrapper nav.menuitems ul li a:hover {
+  color: #fff !important;
+}
+
+/* pre / code / syntax highlighting */
+body.dark-theme pre,
+body.dark-theme code,
+body.dark-theme .mathjax,
+body.dark-theme .filecode {
+  background-color: #1a1a1a !important;
+  color: #e0e0e0 !important;
+  border: 1px solid #333 !important;
+}
+
+/* plugins comment */
+body.dark-theme .plugin_comment .plugin_title {
+  background-color: #1a1a2e !important;
+  color: #e0e0ff !important;
+}
+
+body.dark-theme .plugin_comment .comment_log {
+  border-top: 1px dotted #444 !important;
+  border-left: 4px solid #555 !important;
+  border-bottom: 1px solid #444 !important;
+}
+
+body.dark-theme .plugin_comment .comment_log .comment_body {
+  font-size: 0.8em;
+  padding: 4px;
+}
+
+body.dark-theme .plugin_comment .comment_log .comment_title {
+  border-bottom: 1px dotted #444 !important;
+  color: #888 !important;
+}
+
+body.dark-theme .plugin_comment form {
+  border-bottom: 1px solid #444 !important;
+  border-left: 1px solid #444 !important;
+}
+
+/* todo plugin */
+body.dark-theme #kona3_main .todo {
+  background-color: #1b3d1b !important;
+  color: #8ce68c !important;
+}
+
+/* side bar & navi */
+body.dark-theme #wikinavi .navipad {
+  background-color: #1a1a2e !important;
+}
+
+body.dark-theme #wikinavi h1,
+body.dark-theme #wikinavi h2,
+body.dark-theme #wikinavi h3,
+body.dark-theme #wikinavi h4,
+body.dark-theme #wikinavi h5,
+body.dark-theme #wikinavi h6,
+body.dark-theme #wikisidebar h1,
+body.dark-theme #wikisidebar h2,
+body.dark-theme #wikisidebar h3,
+body.dark-theme #wikisidebar h4,
+body.dark-theme #wikisidebar h5,
+body.dark-theme #wikisidebar h6 {
+  background-color: #1e1e3f !important;
+  color: #e0e0ff !important;
+}
+
+body.dark-theme #kona3_menubar h1,
+body.dark-theme #kona3_menubar h2,
+body.dark-theme #kona3_menubar h3 {
+  border-bottom: dotted 1px #444 !important;
+}
+
+/* edit mode specific dark mode overrides */
+body.dark-theme #wikiedit {
+  background-color: #1a1a2e !important;
+}
+
+body.dark-theme textarea#edit_txt {
+  background-color: #222 !important;
+  color: #e0e0e0 !important;
+  border: 1px solid #555 !important;
+}
+
+body.dark-theme #wikiedit input[type="submit"],
+body.dark-theme #wikiedit input[type="button"],
+body.dark-theme #wikiedit button,
+body.dark-theme #recover_div a,
+body.dark-theme #wikiedit input#outline_btn {
+  background-color: #333 !important;
+  color: #e0e0e0 !important;
+  border: 1px solid #555 !important;
+}
+
+body.dark-theme #wikiedit input[type="submit"]:hover,
+body.dark-theme #wikiedit input[type="button"]:hover,
+body.dark-theme #wikiedit button:hover,
+body.dark-theme #recover_div a:hover,
+body.dark-theme #wikiedit input#outline_btn:hover {
+  background-color: #444 !important;
+  color: #fff !important;
+}
+
+body.dark-theme #wikiedit input[disabled="true"],
+body.dark-theme #wikiedit button:disabled {
+  background-color: #222 !important;
+  color: #666 !important;
+  border: 1px solid #333 !important;
+  cursor: not-allowed;
+}
+
+body.dark-theme #wikiedit #edit_counter,
+body.dark-theme #wikiedit #edit_info {
+  background-color: #1a1a2e !important;
+  color: #aaa !important;
+}
+
+body.dark-theme #ai_output_area {
+  background-color: #1a1a2e !important;
+}
+
+body.dark-theme #ai_output_area .ai_block {
+  background-color: #222 !important;
+  color: #e0e0e0 !important;
+  border: 1px solid #555 !important;
+}
+
+body.dark-theme #wikiedit .block2 {
+  background-color: #222 !important;
+  border: 1px solid #555 !important;
+  color: #e0e0e0 !important;
+}
+
+body.dark-theme #wikiedit .block2 a {
+  color: #3793ef !important;
+}
+
+body.dark-theme #wikiedit .desc {
+  color: #aaa !important;
+}
+
+/* login bar in dark mode */
+body.dark-theme .kona3_login_bar {
+  background-color: #121212 !important;
+  color: #e0e0e0 !important;
+}
+
+body.dark-theme .kona3_login_bar a {
+  color: #3793ef !important;
+}
+
+
