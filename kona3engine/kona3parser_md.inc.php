@@ -4,6 +4,12 @@
  */
 include_once 'kona3lib.inc.php';
 
+// Title and list marker constants for Japanese mode
+define('KONA3_MD_H1_MARK', '■');
+define('KONA3_MD_H2_MARK', '●');
+define('KONA3_MD_H3_MARK', '▲');
+define('KONA3_MD_UL_MARK', '・');
+
 /**
  * convert text to html
  */
@@ -39,6 +45,14 @@ function kona3markdown_getRawTokens()
 function kona3markdown_parser_parse($text)
 {
     global $eol;
+
+    // Japanese header levels mapping
+    $ja_headers = [
+        KONA3_MD_H1_MARK => 1,
+        KONA3_MD_H2_MARK => 2,
+        KONA3_MD_H3_MARK => 3,
+    ];
+
     // convert CRLF to LF
     $text = preg_replace('#(\r\n|\r)#',"\n", $text)."\n";
     kona3markdown_addPublic('EOL', "\n");
@@ -64,7 +78,7 @@ function kona3markdown_parser_parse($text)
         // check line head
         $c = mb_substr($text, 0, 1);
         $c2 = mb_substr($text, 0, 2);
-        // TITLE
+        // TITLE (Standard Markdown)
         if ($c == "#") {
             $level = kona3markdown_parser_count_level($text, $c);
             kona3markdown_parser_skipSpace($text);
@@ -72,17 +86,31 @@ function kona3markdown_parser_parse($text)
             kona3markdown_parser_skipEOL($text);
             continue;
         }
+        // TITLE (Japanese Mode)
+        else if (isset($ja_headers[$c])) {
+            $level = $ja_headers[$c];
+            kona3markdown_parser_getchar($text);
+            kona3markdown_parser_skipSpace($text);
+            $tokens[] = array("cmd"=>"*", "text"=>kona3markdown_parser_token($text, $eol), "level"=>$level);
+            kona3markdown_parser_skipEOL($text);
+            continue;
+        }
         // LIST <ul>
-        if ($c == '-' || $c2 == '* ') {
+        if ($c == '-' || $c2 == '* ' || $c == KONA3_MD_UL_MARK) {
             // hr
-            if (preg_match('#^(-{5,})\n#', $text, $m)) {
+            if ($c == '-' && preg_match('#^(-{5,})\n#', $text, $m)) {
                 $text = substr($text, strlen($m[0]));
                 kona3markdown_parser_skipEOL($text);
                 $tokens[] = array("cmd"=>"hr", "text"=>"", "level"=>$level);
             } else {
-                $text = mb_substr($text, 1);
+                if ($c == KONA3_MD_UL_MARK) {
+                    $level = kona3markdown_parser_count_level($text, KONA3_MD_UL_MARK);
+                } else {
+                    $text = mb_substr($text, 1);
+                    $level = 1;
+                }
                 kona3markdown_parser_skipSpace($text);
-                $tokens[] = array("cmd"=>"-", "text"=>kona3markdown_parser_token($text, $eol), "level"=>1);
+                $tokens[] = array("cmd"=>"-", "text"=>kona3markdown_parser_token($text, $eol), "level"=>$level);
             }
         }
         // LIST <ol>
