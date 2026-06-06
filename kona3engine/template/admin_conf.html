@@ -122,9 +122,6 @@
       Discord webhook URL:<br>
       <input type='text' name='discord_webhook_url' value='{{$discord_webhook_url}}'><br>
 
-      <h3>Mermaid</h3>
-      SVG export uses browser rendering. Mermaid CLI is not required.<br>
-
       <h3>Git</h3>
       git_enabled(true/false):<br>
       <input type='text' name='git_enabled' value='{{$git_enabled | boolstr}}'><br>
@@ -143,7 +140,6 @@
       <br>
       <input type='hidden' name='edit_token' value='{{$edit_token}}'>
       <input type='submit' value='Save'>
-      <span style="font-size:0.8em; color:silver;">({{$edit_token}})</span>
     </div>
     </form>
   </div>
