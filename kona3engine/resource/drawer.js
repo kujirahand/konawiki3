@@ -48,20 +48,32 @@ qq(function(){
       const body = qq('body');
       if (body.hasClass('dark-theme')) {
         body.removeClass('dark-theme');
-        localStorage.setItem('kona3_theme', 'light');
-        themeToggle.html('🌙 Dark Mode');
+        try {
+          localStorage.setItem('kona3_theme', 'light');
+        } catch (err) {
+          console.warn("Storage access failed:", err);
+        }
+        themeToggle.text('🌙 Dark Mode');
+        themeToggle.attr('aria-pressed', 'false');
       } else {
         body.addClass('dark-theme');
-        localStorage.setItem('kona3_theme', 'dark');
-        themeToggle.html('☀️ Light Mode');
+        try {
+          localStorage.setItem('kona3_theme', 'dark');
+        } catch (err) {
+          console.warn("Storage access failed:", err);
+        }
+        themeToggle.text('☀️ Light Mode');
+        themeToggle.attr('aria-pressed', 'true');
       }
     });
 
     // 初期状態のボタン表示調整
     if (qq('body').hasClass('dark-theme')) {
-      themeToggle.html('☀️ Light Mode');
+      themeToggle.text('☀️ Light Mode');
+      themeToggle.attr('aria-pressed', 'true');
     } else {
-      themeToggle.html('🌙 Dark Mode');
+      themeToggle.text('🌙 Dark Mode');
+      themeToggle.attr('aria-pressed', 'false');
     }
   }
   

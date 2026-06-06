@@ -26,9 +26,13 @@
 <body>
 <script>
   (function() {
-    var theme = localStorage.getItem('kona3_theme');
-    if (theme === 'dark' || (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.body.classList.add('dark-theme');
+    try {
+      var theme = localStorage.getItem('kona3_theme');
+      if (theme === 'dark' || (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.body.classList.add('dark-theme');
+      }
+    } catch (e) {
+      console.warn("Storage access failed:", e);
     }
   })();
 </script>
