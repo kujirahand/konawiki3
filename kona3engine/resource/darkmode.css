@@ -27,14 +27,16 @@ body.dark-theme #kona3_main h1 {
 }
 
 body.dark-theme #kona3_main h2 {
-  border-top: solid 1px #444 !important;
-  border-bottom: solid 1px #444 !important;
-  color: #d0d0ff !important;
+  border: none !important;
+  border-left: 5px solid #3b82f6 !important;
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
 }
 
 body.dark-theme #kona3_main h3 {
-  border-bottom: dotted 1px #444 !important;
-  color: #c0c0ff !important;
+  border: none !important;
+  border-bottom: 2px solid #334155 !important;
+  color: #cbd5e1 !important;
 }
 
 body.dark-theme #kona3_main h4,
@@ -289,5 +291,71 @@ body.dark-theme .kona3_login_bar {
 
 body.dark-theme .kona3_login_bar a {
   color: #3793ef !important;
+}
+
+/* additional dark theme overrides */
+body.dark-theme #kona3_menubar {
+  border-top: 1px solid #334155 !important;
+}
+
+@media screen and (min-width: 48em) {
+  body.dark-theme #kona3_menubar {
+    border-top: none !important;
+    border-left: 1px solid #334155 !important;
+  }
+}
+
+body.dark-theme #kona3_menubar ul li a {
+  color: #58a6ff !important;
+}
+
+body.dark-theme #kona3_menubar ul li a:hover {
+  background-color: #21262d !important;
+  color: #79c0ff !important;
+}
+
+body.dark-theme strong.strong1 {
+  background: linear-gradient(transparent 60%, #f5c21155 60%) !important;
+  color: #f7d060 !important;
+  text-decoration: none !important;
+}
+
+body.dark-theme strong.strong2 {
+  background: linear-gradient(transparent 60%, #00b4d855 60%) !important;
+  color: #90e0ef !important;
+  text-decoration: none !important;
+}
+
+body.dark-theme .column {
+  background-color: #1e293b !important;
+  border: 1px solid #334155 !important;
+  border-left: 4px solid #3b82f6 !important;
+}
+
+body.dark-theme .column.summary {
+  background-color: #0f172a !important;
+  border-color: #1e293b !important;
+  border-left-color: #10b981 !important;
+}
+
+body.dark-theme #kona3_main .column h3 {
+  border-bottom: 1px solid #334155 !important;
+}
+
+body.dark-theme #kona3_main .resmark {
+  border-left: 4px solid #475569 !important;
+  background-color: #1e293b !important;
+  color: #94a3b8 !important;
+}
+
+body.dark-theme #kona3_main .resmark p {
+  border: none !important;
+  background-color: transparent !important;
+}
+
+body.dark-theme #kona3_main .column h2 {
+  border-bottom: 2px solid #334155 !important;
+  background-color: transparent !important;
+  color: #cbd5e1 !important;
 }
 

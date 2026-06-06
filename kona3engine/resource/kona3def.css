@@ -50,20 +50,25 @@
 
 #kona3_main h2
 {
-  border-top:solid 1px silver;
-  border-bottom:solid 1px silver;
-  color:#004;
-  font-size: 1.2em;
-  margin:1.5em 0;
-  padding: 0.5em;
+  border: none;
+  border-left: 5px solid #3b82f6;
+  background-color: #f8fafc;
+  color: #1e293b;
+  font-size: 1.3em;
+  font-weight: 700;
+  margin: 1.8em 0 1em;
+  padding: 0.5em 0.8em;
 }
 
 #kona3_main h3
 {
-  border-bottom: dotted 1px silver;
-  font-size:1.1em;
-  margin:1.5em 0 1em;
-  padding:8px 0 2px 4px;
+  border: none;
+  border-bottom: 2px solid #e2e8f0;
+  color: #334155;
+  font-size: 1.15em;
+  font-weight: 700;
+  margin: 1.6em 0 0.8em;
+  padding: 0.4em 0;
 }
 
 #kona3_main h4,#kona3_main h5
@@ -180,18 +185,19 @@
 
 #kona3_main .resmark
 {
-  margin:4px 4px 12px 0.8em;
-  padding:10px 4px 4px 0.5em;
-  border-left: 4px rgba(230,230,230, 0.6) solid;
-  border-bottom: 1px rgba(230,230,230, 0.4) dotted;
+  margin: 1em 0 1em 1em;
+  padding: 0.6em 1.2em;
+  border-left: 4px solid #cbd5e1;
+  background-color: #f8fafc;
+  color: #475569;
+  border-radius: 0 4px 4px 0;
 }
 
 #kona3_main .resmark p {
-  border-left: 4px solid #cacadd;
-  border-bottom: 1px dotted silver;
-  background-color: rgba(250, 250, 255, 0.6);
-  margin: 0.3em, 0.3em, 0.3em, 0.8em;
-  padding: 0.5em 0.8em 0.7em 0.9em;
+  border: none;
+  background-color: transparent;
+  margin: 0.5em 0;
+  padding: 0;
 }
 
 #kona3_main .todo
@@ -321,27 +327,43 @@
 /** kona3_menubar */
 #kona3_menubar
 {
-  height:100%;
-  border-left: 1px dotted #eee;
+  height:auto;
+  border-left: none;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 2em;
+  padding-top: 1.5em;
 }
 
 #kona3_menubar ul
 {
   list-style:none;
-  margin:4px 8px 4px 16px;
+  margin:4px 0;
   padding:0;
 }
 
 #kona3_menubar ul li
 {
   display: block;
-  padding: 0 0 0 0;
-  margin: 0 0 0 0;
+  padding: 0;
+  margin: 0;
 }
 
 #kona3_menubar ul li a
 {
   display:block;
+  padding: 3px 8px;
+  color: #0366d6;
+  text-decoration: none;
+  font-size: 0.95em;
+  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+#kona3_menubar ul li a:hover
+{
+  background-color: #f0f4f8;
+  color: #0056b3;
+  text-decoration: none;
 }
 
 #kona3_menubar h1,
@@ -352,6 +374,19 @@
   margin: 18px 0px 0px 0px;
   padding: 8px;
   border-bottom: dotted 1px silver;
+}
+
+/* PC等、広い画面でのレイアウト */
+@media screen and (min-width: 48em) {
+  #kona3_menubar {
+    height: 100%;
+    border-top: none;
+    border-left: 1px solid #e2e8f0;
+    margin-top: 0;
+    padding-top: 0;
+    padding-left: 1.5em;
+    box-sizing: border-box;
+  }
 }
 
 #kona3_menubar .date {
@@ -1012,16 +1047,18 @@ span.konawiki3copyright a
 
 strong.strong1
 {
-  background-color:#FF0;
-  font-weight:700;
-  text-decoration:underline;
+  background: linear-gradient(transparent 60%, #fff59d 60%);
+  font-weight: 700;
+  text-decoration: none;
+  padding: 0 2px;
 }
 
 strong.strong2
 {
-  background-color:aqua;
-  font-weight:700;
-  text-decoration:underline;
+  background: linear-gradient(transparent 60%, #80deea 60%);
+  font-weight: 700;
+  text-decoration: none;
+  padding: 0 2px;
 }
 
 ul.topnavi
@@ -1206,15 +1243,37 @@ ul.topnavi a
 
 .column
 {
-  margin: 0.5em 0 0.5em 2em;
-  padding: 1em 1em 1em 1em;
-  background-color: #fafaf7;
-  border: 1px solid #c0e4ee;
+  margin: 1em 0 1em 1em;
+  padding: 1.2em;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #3b82f6;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.column.summary
+{
+  background-color: #fafdfb;
+  border-left-color: #10b981;
+  border-color: #e6f4ea;
+}
+
+#kona3_main .column h2 {
+  border: none;
+  border-bottom: 2px solid #e2e8f0;
+  background-color: transparent;
+  color: #1e293b;
+  font-size: 1.2em;
+  font-weight: 700;
+  margin: 0.5em 0 0.8em 0;
+  padding: 0.2em 0.5em 0.5em 0.5em;
 }
 
 #kona3_main .column h3 {
   margin: 0 0 0.8em 0;
-  padding: 0.5em 0 0.5em 0;
+  padding: 0.2em 0 0.5em 0;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .mojisu {
