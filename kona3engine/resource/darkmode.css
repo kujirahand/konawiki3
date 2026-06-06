@@ -359,3 +359,18 @@ body.dark-theme #kona3_main .column h2 {
   color: #cbd5e1 !important;
 }
 
+/* footer styles in dark mode */
+body.dark-theme #wikifooter {
+  border-top: solid 1px #333 !important;
+}
+body.dark-theme #wikifooter .footer_menu > span {
+  background-color: #1e1e1e !important;
+}
+body.dark-theme #wikifooter a {
+  color: #3793ef !important;
+}
+body.dark-theme #wikifooter a:hover {
+  color: #fff !important;
+}
+
+
