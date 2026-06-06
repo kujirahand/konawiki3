@@ -116,7 +116,7 @@ function kona3conf_getConfigItems()
         'AI' => [
             'openai_apikey' => ['label' => 'OpenAI API Key', 'default' => '', 'type' => 'string', 'note' => 'for ChatGPT'],
             'openai_apikey_model' => ['label' => 'OpenAI API Model', 'default' => 'gpt-4o-mini', 'type' => 'select', 'items' => ['gpt-4o-mini', 'gpt-4o']],
-            'openai_api_basic_instruction' => ['label' => 'OpenAI Basic Instruction', 'default' => 'You are helpful AI assitant.', 'type' => 'string'],
+            'openai_api_basic_instruction' => ['label' => 'OpenAI Basic Instruction', 'default' => 'You are helpful AI assistant.', 'type' => 'string'],
             'mermaid_cli' => ['label' => 'Mermaid CLI', 'default' => '', 'type' => 'string'],
         ],
         'Discord' => [
@@ -162,6 +162,7 @@ function kona3conf_getConfigFormItems($conf)
                 $item['note'] = '';
             }
             $value = array_key_exists($key, $conf) ? $conf[$key] : $item['default'];
+            $value = kona3conf_normalizeConfigValue($value, $item);
             $item['input_html'] = kona3conf_renderConfigInput($key, $item, $value);
         }
     }
@@ -221,7 +222,8 @@ function kona3conf_normalizeConfigValue($value, $item)
             return $item['default'];
         }
         if (is_numeric($value)) {
-            return (strpos((string)$value, '.') !== FALSE) ? (float)$value : (int)$value;
+            $number = (float)$value;
+            return floor($number) == $number ? (int)$number : $number;
         }
         return $item['default'];
     }
@@ -235,6 +237,10 @@ function kona3conf_normalizeConfigValue($value, $item)
 
 function kona3conf_getSkinItems()
 {
+    static $skinItems = NULL;
+    if ($skinItems !== NULL) {
+        return $skinItems;
+    }
     $skins = ['def'];
     if (defined('KONA3_DIR_SKIN') && is_dir(KONA3_DIR_SKIN)) {
         $dirs = scandir(KONA3_DIR_SKIN);
@@ -251,7 +257,8 @@ function kona3conf_getSkinItems()
     }
     $skins = array_values(array_unique($skins));
     sort($skins);
-    return $skins;
+    $skinItems = $skins;
+    return $skinItems;
 }
 
 function check_conf(&$conf, $key, $def)

@@ -201,17 +201,21 @@ test_assert(__LINE__, isset($flat_items['allow_upload']), "設定項目定義: �
 test_eq(__LINE__, kona3conf_normalizeConfigValue('false', $flat_items['wiki_private']), FALSE, "設定値正規化: bool false");
 test_eq(__LINE__, kona3conf_normalizeConfigValue('true', $flat_items['wiki_private']), TRUE, "設定値正規化: bool true");
 test_eq(__LINE__, kona3conf_normalizeConfigValue('12', $flat_items['max_search']), 12, "設定値正規化: number int");
+test_eq(__LINE__, kona3conf_normalizeConfigValue('1e3', $flat_items['max_search']), 1000, "設定値正規化: number scientific notation");
 test_eq(__LINE__, kona3conf_normalizeConfigValue('md', $flat_items['def_text_ext']), 'md', "設定値正規化: select valid");
 test_eq(__LINE__, kona3conf_normalizeConfigValue('html', $flat_items['def_text_ext']), 'txt', "設定値正規化: select invalidはdefault");
+test_eq(__LINE__, $flat_items['openai_api_basic_instruction']['default'], 'You are helpful AI assistant.', "設定項目定義: OpenAI初期文言");
 
 $form_items = kona3conf_getConfigFormItems([
-    'wiki_private' => FALSE,
+    'wiki_private' => 'false',
     'lang' => 'en',
     'max_search' => 25,
+    'def_text_ext' => 'html',
 ]);
 test_assert(__LINE__, strpos($form_items['Basic']['wiki_private']['input_html'], '<select') !== FALSE, "設定フォーム: boolはselect");
 test_assert(__LINE__, strpos($form_items['Basic']['wiki_private']['input_html'], 'value="false" selected') !== FALSE, "設定フォーム: boolの選択状態");
 test_assert(__LINE__, strpos($form_items['Basic']['lang']['input_html'], 'value="en" selected') !== FALSE, "設定フォーム: selectの選択状態");
+test_assert(__LINE__, strpos($form_items['Basic']['def_text_ext']['input_html'], 'value="txt" selected') !== FALSE, "設定フォーム: invalid selectはdefault表示");
 test_assert(__LINE__, strpos($form_items['Options']['max_search']['input_html'], 'type="number"') !== FALSE, "設定フォーム: number入力");
 
 // --- 定数のテスト ---
