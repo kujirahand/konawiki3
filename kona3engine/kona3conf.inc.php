@@ -408,6 +408,12 @@ function kona3conf_setDatabase()
         $DIR_TEMPLATE . '/subdb.sql',
         'subdb'
     );
+    // remember me database
+    database_set(
+        KONA3_DIR_PRIVATE . '/user_remember.sqlite',
+        $DIR_TEMPLATE . '/user_remember.sql',
+        'remember'
+    );
     try {
         database_get('main');
     } catch (Exception $e) {

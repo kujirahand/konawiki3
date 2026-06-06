@@ -12,6 +12,7 @@ function kona3_action_login()
     $am   = kona3post('a_mode', '');
     $user = kona3post('a_email', '');
     $pw   = kona3post('a_pw',   '');
+    $remember = kona3post('a_remember', '') === 'yes';
     $msg = '';
     $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
 
@@ -25,7 +26,7 @@ function kona3_action_login()
             return;
         }
         if (kona3tryLogin($user, $pw)) {
-            login_handle_success($page, $user, $ip);
+            login_handle_success($page, $user, $ip, $remember);
             return;
         } else {
             $msg = lang('Invalid User or Password.');
@@ -47,8 +48,13 @@ function kona3_action_login()
 }
 
 // --- 認証成功時の処理 ---
-function login_handle_success($page, $user, $ip) {
+function login_handle_success($page, $user, $ip, $remember = FALSE) {
     session_regenerate_id(true);
+    if ($remember) {
+        kona3remember_issue();
+    } else {
+        kona3remember_logout();
+    }
     $editToken = kona3_getEditToken($page, TRUE);
     $editLink = kona3getPageURL($page, 'edit', '');
     $m_success = lang('Login successful.');
@@ -63,4 +69,3 @@ function login_handle_success($page, $user, $ip) {
     db_exec("DELETE FROM meta WHERE name='login_error' AND value_i < ?", [$old_time]);
     kona3showMessage($page, $msg);
 }
-
