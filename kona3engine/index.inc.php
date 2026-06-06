@@ -29,6 +29,7 @@ function kona3index_main()
     // start session
     $session_name = isset($kona3conf['session_name']) ? $kona3conf['session_name'] : 'kona3session';
     session_start(['name' => $session_name]);
+    kona3remember_tryAutoLogin();
 
 
     // parse url
