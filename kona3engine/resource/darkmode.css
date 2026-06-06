@@ -114,6 +114,21 @@ body.dark-theme #wikimessage .box_border {
   border: 1px solid #444 !important;
 }
 
+body.dark-theme #wikimessage h2 {
+  background-color: #1e1e3f !important;
+  border-top: 1px solid #555 !important;
+  border-bottom: 1px solid #444 !important;
+  border-left-color: #555 !important;
+  color: #d0d0ff !important;
+}
+
+body.dark-theme #wikimessage h3 {
+  background-color: #1e1e3f !important;
+  border-top: 1px solid #444 !important;
+  border-bottom: 1px dotted #555 !important;
+  color: #c0c0ff !important;
+}
+
 /* drawer/hamburger list menu in dark mode */
 body.dark-theme #drawer_wrapper nav.menuitems ul li {
   background-color: #222 !important;
@@ -275,5 +290,4 @@ body.dark-theme .kona3_login_bar {
 body.dark-theme .kona3_login_bar a {
   color: #3793ef !important;
 }
-
 
