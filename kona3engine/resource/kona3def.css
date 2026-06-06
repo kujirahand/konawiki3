@@ -631,8 +631,18 @@
 }
 
 .error_box {
-  background-color: #FEE;
+  background-color: #fde8e8;
+  border: 1px solid #e53e3e;
+  color: #9b1c1c;
   padding: 1em;
+  border-radius: 4px;
+}
+.error_box .error {
+  color: #9b1c1c;
+}
+.error_box a {
+  color: #771d1d;
+  text-decoration: underline;
 }
 
 .error,.red
@@ -1432,4 +1442,18 @@ ul.topnavi a
 
 .mermaid {
   background-color: white;
+}
+
+/* For printing: convert highlights to underline since backgrounds are not printed clearly */
+@media print {
+  strong.strong1,
+  strong.strong2 {
+    background: none !important;
+    text-decoration: underline !important;
+  }
+  #kona3_main .resmark,
+  .resmark {
+    color: #111 !important;
+    border-left-color: #555 !important;
+  }
 }

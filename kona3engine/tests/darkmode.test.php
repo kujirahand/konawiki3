@@ -14,6 +14,9 @@ test_assert(__LINE__, strpos($css_content, 'body.dark-theme textarea#edit_txt') 
 test_assert(__LINE__, strpos($css_content, 'body.dark-theme .kona3_login_bar') !== false, "darkmode.css defines .kona3_login_bar dark mode overrides");
 test_assert(__LINE__, strpos($css_content, 'body.dark-theme #wikimessage h2') !== false, "darkmode.css defines #wikimessage h2 dark mode overrides");
 test_assert(__LINE__, strpos($css_content, 'body.dark-theme #wikimessage h3') !== false, "darkmode.css defines #wikimessage h3 dark mode overrides");
+test_assert(__LINE__, strpos($css_content, 'body.dark-theme #wikifooter') !== false, "darkmode.css defines #wikifooter dark mode overrides");
+test_assert(__LINE__, strpos($css_content, 'body.dark-theme #wikifooter a') !== false, "darkmode.css defines #wikifooter a dark mode overrides");
+
 
 // 2. Check if parts_header.html contains toggle button and inline JS to restore preference
 $parts_header = dirname(__DIR__) . '/template/parts_header.html';
