@@ -266,3 +266,14 @@ body.dark-theme #wikiedit .desc {
   color: #aaa !important;
 }
 
+/* login bar in dark mode */
+body.dark-theme .kona3_login_bar {
+  background-color: #121212 !important;
+  color: #e0e0e0 !important;
+}
+
+body.dark-theme .kona3_login_bar a {
+  color: #3793ef !important;
+}
+
+
