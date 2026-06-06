@@ -84,4 +84,11 @@
     display: none;
 }
 
+@media print {
+    #drawer_wrapper, #hamburger_icon, #drawer_background {
+        display: none !important;
+    }
+}
+
+
 
