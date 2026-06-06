@@ -72,17 +72,43 @@ function kona3markdown_parser_parse($text)
             kona3markdown_parser_skipEOL($text);
             continue;
         }
+        else if ($c == "■") {
+            kona3markdown_parser_getchar($text);
+            kona3markdown_parser_skipSpace($text);
+            $tokens[] = array("cmd"=>"*", "text"=>kona3markdown_parser_token($text, $eol), "level"=>1);
+            kona3markdown_parser_skipEOL($text);
+            continue;
+        }
+        else if ($c == "●") {
+            kona3markdown_parser_getchar($text);
+            kona3markdown_parser_skipSpace($text);
+            $tokens[] = array("cmd"=>"*", "text"=>kona3markdown_parser_token($text, $eol), "level"=>2);
+            kona3markdown_parser_skipEOL($text);
+            continue;
+        }
+        else if ($c == "▲") {
+            kona3markdown_parser_getchar($text);
+            kona3markdown_parser_skipSpace($text);
+            $tokens[] = array("cmd"=>"*", "text"=>kona3markdown_parser_token($text, $eol), "level"=>3);
+            kona3markdown_parser_skipEOL($text);
+            continue;
+        }
         // LIST <ul>
-        if ($c == '-' || $c2 == '* ') {
+        if ($c == '-' || $c2 == '* ' || $c == '・') {
             // hr
-            if (preg_match('#^(-{5,})\n#', $text, $m)) {
+            if ($c == '-' && preg_match('#^(-{5,})\n#', $text, $m)) {
                 $text = substr($text, strlen($m[0]));
                 kona3markdown_parser_skipEOL($text);
                 $tokens[] = array("cmd"=>"hr", "text"=>"", "level"=>$level);
             } else {
-                $text = mb_substr($text, 1);
+                if ($c == '・') {
+                    $level = kona3markdown_parser_count_level($text, '・');
+                } else {
+                    $text = mb_substr($text, 1);
+                    $level = 1;
+                }
                 kona3markdown_parser_skipSpace($text);
-                $tokens[] = array("cmd"=>"-", "text"=>kona3markdown_parser_token($text, $eol), "level"=>1);
+                $tokens[] = array("cmd"=>"-", "text"=>kona3markdown_parser_token($text, $eol), "level"=>$level);
             }
         }
         // LIST <ol>
