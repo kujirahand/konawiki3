@@ -29,14 +29,15 @@ body.dark-theme #kona3_main h1 {
 body.dark-theme #kona3_main h2 {
   border: none !important;
   border-left: 5px solid #3b82f6 !important;
-  background-color: #1e293b !important;
+  background-color: transparent !important;
   color: #f1f5f9 !important;
+  padding: 0.2em 0 0.2em 0.8em !important;
 }
 
 body.dark-theme #kona3_main h3 {
   border: none !important;
-  border-bottom: 2px solid #334155 !important;
-  color: #cbd5e1 !important;
+  border-bottom: 2px solid #475569 !important;
+  color: #e2e8f0 !important;
 }
 
 body.dark-theme #kona3_main h4,
@@ -306,23 +307,25 @@ body.dark-theme #kona3_menubar {
 }
 
 body.dark-theme #kona3_menubar ul li a {
-  color: #58a6ff !important;
+  color: #cdd9e5 !important;
 }
 
 body.dark-theme #kona3_menubar ul li a:hover {
   background-color: #21262d !important;
-  color: #79c0ff !important;
+  color: #58a6ff !important;
 }
 
 body.dark-theme strong.strong1 {
-  background: linear-gradient(transparent 60%, #f5c21155 60%) !important;
-  color: #f7d060 !important;
+  background: none !important;
+  color: #ffd54f !important;
+  font-weight: 700 !important;
   text-decoration: none !important;
 }
 
 body.dark-theme strong.strong2 {
-  background: linear-gradient(transparent 60%, #00b4d855 60%) !important;
-  color: #90e0ef !important;
+  background: none !important;
+  color: #4dd0e1 !important;
+  font-weight: 700 !important;
   text-decoration: none !important;
 }
 
