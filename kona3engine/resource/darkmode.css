@@ -197,3 +197,72 @@ body.dark-theme #kona3_menubar h2,
 body.dark-theme #kona3_menubar h3 {
   border-bottom: dotted 1px #444 !important;
 }
+
+/* edit mode specific dark mode overrides */
+body.dark-theme #wikiedit {
+  background-color: #1a1a2e !important;
+}
+
+body.dark-theme textarea#edit_txt {
+  background-color: #222 !important;
+  color: #e0e0e0 !important;
+  border: 1px solid #555 !important;
+}
+
+body.dark-theme #wikiedit input[type="submit"],
+body.dark-theme #wikiedit input[type="button"],
+body.dark-theme #wikiedit button,
+body.dark-theme #recover_div a,
+body.dark-theme #wikiedit input#outline_btn {
+  background-color: #333 !important;
+  color: #e0e0e0 !important;
+  border: 1px solid #555 !important;
+}
+
+body.dark-theme #wikiedit input[type="submit"]:hover,
+body.dark-theme #wikiedit input[type="button"]:hover,
+body.dark-theme #wikiedit button:hover,
+body.dark-theme #recover_div a:hover,
+body.dark-theme #wikiedit input#outline_btn:hover {
+  background-color: #444 !important;
+  color: #fff !important;
+}
+
+body.dark-theme #wikiedit input[disabled="true"],
+body.dark-theme #wikiedit button:disabled {
+  background-color: #222 !important;
+  color: #666 !important;
+  border: 1px solid #333 !important;
+  cursor: not-allowed;
+}
+
+body.dark-theme #wikiedit #edit_counter,
+body.dark-theme #wikiedit #edit_info {
+  background-color: #1a1a2e !important;
+  color: #aaa !important;
+}
+
+body.dark-theme #ai_output_area {
+  background-color: #1a1a2e !important;
+}
+
+body.dark-theme #ai_output_area .ai_block {
+  background-color: #222 !important;
+  color: #e0e0e0 !important;
+  border: 1px solid #555 !important;
+}
+
+body.dark-theme #wikiedit .block2 {
+  background-color: #222 !important;
+  border: 1px solid #555 !important;
+  color: #e0e0e0 !important;
+}
+
+body.dark-theme #wikiedit .block2 a {
+  color: #3793ef !important;
+}
+
+body.dark-theme #wikiedit .desc {
+  color: #aaa !important;
+}
+
