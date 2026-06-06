@@ -4,6 +4,16 @@ require_once __DIR__ . '/test_common.inc.php';
 // Test Japanese headers and list markers in Markdown parser (kona3parser_md.inc.php)
 require_once dirname(__DIR__) . '/kona3parser_md.inc.php';
 
+// --- Constant Definition Tests ---
+test_assert(__LINE__, defined('KONA3_MD_H1_MARK'), "KONA3_MD_H1_MARK is defined");
+test_eq(__LINE__, KONA3_MD_H1_MARK, '■', "KONA3_MD_H1_MARK defaults to ■");
+test_assert(__LINE__, defined('KONA3_MD_H2_MARK'), "KONA3_MD_H2_MARK is defined");
+test_eq(__LINE__, KONA3_MD_H2_MARK, '●', "KONA3_MD_H2_MARK defaults to ●");
+test_assert(__LINE__, defined('KONA3_MD_H3_MARK'), "KONA3_MD_H3_MARK is defined");
+test_eq(__LINE__, KONA3_MD_H3_MARK, '▲', "KONA3_MD_H3_MARK defaults to ▲");
+test_assert(__LINE__, defined('KONA3_MD_UL_MARK'), "KONA3_MD_UL_MARK is defined");
+test_eq(__LINE__, KONA3_MD_UL_MARK, '・', "KONA3_MD_UL_MARK defaults to ・");
+
 // --- Header Tests ---
 $text = "■見出し1\n●見出し2\n▲見出し3";
 $tokens = kona3markdown_parser_parse($text);
