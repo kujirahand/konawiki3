@@ -917,9 +917,12 @@ function kona3getShortcutLink()
         if ($meta && isset($meta['aliases']) && is_array($meta['aliases']) && !empty($meta['aliases'])) {
             $aliases_h = [];
             foreach ($meta['aliases'] as $alias) {
-                $aliases_h[] = htmlspecialchars($alias, ENT_QUOTES);
+                $alias_h = htmlspecialchars($alias, ENT_QUOTES);
+                $url = htmlspecialchars(kona3getPageURL($alias), ENT_QUOTES);
+                $aliases_h[] = "<a href=\"$url\">$alias_h</a>";
             }
-            $res .= " (alias: " . implode(', ', $aliases_h) . ")";
+            $alias_label = lang('alias');
+            $res .= " &nbsp; ({$alias_label}: " . implode(', ', $aliases_h) . ")";
         }
     }
     return $res;
