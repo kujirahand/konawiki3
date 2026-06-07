@@ -507,17 +507,8 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
         }
         kona3db_savePageMeta($page, $meta);
         
-        // === for Tag Files ===
-        // 古いタグを削除
-        foreach ($oldTags as $oldTag) {
-            if (!in_array($oldTag, $meta['tags'])) {
-                kona3tags_removePageTag($page, $oldTag);
-            }
-        }
-        // 新しいタグを追加
-        foreach ($meta['tags'] as $tag) {
-            kona3tags_addPageTag($page, $tag);
-        }
+        // === for Tag DB ===
+        kona3tags_updatePageTags($page, $meta['tags']);
         
         // === discord ===
         if (kona3getConf('discord_webhook_url', '') != '') {

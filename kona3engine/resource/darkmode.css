@@ -380,4 +380,18 @@ body.dark-theme .ai-ok {
   color: #4dadff !important;
 }
 
+/* tag plugin links in dark mode */
+body.dark-theme .kona3-tag a,
+body.dark-theme .kona3-taglist a,
+body.dark-theme .kona3-tags-list a {
+  color: #79c0ff !important;
+}
+
+body.dark-theme .kona3-tag a:hover,
+body.dark-theme .kona3-taglist a:hover,
+body.dark-theme .kona3-tags-list a:hover {
+  color: #fff !important;
+  background-color: #31363d !important;
+}
+
 

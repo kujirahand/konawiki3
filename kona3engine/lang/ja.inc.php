@@ -131,4 +131,5 @@ $lang_data = [
     'Undo' => '戻す',
     'RegExp' => '正規表現',
     'alias' => '別名',
+    'Update' => '更新',
 ];
