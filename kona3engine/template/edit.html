@@ -116,6 +116,19 @@
           <select id="ai_template_select"><option>{{ 'Select actions' | lang }}</option></select>
           <a href="{{$ai_edit_template_url}}" target="_new">{{'Edit AI Template' | lang}}</a>
         </div>
+        <div style="margin: 0.5em 0;">
+          <label for="ai_model">{{ 'Model' | lang }}:</label>
+          {{ if $ai_provider == 'OpenAI' }}
+            <select id="ai_model" style="padding: 2px;">
+              {{ for $ai_model_list as $m }}
+                <option value="{{ $m }}"{{ if $m == $ai_default_model }} selected{{ endif }}>{{ $m }}</option>
+              {{ endfor }}
+            </select>
+          {{ endif }}
+          {{ if $ai_provider == 'OpenRouter' }}
+            <input type="text" id="ai_model" value="{{ $ai_default_model }}" style="width: 250px; padding: 2px;" placeholder="meta-llama/llama-3-8b-instruct:free">
+          {{ endif }}
+        </div>
         <div id="ai_input">
           <textarea id="ai_input_text"></textarea>
         </div>

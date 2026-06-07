@@ -114,10 +114,12 @@ function kona3conf_getConfigItems()
             'upload_max_file_size' => ['label' => 'Upload Max File Size', 'default' => 1024 * 1024 * 5, 'type' => 'number', 'note' => 'bytes'],
         ],
         'AI' => [
+            'openai_provider' => ['label' => 'AI Provider', 'default' => 'none', 'type' => 'select', 'items' => ['none', 'OpenAI', 'OpenRouter']],
             'openai_apikey' => ['label' => 'OpenAI API Key', 'default' => '', 'type' => 'string', 'note' => 'for ChatGPT'],
-            'openai_apikey_model' => ['label' => 'OpenAI API Model', 'default' => 'gpt-4o-mini', 'type' => 'select', 'items' => ['gpt-4o-mini', 'gpt-4o']],
+            'openai_apikey_model' => ['label' => 'OpenAI API Model', 'default' => 'gpt-4o-mini', 'type' => 'select', 'items' => ['gpt-5', 'gpt-5-mini', 'gpt-4.1', 'gpt-4.1-mini', 'gpt-4o', 'gpt-4o-mini']],
+            'openrouter_apikey' => ['label' => 'OpenRouter API Key', 'default' => '', 'type' => 'string'],
+            'openrouter_model' => ['label' => 'OpenRouter Model', 'default' => '', 'type' => 'string', 'note' => 'e.g. meta-llama/llama-3-8b-instruct:free'],
             'openai_api_basic_instruction' => ['label' => 'OpenAI Basic Instruction', 'default' => 'You are helpful AI assistant.', 'type' => 'string'],
-            'mermaid_cli' => ['label' => 'Mermaid CLI', 'default' => '', 'type' => 'string'],
         ],
         'Discord' => [
             'discord_webhook_url' => ['label' => 'Discord Webhook URL', 'default' => '', 'type' => 'string'],

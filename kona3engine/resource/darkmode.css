@@ -373,6 +373,13 @@ body.dark-theme #wikifooter a:hover {
   color: #fff !important;
 }
 
+body.dark-theme .ai-ng {
+  color: #ff6b6b !important;
+}
+body.dark-theme .ai-ok {
+  color: #4dadff !important;
+}
+
 /* tag plugin links in dark mode */
 body.dark-theme .kona3-tag a,
 body.dark-theme .kona3-taglist a,

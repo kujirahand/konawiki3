@@ -127,7 +127,27 @@ function kona3_action_edit()
 
     // new button
     $new_btn_url = kona3getPageURL($page, "new");
-    $ai_enabled = (kona3getConf('openai_apikey', '') != '');
+    $ai_provider = kona3getConf('openai_provider', 'none');
+    $openai_key = kona3getConf('openai_apikey', '');
+    // 後方互換性
+    if ($ai_provider === 'none' && $openai_key !== '') {
+        $ai_provider = 'OpenAI';
+    }
+    $ai_enabled = false;
+    $ai_default_model = '';
+    $ai_model_list = ['gpt-5', 'gpt-5-mini', 'gpt-4.1', 'gpt-4.1-mini', 'gpt-4o', 'gpt-4o-mini'];
+    if ($ai_provider === 'OpenAI') {
+        if ($openai_key !== '') {
+            $ai_enabled = true;
+            $ai_default_model = kona3getConf('openai_apikey_model', 'gpt-4o-mini');
+        }
+    } else if ($ai_provider === 'OpenRouter') {
+        $openrouter_key = kona3getConf('openrouter_apikey', '');
+        if ($openrouter_key !== '') {
+            $ai_enabled = true;
+            $ai_default_model = kona3getConf('openrouter_model', '');
+        }
+    }
     $ai_edit_template_url = kona3getPageURL($page, "edit", "", "q=ai_edit_template&edit_token=$edit_token");
 
     // page_mode
@@ -148,6 +168,9 @@ function kona3_action_edit()
         "tags" => $tags,
         "new_btn_url" => $new_btn_url,
         "ai_enabled" => $ai_enabled,
+        "ai_provider" => $ai_provider,
+        "ai_default_model" => $ai_default_model,
+        "ai_model_list" => $ai_model_list,
         "ai_edit_template_url" => $ai_edit_template_url,
         "edit_ext" => $ext,
         "page_mode" => $page_mode,
@@ -572,18 +595,30 @@ function kona3edit_ai_ajax($page)
     }
 
     header('Content-Type: application/json');
-    $apikey = kona3getConf('openai_apikey', '');
+    $ai_provider = kona3getConf('openai_provider', 'none');
+    $openai_key = kona3getConf('openai_apikey', '');
+    if ($ai_provider === 'none' && $openai_key !== '') {
+        $ai_provider = 'OpenAI';
+    }
+
+    $apikey = '';
+    if ($ai_provider === 'OpenAI') {
+        $apikey = $openai_key;
+    } else if ($ai_provider === 'OpenRouter') {
+        $apikey = kona3getConf('openrouter_apikey', '');
+    }
+
     if ($apikey == '') {
         echo json_encode(array(
             'result' => 'ng',
-            'message' => 'OpenAI API Key is not set.',
+            'message' => 'AI API Key is not set.',
         ));
         return;
     }
     $a_mode = kona3param('a_mode', '');
     // ask mode
     if ($a_mode == 'ask') {
-        kona3edit_ai_ask($apikey);
+        kona3edit_ai_ask($apikey, $ai_provider);
         return;
     }
     // load_template
@@ -647,11 +682,38 @@ EOS;
     kona3jump($url, 'Show AI Prompt');
 }
 
-function kona3edit_ai_ask($apikey)
+function kona3edit_ai_get_validated_model($ai_model, $provider)
+{
+    if ($ai_model === '') {
+        if ($provider === "OpenRouter") {
+            $ai_model = kona3getConf('openrouter_model', '');
+            if ($ai_model === '') {
+                $ai_model = 'meta-llama/llama-3-8b-instruct:free';
+            }
+        } else {
+            $ai_model = kona3getConf('openai_apikey_model', 'gpt-4o-mini');
+        }
+    } else {
+        // OpenAIプロバイダーの場合、モデル名がホワイトリストに含まれるか検証する
+        if ($provider === "OpenAI") {
+            $confItems = kona3conf_getConfigItems();
+            $allowed_models = isset($confItems['AI']['openai_apikey_model']['items']) 
+                ? $confItems['AI']['openai_apikey_model']['items'] 
+                : ['gpt-5', 'gpt-5-mini', 'gpt-4.1', 'gpt-4.1-mini', 'gpt-4o', 'gpt-4o-mini'];
+            if (!in_array($ai_model, $allowed_models, TRUE)) {
+                $ai_model = kona3getConf('openai_apikey_model', 'gpt-4o-mini');
+            }
+        }
+    }
+    return $ai_model;
+}
+
+function kona3edit_ai_ask($apikey, $provider = "OpenAI")
 {
     // get input text
     $ai_input_text = kona3param('ai_input_text', '');
-    $ai_model = kona3getConf('openai_apikey_model', 'gpt-4o-mini');
+    $ai_model = kona3param('ai_model', '');
+    $ai_model = kona3edit_ai_get_validated_model($ai_model, $provider);
     if ($ai_input_text == '') {
         echo json_encode(array(
             'result' => 'ng',
@@ -666,7 +728,7 @@ function kona3edit_ai_ask($apikey)
         $basic_instruction,
         $ai_input_text
     );
-    list($msg, $token) = chatgpt_ask($messages, $apikey, $ai_model);
+    list($msg, $token) = chatgpt_ask($messages, $apikey, $ai_model, 0, [], $provider);
     // todo : tokenを数えて報告する
     echo json_encode(array(
         'result' => 'ok',

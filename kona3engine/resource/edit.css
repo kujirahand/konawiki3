@@ -147,3 +147,12 @@ textarea#ai_input_text {
   padding-top: 1em;
   border-top: 1px dotted silver;
 }
+
+.ai-ng {
+  color: #d9534f;
+  font-weight: bold;
+}
+.ai-ok {
+  color: #0275d8;
+  font-weight: bold;
+}
