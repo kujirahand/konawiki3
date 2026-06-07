@@ -130,4 +130,5 @@ $lang_data = [
     'If it doesn\'t work no matter how many times you try, please initialize the session.' => '何度試してもうまく動かない場合、セッションを初期化してください。',
     'Undo' => '戻す',
     'RegExp' => '正規表現',
+    'alias' => '別名',
 ];

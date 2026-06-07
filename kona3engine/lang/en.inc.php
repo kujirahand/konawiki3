@@ -32,4 +32,5 @@ $lang_data = [
     'Code not found' => 'Verification code not found. Please register again from the beginning.',
     'Success' => 'Success',
     'Signup' => 'Sign Up',
+    'alias' => 'alias',
 ];
