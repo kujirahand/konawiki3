@@ -99,9 +99,9 @@ list:
 - item1
 - item2
 
-```js
+\`\`\`js
 console.log('hello');
-```
+\`\`\`
 
 plugins:
 
