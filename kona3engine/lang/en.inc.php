@@ -34,4 +34,5 @@ $lang_data = [
     'Signup' => 'Sign Up',
     'alias' => 'alias',
     'Update' => 'Update',
+    'Model' => 'Model',
 ];

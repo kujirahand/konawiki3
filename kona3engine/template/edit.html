@@ -117,7 +117,7 @@
           <a href="{{$ai_edit_template_url}}" target="_new">{{'Edit AI Template' | lang}}</a>
         </div>
         <div style="margin: 0.5em 0;">
-          <label for="ai_model">Model:</label>
+          <label for="ai_model">{{ 'Model' | lang }}:</label>
           {{ if $ai_provider == 'OpenAI' }}
             <select id="ai_model" style="padding: 2px;">
               {{ for $ai_model_list as $m }}

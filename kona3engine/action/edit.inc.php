@@ -682,11 +682,8 @@ EOS;
     kona3jump($url, 'Show AI Prompt');
 }
 
-function kona3edit_ai_ask($apikey, $provider = "OpenAI")
+function kona3edit_ai_get_validated_model($ai_model, $provider)
 {
-    // get input text
-    $ai_input_text = kona3param('ai_input_text', '');
-    $ai_model = kona3param('ai_model', '');
     if ($ai_model === '') {
         if ($provider === "OpenRouter") {
             $ai_model = kona3getConf('openrouter_model', '');
@@ -696,7 +693,27 @@ function kona3edit_ai_ask($apikey, $provider = "OpenAI")
         } else {
             $ai_model = kona3getConf('openai_apikey_model', 'gpt-4o-mini');
         }
+    } else {
+        // OpenAIプロバイダーの場合、モデル名がホワイトリストに含まれるか検証する
+        if ($provider === "OpenAI") {
+            $confItems = kona3conf_getConfigItems();
+            $allowed_models = isset($confItems['AI']['openai_apikey_model']['items']) 
+                ? $confItems['AI']['openai_apikey_model']['items'] 
+                : ['gpt-5', 'gpt-5-mini', 'gpt-4.1', 'gpt-4.1-mini', 'gpt-4o', 'gpt-4o-mini'];
+            if (!in_array($ai_model, $allowed_models, TRUE)) {
+                $ai_model = kona3getConf('openai_apikey_model', 'gpt-4o-mini');
+            }
+        }
     }
+    return $ai_model;
+}
+
+function kona3edit_ai_ask($apikey, $provider = "OpenAI")
+{
+    // get input text
+    $ai_input_text = kona3param('ai_input_text', '');
+    $ai_model = kona3param('ai_model', '');
+    $ai_model = kona3edit_ai_get_validated_model($ai_model, $provider);
     if ($ai_input_text == '') {
         echo json_encode(array(
             'result' => 'ng',

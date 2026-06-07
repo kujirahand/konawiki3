@@ -51,41 +51,45 @@ function chatgpt_ask($chatgpt_messages, $apikey=null, $model= "gpt-4o-mini", $te
     }
 
     $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+    try {
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
 
-    $response = curl_exec($ch);
-    $keyInfo = "[Key: Len=" . strlen($apikey) . ", Head=" . substr($apikey, 0, 15) . "]";
-    if ($response === false) {
-        $errorCode = curl_errno($ch); // エラーコードを取得
-        $errorMessage = curl_error($ch); // エラーメッセージを取得
-        return [$errMessage."(Error: $errorCode, $errorMessage) $keyInfo", 0];
-    }
+        $response = curl_exec($ch);
+        if ($response === false) {
+            $errorCode = curl_errno($ch); // エラーコードを取得
+            $errorMessage = curl_error($ch); // エラーメッセージを取得
+            return [$errMessage."(Error: $errorCode, $errorMessage)", 0];
+        }
 
-
-    // JSON decode
-    $result = json_decode($response, true);
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        return [$errMessage."(Response broken: ) $keyInfo", 0];
+        // JSON decode
+        $result = json_decode($response, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return [$errMessage."(Response broken)", 0];
+        }
+        // get result
+        $tokens = isset($result['usage']['total_tokens']) ? $result['usage']['total_tokens'] : 0;
+        if (isset($result['choices'][0]['message']['content'])) {
+            $contents = $result['choices'][0]['message']['content'];
+            return [$contents, $tokens];
+        }
+        // get error
+        if (isset($result['error'])) {
+            $errDetail = is_array($result['error']) ? 
+                (isset($result['error']['message']) ? $result['error']['message'] : json_encode($result['error'])) : 
+                $result['error'];
+            return [$errMessage.", ".$errDetail, 0];
+        }
+        return [$errMessage . " (No choices or error details in response)", 0];
+    } finally {
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($ch);
+        }
     }
-    // get result
-    $tokens = isset($result['usage']['total_tokens']) ? $result['usage']['total_tokens'] : 0;
-    if (isset($result['choices'][0]['message']['content'])) {
-        $contents = $result['choices'][0]['message']['content'];
-        return [$contents, $tokens];
-    }
-    // get error
-    if (isset($result['error'])) {
-        $errDetail = is_array($result['error']) ? 
-            (isset($result['error']['message']) ? $result['error']['message'] : json_encode($result['error'])) : 
-            $result['error'];
-        return [$errMessage.", ".$errDetail . " $keyInfo", 0];
-    }
-    return [$errMessage . " (No choices or error details in response) $keyInfo", 0];
 }
 
 /*
