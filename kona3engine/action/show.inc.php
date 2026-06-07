@@ -25,6 +25,7 @@ function kona3_action_show($actionMode = "")
         } else {
             $kona3conf['data_filename'] = $fname;
             $file_exists = TRUE;
+            kona3show_redirect_alias($txt);
         }
     } else {
         $txt = kona3show_file_not_found($page, $ext);
@@ -141,6 +142,30 @@ function kona3_action_show($actionMode = "")
         "is_login" => $is_login,
         "edit_button_html" => $edit_button_html,
     ]);
+}
+
+function kona3show_redirect_alias($txt)
+{
+    $target = kona3show_find_alias_target($txt);
+    if ($target === FALSE) {
+        return;
+    }
+    $url = kona3getPageURL($target, 'show');
+    header("location: $url");
+    echo "<a href='$url'>JUMP</a>";
+    exit;
+}
+
+function kona3show_find_alias_target($txt)
+{
+    if (!preg_match('/^\s*!!alias\s*\(\s*([^)]+?)\s*\)\s*$/m', $txt, $m)) {
+        return FALSE;
+    }
+    $target = trim($m[1]);
+    if ($target === '') {
+        return FALSE;
+    }
+    return $target;
 }
 
 function kona3show_check_private($page, $showLoginLink = TRUE)

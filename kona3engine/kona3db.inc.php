@@ -1,46 +1,47 @@
 <?php
 // file: kona3db.inc.php
 require_once __DIR__ . '/kona3conf.inc.php';
-// global
-global $kona3pageIds, $kona3pageIdCache;
-// init global
-$kona3pageIds = NULL;
-$kona3pageIdCache = NULL;
-
 // ページIDを取得する
 function kona3db_getPageId($page, $canCreate = FALSE)
 {
-    global $kona3pageIds, $kona3pageIdCache;
-    if ($kona3pageIds === NULL) {
-        // load KONA3_PAGE_ID_JSON
-        if (file_exists(KONA3_PAGE_ID_JSON)) {
-            $jsonData = kona3lock_load(KONA3_PAGE_ID_JSON);
-            $kona3pageIds = json_decode($jsonData, TRUE);
-        } else {
-            $kona3pageIds = [];
+    $r = db_get1(
+        "SELECT page_id FROM pages WHERE name=?",
+        [$page]
+    );
+    if ($r && isset($r['page_id'])) {
+        return intval($r['page_id']);
+    }
+    $legacy_page_ids = kona3db_loadLegacyPageIds();
+    if (isset($legacy_page_ids[$page])) {
+        $legacy_page_id = intval($legacy_page_ids[$page]);
+        $time = time();
+        db_exec(
+            "INSERT OR IGNORE INTO pages (page_id, name, ctime, mtime) VALUES (?, ?, ?, ?)",
+            [$legacy_page_id, $page, $time, 0]
+        );
+        $r = db_get1(
+            "SELECT page_id FROM pages WHERE name=?",
+            [$page]
+        );
+        if ($r && isset($r['page_id'])) {
+            return intval($r['page_id']);
         }
     }
-    // return page id
-    if (isset($kona3pageIds[$page])) {
-        return $kona3pageIds[$page];
+    if (!$canCreate) {
+        return 0;
     }
-    // create page id
-    if ($canCreate) {
-        // page_idの最大値を得る
-        $maxId = 0;
-        foreach ($kona3pageIds as $_ => $id) {
-            if ($id > $maxId) {
-                $maxId = $id;
-            }
-        }
-        $kona3pageIds[$page] = $maxId + 1;
-        $saved = kona3lock_save(KONA3_PAGE_ID_JSON, json_encode($kona3pageIds, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-        if (!$saved) {
-            unset($kona3pageIds[$page]);
-            return 0;
-        }
-        $kona3pageIdCache = NULL;
-        return $kona3pageIds[$page];
+
+    $time = time();
+    db_exec(
+        "INSERT OR IGNORE INTO pages (name, ctime, mtime) VALUES (?, ?, ?)",
+        [$page, $time, 0]
+    );
+    $r = db_get1(
+        "SELECT page_id FROM pages WHERE name=?",
+        [$page]
+    );
+    if ($r && isset($r['page_id'])) {
+        return intval($r['page_id']);
     }
     return 0;
 }
@@ -48,26 +49,53 @@ function kona3db_getPageId($page, $canCreate = FALSE)
 // ページIDから名前を取得する
 function kona3db_getPageNameById($page_id, $default = '')
 {
-    // load page_id
-    global $kona3pageIds;
-    global $kona3pageIdCache;
-    // load data
-    if ($kona3pageIds === NULL) {
-        // load
-        kona3db_getPageId(kona3getConf("FrontPage"), FALSE);
+    $r = db_get1(
+        "SELECT name FROM pages WHERE page_id=?",
+        [intval($page_id)]
+    );
+    if ($r && isset($r['name'])) {
+        return $r['name'];
     }
-    // make cache
-    if ($kona3pageIdCache === NULL) {
-        $kona3pageIdCache = [];
-        foreach ($kona3pageIds as $name => $id) {
-            $kona3pageIdCache[$id] = $name;
+    $legacy_page_ids = kona3db_loadLegacyPageIds();
+    foreach ($legacy_page_ids as $name => $id) {
+        if (intval($id) !== intval($page_id)) {
+            continue;
         }
-    }
-    // check cache
-    if (isset($kona3pageIdCache[$page_id])) {
-        return $kona3pageIdCache[$page_id];
+        $time = time();
+        db_exec(
+            "INSERT OR IGNORE INTO pages (page_id, name, ctime, mtime) VALUES (?, ?, ?, ?)",
+            [intval($page_id), $name, $time, 0]
+        );
+        return $name;
     }
     return $default;
+}
+
+function kona3db_loadLegacyPageIds()
+{
+    static $legacy_page_ids = NULL;
+    if ($legacy_page_ids !== NULL) {
+        return $legacy_page_ids;
+    }
+    $legacy_page_ids = [];
+    if (!file_exists(KONA3_PAGE_ID_JSON)) {
+        return $legacy_page_ids;
+    }
+    $jsonData = kona3lock_load(KONA3_PAGE_ID_JSON);
+    $legacy_page_ids = kona3db_decodeLegacyPageIds($jsonData);
+    return $legacy_page_ids;
+}
+
+function kona3db_decodeLegacyPageIds($jsonData)
+{
+    if (!is_string($jsonData)) {
+        return [];
+    }
+    $data = json_decode($jsonData, TRUE);
+    if (!is_array($data)) {
+        return [];
+    }
+    return $data;
 }
 
 function kona3db_writePage($page, $body, $user_id = 0, $tags = NULL)

@@ -4,16 +4,17 @@
 function kona3_action_go()
 {
     global $kona3conf;
-    $page_id = intval($kona3conf["page"]);
-    $page = kona3db_getPageNameById($page_id);
-    if ($page == '') {
-        header("HTTP/1.1 404 Not Found");
-        echo "<h3>Page Not found ...</h3>";
-        echo "<p><a href=\"index.php\">The page(page_id=$page_id) is not found...</a></p>";
-        exit;
-    }
-    $url = kona3getPageURL($page, 'show');
+    $url = kona3go_getRedirectURL($kona3conf['page']);
     header("location: $url");
     echo "<a href='$url'>JUMP</a>";
     exit;
+}
+
+function kona3go_getRedirectURL($page)
+{
+    $page = trim($page);
+    if ($page === '') {
+        return 'index.php';
+    }
+    return 'index.php?' . urlencode($page) . '&show';
 }

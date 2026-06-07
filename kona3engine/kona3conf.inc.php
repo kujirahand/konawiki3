@@ -389,9 +389,6 @@ function kona3conf_setDatabase()
     if (!file_exists($file_info_sqlite)) { // rename old file
         // 古いDBファイルがあれば、新しいパスに移動する
         if (file_exists($old_file_info_sqlite)) {
-            // ファイルを異動する前にpage_idを移行する
-            kona3_conf_read_old_page_ids($old_file_info_sqlite);
-            @kona3db_getPageId(kona3getConf("FrontPage"), FALSE);
             // ファイルを移動する
             @rename($old_file_info_sqlite, $file_info_sqlite);
         }
@@ -446,8 +443,6 @@ function kona3_conf_read_old_page_ids($old_db_path)
             }
         }
         $pdo = null;
-        // save
-        kona3lock_save(KONA3_PAGE_ID_JSON, json_encode($kona3pageIds, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
     }
     return $kona3pageIds;
 }
