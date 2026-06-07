@@ -81,7 +81,7 @@ List
 
 Markdown is a widely used markup language. Here are some examples:
 
-```markdown
+````markdown
 # header
 
 text text text text
@@ -99,14 +99,14 @@ list:
 - item1
 - item2
 
-\`\`\`js
+```js
 console.log('hello');
-\`\`\`
+```
 
 plugins:
 
 !!comment
-```
+````
 
 ### AI Writing Assistance Features
 
