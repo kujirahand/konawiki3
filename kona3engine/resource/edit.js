@@ -513,6 +513,10 @@ function aiAskClickHandler() {
     aiInsertText(text.substring(3))
     return
   }
+  // get model
+  const ai_model_el = qs('#ai_model')
+  const ai_model = ai_model_el ? ai_model_el.value : ''
+
   // ajax
   aiButtonEnabeld(false)
   var action = qq('#wikiedit form').attr('action')
@@ -524,13 +528,19 @@ function aiAskClickHandler() {
       'ai_input_text': text,
       'a_mode': 'ask',
       'a_hash': qq('#a_hash').val(),
+      'ai_model': ai_model,
     })
     .done(function (obj) {
       aiButtonEnabeld(true)
+      if (typeof obj !== 'object' || obj === null) {
+        aiInsertText('Error: Invalid response from server. ' + obj)
+        return
+      }
       const msg = obj['message']
       console.log('@@@', obj)
       aiInsertText('' + msg)
-      qq('#ai_ask_cost').html(obj['token'] + 'token')
+      const token = (obj['token'] !== undefined) ? obj['token'] : 0
+      qq('#ai_ask_cost').html(token + 'token')
     })
     .fail(function (error) {
       console.error(error)
@@ -556,8 +566,8 @@ function _aiInsertText(data, isJSON = false) {
     const ng = text2html(data['ng'])
     const ok = text2html(data['ok'])
     const desc = text2html(data['desc'])
-    text = `<div><span style="color:red;">[?] ${ng}</span><br>` +
-      `<span style="color:blue;">[v] ${ok}</span></div>` +
+    text = `<div><span class="ai-ng">[?] ${ng}</span><br>` +
+      `<span class="ai-ok">[v] ${ok}</span></div>` +
       `<div>${desc}</div>`
     btn += `<button onclick="aiBlockReplace(${aiBlockId})">${locale_replace}</button> `
     btn += `<button onclick="aiBlockRemove(${aiBlockId})">${lcoale_cancel}</button>`

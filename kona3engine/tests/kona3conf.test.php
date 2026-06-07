@@ -206,6 +206,13 @@ test_eq(__LINE__, kona3conf_normalizeConfigValue('md', $flat_items['def_text_ext
 test_eq(__LINE__, kona3conf_normalizeConfigValue('html', $flat_items['def_text_ext']), 'txt', "設定値正規化: select invalidはdefault");
 test_eq(__LINE__, $flat_items['openai_api_basic_instruction']['default'], 'You are helpful AI assistant.', "設定項目定義: OpenAI初期文言");
 
+// 新しいAI設定項目のチェック (Issue 193)
+test_eq(__LINE__, $flat_items['openai_provider']['default'], 'none', "設定項目定義: AIプロバイダーデフォルト値");
+test_eq(__LINE__, $flat_items['openrouter_apikey']['default'], '', "設定項目定義: OpenRouter APIキーデフォルト値");
+test_eq(__LINE__, $flat_items['openrouter_model']['default'], '', "設定項目定義: OpenRouter モデルデフォルト値");
+test_assert(__LINE__, in_array('gpt-5', $flat_items['openai_apikey_model']['items']), "設定項目定義: OpenAIモデルのgpt-5サポート");
+test_assert(__LINE__, in_array('gpt-4o-mini', $flat_items['openai_apikey_model']['items']), "設定項目定義: OpenAIモデルのgpt-4o-miniサポート");
+
 $form_items = kona3conf_getConfigFormItems([
     'wiki_private' => 'false',
     'lang' => 'en',
