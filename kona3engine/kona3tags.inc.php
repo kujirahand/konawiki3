@@ -1,91 +1,52 @@
 <?php
 /**
- * KonaWiki3 Tag Management System (File-based)
- * タグをファイルベースで管理する
+ * KonaWiki3 Tag Management System (SQLite-based)
+ * タグをSQLiteで管理する
  */
 
 /**
- * タグディレクトリのパスを取得
+ * タグキャッシュDBの初期化
+ */
+function kona3tags_initDb() {
+    $dbPath = KONA3_DIR_PRIVATE . '/tags.sqlite';
+    $sqlPath = KONA3_DIR_ENGINE . '/template/tags.sql';
+    database_set(
+        $dbPath,
+        $sqlPath,
+        'tags'
+    );
+    
+    // データベースが初期化されていないか、テーブルがない場合は明示的に作成
+    if (!db_table_exists('tags', 'tags')) {
+        $sql = @file_get_contents($sqlPath);
+        if ($sql) {
+            $pdo = database_get('tags');
+            $pdo->exec($sql);
+        }
+    }
+}
+
+/**
+ * 互換性のために残す（何もしないか、DB初期化を呼ぶ）
  */
 function kona3tags_getDir() {
     return KONA3_DIR_DATA . '/.kona3_tag';
 }
 
-/**
- * タグディレクトリを初期化する
- */
 function kona3tags_initDir() {
-    $tag_dir = kona3tags_getDir();
-    if (!file_exists($tag_dir)) {
-        mkdir($tag_dir, 0777, true);
-        // SQLiteからの移行処理
-        kona3tags_migrateFromSQLite();
-    } else {
-        // 既存のタグファイルを新形式に移行
-        kona3tags_migrateOldFormat();
-    }
+    kona3tags_initDb();
 }
 
-/**
- * SQLiteからタグデータを移行する
- */
 function kona3tags_migrateFromSQLite() {
-    // tagsテーブルからデータを取得
-    try {
-        $rows = db_get('SELECT * FROM tags', []);
-        if (!$rows) return;
-        
-        // タグごとにグループ化してファイルに保存
-        $tag_data = [];
-        foreach ($rows as $row) {
-            $tag = $row['tag'];
-            $page_id = $row['page_id'];
-            $mtime = $row['mtime'];
-            
-            if (!isset($tag_data[$tag])) {
-                $tag_data[$tag] = [];
-            }
-            
-            // ページ名を取得
-            $page_name = kona3db_getPageNameById($page_id);
-            if ($page_name) {
-                $tag_data[$tag][] = [
-                    'page' => $page_name,
-                    'page_id' => $page_id,
-                    'mtime' => $mtime
-                ];
-            }
-        }
-        
-        // タグファイルに保存
-        foreach ($tag_data as $tag => $pages) {
-            kona3tags_save($tag, $pages);
-        }
-        
-        // tagsテーブルをクリア
-        db_exec('DELETE FROM tags', []);
-    } catch (Exception $e) {
-        // SQLiteにtagsテーブルがない場合は無視
-    }
+    // 互換性のために残す
 }
 
-/**
- * 古い形式のタグファイルを新形式に移行する
- * 注: 実際には古い形式もサポートしているため、この関数は何もしない
- */
 function kona3tags_migrateOldFormat() {
-    // 旧形式（ページリストのみ）と新形式（tag + pages）の両方をサポート
-    // 旧形式のファイルも読み込めるため、特別な移行処理は不要
+    // 互換性のために残す
 }
 
-/**
- * タグファイルのパスを取得
- */
 function kona3tags_getFilePath($tag) {
-    // URLエンコードしてマルチバイト文字を保持
-    // タグ名は20文字に制限されているため、ファイル名の長さ制限内に収まる
     $tag_safe = rawurlencode($tag);
-    // ドット(.)は%2Eに手動で変換（ファイル拡張子と混同しないため）
     $tag_safe = str_replace('.', '%2E', $tag_safe);
     return kona3tags_getDir() . '/' . $tag_safe . '.json';
 }
@@ -93,49 +54,29 @@ function kona3tags_getFilePath($tag) {
 /**
  * タグデータを読み込む
  * @param string $tag タグ名
- * @return array ページ情報の配列 [{page, page_id, mtime}, ...]
+ * @return array ページ情報の配列 [{page, mtime}, ...]
  */
 function kona3tags_load($tag) {
-    kona3tags_initDir();
-    
-    $filepath = kona3tags_getFilePath($tag);
-    if (!file_exists($filepath)) {
-        return [];
-    }
-    
-    $json = file_get_contents($filepath);
-    $data = json_decode($json, true);
-    
-    if (!is_array($data)) {
-        return [];
-    }
-    
-    // 新形式（tag + pagesフィールド）の場合
-    if (isset($data['tag']) && isset($data['pages'])) {
-        return $data['pages'];
-    }
-    
-    // 旧形式（ページリストのみ）の場合
-    return $data;
+    return kona3tags_getPages($tag, 'mtime', 0);
 }
 
 /**
  * タグデータを保存する
  * @param string $tag タグ名
- * @param array $pages ページ情報の配列 [{page, page_id, mtime}, ...]
+ * @param array $pages ページ情報の配列 [{page, mtime}, ...]
  */
 function kona3tags_save($tag, $pages) {
-    kona3tags_initDir();
-    
-    $filepath = kona3tags_getFilePath($tag);
-    // タグ名とページリストを保存
-    $data = [
-        'tag' => $tag,
-        'pages' => $pages
-    ];
-    $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-    
-    kona3lock_save($filepath, $json);
+    kona3tags_initDb();
+    $time = time();
+    foreach ($pages as $p) {
+        $page = $p['page'];
+        $mtime = isset($p['mtime']) ? intval($p['mtime']) : $time;
+        db_exec(
+            "INSERT OR REPLACE INTO tags (tag, page, created_at, updated_at) VALUES (?, ?, ?, ?)",
+            [$tag, $page, $mtime, $mtime],
+            'tags'
+        );
+    }
 }
 
 /**
@@ -152,29 +93,13 @@ function kona3tags_addPageTag($page, $tag) {
         $tag = mb_substr($tag, 0, 20);
     }
     
-    $page_id = kona3db_getPageId($page, TRUE);
-    $pages = kona3tags_load($tag);
-    
-    // 既に存在する場合は更新
-    $found = false;
-    foreach ($pages as &$p) {
-        if ($p['page'] === $page) {
-            $p['mtime'] = time();
-            $found = true;
-            break;
-        }
-    }
-    
-    // 新規追加
-    if (!$found) {
-        $pages[] = [
-            'page' => $page,
-            'page_id' => $page_id,
-            'mtime' => time()
-        ];
-    }
-    
-    kona3tags_save($tag, $pages);
+    kona3tags_initDb();
+    $time = time();
+    db_exec(
+        "INSERT OR IGNORE INTO tags (tag, page, created_at, updated_at) VALUES (?, ?, ?, ?)",
+        [$tag, $page, $time, $time],
+        'tags'
+    );
 }
 
 /**
@@ -183,24 +108,12 @@ function kona3tags_addPageTag($page, $tag) {
  * @param string $tag タグ名
  */
 function kona3tags_removePageTag($page, $tag) {
-    $pages = kona3tags_load($tag);
-    
-    $new_pages = [];
-    foreach ($pages as $p) {
-        if ($p['page'] !== $page) {
-            $new_pages[] = $p;
-        }
-    }
-    
-    if (count($new_pages) > 0) {
-        kona3tags_save($tag, $new_pages);
-    } else {
-        // タグにページがなくなったらファイルを削除
-        $filepath = kona3tags_getFilePath($tag);
-        if (file_exists($filepath)) {
-            unlink($filepath);
-        }
-    }
+    kona3tags_initDb();
+    db_exec(
+        "DELETE FROM tags WHERE page=? AND tag=?",
+        [$page, $tag],
+        'tags'
+    );
 }
 
 /**
@@ -208,43 +121,12 @@ function kona3tags_removePageTag($page, $tag) {
  * @param string $page ページ名
  */
 function kona3tags_clearPageTags($page) {
-    kona3tags_initDir();
-    
-    // 全タグファイルを走査
-    $files = glob(kona3tags_getDir() . '/*.json');
-    if ($files === false) $files = [];
-    foreach ($files as $filepath) {
-        $json = file_get_contents($filepath);
-        $data = json_decode($json, true);
-        
-        if (!is_array($data)) continue;
-        
-        // 新形式の場合
-        if (isset($data['tag']) && isset($data['pages'])) {
-            $pages = $data['pages'];
-            $tag = $data['tag'];
-        } else {
-            // 旧形式の場合
-            $pages = $data;
-            $basename = basename($filepath, '.json');
-            $tag = rawurldecode($basename);
-        }
-        
-        $new_pages = [];
-        foreach ($pages as $p) {
-            if ($p['page'] !== $page) {
-                $new_pages[] = $p;
-            }
-        }
-        
-        if (count($new_pages) > 0) {
-            // 新形式で保存
-            kona3tags_save($tag, $new_pages);
-        } else {
-            // タグにページがなくなったらファイルを削除
-            unlink($filepath);
-        }
-    }
+    kona3tags_initDb();
+    db_exec(
+        "DELETE FROM tags WHERE page=?",
+        [$page],
+        'tags'
+    );
 }
 
 /**
@@ -253,36 +135,14 @@ function kona3tags_clearPageTags($page) {
  * @return array タグ名の配列
  */
 function kona3tags_getPageTags($page) {
-    kona3tags_initDir();
-    
+    kona3tags_initDb();
+    $rows = db_get("SELECT tag FROM tags WHERE page=?", [$page], 'tags');
     $tags = [];
-    $files = glob(kona3tags_getDir() . '/*.json');
-    
-    foreach ($files as $filepath) {
-        $json = file_get_contents($filepath);
-        $data = json_decode($json, true);
-        
-        if (!is_array($data)) continue;
-        
-        // 新形式の場合
-        if (isset($data['tag']) && isset($data['pages'])) {
-            $pages = $data['pages'];
-            $tag = $data['tag'];
-        } else {
-            // 旧形式の場合：ファイル名からタグ名を復元
-            $basename = basename($filepath, '.json');
-            $tag = rawurldecode($basename);
-            $pages = $data;
-        }
-        
-        foreach ($pages as $p) {
-            if ($p['page'] === $page) {
-                $tags[] = $tag;
-                break;
-            }
+    if (is_array($rows)) {
+        foreach ($rows as $row) {
+            $tags[] = $row['tag'];
         }
     }
-    
     return $tags;
 }
 
@@ -294,25 +154,16 @@ function kona3tags_getPageTags($page) {
  * @return array ページ情報の配列
  */
 function kona3tags_getPages($tag, $sort = 'mtime', $limit = 30) {
-    $pages = kona3tags_load($tag);
-    
-    // ソート
-    if ($sort === 'mtime') {
-        usort($pages, function($a, $b) {
-            return $b['mtime'] - $a['mtime'];
-        });
-    } else if ($sort === 'page') {
-        usort($pages, function($a, $b) {
-            return strcmp($a['page'], $b['page']);
-        });
+    kona3tags_initDb();
+    $order = ($sort === 'page') ? 'page ASC' : 'updated_at DESC';
+    $sql = "SELECT page, updated_at as mtime FROM tags WHERE tag=? ORDER BY {$order}";
+    $params = [$tag];
+    if ($limit > 0) {
+        $sql .= " LIMIT ?";
+        $params[] = intval($limit);
     }
-    
-    // 件数制限
-    if ($limit > 0 && count($pages) > $limit) {
-        $pages = array_slice($pages, 0, $limit);
-    }
-    
-    return $pages;
+    $rows = db_get($sql, $params, 'tags');
+    return is_array($rows) ? $rows : [];
 }
 
 /**
@@ -320,28 +171,79 @@ function kona3tags_getPages($tag, $sort = 'mtime', $limit = 30) {
  * @return array タグ名の配列
  */
 function kona3tags_getAllTags() {
-    kona3tags_initDir();
-    
+    kona3tags_initDb();
+    $rows = db_get("SELECT DISTINCT tag FROM tags ORDER BY tag ASC", [], 'tags');
     $tags = [];
-    $files = glob(kona3tags_getDir() . '/*.json');
-    
-    foreach ($files as $filepath) {
-        $json = file_get_contents($filepath);
-        $data = json_decode($json, true);
-        
-        if (!is_array($data)) continue;
-        
-        // 新形式の場合
-        if (isset($data['tag'])) {
-            $tags[] = $data['tag'];
-        } else {
-            // 旧形式の場合：ファイル名からタグ名を復元
-            $basename = basename($filepath, '.json');
-            $tag = rawurldecode($basename);
-            $tags[] = $tag;
+    if (is_array($rows)) {
+        foreach ($rows as $row) {
+            $tags[] = $row['tag'];
         }
     }
-    
-    sort($tags);
     return $tags;
+}
+
+/**
+ * ページ単位でタグを一括更新する（DELETEしてからINSERT）
+ * @param string $page ページ名
+ * @param array $tags タグ名の配列
+ */
+function kona3tags_updatePageTags($page, $tags) {
+    kona3tags_initDb();
+    db_exec("DELETE FROM tags WHERE page=?", [$page], 'tags');
+    $time = time();
+    foreach ($tags as $tag) {
+        $tag = trim($tag);
+        if ($tag === '') continue;
+        if (mb_strlen($tag) > 20) {
+            $tag = mb_substr($tag, 0, 20);
+        }
+        db_exec(
+            "INSERT OR IGNORE INTO tags (tag, page, created_at, updated_at) VALUES (?, ?, ?, ?)",
+            [$tag, $page, $time, $time],
+            'tags'
+        );
+    }
+}
+
+/**
+ * 全ページのメタデータからタグキャッシュを再構築する
+ */
+function kona3tags_rebuildAll() {
+    kona3tags_initDb();
+    
+    // トランザクション処理(あるいはDELETE FROM)
+    db_exec("DELETE FROM tags", [], 'tags');
+    
+    $meta_dir = KONA3_DIR_DATA . '/.meta';
+    if (!file_exists($meta_dir)) {
+        return;
+    }
+    
+    // 再帰的に.jsonを走査
+    $dir_iterator = new RecursiveDirectoryIterator($meta_dir);
+    $iterator = new RecursiveIteratorIterator($dir_iterator);
+    foreach ($iterator as $file) {
+        if ($file->isFile() && $file->getExtension() === 'json') {
+            $json_data = @file_get_contents($file->getPathname());
+            if ($json_data === FALSE) continue;
+            $meta = json_decode($json_data, true);
+            if ($meta && isset($meta['page']) && isset($meta['tags']) && is_array($meta['tags'])) {
+                $page = $meta['page'];
+                $created_at = isset($meta['created_at']) ? intval($meta['created_at']) : time();
+                $updated_at = isset($meta['updated_at']) ? intval($meta['updated_at']) : time();
+                foreach ($meta['tags'] as $tag) {
+                    $tag = trim($tag);
+                    if ($tag === '') continue;
+                    if (mb_strlen($tag) > 20) {
+                        $tag = mb_substr($tag, 0, 20);
+                    }
+                    db_exec(
+                        "INSERT OR IGNORE INTO tags (tag, page, created_at, updated_at) VALUES (?, ?, ?, ?)",
+                        [$tag, $page, $created_at, $updated_at],
+                        'tags'
+                    );
+                }
+            }
+        }
+    }
 }

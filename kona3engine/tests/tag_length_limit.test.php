@@ -3,6 +3,11 @@ require_once __DIR__ . '/test_common.inc.php';
 
 echo "=== Tag Length Limit Test ===\n";
 
+// Test Setup: Clean up existing data for test pages
+for ($i = 1; $i <= 7; $i++) {
+    kona3tags_clearPageTags("TestPage$i");
+}
+
 // Test 1: Normal length tag (should not be truncated)
 echo "Test 1: Normal length tag\n";
 $normal_tag = "normal_tag";

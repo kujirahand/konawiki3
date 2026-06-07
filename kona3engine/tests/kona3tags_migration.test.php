@@ -1,70 +1,83 @@
 <?php
 /**
- * Test for SQLite to File-based tag migration
+ * Test for tags rebuild/migration (from Meta files to SQLite cache)
  */
 require_once __DIR__ . '/test_common.inc.php';
+require_once __DIR__ . '/../kona3tags.inc.php';
 
-echo "=== Tag Migration Test ===\n";
+echo "=== Tag Rebuild/Migration Test ===\n";
 
-// テスト用のタグディレクトリを削除
-$test_tag_dir = KONA3_DIR_DATA . '/.kona3_tag';
-if (file_exists($test_tag_dir)) {
-    $files = glob($test_tag_dir . '/*');
-    foreach ($files as $file) {
-        if (is_file($file)) {
-            unlink($file);
-        }
-    }
-    rmdir($test_tag_dir);
-}
+// テスト用のページ名
+$test_page1 = 'MigrationTest1';
+$test_page2 = 'MigrationTest2';
 
-// SQLiteにテストデータを追加
-echo "Test 1: Add test data to SQLite\n";
-try {
-    // テーブルが存在することを確認
-    $result = db_get("SELECT name FROM sqlite_master WHERE type='table' AND name='tags'", []);
-    if ($result) {
-        // 既存のデータをクリア
-        db_exec("DELETE FROM tags", []);
-        
-        // テストデータを追加
-        $page_id = kona3db_getPageId('MigrationTest1', TRUE);
-        db_exec("INSERT INTO tags (page_id, tag, mtime) VALUES (?, ?, ?)", [$page_id, 'OldTag1', time()]);
-        
-        $page_id2 = kona3db_getPageId('MigrationTest2', TRUE);
-        db_exec("INSERT INTO tags (page_id, tag, mtime) VALUES (?, ?, ?)", [$page_id2, 'OldTag1', time()]);
-        db_exec("INSERT INTO tags (page_id, tag, mtime) VALUES (?, ?, ?)", [$page_id2, 'OldTag2', time()]);
-        
-        echo "  Added test data to SQLite\n";
-        
-        // データ確認
-        $count = db_get1("SELECT COUNT(*) as cnt FROM tags", []);
-        test_eq(__LINE__, 3, $count['cnt'], "Should have 3 records in SQLite");
-        
-        // 移行処理を実行
-        echo "Test 2: Execute migration\n";
-        kona3tags_initDir(); // これが移行を実行する
-        
-        // 移行後の確認
-        echo "Test 3: Verify migration\n";
-        
-        // ファイルベースのタグシステムにデータがあることを確認
-        $pages = kona3tags_getPages('OldTag1');
-        test_eq(__LINE__, 2, count($pages), "OldTag1 should have 2 pages after migration");
-        
-        $pages = kona3tags_getPages('OldTag2');
-        test_eq(__LINE__, 1, count($pages), "OldTag2 should have 1 page after migration");
-        
-        // SQLiteのテーブルが空になっていることを確認
-        $count = db_get1("SELECT COUNT(*) as cnt FROM tags", []);
-        test_eq(__LINE__, 0, $count['cnt'], "SQLite tags table should be empty after migration");
-        
-        echo "  Migration successful!\n";
-    } else {
-        echo "  tags table does not exist in SQLite - skipping test\n";
-    }
-} catch (Exception $e) {
-    echo "  Error: " . $e->getMessage() . "\n";
-}
+// 既存のメタファイルやWikiファイルを削除
+$meta_file1 = kona3db_getPageMetaFile($test_page1);
+$meta_file2 = kona3db_getPageMetaFile($test_page2);
+if (file_exists($meta_file1)) unlink($meta_file1);
+if (file_exists($meta_file2)) unlink($meta_file2);
 
-echo "\n=== Migration Test Completed ===\n";
+$wiki_file1 = koan3getWikiFileText($test_page1);
+$wiki_file2 = koan3getWikiFileText($test_page2);
+if (file_exists($wiki_file1)) unlink($wiki_file1);
+if (file_exists($wiki_file2)) unlink($wiki_file2);
+
+// SQLiteキャッシュをクリア
+kona3tags_initDb();
+db_exec("DELETE FROM tags", [], 'tags');
+
+echo "Test 1: Create test pages and save meta with tags\n";
+// テスト用データ保存
+kona3lock_save($wiki_file1, "Test page 1");
+kona3lock_save($wiki_file2, "Test page 2");
+
+// メタ情報保存
+$meta1 = [
+    'page' => $test_page1,
+    'tags' => ['OldTag1', 'CommonTag'],
+    'created_at' => time(),
+    'updated_at' => time()
+];
+kona3db_savePageMeta($test_page1, $meta1);
+
+$meta2 = [
+    'page' => $test_page2,
+    'tags' => ['OldTag2', 'CommonTag'],
+    'created_at' => time(),
+    'updated_at' => time()
+];
+kona3db_savePageMeta($test_page2, $meta2);
+
+echo "Test 2: Execute rebuild\n";
+// 再構築処理を実行
+kona3tags_rebuildAll();
+
+echo "Test 3: Verify rebuild results\n";
+
+// OldTag1
+$pages = kona3tags_getPages('OldTag1');
+test_eq(__LINE__, 1, count($pages), "OldTag1 should have 1 page");
+test_eq(__LINE__, $test_page1, $pages[0]['page'], "OldTag1 page name should match");
+
+// OldTag2
+$pages = kona3tags_getPages('OldTag2');
+test_eq(__LINE__, 1, count($pages), "OldTag2 should have 1 page");
+test_eq(__LINE__, $test_page2, $pages[0]['page'], "OldTag2 page name should match");
+
+// CommonTag
+$pages = kona3tags_getPages('CommonTag', 'page');
+test_eq(__LINE__, 2, count($pages), "CommonTag should have 2 pages");
+test_eq(__LINE__, $test_page1, $pages[0]['page'], "First page of CommonTag should be MigrationTest1");
+test_eq(__LINE__, $test_page2, $pages[1]['page'], "Second page of CommonTag should be MigrationTest2");
+
+// クリーンアップ
+echo "Test 4: Cleanup test data\n";
+if (file_exists($meta_file1)) unlink($meta_file1);
+if (file_exists($meta_file2)) unlink($meta_file2);
+if (file_exists($wiki_file1)) unlink($wiki_file1);
+if (file_exists($wiki_file2)) unlink($wiki_file2);
+
+kona3tags_clearPageTags($test_page1);
+kona3tags_clearPageTags($test_page2);
+
+echo "\n=== Tag Rebuild/Migration Test Completed ===\n";

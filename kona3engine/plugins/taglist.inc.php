@@ -5,18 +5,31 @@
  * -- システムに登録されている全てのタグを一覧表示します。
  */
 function kona3plugins_taglist_execute($args) {
+    global $kona3conf;
+    $page = $kona3conf['page'];
+    
+    $html = '<div class="kona3-taglist">';
+    
+    $btn = '';
+    if (kona3isLogin()) {
+        $update_url = kona3getPageURL($page, 'plugin', '', 'name=tags&mode=update');
+        $label = lang('Update', 'Update');
+        $btn = ' <span style="font-size: 0.6em; font-weight: normal; margin-left: 10px; vertical-align: middle;">' .
+               '<a href="' . $update_url . '" class="pure-button button-secondary" style="padding: 2px 6px; font-size: 11px;">🔄 ' . htmlspecialchars($label) . '</a>' .
+               '</span>';
+    }
+    
+    $html .= '<h3>📚 Tag list' . $btn . '</h3>';
+    
     $all_tags = kona3tags_getAllTags();
     
     if (empty($all_tags)) {
-        return '<div class="kona3-taglist"><p>タグが登録されていません。</p></div>';
+        $html .= '<p>タグが登録されていません。</p>';
+        $html .= '</div>';
+        return $html;
     }
     
-    $html = '<div class="kona3-taglist">';
-    $html .= '<h3>📚 Tag list</h3>';
     $html .= '<ul class="tag-cloud">';
-    
-    global $kona3conf;
-    $page = $kona3conf['page'];
     
     foreach ($all_tags as $tag) {
         $pages = kona3tags_load($tag);
@@ -35,4 +48,9 @@ function kona3plugins_taglist_execute($args) {
     $html .= '</div>';
     
     return $html;
+}
+
+function kona3plugins_taglist_action() {
+    $code = kona3plugins_taglist_execute([]);
+    kona3showMessage("Tag list", $code, 'white.html');
 }

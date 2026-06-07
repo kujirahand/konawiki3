@@ -79,6 +79,21 @@ function kona3plugins_tags_hasTagInPage($page, $tag) {
 }
 
 function kona3plugins_tags_action() {
+  $mode = kona3param('mode', '');
+  if ($mode == 'update') {
+    if (!kona3isLogin()) {
+      return kona3error('Forbidden', lang('Please login.'));
+    }
+    
+    kona3tags_rebuildAll();
+    
+    global $kona3conf;
+    $page = isset($kona3conf['page']) ? $kona3conf['page'] : 'FrontPage';
+    $jump = kona3getPageURL($page);
+    header("Location: $jump");
+    exit;
+  }
+
   $tag = kona3param('tag', '');
   $tag_h = htmlspecialchars($tag);
   $code = kona3plugins_tags_getTags($tag, 'mtime', 300);
