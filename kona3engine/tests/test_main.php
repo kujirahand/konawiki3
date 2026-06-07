@@ -41,6 +41,8 @@ if ($KONA3_TEST_NG > 0) {
     foreach ($KONA3_TEST_ERRORS as $err) {
         print_r($err);
     }
+    exit(1);
 } else {
     echo "| 😊 Success!\n";
+    exit(0);
 }
