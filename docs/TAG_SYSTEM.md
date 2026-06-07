@@ -5,9 +5,7 @@
 タグは、Wikiの各ページに複数のタグを付与して、分類・整理するためのシステムです。
 一つのページに複数のタグを付与できます。タグはスラッシュ(`/`)で区切って入力します。
 
-タグは、dataフォルダ以下にJSON形式で保存されます。また、各ページのメタ情報にもタグが保存されます。
-
-なお、KonaWiki3のタグシステムは、以前、SQLiteベースでしたが、ファイルベースに変更されました。
+KonaWiki3のタグシステムは、以前はファイルベース（`data/.kona3_tag/*.json`）でしたが、検索高速化のために**SQLiteキャッシュベース（`private/tags.sqlite`）**に変更されました。これにより、多数のタグやページが存在する場合でも、高速にタグ検索やタグ一覧の表示が可能です。
 
 ## 使い方
 
@@ -43,72 +41,72 @@
 #taglist
 ```
 
+### タグの表示と一覧へのリンク
+
+タグが設定されているページの右下に `Tags: tag1/tag2` のようにタグ一覧が表示されます。
+`Tags` のラベル部分をクリックすると、登録されているすべてのタグ一覧（Tag list）ページへ遷移します。
+
+---
+
+## キャッシュの更新と再構築
+
+SQLiteのタグキャッシュは以下のタイミングで自動または手動で更新されます。
+
+1. **ページ保存時の自動更新（ページ単位）**
+   編集画面でページを保存した際、そのページのタグキャッシュのみが自動的に更新されます。内部的には `DELETE FROM tags WHERE page = ?` を実行した後に、現在のタグを順次 `INSERT` します。
+2. **手動での一括再構築（全ページスキャン）**
+   ログインユーザーには、`#taglist` プラグイン表示時に「更新」ボタンが表示されます。このボタンをクリックすると、`data/.meta/` ディレクトリ内のすべてのメタファイル（`.json`）を走査してタグ情報を読み込み、SQLiteキャッシュデータベースを完全に再構築します。
+
+---
+
 ## データ保存形式
 
-タグ情報は、下記の2カ所に保存されます。
+タグキャッシュ情報は、下記のデータベースに保存されます。
 
-1. `data/.kona3_tag/{タグ名}.json` ファイルにJSON形式で保存されます。
-2. 各ページのタグ情報は、`{タイトル}.meta.json` ファイルに保存されます。
+- **保存先**: `private/tags.sqlite`
 
-`data/.kona3_tag/{タグ名}.json` ディレクトリ構造例:
+### データベーススキーマ
 
-```text
-data/.kona3_tag/
-  ├── PHP.json
-  ├── プログラミング.json
-  └── Web開発.json
+`tags` テーブルの定義：
+
+```sql
+CREATE TABLE IF NOT EXISTS tags (
+    tag TEXT,
+    page TEXT,
+    created_at INTEGER,
+    updated_at INTEGER,
+    PRIMARY KEY (tag, page)
+);
+CREATE INDEX IF NOT EXISTS idx_tag ON tags (tag);
+CREATE INDEX IF NOT EXISTS idx_page ON tags (page);
 ```
 
-`data/.kona3_tag/{タグ名}.json` JSONファイルの内容:
-
-```json
-[
-  {
-    "page": "PageName1",
-    "page_id": 123,
-    "mtime": 1234567890
-  },
-  {
-    "page": "PageName2",
-    "page_id": 124,
-    "mtime": 1234567891
-  }
-]
-```
-
-ページごとのタグ情報は、`{タイトル}.meta.json` ファイルに保存されます。
-
+なお、ページごとのオリジナルなタグ情報は、各ページのメタファイル（`data/.meta/{タイトル}.json`）に保存されています。
 - [meta_info.md を参照](docs/meta_info.md)
 
-## 旧バージョンのSQLiteからの移行
-
-### 自動移行
-
-初回起動時に `data/.kona3_tag/` ディレクトリが存在しない場合、自動的にSQLiteの `tags` テーブルからデータを移行します。
-
-移行処理は以下の手順で実行されます:
-
-1. SQLiteの `tags` テーブルからすべてのタグデータを読み込む
-2. タグごとにJSONファイルを作成
-3. SQLiteの `tags` テーブルを空にする
-
-### 手動確認
-
-移行が正常に完了したか確認するには:
-
-```bash
-# タグディレクトリを確認
-ls -la data/.kona3_tag/
-
-# SQLiteのtagsテーブルが空になっているか確認
-sqlite3 private/info.sqlite "SELECT COUNT(*) FROM tags;"
-```
+---
 
 ## API関数
 
+### kona3tags_updatePageTags($page, $tags)
+
+指定したページのタグキャッシュを一括更新します（`DELETE` 後に `INSERT`）。
+
+```php
+kona3tags_updatePageTags('MyPage', ['PHP', 'SQLite']);
+```
+
+### kona3tags_rebuildAll()
+
+すべてのメタファイルから `tags.sqlite` のキャッシュを完全に再構築します。
+
+```php
+kona3tags_rebuildAll();
+```
+
 ### kona3tags_addPageTag($page, $tag)
 
-ページにタグを追加します。
+ページにタグを単体で追加します。
 
 ```php
 kona3tags_addPageTag('MyPage', 'PHP');
@@ -116,7 +114,7 @@ kona3tags_addPageTag('MyPage', 'PHP');
 
 ### kona3tags_removePageTag($page, $tag)
 
-ページからタグを削除します。
+ページからタグを単体で削除します。
 
 ```php
 kona3tags_removePageTag('MyPage', 'PHP');
@@ -124,7 +122,7 @@ kona3tags_removePageTag('MyPage', 'PHP');
 
 ### kona3tags_clearPageTags($page)
 
-ページからすべてのタグを削除します。
+ページからすべてのタグキャッシュを削除します。
 
 ```php
 kona3tags_clearPageTags('MyPage');
@@ -136,7 +134,7 @@ kona3tags_clearPageTags('MyPage');
 
 ```php
 $tags = kona3tags_getPageTags('MyPage');
-// => ['PHP', 'プログラミング']
+// => ['PHP', 'SQLite']
 ```
 
 ### kona3tags_getPages($tag, $sort = 'mtime', $limit = 30)
@@ -146,8 +144,8 @@ $tags = kona3tags_getPageTags('MyPage');
 ```php
 $pages = kona3tags_getPages('PHP', 'mtime', 10);
 // => [
-//   ['page' => 'Page1', 'page_id' => 1, 'mtime' => 1234567890],
-//   ['page' => 'Page2', 'page_id' => 2, 'mtime' => 1234567891],
+//   ['page' => 'Page1', 'mtime' => 1234567890],
+//   ['page' => 'Page2', 'mtime' => 1234567891],
 // ]
 ```
 
@@ -157,8 +155,10 @@ $pages = kona3tags_getPages('PHP', 'mtime', 10);
 
 ```php
 $all_tags = kona3tags_getAllTags();
-// => ['PHP', 'JavaScript', 'Python']
+// => ['JavaScript', 'PHP', 'SQLite']
 ```
+
+---
 
 ## テスト
 
@@ -168,16 +168,19 @@ $all_tags = kona3tags_getAllTags();
 just test
 ```
 
+タグ関係のテストファイル:
+- `tests/kona3tags.test.php`: 基本的なCRUD操作テスト
+- `tests/kona3tags_sqlite.test.php`: SQLite DB・インデックス直接検証用テスト
+- `tests/kona3tags_migration.test.php`: メタデータからの再構築テスト
+- `tests/edit_tags.test.php`: 編集アクション連動テスト
+- `tests/tag_length_limit.test.php`: タグ最大長（20文字）テスト
+
+---
+
 ## 注意事項
 
 - タグ名に使用できる文字: 英数字、日本語、アンダースコア、ハイフン
 - タグ名に使用できない文字: ドット(`.`)、スペース
-- タグファイル名は安全のため、特殊文字はアンダースコアに変換されます
 - 大文字小文字は区別されます（`PHP` と `php` は別のタグ）
-- ドット(`.`)はファイル拡張子と混同するため使用できません
-
-## 互換性
-
-- 旧バージョンのSQLiteベースのタグデータは自動的に移行されます
-- `kona3db_writePage()` の `$tags` パラメータは互換性のため残されていますが、使用されません
-- 既存の `#tags()` プラグインはそのまま動作します（内部実装が変更されただけ）
+- ドット(`.`)はファイル拡張子等と混同するため、タグ名に使用できません
+- タグの長さは最大20文字に制限され、これを超える場合は自動的に20文字に切り詰められます。

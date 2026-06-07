@@ -122,7 +122,8 @@ function kona3_action_show($actionMode = "")
                 $url = kona3getPageURL($page, 'plugin', '', "name=tags&tag=$tag_u");
                 $a[] = "<a href='$url'>$tag_h</a>";
             }
-            $tags = '<div class="desc" style="text-align:right;font-size:0.8em;color:gray;">Tags: ' .
+            $taglist_url = kona3getPageURL($page, 'plugin', '', 'name=taglist');
+            $tags = '<div class="desc" style="text-align:right;font-size:0.8em;color:gray;"><a href="' . $taglist_url . '">Tags</a>: ' .
                 implode('/', $a) . '</div>';
         }
     }
