@@ -1,35 +1,73 @@
 # Konawiki3 (日本語マニュアル)
 
-Konawikiは原稿の執筆やマニュアルの作成、情報の共有に特化したシンプルなWikiです。
+Konawiki3は、原稿の執筆、マニュアルの作成、情報の共有に特化して設計されたシンプルなWikiです。
 
- - Konawiki3 is Wiki clone.
- - [URL] http://kujirahand.com/konawiki3/
+- Konawiki3はWikiクローンです。
+- [URL] http://kujirahand.com/konawiki3/
+- [English README](README.md)
 
 ## Konawiki3の目標
 
-Wikiのデータはただのテキストファイルなので、Gitと連携して詳細な差分を取ることもできます。
-テキストエディタの代わりにKonawiki3を使用できます。
-小さくシンプルなKonawikiを使って大きな仕事を成し遂げましょう。
+Wiki内のデータは**ただのプレーンテキスト**ファイルなので、Gitと連携して詳細な差分を追跡することができます。テキストエディタの代わりにKonawiki3を使用できます。この小さくてシンプルなKonawikiを使って、素晴らしいタスクを成し遂げましょう。
 
-なお、設定オプションで、Konawiki記法だけでなく、Markdownで保存することも可能です。
-好きな記法を利用してマークアップできます。
+また、設定オプションにより、`KonaNotation` (Kona記法) だけでなく `Markdown` (マークダウン) でも保存が可能です。お好みの記法を使用してマークアップできます。
 
-## 日本語Wiki記法をサポートしています
+## テキストベースのWiki
 
-日本語Wiki記法をサポートしています。
+`KonaNotation` と `Markdown` の両方をサポートするプレーンテキストファイルでページを記述できます。これにより、Gitを使用した変更の追跡や、コンテンツの効率的な管理が容易になります。
 
+また、各ページの `KonaNotation` と `Markdown` は簡単に切り替えることができます。この柔軟性により、ニーズや好みに最適なマークアップ言語を選択できます。設定での切り替えに加え、ファイルの拡張子で切り替えることも可能です。`plain.txt` という名前のファイルは自動的に `KonaNotation` として扱われ、`plain.md` というファイルは自動的に Markdown として処理されます。
+
+### KonaNotationの例 (*.txt)
+
+Konawiki記法はシンプルなマークアップ言語です。以下に例を示します：
+
+```text
+* ヘッダー
+
+テキスト テキスト テキスト テキスト
+
+** ヘッダー2
+
+テーブル:
+
+| テーブル | テスト
+| aaa | bbb
+
+リスト:
+
+- 項目1
+- 項目2
+- 項目3
+
+コード:
+
+{{{#code
+console.log('hello');
+}}}
+
+
+プラグイン:
+
+#comment
 ```
+
+### KonaNotaionの日本語対応Wiki記法 (*.txt)
+
+日本語特有の記法もサポートしています。
+
+```text
 ■大見出し
 
-text text text text
+テキスト テキスト テキスト テキスト
 
 ●中見出し
 
-text text text text
+テキスト テキスト テキスト テキスト
 
 ▲小見出し
 
-text text text text
+テキスト テキスト テキスト テキスト
 
 リスト
 
@@ -38,67 +76,65 @@ text text text text
 ・item3
 ```
 
-## Konawiki記法について
+### Markdownの例 (*.md)
 
-とてもシンプルなPukiWikiっぽいWiki記法もサポート！
+Markdownは広く使用されているマークアップ言語です。以下に例を示します：
 
-```
-* header
+```markdown
+# ヘッダー
 
-text text text text
+テキスト テキスト テキスト テキスト
 
-** header2
+## ヘッダー2
 
-table:
+テーブル:
 
-| table | test
-| aaa | bbb
+| テーブル | テスト |
+| --- | --- |
+| aaa | bbb |
 
-list:
+リスト:
 
-- item1
-- item2
-- item3
+- 項目1
+- 項目2
 
-code:
-
-{{{#code(js)
+\`\`\`js
 console.log('hello');
-}}}
+\`\`\`
+
+プラグイン:
+
+!!comment
 ```
 
-## 記法はKonawikiとMarkdownを切り替えて使える！
+### AI執筆支援機能
 
-オプションで、Markdownに切り替えもできるので、好きな記法で書けるのがKonawikiの良いところです！
+AIによる執筆支援機能を実装しています。これには、テキストの要約、校正、文章の言い換え、続きの自動執筆などが含まれます。
+[ChatGPTのAPIキー](https://platform.openai.com/api-keys)を取得し、Konawikiの設定に指定することで、AI支援機能にアクセスできます。
 
-## AIによる執筆サポート機能を実装
+## ページ整理のためのタグシステム
 
-AIによる執筆サポート機能を実装しています。テキストの要約や文章校正、文章の言い換え、続きの自動執筆など、AIによる執筆支援を利用できます。
-[ChatGPTのAPIキー](https://platform.openai.com/api-keys)を取得して、Konawikiの設定画面に指定するだけで、AI支援機能を利用できます。
+ファイルベースのタグシステムが組み込まれています。ページに `#tag(タグ名)` を追加することで、カテゴリごとにページを整理できます。
+タグを使用してページを分類し、`#tags(タグ名)` を使用して特定のタグが付いたページの一覧を表示します。
 
-## タグ機能でページを整理
+詳細については、[タグシステムドキュメント](docs/TAG_SYSTEM.md)を参照してください。
 
-ファイルベースのタグシステムを搭載しています。ページに`#tag(タグ名)`を記述することで、ページをカテゴリ別に整理できます。
-タグを使ってページを分類し、`#tags(タグ名)`でそのタグが付いたページ一覧を表示できます。
+## Konawiki3のインストール方法
 
-詳細は[タグシステムのドキュメント](docs/TAG_SYSTEM.md)を参照してください。
+### Gitコマンドを使用する場合
 
-# Konawiki3のインストールの仕方
+1. WebサーバーとPHPをインストールする
+2. リポジトリをクローンする
 
-Gitコマンドが使えるなら、コマンド一発で設置が可能ですし、
-[releases](https://github.com/kujirahand/konawiki3/releases)からZIPでダウンロードしてFTPSなどでアップロードして動かすこともできます。
-詳しくは、[こちら](https://kujirahand.com/konawiki3/index.php?install)を参照してください。
+```sh
+git clone https://github.com/kujirahand/konawiki3.git
+```
 
-### Gitを使う方法
+### ホスティングサーバーにアップローダーを使用する場合
 
-1. ApacheなどのWebサーバーとPHPをインストール
-2. 以下のコマンドを実行
-  -  `git clone https://github.com/kujirahand/konawiki3.git`
-
-### Gitを使わない方法:
-
-1. [Konawiki3のreleaseからZIPをダウンロード](https://github.com/kujirahand/konawiki3/releases)
-2. 以下のようにパーミッションを変更
+1. [リリース](https://github.com/kujirahand/konawiki3/releases)からKonawiki3のzipファイルをダウンロードする
+2. 解凍する
+3. パーミッションを変更する
 
 ```sh
 chmod 766 data
@@ -106,17 +142,26 @@ chmod 766 cache
 chmod 766 private
 ```
 
-## (オプション) Git保存機能を使う場合
+詳しくは、[インストール手順](https://kujirahand.com/konawiki3/index.php?install)も参照してください。
 
-Git保存機能を使う時は、composerを使ってインストールしてください。
+### Dockerを使用する場合 (ローカル環境)
+
+ターミナルから以下のコマンドを実行すると起動します。PHPのローカルサーバー機能を利用してKonawiki3を実行します。
+
+```sh
+docker-compose up
+```
+
+## ライブラリのインストール (オプション)
+
+Git保存機能を使用したい場合は、composerを使用してインストールします。
 
 ```sh
 cd kona3engine
 composer install
 ```
 
-ただし、レンタルサーバーによっては、うまく動かないことがあるので、その場合は、SSHからコミットしてください。
-ローカルでは正しく動くものの、ロリポップなどでは動かなかったので、CRONで定期的にコミットするようにしています。
+※ レンタルサーバーによっては、PHPスクリプトからのGit操作が制限されている場合があります。その場合はSSH経由でコミットするか、cron等で以下のように定期コミットを行ってください。
 
 ```sh
 cd konawiki_path
@@ -126,49 +171,38 @@ git commit -a
 git push
 ```
 
-## (オプション) PDF機能
+## 設定ページ
 
-- 設定画面で PDF 出力をtrueに設定
-- 文字化けするときは、/vendor/fonts に拡張子が.ttfのフォントを配置してください。
-- 詳しくは[こちら](https://kujirahand.com/konawiki3/index.php?PDF%E5%87%BA%E5%8A%9B%E6%A9%9F%E8%83%BD)
+最初に管理者ユーザーでログインし、設定ページにアクセスします。
 
-## Gitと連携する場合
+```text
+[URI] index.php?go&editConf
+```
 
-下記のようにして、dataディレクトリをGitの管理下に置くと便利かも。
+## プラグイン一覧
+
+```text
+[URI] index.php?FrontPage&plugin&name=pluginlist
+```
+
+## PDF出力 (オプション)
+
+1.設定ページにアクセスし、PDF出力を TRUE に設定する
+2.文字化けする場合は、`./vendor/fonts` にフォント(`.ttf`)を配置する - [PDF出力マニュアル](https://kujirahand.com/konawiki3/index.php?PDF%E5%87%BA%E5%8A%9B%E6%A9%9F%E8%83%BD)
+
+## Gitサポート (オプション)
+
+Wikiの差分をコミットしてGitリポジトリにプッシュできます。
 
 ```sh
-# set your remote repository in `/data` dir
+# dataディレクトリにリモートリポジトリを設定します
 cd data
 git remote add origin git@github.com:hoge/fuga.git
 ```
 
-そして、設定画面で git_enabled をTRUEに設定してください。
+そして、設定で `git_enabled` を `true` に設定します。
 
-## 設定ページ
+## 開発向け
 
-最初に、管理ユーザーを設定したら、その後、設定ページにアクセスできます。
-
-```
-[URI] index.php?go&editConf
-```
-
-## Plugin list
-
-```
-[URI] index.php?FrontPage&plugin&name=pluginlist
-```
-
-## Dockerを使う場合
-
-ターミナルから以下のコマンドを実行すると起動します。PHPのローカルサーバーの機能を利用してKonawiki3を実行します。
-
-```
-docker-compose up
-```
-
-## 開発に際して
-
-タスクランナーの`just`を利用しています。
-テストを実行するには、`just test`を実行します。
-
-
+タスクランナーの `just` を使用しています。
+テストを実行するには、`just test` を実行します。
