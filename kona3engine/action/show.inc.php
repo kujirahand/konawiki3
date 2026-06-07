@@ -33,7 +33,20 @@ function kona3_action_show($actionMode = "")
 
     // convert
     $ext = strtolower($ext);
+
+    // メタデータからmodeを取得
+    $meta = kona3db_loadPageMeta($page);
+    $mode = (is_array($meta) && isset($meta['mode'])) ? $meta['mode'] : '';
+
+    if ($ext == '.txt' || $ext == '.md') {
+        if ($mode === 'Markdown') {
+            $ext = '.md';
+        } else if ($mode === 'KonaNotation') {
+            $ext = '.txt';
+        }
+    }
     kona3setConf('page_ext', $ext);
+
     if ($ext == ".txt") {
         $page_body = konawiki_parser_convert($txt);
     } else if ($ext == ".md") {

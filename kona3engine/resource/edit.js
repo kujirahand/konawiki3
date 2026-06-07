@@ -49,6 +49,12 @@ function edit_init() {
   }
   qq('#ls_load_btn').click(loadTextFromLS)
   qq('#autosave').click(autoSaveClickHandler)
+  const page_mode_el = qs('#page_mode')
+  if (page_mode_el) {
+    page_mode_el.addEventListener('change', () => {
+      handleChange(true, 'page_mode')
+    })
+  }
   const ai_ask_btn = qs('#ai_ask_btn')
   if (ai_ask_btn) {
     qq(ai_ask_btn).click(aiAskClickHandler)
@@ -211,6 +217,10 @@ function ajaxProc(a_mode, source) {
   params.append('edit_ext', qq('#edit_ext').val())
   params.append('edit_token', qq('#edit_token').val())
   params.append('tags', qq('#tags').val())
+  const page_mode_sel = qs('#page_mode')
+  if (page_mode_sel) {
+    params.append('page_mode', page_mode_sel.value)
+  }
   params.append('postId', pid)
   // post
   elog(`@@ajaxProc::${pid}::${a_mode}::${source}`)
