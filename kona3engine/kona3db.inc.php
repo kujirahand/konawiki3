@@ -10,7 +10,7 @@ $kona3pageIdCache = NULL;
 // ページIDを取得する
 function kona3db_getPageId($page, $canCreate = FALSE)
 {
-    global $kona3pageIds;
+    global $kona3pageIds, $kona3pageIdCache;
     if ($kona3pageIds === NULL) {
         // load KONA3_PAGE_ID_JSON
         if (file_exists(KONA3_PAGE_ID_JSON)) {
@@ -34,7 +34,12 @@ function kona3db_getPageId($page, $canCreate = FALSE)
             }
         }
         $kona3pageIds[$page] = $maxId + 1;
-        kona3lock_save(KONA3_PAGE_ID_JSON, json_encode($kona3pageIds, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        $saved = kona3lock_save(KONA3_PAGE_ID_JSON, json_encode($kona3pageIds, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        if (!$saved) {
+            unset($kona3pageIds[$page]);
+            return 0;
+        }
+        $kona3pageIdCache = NULL;
         return $kona3pageIds[$page];
     }
     return 0;
