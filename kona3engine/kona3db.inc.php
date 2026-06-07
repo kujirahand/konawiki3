@@ -35,6 +35,7 @@ function kona3db_getPageId($page, $canCreate = FALSE)
         }
         $kona3pageIds[$page] = $maxId + 1;
         kona3lock_save(KONA3_PAGE_ID_JSON, json_encode($kona3pageIds, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        return $kona3pageIds[$page];
     }
     return 0;
 }
