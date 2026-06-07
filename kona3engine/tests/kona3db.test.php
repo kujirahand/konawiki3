@@ -3,11 +3,6 @@ require_once __DIR__ . '/test_common.inc.php';
 
 // --- データベース層のテスト ---
 
-// グローバル変数の初期化
-global $kona3pageIds, $kona3pageIdCache;
-$kona3pageIds = NULL;
-$kona3pageIdCache = NULL;
-
 // --- ページIDの管理テスト ---
 
 // 新しいページIDの作成（テストページ1）

@@ -872,34 +872,15 @@ function kona3_getEditTokenForm($page = 'default', $action = 'edit', $label = 'E
 
 function kona3getShortcutLink()
 {
-    // get url
-    $host = empty($_SERVER['HTTP_HOST']) ? "" : $_SERVER['HTTP_HOST'];
-    $scriptname = dirname($_SERVER['SCRIPT_NAME']);
-    // check last path
-    if (substr($scriptname, strlen($scriptname) - 1, 1) == '/') {
-        $scriptname = substr(0, strlen($scriptname) - 1);
-    }
-    $scheme = (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on')) ? 'https' : 'http';
-    $base_url = "{$scheme}://{$host}{$scriptname}/go.php";
-    // get shortcut
-    // get page_id
     $file_not_found = kona3getConf("page_not_found", FALSE);
     if ($file_not_found) {
         return '<!-- no shortcut -->';
     } else {
         $page = $_GET['page'];
-        $page_id = kona3db_getPageId($page);
     }
-    if ($page_id == 0) {
-        return '<!-- no shortcut -->';
-    }
-    $url = "{$base_url}?{$page_id}";
-    // get real url
     $real_url = kona3getPageURL($page);
     $page_h = htmlspecialchars($page, ENT_QUOTES);
-    return "" .
-        "<a href=\"$real_url\">$page_h</a>&nbsp;" .
-        "(<a href=\"$url\">{$page_id}</a>)";
+    return "<a href=\"$real_url\">$page_h</a>";
 }
 
 
