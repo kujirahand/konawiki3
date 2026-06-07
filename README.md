@@ -11,9 +11,15 @@ Konawiki3 is a simple Wiki designed specifically for writing manuscripts, creati
 The data in the Wiki is **just plain text** files, which allows for detailed differences to be tracked in conjunction with Git.
 You can use Konawiki3 instead of a text editor. Let's accomplish great tasks using the small and simple Konawiki.
 
-Additionally, through the configuration options, it is possible to save in `Markdown` as well as `Konawiki notation`. You can use your preferred notation for markup.
+Additionally, through the configuration options, it is possible to save in `Markdown` as well as `KonaNotation`. You can use your preferred notation for markup.
 
-## Konawiki notation example
+## Text-based Wiki
+
+You can write pages in plain text files that support both `KonaNotation` and `Markdown`. This allows you to easily track changes using Git and manage your content efficiently.
+
+And you can switch easily between `KonaNotation` and `Markdown` for your pages. This flexibility allows you to choose the markup language that best suits your needs and preferences. In addition to configuration settings, you can also switch by file extension. Files named `plain.txt` are treated as `KonaNotation`, and `plain.md` files are treated as Markdown automatically.
+
+### KonaNotation example (*.txt)
 
 Konawiki notation is a simple markup language. Here are some examples:
 
@@ -37,9 +43,69 @@ list:
 
 code:
 
-{{{#code(js)
+{{{#code
 console.log('hello');
 }}}
+
+
+plugins:
+
+#comment
+```
+
+### Japanese Wiki Notation in KonaNotation (*.txt)
+
+We also support Japanese-specific notation.
+
+```text
+■Large Heading
+
+Text Text Text Text
+
+●Medium Heading
+
+Text Text Text Text
+
+▲Small Heading
+
+Text Text Text Text
+
+List
+
+・item1
+・item2
+・item3
+```
+
+### Markdown example (*.md)
+
+Markdown is a widely used markup language. Here are some examples:
+
+```markdown
+# header
+
+text text text text
+
+## header2
+
+table:
+
+| table | test |
+| --- | --- |
+| aaa | bbb |
+
+list:
+
+- item1
+- item2
+
+```js
+console.log('hello');
+```
+
+plugins:
+
+!!comment
 ```
 
 ### AI Writing Assistance Features
@@ -77,20 +143,39 @@ chmod 766 cache
 chmod 766 private
 ```
 
+For more details, see also [installation guide](https://kujirahand.com/konawiki3/index.php?install).
+
+### Use Docker (Local Environment)
+
+Run the following command in your terminal to start. This runs Konawiki3 using PHP's built-in local server.
+
+```sh
+docker-compose up
+```
+
 ## Install Library (Option)
 
-When you want to use Git, execute shell commands.
+When you want to use the Git save feature, install it using composer.
 
 ```sh
 cd kona3engine
 composer install
 ```
 
+* Note: Depending on your hosting server, Git operations from PHP scripts may be restricted. In that case, commit via SSH or set up a cron job to commit regularly as follows:
+
+```sh
+cd konawiki_path
+git pull
+git add ./data
+git commit -a
+git push
+```
+
 ## Output PDF (Option)
 
-- 1. Access config page, and set PDF-output TRUE
-- 2. If Mojibake then put fonts in ./vendor/fonts(.ttf)
-- [PDF output manual](https://kujirahand.com/konawiki3/index.php?PDF%E5%87%BA%E5%8A%9B%E6%A9%9F%E8%83%BD)
+1. Access the config page, and set PDF-output to TRUE.
+2. If mojibake (character corruption) occurs, place your font files (`.ttf`) in `./vendor/fonts`. - [PDF output manual](https://kujirahand.com/konawiki3/index.php?PDF%E5%87%BA%E5%8A%9B%E6%A9%9F%E8%83%BD)
 
 ## Git support (Option)
 
@@ -102,7 +187,7 @@ cd data
 git remote add origin git@github.com:hoge/fuga.git
 ```
 
-And set git_enabled to true at the config.
+And set `git_enabled` to `true` in the configuration.
 
 ## Config page
 
