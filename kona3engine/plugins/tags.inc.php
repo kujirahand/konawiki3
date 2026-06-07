@@ -84,6 +84,9 @@ function kona3plugins_tags_action() {
     if (!kona3isLogin()) {
       return kona3error('Forbidden', lang('Please login.'));
     }
+    if (!kona3_checkEditToken('edit_token')) {
+      return kona3error('Forbidden', lang('Invalid edit token.'));
+    }
     
     kona3tags_rebuildAll();
     

@@ -67,6 +67,7 @@ function kona3tags_load($tag) {
  */
 function kona3tags_save($tag, $pages) {
     kona3tags_initDb();
+    db_exec("DELETE FROM tags WHERE tag=?", [$tag], 'tags');
     $time = time();
     foreach ($pages as $p) {
         $page = $p['page'];
@@ -96,8 +97,9 @@ function kona3tags_addPageTag($page, $tag) {
     kona3tags_initDb();
     $time = time();
     db_exec(
-        "INSERT OR IGNORE INTO tags (tag, page, created_at, updated_at) VALUES (?, ?, ?, ?)",
-        [$tag, $page, $time, $time],
+        "INSERT INTO tags (tag, page, created_at, updated_at) VALUES (?, ?, ?, ?) " .
+        "ON CONFLICT(tag, page) DO UPDATE SET updated_at = ?",
+        [$tag, $page, $time, $time, $time],
         'tags'
     );
 }
@@ -211,39 +213,47 @@ function kona3tags_updatePageTags($page, $tags) {
 function kona3tags_rebuildAll() {
     kona3tags_initDb();
     
-    // トランザクション処理(あるいはDELETE FROM)
-    db_exec("DELETE FROM tags", [], 'tags');
-    
-    $meta_dir = KONA3_DIR_DATA . '/.meta';
-    if (!file_exists($meta_dir)) {
-        return;
-    }
-    
-    // 再帰的に.jsonを走査
-    $dir_iterator = new RecursiveDirectoryIterator($meta_dir);
-    $iterator = new RecursiveIteratorIterator($dir_iterator);
-    foreach ($iterator as $file) {
-        if ($file->isFile() && $file->getExtension() === 'json') {
-            $json_data = @file_get_contents($file->getPathname());
-            if ($json_data === FALSE) continue;
-            $meta = json_decode($json_data, true);
-            if ($meta && isset($meta['page']) && isset($meta['tags']) && is_array($meta['tags'])) {
-                $page = $meta['page'];
-                $created_at = isset($meta['created_at']) ? intval($meta['created_at']) : time();
-                $updated_at = isset($meta['updated_at']) ? intval($meta['updated_at']) : time();
-                foreach ($meta['tags'] as $tag) {
-                    $tag = trim($tag);
-                    if ($tag === '') continue;
-                    if (mb_strlen($tag) > 20) {
-                        $tag = mb_substr($tag, 0, 20);
+    // トランザクション処理
+    db_begin('tags');
+    try {
+        db_exec("DELETE FROM tags", [], 'tags');
+        
+        $meta_dir = KONA3_DIR_DATA . '/.meta';
+        if (!file_exists($meta_dir)) {
+            db_commit('tags');
+            return;
+        }
+        
+        // 再帰的に.jsonを走査
+        $dir_iterator = new RecursiveDirectoryIterator($meta_dir);
+        $iterator = new RecursiveIteratorIterator($dir_iterator);
+        foreach ($iterator as $file) {
+            if ($file->isFile() && $file->getExtension() === 'json') {
+                $json_data = @file_get_contents($file->getPathname());
+                if ($json_data === FALSE) continue;
+                $meta = json_decode($json_data, true);
+                if ($meta && isset($meta['page']) && isset($meta['tags']) && is_array($meta['tags'])) {
+                    $page = $meta['page'];
+                    $created_at = isset($meta['created_at']) ? intval($meta['created_at']) : time();
+                    $updated_at = isset($meta['updated_at']) ? intval($meta['updated_at']) : time();
+                    foreach ($meta['tags'] as $tag) {
+                        $tag = trim($tag);
+                        if ($tag === '') continue;
+                        if (mb_strlen($tag) > 20) {
+                            $tag = mb_substr($tag, 0, 20);
+                        }
+                        db_exec(
+                            "INSERT OR IGNORE INTO tags (tag, page, created_at, updated_at) VALUES (?, ?, ?, ?)",
+                            [$tag, $page, $created_at, $updated_at],
+                            'tags'
+                        );
                     }
-                    db_exec(
-                        "INSERT OR IGNORE INTO tags (tag, page, created_at, updated_at) VALUES (?, ?, ?, ?)",
-                        [$tag, $page, $created_at, $updated_at],
-                        'tags'
-                    );
                 }
             }
         }
+        db_commit('tags');
+    } catch (Exception $e) {
+        db_rollback('tags');
+        throw $e;
     }
 }

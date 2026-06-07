@@ -12,10 +12,16 @@ function kona3plugins_taglist_execute($args) {
     
     $btn = '';
     if (kona3isLogin()) {
-        $update_url = kona3getPageURL($page, 'plugin', '', 'name=tags&mode=update');
+        $action_url = kona3getPageURL($page, 'plugin');
+        $edit_token = kona3_getEditToken('edit_token', FALSE);
         $label = lang('Update', 'Update');
-        $btn = ' <span style="font-size: 0.6em; font-weight: normal; margin-left: 10px; vertical-align: middle;">' .
-               '<a href="' . $update_url . '" class="pure-button button-secondary" style="padding: 2px 6px; font-size: 11px;">🔄 ' . htmlspecialchars($label) . '</a>' .
+        $btn = ' <span style="font-size: 0.6em; font-weight: normal; margin-left: 10px; vertical-align: middle; display: inline-block;">' .
+               '<form method="post" action="' . $action_url . '" style="display: inline;">' .
+               '<input type="hidden" name="name" value="tags">' .
+               '<input type="hidden" name="mode" value="update">' .
+               '<input type="hidden" name="edit_token" value="' . htmlspecialchars($edit_token) . '">' .
+               '<button type="submit" class="pure-button button-secondary" style="padding: 2px 6px; font-size: 11px;">🔄 ' . htmlspecialchars($label) . '</button>' .
+               '</form>' .
                '</span>';
     }
     
