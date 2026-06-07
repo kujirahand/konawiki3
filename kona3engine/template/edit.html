@@ -30,6 +30,11 @@
       <div class="desc">
         <input type="checkbox" id="autosave" class="info" style="width:2em;" name="autosave" value="yes" checked>
         <label for="autosave"> Auto save </label>
+        <label for="page_mode" style="margin-left:1.5em;">Format:</label>
+        <select name="page_mode" id="page_mode" class="info" style="padding:2px;">
+          <option value="KonaNotation"{{ if $page_mode == 'KonaNotation' }} selected {{ endif }}>KonaNotation</option>
+          <option value="Markdown"{{ if $page_mode == 'Markdown' }} selected {{ endif }}>Markdown</option>
+        </select>
         <span id="change-info">-</span>
       </div>
     </form>

@@ -130,6 +130,13 @@ function kona3_action_edit()
     $ai_enabled = (kona3getConf('openai_apikey', '') != '');
     $ai_edit_template_url = kona3getPageURL($page, "edit", "", "q=ai_edit_template&edit_token=$edit_token");
 
+    // page_mode
+    $meta = kona3db_loadPageMeta($page);
+    $page_mode = (is_array($meta) && isset($meta['mode'])) ? $meta['mode'] : '';
+    if ($page_mode === '') {
+        $page_mode = ($ext == 'md') ? 'Markdown' : 'KonaNotation';
+    }
+
     // show
     kona3template('edit.html', array(
         "action" => $action,
@@ -144,6 +151,7 @@ function kona3_action_edit()
         "ai_enabled" => $ai_enabled,
         "ai_edit_template_url" => $ai_edit_template_url,
         "edit_ext" => $ext,
+        "page_mode" => $page_mode,
     ));
 }
 
@@ -322,6 +330,7 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
     $a_hash_frm = kona3param('a_hash', '');
     $tags = kona3param('tags', '');
     $edit_ext = kona3param('edit_ext', '');
+    $page_mode = kona3param('page_mode', '');
     $postId = intval(kona3param('postId', 0)); // option
 
     // ページ名の末便に拡張子があるか確認
@@ -422,6 +431,10 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
         $meta = kona3db_loadPageMeta($page);
         if ($meta === null) {
             $meta = [];
+        }
+        // modeを更新
+        if ($page_mode === 'Markdown' || $page_mode === 'KonaNotation') {
+            $meta['mode'] = $page_mode;
         }
         // タグ情報を更新
         $oldTags = isset($meta['tags']) ? $meta['tags'] : [];

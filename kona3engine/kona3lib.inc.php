@@ -203,28 +203,57 @@ function kona3getFileExt($path)
 // wikiname to filename (for text)
 function koan3getWikiFileText($wikiname)
 {
-    // (1) デフォルトのテキストファイルの存在を確認する
-    $default_ext = kona3getConf('def_text_ext', 'txt');
-    $path = kona3getWikiFile($wikiname, TRUE, ".$default_ext");
-    if (file_exists($path)) {
-        return $path; // 存在するのでそのまま返す
-    }
-    // (2) デフォルトのテキストファイルが存在しない時の処理
-    if ($default_ext == 'txt') {
-        // .mdファイルがあるか確認する
-        $path_md = kona3getWikiFile($wikiname, TRUE, '.md');
-        if (file_exists($path_md)) {
+    include_once __DIR__ . '/kona3db.inc.php';
+
+    // メタデータからmodeを取得
+    $meta = function_exists('kona3db_loadPageMeta') ? kona3db_loadPageMeta($wikiname) : null;
+    $mode = (is_array($meta) && isset($meta['mode'])) ? $meta['mode'] : '';
+
+    $path_txt = kona3getWikiFile($wikiname, TRUE, '.txt');
+    $path_md = kona3getWikiFile($wikiname, TRUE, '.md');
+
+    $exists_txt = file_exists($path_txt);
+    $exists_md = file_exists($path_md);
+
+    // 1. メタデータにmodeがある場合、対応するファイルを優先
+    if ($mode === 'Markdown') {
+        if ($exists_md) {
             return $path_md;
         }
-    } else {
-        // .txtファイルがあるか確認する
-        $path_txt = kona3getWikiFile($wikiname, TRUE, '.txt');
-        if (file_exists($path_txt)) {
+        if ($exists_txt) {
+            return $path_txt;
+        }
+    } else if ($mode === 'KonaNotation') {
+        if ($exists_txt) {
+            return $path_txt;
+        }
+        if ($exists_md) {
+            return $path_md;
+        }
+    }
+
+    // 2. メタデータにmodeがない場合
+    // 両方ある場合は、設定のデフォルトを確認
+    if ($exists_txt && $exists_md) {
+        $default_ext = kona3getConf('def_text_ext', 'txt');
+        if ($default_ext == 'md') {
+            return $path_md;
+        } else {
             return $path_txt;
         }
     }
-    // (3) どちらも存在しないので、デフォルトのテキストファイルを返す
-    return $path;
+
+    // 片方だけある場合
+    if ($exists_md) {
+        return $path_md;
+    }
+    if ($exists_txt) {
+        return $path_txt;
+    }
+
+    // どちらもない場合はデフォルト
+    $default_ext = kona3getConf('def_text_ext', 'txt');
+    return ($default_ext == 'md') ? $path_md : $path_txt;
 }
 
 // wikiname to filename
