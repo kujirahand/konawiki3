@@ -909,7 +909,20 @@ function kona3getShortcutLink()
     }
     $real_url = kona3getPageURL($page);
     $page_h = htmlspecialchars($page, ENT_QUOTES);
-    return "<a href=\"$real_url\">$page_h</a>";
+    $res = "<a href=\"$real_url\">$page_h</a>";
+
+    // エイリアスをチェックして表示する
+    if (function_exists('kona3db_loadPageMeta')) {
+        $meta = kona3db_loadPageMeta($page);
+        if ($meta && isset($meta['aliases']) && is_array($meta['aliases']) && !empty($meta['aliases'])) {
+            $aliases_h = [];
+            foreach ($meta['aliases'] as $alias) {
+                $aliases_h[] = htmlspecialchars($alias, ENT_QUOTES);
+            }
+            $res .= " (alias: " . implode(', ', $aliases_h) . ")";
+        }
+    }
+    return $res;
 }
 
 

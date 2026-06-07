@@ -10,12 +10,13 @@ $path_txt = $data_dir . '/' . $page . '.txt';
 $path_md = $data_dir . '/' . $page . '.md';
 $path_meta = $meta_dir . '/' . $page . '.json';
 
-// クリーンアップ関数
-function cleanup_mode_switch_test() {
-    global $path_txt, $path_md, $path_meta;
-    if (file_exists($path_txt)) @unlink($path_txt);
-    if (file_exists($path_md)) @unlink($path_md);
-    if (file_exists($path_meta)) @unlink($path_meta);
+if (!function_exists('cleanup_mode_switch_test')) {
+    function cleanup_mode_switch_test() {
+        global $path_txt, $path_md, $path_meta;
+        if (file_exists($path_txt)) @unlink($path_txt);
+        if (file_exists($path_md)) @unlink($path_md);
+        if (file_exists($path_meta)) @unlink($path_meta);
+    }
 }
 
 // 初期化

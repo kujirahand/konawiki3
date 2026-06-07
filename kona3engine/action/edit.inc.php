@@ -131,7 +131,6 @@ function kona3_action_edit()
     $ai_edit_template_url = kona3getPageURL($page, "edit", "", "q=ai_edit_template&edit_token=$edit_token");
 
     // page_mode
-    $meta = kona3db_loadPageMeta($page);
     $page_mode = (is_array($meta) && isset($meta['mode'])) ? $meta['mode'] : '';
     if ($page_mode === '') {
         $page_mode = ($ext == 'md') ? 'Markdown' : 'KonaNotation';
@@ -333,10 +332,26 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
     $page_mode = kona3param('page_mode', '');
     $postId = intval(kona3param('postId', 0)); // option
 
-    // ページ名の末便に拡張子があるか確認
-    if (str_ends_with($page, ".{$edit_ext}")) {
+    // page_mode に基づいて拡張子を同期
+    $new_ext = $edit_ext;
+    if ($page_mode === 'Markdown') {
+        $new_ext = 'md';
+    } else if ($page_mode === 'KonaNotation') {
+        $new_ext = 'txt';
+    }
+
+    // ページ名の末尾に拡張子があるか確認 (元の edit_ext で判定)
+    if ($edit_ext !== '' && str_ends_with($page, ".{$edit_ext}")) {
         $page = substr($page, 0, strlen($page) - strlen(".{$edit_ext}"));
     }
+
+    // 古いファイルパスの特定
+    $old_fname = '';
+    if ($edit_ext !== '' && $edit_ext !== $new_ext) {
+        $old_fname = kona3getEditFile("{$page}.{$edit_ext}", $dummy_ext);
+    }
+
+    $edit_ext = $new_ext;
     $fname = kona3getEditFile("{$page}.{$edit_ext}", $ext);
     $user_id = kona3getUserId();
 
@@ -345,6 +360,11 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
     if ($a_hash_frm !== $a_hash) { // conflict
         return kona3_conflict($edit_txt, $txt, $i_mode);
     }
+
+    // エイリアス同期のための情報を事前取得
+    require_once dirname(__FILE__) . '/show.inc.php';
+    $old_alias_target = kona3show_find_alias_target($txt);
+    $new_alias_target = kona3show_find_alias_target($edit_txt);
     // save
     // === for FILE ===
     if (file_exists($fname)) {
@@ -404,6 +424,13 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
     if (trim($edit_txt) === "") {
         // remove
         @unlink($fname);
+        if ($old_fname !== '' && file_exists($old_fname)) {
+            @unlink($old_fname);
+        }
+
+        // エイリアス同期
+        kona3edit_sync_aliases($page, $old_alias_target, $new_alias_target);
+
         kona3db_writePage($page, trim($edit_txt), $user_id, $tags);
         
         // タグもクリア
@@ -423,6 +450,13 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
             $result = FALSE;
             return $msg;
         }
+        if ($old_fname !== '' && $old_fname !== $fname && file_exists($old_fname)) {
+            @unlink($old_fname);
+        }
+
+        // エイリアス同期
+        kona3edit_sync_aliases($page, $old_alias_target, $new_alias_target);
+
         // === for Database ===
         kona3db_writePage($page, $edit_txt, $user_id, $tags);
         
@@ -648,4 +682,38 @@ function kona3edit_ai_ask($apikey)
         'message' => $msg,
         'token' => $token,
     ));
+}
+
+/**
+ * 古いエイリアスターゲットと新しいエイリアスターゲットのメタデータを同期する
+ */
+function kona3edit_sync_aliases($page, $old_alias_target, $new_alias_target)
+{
+    if ($old_alias_target === $new_alias_target) {
+        return;
+    }
+    // 古いターゲットからこのページを削除
+    if ($old_alias_target !== FALSE) {
+        $old_meta = kona3db_loadPageMeta($old_alias_target);
+        if (is_array($old_meta) && isset($old_meta['aliases']) && is_array($old_meta['aliases'])) {
+            $old_meta['aliases'] = array_values(array_filter($old_meta['aliases'], function($v) use ($page) {
+                return $v !== $page;
+            }));
+            kona3db_savePageMeta($old_alias_target, $old_meta);
+        }
+    }
+    // 新しいターゲットにこのページを追加
+    if ($new_alias_target !== FALSE) {
+        $new_meta = kona3db_loadPageMeta($new_alias_target);
+        if ($new_meta === null) {
+            $new_meta = [];
+        }
+        if (!isset($new_meta['aliases']) || !is_array($new_meta['aliases'])) {
+            $new_meta['aliases'] = [];
+        }
+        if (!in_array($page, $new_meta['aliases'])) {
+            $new_meta['aliases'][] = $page;
+            kona3db_savePageMeta($new_alias_target, $new_meta);
+        }
+    }
 }
