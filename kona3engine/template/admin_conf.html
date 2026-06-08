@@ -61,7 +61,7 @@
         <input type='button' value='Save' onclick='document.forms[0].submit();'>
       </div>
       {{ for $config_items as $category => $items }}
-      <h3>{{$category}}</h3>
+      <h3 id="conf_category_{{$category}}">{{$category}}</h3>
         {{ for $items as $item }}
         <div class="conf-item">
           <label for="conf_{{$item.name}}">

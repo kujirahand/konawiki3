@@ -11,6 +11,10 @@
       <input type="hidden" id="edit_token" name="edit_token" value="{{$edit_token}}">
       <input type="hidden" id="edit_ext" name="edit_ext" value="{{$edit_ext}}">
       <input type="hidden" id="tags" name="tags" value="{{ $tags }}">
+      <input type="hidden" id="ai_shortcut_complete" value="{{ $ai_shortcut_complete }}">
+      <input type="hidden" id="ai_shortcut_spellcheck" value="{{ $ai_shortcut_spellcheck }}">
+      <input type="hidden" id="ai_shortcut_user_prompt1" value="{{ $ai_shortcut_user_prompt1 }}">
+      <input type="hidden" id="ai_shortcut_user_prompt2" value="{{ $ai_shortcut_user_prompt2 }}">
       <div class="editor">
         <textarea id="edit_txt" name="edit_txt">{{$edit_txt}}</textarea>
       </div>
@@ -115,19 +119,8 @@
         <div>
           <select id="ai_template_select"><option>{{ 'Select actions' | lang }}</option></select>
           <a href="{{$ai_edit_template_url}}" target="_new">{{'Edit AI Template' | lang}}</a>
-        </div>
-        <div style="margin: 0.5em 0;">
-          <label for="ai_model">{{ 'Model' | lang }}:</label>
-          {{ if $ai_provider == 'OpenAI' }}
-            <select id="ai_model" style="padding: 2px;">
-              {{ for $ai_model_list as $m }}
-                <option value="{{ $m }}"{{ if $m == $ai_default_model }} selected{{ endif }}>{{ $m }}</option>
-              {{ endfor }}
-            </select>
-          {{ endif }}
-          {{ if $ai_provider == 'OpenRouter' }}
-            <input type="text" id="ai_model" value="{{ $ai_default_model }}" style="width: 250px; padding: 2px;" placeholder="meta-llama/llama-3-8b-instruct:free">
-          {{ endif }}
+          <a href="{{$ai_edit_conf_url}}" target="_new">{{'Edit AI Config' | lang}}</a>
+          <a href="https://kujirahand.com/konawiki3/index.php?AI" target="_blank" rel="noopener">？</a>
         </div>
         <div id="ai_input">
           <textarea id="ai_input_text"></textarea>

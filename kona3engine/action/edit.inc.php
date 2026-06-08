@@ -127,28 +127,11 @@ function kona3_action_edit()
 
     // new button
     $new_btn_url = kona3getPageURL($page, "new");
-    $ai_provider = kona3getConf('openai_provider', 'none');
-    $openai_key = kona3getConf('openai_apikey', '');
-    // 後方互換性
-    if ($ai_provider === 'none' && $openai_key !== '') {
-        $ai_provider = 'OpenAI';
-    }
-    $ai_enabled = false;
-    $ai_default_model = '';
-    $ai_model_list = ['gpt-5', 'gpt-5-mini', 'gpt-4.1', 'gpt-4.1-mini', 'gpt-4o', 'gpt-4o-mini'];
-    if ($ai_provider === 'OpenAI') {
-        if ($openai_key !== '') {
-            $ai_enabled = true;
-            $ai_default_model = kona3getConf('openai_apikey_model', 'gpt-4o-mini');
-        }
-    } else if ($ai_provider === 'OpenRouter') {
-        $openrouter_key = kona3getConf('openrouter_apikey', '');
-        if ($openrouter_key !== '') {
-            $ai_enabled = true;
-            $ai_default_model = kona3getConf('openrouter_model', '');
-        }
-    }
+    $ai_settings = kona3edit_ai_get_provider_settings();
+    $ai_provider = $ai_settings['provider'];
+    $ai_enabled = $ai_settings['enabled'];
     $ai_edit_template_url = kona3getPageURL($page, "edit", "", "q=ai_edit_template&edit_token=$edit_token");
+    $ai_edit_conf_url = kona3getPageURL($page, "editConf") . "#conf_category_AI";
 
     // page_mode
     $page_mode = (is_array($meta) && isset($meta['mode'])) ? $meta['mode'] : '';
@@ -169,9 +152,12 @@ function kona3_action_edit()
         "new_btn_url" => $new_btn_url,
         "ai_enabled" => $ai_enabled,
         "ai_provider" => $ai_provider,
-        "ai_default_model" => $ai_default_model,
-        "ai_model_list" => $ai_model_list,
         "ai_edit_template_url" => $ai_edit_template_url,
+        "ai_edit_conf_url" => $ai_edit_conf_url,
+        "ai_shortcut_complete" => kona3getConf('ai_shortcut_complete', 'Ctrl+N'),
+        "ai_shortcut_spellcheck" => kona3getConf('ai_shortcut_spellcheck', 'Ctrl+J'),
+        "ai_shortcut_user_prompt1" => kona3getConf('ai_shortcut_user_prompt1', 'Ctrl+Alt+1'),
+        "ai_shortcut_user_prompt2" => kona3getConf('ai_shortcut_user_prompt2', 'Ctrl+Alt+2'),
         "edit_ext" => $ext,
         "page_mode" => $page_mode,
     ));
@@ -595,18 +581,9 @@ function kona3edit_ai_ajax($page)
     }
 
     header('Content-Type: application/json');
-    $ai_provider = kona3getConf('openai_provider', 'none');
-    $openai_key = kona3getConf('openai_apikey', '');
-    if ($ai_provider === 'none' && $openai_key !== '') {
-        $ai_provider = 'OpenAI';
-    }
-
-    $apikey = '';
-    if ($ai_provider === 'OpenAI') {
-        $apikey = $openai_key;
-    } else if ($ai_provider === 'OpenRouter') {
-        $apikey = kona3getConf('openrouter_apikey', '');
-    }
+    $ai_settings = kona3edit_ai_get_provider_settings();
+    $ai_provider = $ai_settings['provider'];
+    $apikey = $ai_settings['apikey'];
 
     if ($apikey == '') {
         echo json_encode(array(
@@ -669,6 +646,18 @@ function kona3ai_edit_template()
 __TEXT__
 -----
 # prompt name2
+### Instruction:
+(prompt here)
+### Input:
+__TEXT__
+-----
+# USER_PROMPT1
+### Instruction:
+(prompt here)
+### Input:
+__TEXT__
+-----
+# USER_PROMPT2
 ### Instruction:
 (prompt here)
 ### Input:
@@ -769,4 +758,36 @@ function kona3edit_sync_aliases($page, $old_alias_target, $new_alias_target)
             kona3db_savePageMeta($new_alias_target, $new_meta);
         }
     }
+}
+
+function kona3edit_ai_get_provider_settings()
+{
+    $ai_provider = kona3getConf('openai_provider', 'none');
+    $openai_key = kona3getConf('openai_apikey', '');
+    $openrouter_key = kona3getConf('openrouter_apikey', '');
+    $apikey = '';
+    $default_model = '';
+
+    // 後方互換性: プロバイダー未指定でもAPIキーから推定する
+    if ($ai_provider === 'none') {
+        if ($openai_key !== '') {
+            $ai_provider = 'OpenAI';
+        } else if ($openrouter_key !== '') {
+            $ai_provider = 'OpenRouter';
+        }
+    }
+    if ($ai_provider === 'OpenAI') {
+        $apikey = $openai_key;
+        $default_model = kona3getConf('openai_apikey_model', 'gpt-4o-mini');
+    } else if ($ai_provider === 'OpenRouter') {
+        $apikey = $openrouter_key;
+        $default_model = kona3getConf('openrouter_model', '');
+    }
+
+    return [
+        'provider' => $ai_provider,
+        'apikey' => $apikey,
+        'enabled' => ($apikey !== ''),
+        'default_model' => $default_model,
+    ];
 }

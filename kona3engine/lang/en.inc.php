@@ -16,6 +16,7 @@ $lang_data = [
     'date_format_e' => 'd M',
     'date_format' => 'd M Y',
     'Edit Config' => 'Edit Config',
+    'Edit AI Config' => 'Edit AI Config',
     'PDF' => 'PDF',
     'Please review the settings.' => 'Please review the settings below and click the [Save] button. You can change these settings at any time.',
     'Please check email for code.' => 'A 6-digit verification code has been sent to your email. Please check your email and enter the code on the next screen.',
@@ -42,4 +43,3 @@ $lang_data = [
     'Alias files have been created successfully.' => 'Alias files have been created successfully.',
     'No migration target found or already migrated.' => 'No migration target found or already migrated.',
 ];
-
