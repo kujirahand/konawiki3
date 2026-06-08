@@ -75,6 +75,10 @@ test_assert(__LINE__, strpos($edit_js, 'function aiNormalizeJsonRow') !== FALSE,
 test_assert(__LINE__, strpos($edit_js, "'ErrorLocation'") !== FALSE, "AI結果表示: ErrorLocationキーをngとして扱う");
 test_assert(__LINE__, strpos($edit_js, "'Correction'") !== FALSE, "AI結果表示: Correctionキーをokとして扱う");
 test_assert(__LINE__, strpos($edit_js, "'Reason'") !== FALSE, "AI結果表示: Reasonキーをdescとして扱う");
+test_assert(__LINE__, strpos($edit_js, "Boolean(e.altKey) !== wantsAlt") !== FALSE, "AIショートカット: 余分なAltキーを許可しない");
+test_assert(__LINE__, strpos($edit_js, "Boolean(e.shiftKey) !== wantsShift") !== FALSE, "AIショートカット: 余分なShiftキーを許可しない");
+test_assert(__LINE__, strpos($edit_js, "if (wantsCtrl && wantsMeta)") !== FALSE, "AIショートカット: CtrlとMetaの同時指定は無効にする");
+test_assert(__LINE__, strpos($edit_js, "if (e.ctrlKey && e.metaKey)") !== FALSE, "AIショートカット: Ctrl代替のCmdとCtrlの同時押しは許可しない");
 
 $ja_ai_prompt = file_get_contents(KONA3_DIR_ENGINE . '/lang/ja-ai_prompt.md');
 test_assert(__LINE__, strpos($ja_ai_prompt, '# 言い換え(置換候補)') !== FALSE, "AI標準ひな形: 言い換え置換候補がある");

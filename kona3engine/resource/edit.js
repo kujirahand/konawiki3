@@ -110,14 +110,21 @@ function matchesShortcut(e, shortcut) {
   const parts = shortcut.toLowerCase().split('+').map((s) => s.trim()).filter((s) => s !== '')
   const keyParts = parts.filter((s) => !['ctrl', 'control', 'cmd', 'meta', 'alt', 'option', 'shift'].includes(s))
   if (keyParts.length !== 1) { return false }
-  if (parts.includes('ctrl') || parts.includes('control')) {
+  const wantsCtrl = parts.includes('ctrl') || parts.includes('control')
+  const wantsMeta = parts.includes('cmd') || parts.includes('meta')
+  const wantsAlt = parts.includes('alt') || parts.includes('option')
+  const wantsShift = parts.includes('shift')
+  if (wantsCtrl && wantsMeta) { return false }
+  if (wantsCtrl) {
     if (!e.ctrlKey && !e.metaKey) { return false }
+    if (e.ctrlKey && e.metaKey) { return false }
+  } else if (wantsMeta) {
+    if (!e.metaKey || e.ctrlKey) { return false }
+  } else if (e.ctrlKey || e.metaKey) {
+    return false
   }
-  if (parts.includes('cmd') || parts.includes('meta')) {
-    if (!e.metaKey) { return false }
-  }
-  if ((parts.includes('alt') || parts.includes('option')) && !e.altKey) { return false }
-  if (parts.includes('shift') && !e.shiftKey) { return false }
+  if (Boolean(e.altKey) !== wantsAlt) { return false }
+  if (Boolean(e.shiftKey) !== wantsShift) { return false }
   const key = normalizeShortcutKey(keyParts[0])
   const eventKey = normalizeShortcutKey(e.key || '')
   return key === eventKey
