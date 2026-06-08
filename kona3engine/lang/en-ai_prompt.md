@@ -23,7 +23,7 @@ Please use the following JSON format to do so.
 [
     {"ng": "Error sentence", "ok": "Correction", "desc": "Reason"},
     {"ng": "Error sentence", "ok": "Correction", "desc": "Reason"},
-    {"ng": "Error sentence", "ok": "Correction", "desc": "Reason"},
+    {"ng": "Error sentence", "ok": "Correction", "desc": "Reason"}
 ]
 ```
 ### Input:
@@ -36,8 +36,8 @@ Rewrite the text entered below to make it more natural and easier to understand.
 Please use the following JSON format to do so.
 ### Example Output:
 [
-    {"ErrorLocation": "xxx", "Correction": "xxx", "Reason": "xxx"},
-    {"ErrorLocation": "xxx", "Correction": "xxx", "Reason": "xxx"},
+    {"ng": "Original text", "ok": "Rewritten text", "desc": "Reason"},
+    {"ng": "Original text", "ok": "Rewritten text", "desc": "Reason"}
 ]
 ### Input:
 __TEXT__

@@ -81,7 +81,60 @@ function edit_init() {
       window.open($url)
       e.preventDefault()
     }
+    if (matchesShortcut(e, getShortcutValue('ai_shortcut_complete'))) {
+      aiCompleteAtCursor()
+      e.preventDefault()
+    }
+    if (matchesShortcut(e, getShortcutValue('ai_shortcut_spellcheck'))) {
+      aiRunSpellCheckShortcut()
+      e.preventDefault()
+    }
+    if (matchesShortcut(e, getShortcutValue('ai_shortcut_user_prompt1'))) {
+      aiRunTemplateShortcut('# USER_PROMPT1')
+      e.preventDefault()
+    }
+    if (matchesShortcut(e, getShortcutValue('ai_shortcut_user_prompt2'))) {
+      aiRunTemplateShortcut('# USER_PROMPT2')
+      e.preventDefault()
+    }
   })
+}
+
+function getShortcutValue(id) {
+  const el = document.getElementById(id)
+  return el ? el.value : ''
+}
+
+function matchesShortcut(e, shortcut) {
+  if (!shortcut) { return false }
+  const parts = shortcut.toLowerCase().split('+').map((s) => s.trim()).filter((s) => s !== '')
+  const keyParts = parts.filter((s) => !['ctrl', 'control', 'cmd', 'meta', 'alt', 'option', 'shift'].includes(s))
+  if (keyParts.length !== 1) { return false }
+  const wantsCtrl = parts.includes('ctrl') || parts.includes('control')
+  const wantsMeta = parts.includes('cmd') || parts.includes('meta')
+  const wantsAlt = parts.includes('alt') || parts.includes('option')
+  const wantsShift = parts.includes('shift')
+  if (wantsCtrl && wantsMeta) { return false }
+  if (wantsCtrl) {
+    if (!e.ctrlKey && !e.metaKey) { return false }
+    if (e.ctrlKey && e.metaKey) { return false }
+  } else if (wantsMeta) {
+    if (!e.metaKey || e.ctrlKey) { return false }
+  } else if (e.ctrlKey || e.metaKey) {
+    return false
+  }
+  if (Boolean(e.altKey) !== wantsAlt) { return false }
+  if (Boolean(e.shiftKey) !== wantsShift) { return false }
+  const key = normalizeShortcutKey(keyParts[0])
+  const eventKey = normalizeShortcutKey(e.key || '')
+  return key === eventKey
+}
+
+function normalizeShortcutKey(key) {
+  key = (key || '').toLowerCase()
+  if (key === ' ') { return 'space' }
+  if (key === 'esc') { return 'escape' }
+  return key
 }
 
 // handle editor change event
@@ -433,11 +486,49 @@ function aiOnClick() {
 }
 
 function aiSpellCheckOnClick() {
-  showDisplay('#ai_div')
   const selectBox = document.getElementById('ai_template_select')
+  if (!selectBox) { return }
+  showDisplay('#ai_div')
   selectOptionByValue(selectBox, '# 誤字脱字をチェック') // ja
   selectOptionByValue(selectBox, '# Check for Typos') // en
   // document.getElementById('ai_ask_btn')?.click();
+}
+
+function aiRunSpellCheckShortcut() {
+  aiSpellCheckOnClick()
+  const btn = document.getElementById('ai_ask_btn')
+  const input = document.getElementById('ai_input_text')
+  if (input && input.value.trim() === '') {
+    input.value = getSpellCheckPrompt()
+  }
+  if (btn && !btn.disabled) {
+    btn.click()
+  }
+}
+
+function aiRunTemplateShortcut(templateName) {
+  const selectBox = document.getElementById('ai_template_select')
+  if (!selectBox) { return }
+  showDisplay('#ai_div')
+  if (!selectOptionByValue(selectBox, templateName)) {
+    qq('#edit_info').html('AI template not found: ' + templateName)
+    return
+  }
+  const btn = document.getElementById('ai_ask_btn')
+  if (btn && !btn.disabled) {
+    btn.click()
+  }
+}
+
+function getSpellCheckPrompt() {
+  return "### 指示:\n" +
+    "あなたは文章校正の達人です。以下の入力に対して誤字脱字を指摘してください。\n" +
+    "次のJSON形式で指摘してください。\n" +
+    "```json\n" +
+    "[{\"ng\":\"…ここに誤字脱字…\",\"ok\":\"…ここに修正した内容…\",\"desc\":\"…ここに間違いの理由…\"}]\n" +
+    "```\n" +
+    "### 入力:\n" +
+    "__TEXT__\n"
 }
 
 function selectOptionByValue(selectElement, value) {
@@ -447,9 +538,10 @@ function selectOptionByValue(selectElement, value) {
     if (options[i].value === value) {
       selectElement.selectedIndex = i
       selectElement.dispatchEvent(new Event('change'))
-      break
+      return true
     }
   }
+  return false
 }
 
 var loaderTimerId = 0
@@ -549,6 +641,67 @@ function aiAskClickHandler() {
     })
 }
 
+function aiCompleteAtCursor() {
+  const edit_txt = qs('#edit_txt')
+  if (!edit_txt || !qs('#ai_ask_btn')) { return }
+  const start = edit_txt.selectionStart
+  const end = edit_txt.selectionEnd
+  const before = edit_txt.value.substring(0, start)
+  const after = edit_txt.value.substring(end)
+  const context = before.slice(-4000)
+  let prompt = "### 指示:\n"
+  prompt += "以下の入力文の続きを、文体と内容に合わせて1文だけ作成してください。\n"
+  prompt += "説明や前置きは不要です。続きを本文だけで出力してください。\n"
+  prompt += "### 入力:\n"
+  prompt += "```" + context.replace(/\`{3}/g, '\\`\\`\\`') + "```\n"
+  aiAskRaw(prompt, function (msg, token) {
+    const insertText = ('' + msg).replace(/^\s+|\s+$/g, '')
+    edit_txt.value = before + insertText + after
+    const pos = before.length + insertText.length
+    edit_txt.focus()
+    edit_txt.selectionStart = pos
+    edit_txt.selectionEnd = pos
+    handleChange(true, 'ai_complete')
+    qq('#ai_ask_cost').html(token + 'token')
+  })
+}
+
+function aiAskRaw(text, callback) {
+  const ai_model_el = qs('#ai_model')
+  const ai_model = ai_model_el ? ai_model_el.value : ''
+  aiButtonEnabeld(false)
+  var action = qq('#wikiedit form').attr('action')
+  qq().post(action,
+    {
+      'i_mode': 'ajax',
+      'edit_token': qq('#edit_token').val(),
+      'q': 'ai',
+      'ai_input_text': text,
+      'a_mode': 'ask',
+      'a_hash': qq('#a_hash').val(),
+      'ai_model': ai_model,
+    })
+    .done(function (obj) {
+      aiButtonEnabeld(true)
+      if (typeof obj !== 'object' || obj === null) {
+        aiInsertText('Error: Invalid response from server. ' + obj)
+        return
+      }
+      if (obj['result'] !== 'ok') {
+        aiInsertText('' + obj['message'])
+        return
+      }
+      const msg = obj['message']
+      const token = (obj['token'] !== undefined) ? obj['token'] : 0
+      callback(msg, token)
+    })
+    .fail(function (error) {
+      console.error(error)
+      qq('#edit_info').html("Sorry AI request failed." + error)
+      aiButtonEnabeld(true)
+    })
+}
+
 let aiBlockId = 0
 const aiBlockItems = []
 function _aiInsertText(data, isJSON = false) {
@@ -561,6 +714,12 @@ function _aiInsertText(data, isJSON = false) {
     const lcoale_find = lang('locale__find')
     const lcoale_copy = lang('locale__copy')
     const lcoale_cancel = lang('locale__cancel')
+    const originalData = data
+    data = aiNormalizeJsonRow(data)
+    if (!data) {
+      _aiInsertText(JSON.stringify(originalData, null, 2), false)
+      return
+    }
     // set block items
     aiBlockItems[aiBlockId] = data
     const ng = text2html(data['ng'])
@@ -587,6 +746,31 @@ function _aiInsertText(data, isJSON = false) {
   qq('#ai_output').html(old + div)
   aiBlockId++
 }
+
+function aiNormalizeJsonRow(row) {
+  if (typeof row !== 'object' || row === null) {
+    return null
+  }
+  const normalized = {
+    ng: aiPickJsonValue(row, ['ng', 'before', 'old', 'original', 'source', 'ErrorLocation', 'error', '誤り', '修正前', '対象']),
+    ok: aiPickJsonValue(row, ['ok', 'after', 'new', 'replacement', 'Correction', 'correction', '修正', '修正後', '言い換え']),
+    desc: aiPickJsonValue(row, ['desc', 'description', 'Reason', 'reason', '理由', '説明'])
+  }
+  if (normalized.ng === '' || normalized.ok === '') {
+    return null
+  }
+  return normalized
+}
+
+function aiPickJsonValue(row, keys) {
+  for (const key of keys) {
+    if (row[key] !== undefined && row[key] !== null) {
+      return '' + row[key]
+    }
+  }
+  return ''
+}
+
 function aiInsertText(text) {
   // 戻り値がJSONの場合
   if (text.indexOf('```') >= 0) {
@@ -609,7 +793,14 @@ function aiInsertText(text) {
 function aiBlockAdd(id) {
   const text = qq('#aiBlock' + id).text()
   const edit_txt = qs('#edit_txt')
-  edit_txt.value += "\n" + text
+  const start = edit_txt.selectionStart
+  const end = edit_txt.selectionEnd
+  edit_txt.value = edit_txt.value.substring(0, start) + text + edit_txt.value.substring(end)
+  const pos = start + text.length
+  edit_txt.focus()
+  edit_txt.selectionStart = pos
+  edit_txt.selectionEnd = pos
+  handleChange(true, 'ai_block_add')
 }
 
 function aiBlockCopy(id) {

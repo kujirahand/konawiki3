@@ -38,4 +38,73 @@ if ($expected_or_model === '') {
 }
 test_eq(__LINE__, $model, $expected_or_model, "OpenRouter: 空文字指定時は設定のデフォルトかフリーモデル（{$expected_or_model}）にフォールバックされる");
 
+$old_provider = isset($kona3conf['openai_provider']) ? $kona3conf['openai_provider'] : null;
+$old_openai_key = isset($kona3conf['openai_apikey']) ? $kona3conf['openai_apikey'] : null;
+$old_openrouter_key = isset($kona3conf['openrouter_apikey']) ? $kona3conf['openrouter_apikey'] : null;
+$old_openrouter_model = isset($kona3conf['openrouter_model']) ? $kona3conf['openrouter_model'] : null;
+
+$kona3conf['openai_provider'] = 'none';
+$kona3conf['openai_apikey'] = '';
+$kona3conf['openrouter_apikey'] = 'or-test-key';
+$kona3conf['openrouter_model'] = 'openrouter/test-model';
+$settings = kona3edit_ai_get_provider_settings();
+test_eq(__LINE__, $settings['provider'], 'OpenRouter', "AI表示判定: provider未指定でもOpenRouterキーがあればOpenRouterとして扱う");
+test_eq(__LINE__, $settings['enabled'], TRUE, "AI表示判定: OpenRouterキーのみでAI機能を有効にする");
+test_eq(__LINE__, $settings['default_model'], 'openrouter/test-model', "AI表示判定: OpenRouterモデルを既定モデルにする");
+
+$edit_template = file_get_contents(KONA3_DIR_ENGINE . '/template/edit.html');
+test_assert(__LINE__, strpos($edit_template, '{{$ai_edit_conf_url}}') !== FALSE, "AI編集画面: AI設定編集リンクが表示される");
+test_assert(__LINE__, strpos($edit_template, '{{\'Edit AI Config\' | lang}}') !== FALSE, "AI編集画面: AI設定編集リンクの文言が翻訳キーを使う");
+test_assert(__LINE__, strpos($edit_template, 'https://kujirahand.com/konawiki3/index.php?AI') !== FALSE, "AI編集画面: AIヘルプリンクが表示される");
+test_assert(__LINE__, strpos($edit_template, 'target="_blank"') !== FALSE, "AI編集画面: AIヘルプリンクは新規ウィンドウで開く");
+test_assert(__LINE__, strpos($edit_template, '>？</a>') !== FALSE, "AI編集画面: AIヘルプリンクは疑問符で表示される");
+test_assert(__LINE__, strpos($edit_template, 'id="ai_shortcut_user_prompt1"') !== FALSE, "AI編集画面: USER_PROMPT1ショートカット設定をJSへ渡す");
+test_assert(__LINE__, strpos($edit_template, 'id="ai_shortcut_user_prompt2"') !== FALSE, "AI編集画面: USER_PROMPT2ショートカット設定をJSへ渡す");
+test_assert(__LINE__, strpos($edit_template, 'id="ai_model"') === FALSE, "AI編集画面: モデル入力UIは表示しない");
+test_assert(__LINE__, strpos($edit_template, 'for="ai_model"') === FALSE, "AI編集画面: モデル入力ラベルは表示しない");
+
+$admin_conf_template = file_get_contents(KONA3_DIR_ENGINE . '/template/admin_conf.html');
+test_assert(__LINE__, strpos($admin_conf_template, 'id="conf_category_{{$category}}"') !== FALSE, "設定画面: カテゴリ見出しにアンカーを付与する");
+
+$edit_action = file_get_contents(KONA3_DIR_ENGINE . '/action/edit.inc.php');
+test_assert(__LINE__, strpos($edit_action, '# USER_PROMPT1') !== FALSE, "AIひな形新規作成: USER_PROMPT1を含める");
+test_assert(__LINE__, strpos($edit_action, '# USER_PROMPT2') !== FALSE, "AIひな形新規作成: USER_PROMPT2を含める");
+
+$edit_js = file_get_contents(KONA3_DIR_ENGINE . '/resource/edit.js');
+test_assert(__LINE__, strpos($edit_js, 'function aiNormalizeJsonRow') !== FALSE, "AI結果表示: JSONキー正規化関数がある");
+test_assert(__LINE__, strpos($edit_js, "'ErrorLocation'") !== FALSE, "AI結果表示: ErrorLocationキーをngとして扱う");
+test_assert(__LINE__, strpos($edit_js, "'Correction'") !== FALSE, "AI結果表示: Correctionキーをokとして扱う");
+test_assert(__LINE__, strpos($edit_js, "'Reason'") !== FALSE, "AI結果表示: Reasonキーをdescとして扱う");
+test_assert(__LINE__, strpos($edit_js, "Boolean(e.altKey) !== wantsAlt") !== FALSE, "AIショートカット: 余分なAltキーを許可しない");
+test_assert(__LINE__, strpos($edit_js, "Boolean(e.shiftKey) !== wantsShift") !== FALSE, "AIショートカット: 余分なShiftキーを許可しない");
+test_assert(__LINE__, strpos($edit_js, "if (wantsCtrl && wantsMeta)") !== FALSE, "AIショートカット: CtrlとMetaの同時指定は無効にする");
+test_assert(__LINE__, strpos($edit_js, "if (e.ctrlKey && e.metaKey)") !== FALSE, "AIショートカット: Ctrl代替のCmdとCtrlの同時押しは許可しない");
+
+$ja_ai_prompt = file_get_contents(KONA3_DIR_ENGINE . '/lang/ja-ai_prompt.md');
+test_assert(__LINE__, strpos($ja_ai_prompt, '# 言い換え(置換候補)') !== FALSE, "AI標準ひな形: 言い換え置換候補がある");
+test_assert(__LINE__, strpos($ja_ai_prompt, '"ng": "…ここに言い換え前の文章…"') !== FALSE, "AI標準ひな形: 言い換え置換候補はngキーを使う");
+test_assert(__LINE__, strpos($ja_ai_prompt, '"ok": "…ここに言い換え後の文章…"') !== FALSE, "AI標準ひな形: 言い換え置換候補はokキーを使う");
+test_assert(__LINE__, strpos($ja_ai_prompt, '"desc": "…ここに言い換えの理由…"') !== FALSE, "AI標準ひな形: 言い換え置換候補はdescキーを使う");
+
+if ($old_provider === null) {
+    unset($kona3conf['openai_provider']);
+} else {
+    $kona3conf['openai_provider'] = $old_provider;
+}
+if ($old_openai_key === null) {
+    unset($kona3conf['openai_apikey']);
+} else {
+    $kona3conf['openai_apikey'] = $old_openai_key;
+}
+if ($old_openrouter_key === null) {
+    unset($kona3conf['openrouter_apikey']);
+} else {
+    $kona3conf['openrouter_apikey'] = $old_openrouter_key;
+}
+if ($old_openrouter_model === null) {
+    unset($kona3conf['openrouter_model']);
+} else {
+    $kona3conf['openrouter_model'] = $old_openrouter_model;
+}
+
 echo "edit_ai.test.php: ALL OK\n";

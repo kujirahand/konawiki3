@@ -106,6 +106,7 @@ $lang_data = [
     'How to enabled AI' => 'AIを有効にする方法',
     'Clear Logs' => 'ログを消す',
     'Edit AI Template' => 'ひな形を編集',
+    'Edit AI Config' => 'AI設定を編集',
     'Invalid file extension.' => 'ファイルの拡張子が不正です。',
     'Setup Admin User' => '管理ユーザーの設定',
     'Please set the administrator\'s email and password' => '管理者のメールアドレスとパスワードを指定してください。',

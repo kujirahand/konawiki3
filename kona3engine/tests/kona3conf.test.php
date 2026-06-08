@@ -210,6 +210,10 @@ test_eq(__LINE__, $flat_items['openai_api_basic_instruction']['default'], 'You a
 test_eq(__LINE__, $flat_items['openai_provider']['default'], 'none', "設定項目定義: AIプロバイダーデフォルト値");
 test_eq(__LINE__, $flat_items['openrouter_apikey']['default'], '', "設定項目定義: OpenRouter APIキーデフォルト値");
 test_eq(__LINE__, $flat_items['openrouter_model']['default'], '', "設定項目定義: OpenRouter モデルデフォルト値");
+test_eq(__LINE__, $flat_items['ai_shortcut_complete']['default'], 'Ctrl+Shift+H', "設定項目定義: AI文章補完ショートカット");
+test_eq(__LINE__, $flat_items['ai_shortcut_spellcheck']['default'], 'Ctrl+Shift+J', "設定項目定義: AI誤字脱字修正ショートカット");
+test_eq(__LINE__, $flat_items['ai_shortcut_user_prompt1']['default'], 'Ctrl+Alt+1', "設定項目定義: AI USER_PROMPT1ショートカット");
+test_eq(__LINE__, $flat_items['ai_shortcut_user_prompt2']['default'], 'Ctrl+Alt+2', "設定項目定義: AI USER_PROMPT2ショートカット");
 test_assert(__LINE__, in_array('gpt-5', $flat_items['openai_apikey_model']['items']), "設定項目定義: OpenAIモデルのgpt-5サポート");
 test_assert(__LINE__, in_array('gpt-4o-mini', $flat_items['openai_apikey_model']['items']), "設定項目定義: OpenAIモデルのgpt-4o-miniサポート");
 

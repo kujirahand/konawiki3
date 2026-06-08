@@ -120,6 +120,10 @@ function kona3conf_getConfigItems()
             'openrouter_apikey' => ['label' => 'OpenRouter API Key', 'default' => '', 'type' => 'string'],
             'openrouter_model' => ['label' => 'OpenRouter Model', 'default' => '', 'type' => 'string', 'note' => 'e.g. meta-llama/llama-3-8b-instruct:free'],
             'openai_api_basic_instruction' => ['label' => 'OpenAI Basic Instruction', 'default' => 'You are helpful AI assistant.', 'type' => 'string'],
+            'ai_shortcut_complete' => ['label' => 'ショートカットキー > 文章補完', 'default' => 'Ctrl+Shift+H', 'type' => 'string'],
+            'ai_shortcut_spellcheck' => ['label' => 'ショートカットキー > 誤字脱字修正', 'default' => 'Ctrl+Shift+J', 'type' => 'string'],
+            'ai_shortcut_user_prompt1' => ['label' => 'ショートカットキー > USER_PROMPT1', 'default' => 'Ctrl+Alt+1', 'type' => 'string'],
+            'ai_shortcut_user_prompt2' => ['label' => 'ショートカットキー > USER_PROMPT2', 'default' => 'Ctrl+Alt+2', 'type' => 'string'],
         ],
         'Discord' => [
             'discord_webhook_url' => ['label' => 'Discord Webhook URL', 'default' => '', 'type' => 'string'],
