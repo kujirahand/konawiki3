@@ -38,7 +38,7 @@ try {
 
     // 3. Execute migration
     $res = kona3_ver33to34();
-    test_assert(__LINE__, $res === TRUE, "kona3_ver33to34 should return TRUE on success");
+    test_assert(__LINE__, $res === TRUE, "kona3_ver33to34 should return TRUE on success when files are created");
 
     // 4. Verify created alias files
     test_assert(__LINE__, file_exists($file1), "Alias file for 99991 should be created");
@@ -63,7 +63,9 @@ try {
     file_put_contents($file1, "Existing content - do not overwrite");
 
     $res2 = kona3_ver33to34();
-    test_assert(__LINE__, $res2 === TRUE, "kona3_ver33to34 rerun should succeed");
+    test_assert(__LINE__, $res2 === FALSE, "kona3_ver33to34 rerun should return FALSE when nothing new is created");
+    test_assert(__LINE__, !file_exists($json_path), "Original JSON should be removed on rerun");
+    test_assert(__LINE__, file_exists($bak_path), "Original JSON should be renamed to JSON.bak on rerun");
     
     $content1_rerun = file_get_contents($file1);
     test_eq(__LINE__, $content1_rerun, "Existing content - do not overwrite", "Existing file should not be overwritten");
@@ -84,4 +86,3 @@ try {
         file_put_contents($bak_path, $original_bak_data);
     }
 }
-

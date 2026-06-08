@@ -1124,8 +1124,12 @@ function kona3_getVersionupNotice()
         return '';
     }
 
-    $exec_url = kona3getPageURL('', 'versionup', '', 'ver=3.3to3.4');
-    $cancel_url = kona3getPageURL('', 'versionup', '', 'ver=3.3to3.4&cmd=delete_msg');
+    $token = kona3_getEditToken('versionup');
+    $exec_url = kona3getPageURL('', 'versionup', '', 'ver=3.3to3.4&write_token=' . urlencode($token));
+    $cancel_url = kona3getPageURL('', 'versionup', '', 'ver=3.3to3.4&cmd=delete_msg&write_token=' . urlencode($token));
+
+    $exec_url_h = htmlspecialchars($exec_url, ENT_QUOTES, 'UTF-8');
+    $cancel_url_h = htmlspecialchars($cancel_url, ENT_QUOTES, 'UTF-8');
 
     $html = '
     <div style="background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%); border: 1px solid #ffeeba; border-radius: 8px; padding: 15px 20px; margin: 15px auto; max-width: 900px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); font-family: sans-serif; color: #856404; display: flex; align-items: center; justify-content: space-between; gap: 15px;">
@@ -1137,8 +1141,8 @@ function kona3_getVersionupNotice()
             </span>
         </div>
         <div style="display: flex; flex-direction: column; gap: 8px; min-width: 200px;">
-            <a href="' . $exec_url . '" style="background: #ffc107; color: #212529; text-decoration: none; padding: 8px 16px; border-radius: 4px; text-align: center; font-weight: bold; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: background 0.2s;">エイリアスファイル作成を実行</a>
-            <a href="' . $cancel_url . '" style="background: transparent; color: #6c757d; text-decoration: underline; padding: 4px; border-radius: 4px; text-align: center; font-size: 0.85em; transition: color 0.2s;">このメッセージを消す</a>
+            <a href="' . $exec_url_h . '" style="background: #ffc107; color: #212529; text-decoration: none; padding: 8px 16px; border-radius: 4px; text-align: center; font-weight: bold; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: background 0.2s;">エイリアスファイル作成を実行</a>
+            <a href="' . $cancel_url_h . '" style="background: transparent; color: #6c757d; text-decoration: underline; padding: 4px; border-radius: 4px; text-align: center; font-size: 0.85em; transition: color 0.2s;">このメッセージを消す</a>
         </div>
     </div>
     ';

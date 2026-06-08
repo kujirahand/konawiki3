@@ -17,6 +17,17 @@ function kona3_action_versionup() {
         return;
     }
     
+    // CSRF保護のチェック
+    $token = isset($_GET['write_token']) ? $_GET['write_token'] : '';
+    $correct_token = kona3_getEditToken('versionup');
+    if ($token === '' || $token !== $correct_token) {
+        kona3error(
+            lang('Invalid edit token.'),
+            lang('Please go back and resubmit the form.')
+        );
+        return;
+    }
+    
     $ver = isset($_GET['ver']) ? $_GET['ver'] : '';
     $cmd = isset($_GET['cmd']) ? $_GET['cmd'] : '';
     
@@ -27,8 +38,11 @@ function kona3_action_versionup() {
             $bak_path = KONA3_PAGE_ID_JSON . '.bak';
             if (file_exists($json_path)) {
                 if (@rename($json_path, $bak_path) === FALSE) {
-                    copy($json_path, $bak_path);
-                    unlink($json_path);
+                    if (@copy($json_path, $bak_path) === FALSE) {
+                        kona3error(lang('Version Up'), 'Failed to back up legacy page id JSON.');
+                        return;
+                    }
+                    @unlink($json_path);
                 }
             }
             kona3showMessage(
@@ -77,8 +91,8 @@ function kona3_ver33to34() {
     if (!is_array($legacy_page_ids) || empty($legacy_page_ids)) {
         return FALSE;
     }
-
     
+    $created = FALSE;
     foreach ($legacy_page_ids as $name => $id) {
         // ページIDのバリデーション（安全なファイル名とするため、英数字、ハイフン、アンダースコアのみ許容）
         if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $id)) {
@@ -93,15 +107,19 @@ function kona3_ver33to34() {
         
         // エイリアスファイルを作成
         $content = "!!alias({$name})";
-        kona3lock_save($filepath, $content);
+        if (kona3lock_save($filepath, $content)) {
+            $created = TRUE;
+        }
     }
     
     // 最後に、.json を .json.bak にリネーム
     $bak_path = $json_path . '.bak';
     if (@rename($json_path, $bak_path) === FALSE) {
-        copy($json_path, $bak_path);
-        unlink($json_path);
+        if (@copy($json_path, $bak_path) === FALSE) {
+            return FALSE;
+        }
+        @unlink($json_path);
     }
     
-    return TRUE;
+    return $created;
 }
