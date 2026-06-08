@@ -16,6 +16,7 @@ test_assert(__LINE__, strpos($css_content, 'body.dark-theme #wikimessage h2') !=
 test_assert(__LINE__, strpos($css_content, 'body.dark-theme #wikimessage h3') !== false, "darkmode.css defines #wikimessage h3 dark mode overrides");
 test_assert(__LINE__, strpos($css_content, 'body.dark-theme #wikifooter') !== false, "darkmode.css defines #wikifooter dark mode overrides");
 test_assert(__LINE__, strpos($css_content, 'body.dark-theme #wikifooter a') !== false, "darkmode.css defines #wikifooter a dark mode overrides");
+test_assert(__LINE__, strpos($css_content, 'body.dark-theme .memo') !== false, "darkmode.css defines .memo dark mode overrides");
 
 
 // 2. Check if parts_header.html contains toggle button and inline JS to restore preference
