@@ -133,4 +133,10 @@ $lang_data = [
     'RegExp' => '正規表現',
     'alias' => '別名',
     'Update' => '更新',
+    'Version Up' => 'バージョンアップ',
+    'Invalid Parameter' => '不正なパラメータ',
+    'Invalid version up parameter.' => 'バージョンアップのパラメータが不正です。',
+    'The migration message has been dismissed.' => '移行メッセージを非表示にしました。',
+    'Alias files have been created successfully.' => 'エイリアスファイルを正常に作成しました。',
+    'No migration target found or already migrated.' => '移行対象が見つからないか、既に移行済みです。',
 ];
