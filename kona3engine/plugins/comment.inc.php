@@ -1,9 +1,20 @@
 <?php
-/** 簡易コメント掲示板を追加
- * - [書式] #comment(id=bbsid,type=***) 
- * - [引数]
- * -- id=*** ... 掲示板のID
- * -- type=*** ... 掲示板のタイプ(allで全部表示/todoでTODOのもの)
+/**
+ * 簡易コメント掲示板を追加
+ *
+ * - 書式: #comment(id=bbsid,type=***,loginOnly)
+ * - id=***: 掲示板のIDを指定する。省略時は現在のページ名を使う。
+ * - type=all: 全ページのコメント一覧を表示する。
+ * - type=todo: 全ページの未完了(todo)コメント一覧を表示する。
+ * - loginOnly: 未ログイン時は投稿フォームを隠し、ログイン案内とログインリンクを表示する。
+ * - 通常のコメント欄には、全ページのコメントを管理する comment list リンクを表示する。
+ * - 未ログイン投稿では、従来どおり名前と削除パスワードの入力欄を表示する。
+ * - ログイン済み投稿では、名前と削除パスワードの入力を省略し、ログインユーザー名とuser_idを保存する。
+ * - 未ログイン投稿の削除は、投稿時の削除パスワードまたは掲示板管理パスワードで行う。
+ * - [del]リンクを押した時は、削除前に確認画面を表示する。
+ * - ログイン済みユーザーは、自分の投稿を削除パスワードなしで削除できる。
+ * - ログイン済みユーザーが他人の投稿を削除しようとした場合、管理ユーザーへの依頼を促す。
+ * - 管理ユーザーは、すべてのコメントを削除パスワードなしで削除できる。
 */
 function kona3plugins_comment_execute($params) {
   global $kona3conf;
@@ -11,12 +22,17 @@ function kona3plugins_comment_execute($params) {
   $page = $kona3conf['page'];
   $bbsid = $page;
   $type = "";
+  $loginOnly = FALSE;
   $pdo = database_get();
   if (!$pdo) {
     return "([#comment] SQLite could not use...)";
   }
   // check params     
   foreach ($params as $s) {
+    if ($s == 'loginOnly') {
+      $loginOnly = TRUE;
+      continue;
+    }
     if (!preg_match('#^(\w+?)\=(.+)$#', $s, $m)) continue;
     list($match, $key, $val) = $m;
     if ($key == "id") {
@@ -27,12 +43,22 @@ function kona3plugins_comment_execute($params) {
       $type = $val;
       continue;
     }
+    if ($key == "loginOnly") {
+      $loginOnly = ($val != '' && $val != '0' && strtolower($val) != 'false');
+      continue;
+    }
   }
   // check table exists?
   kona3plugins_comment_init_db($pdo);
   if ($type == "all") {
+    if (!kona3isLogin()) {
+      return _renderCommentLoginRequired($page);
+    }
     return _at_all($pdo, 'all');
   } else if ($type == "todo") {
+    if (!kona3isLogin()) {
+      return _renderCommentLoginRequired($page);
+    }
     return _at_all($pdo, 'todo');
   }
   // select logs
@@ -44,11 +70,15 @@ function kona3plugins_comment_execute($params) {
   $stmt->execute(array(intval($bbs_id)));
   $logs = $stmt->fetchAll();
   // render logs
+  $html_header = _renderCommentHeader($page);
   $html_comments = _renderCommentList($page, $logs);
-  $html_form = _renderCommentForm($page, $bbs_id);
+  $html_form = ($loginOnly && !kona3isLogin())
+    ? _renderCommentLoginRequired($page)
+    : _renderCommentForm($page, $bbs_id);
   return <<<__EOS__
 <!-- #comment plugin -->
 <div class="plugin_comment">
+  {$html_header}
   <div class='comment_box'>
     {$html_comments}
   </div><!-- end of .comment_box -->
@@ -59,20 +89,30 @@ function kona3plugins_comment_execute($params) {
 __EOS__;
 }
 
-function _renderCommentList($page, $logs) {
-  if (!$logs) return "";
-  $html = <<<__EOS__
+function _renderCommentHeader($page) {
+  $comment_list_url = htmlspecialchars(
+    kona3getPageURL($page, 'plugin', '', 'name=comment&m=list'),
+    ENT_QUOTES | ENT_SUBSTITUTE,
+    'UTF-8'
+  );
+  return <<<__EOS__
 <!-- title -->
 <div class='plugin_title'>
   <a name='CommentBox'>#comment</a>
+  <span class='memo'>[<a href='{$comment_list_url}'>comment list</a>]</span>
 </div>
 __EOS__;
+}
+
+function _renderCommentList($page, $logs) {
+  if (!$logs) return "";
+  $html = "";
   $index = kona3getPageURL($page, 'plugin', '', 'name=comment');
   $index .= "&";
   foreach ($logs as $row) {
-    $id = $row["comment_id"];
-    $name = htmlentities($row['name']);
-    $body = htmlentities($row['body']);
+    $id = intval($row["comment_id"]);
+    $name = htmlspecialchars($row['name'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    $body = htmlspecialchars($row['body'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     $body = str_replace("\n", "<br>", $body);
     $body = str_replace(" ", "&nbsp;", $body);
     $body = preg_replace(
@@ -81,10 +121,11 @@ __EOS__;
       $body);
     $mtime = ($row['mtime'] == 0)
       ? "-" : date("Y-m-d H:i", $row['mtime']);
-    $del = "<a href='{$index}m=del&id=$id'>del</a>";
+    $del_url = htmlspecialchars($index."m=del&id=$id", ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    $del = "<a href='{$del_url}'>del</a>";
     $todo_v = $row['todo'];
     $todo_l = ($todo_v == 0) ? "done" : "todo";
-    $todo = "<a class='$todo_l' onclick='chtodo(event,$id)'>$todo_l</a>";
+    $todo = kona3plugins_comment_renderTodoControl($todo_l, $id);
     $html .= <<<__EOS__
 <!-- logs -->
 <div class='comment_log'>
@@ -107,7 +148,29 @@ function _renderCommentForm($page, $bbs_id) {
   $msg_post_comment = lang('Post Comment');
   $msg_close = lang('Close');
   $msg_post = lang('Add');
-  $edit_token = kona3_getEditToken();
+  $bbs_id = intval($bbs_id);
+  $edit_token = htmlspecialchars(kona3_getEditToken('edit_token'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+  $form_action = htmlspecialchars($form_action, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+  $login_info = kona3getLoginInfo();
+  $user_name = $login_info ? kona3getUserName() : '';
+  $user_name_html = htmlspecialchars($user_name, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+  $user_name_input = htmlspecialchars($user_name, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+  $account_fields = $login_info
+    ? <<< EOS
+    <input type="hidden" name="name" value="$user_name_input">
+    <input type="hidden" name="pw" value="">
+    <p class="memo">name: {$user_name_html}</p>
+EOS
+    : <<< EOS
+    <label for="kona3comment_name">
+      name:
+      <input id="kona3comment_name" type="text" name="name" value="" autocomplete="name">
+    </label>
+    <label for="kona3comment_password">
+      password
+      <input id="kona3comment_password" type="password" name="pw" value="">
+    </label>
+EOS;
   return <<< EOS
 <div class="comment_form_box">
   <!-- close bar -->
@@ -122,18 +185,11 @@ function _renderCommentForm($page, $bbs_id) {
     <input type="hidden" name="m" value="write">
     <input type="hidden" name="bbs_id" value="$bbs_id">
     <input type="hidden" id="edit_token" name="edit_token" value="$edit_token">
-    <label for="kona3comment_name">
-      name:
-      <input id="kona3comment_name" type="text" name="name" value="" autocomplete="name">
-    </label>
+    {$account_fields}
     <label for="kona3comment_body">
       body:
       <span class="memo">(&gt;1 &gt;2 ...)</span>
       <textarea id="kona3comment_body" name="body" rows="4" cols="50"></textarea>
-    </label>
-    <label for="kona3comment_password">
-      password
-      <input id="kona3comment_password" type="password" name="pw" value="">
     </label>
     <input class="pure-button pure-button-primary" type="submit" value="$msg_post">
   </form>
@@ -144,6 +200,26 @@ function _renderCommentForm($page, $bbs_id) {
    onclick='comment_form_open()'>
       →{$msg_post_comment}</a>
 </div><!-- end of .msg_post_comment -->
+{$script}\n
+EOS;
+}
+
+function _renderCommentLoginRequired($page) {
+  $script = _todo_script();
+  $edit_token = htmlspecialchars(kona3_getEditToken('edit_token'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+  $login_url = htmlspecialchars(
+    kona3getPageURL($page, 'login'),
+    ENT_QUOTES | ENT_SUBSTITUTE,
+    'UTF-8'
+  );
+  $msg = htmlspecialchars(lang('Please login.'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+  $login = htmlspecialchars(lang('Login'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+  return <<< EOS
+<div class="comment_login_required">
+  <input type="hidden" id="edit_token" name="edit_token" value="{$edit_token}">
+  <p>{$msg}</p>
+  <p><a class="pure-button pure-button-primary" href="{$login_url}">{$login}</a></p>
+</div>
 {$script}\n
 EOS;
 }
@@ -181,6 +257,19 @@ function kona3plugins_comment_action() {
   $output_format = kona3param("fmt", ""); 
   $is_login = kona3isLogin();
   if ($m == "") _err($page, 'No Mode in Comment'); 
+  // show comment list
+  if ($m == "list") {
+    if (!kona3isLogin()) {
+      kona3showMessage('Comments', _renderCommentLoginRequired($page));
+      return;
+    }
+    $type = kona3param("type", "all");
+    if ($type != "todo") $type = "all";
+    $pdo = database_get();
+    kona3plugins_comment_init_db($pdo);
+    kona3showMessage('Comments', _renderCommentAdminPage($pdo, $type));
+    return;
+  }
   // write comment
   if ($m == "write") {
     kona3plugins_comment_action_write($page);
@@ -189,22 +278,38 @@ function kona3plugins_comment_action() {
   // delete comment (1/2)
   if ($m == "del") {
     $id = intval(@$_REQUEST['id']);
-    $edit_token = kona3_getEditToken();
+    $edit_token = kona3_getEditToken('edit_token');
     if ($id <= 0) kona3error($page, 'no id');
-    $del_form = "<form method='post'>".
-      "<input type='hidden' name='edit_token' value='$edit_token'>".
-      "<input type='hidden' name='m' value='del2'>".
-      "<input type='hidden' name='id' value='$id'>".
-      "<p>".lang('Really?')."</p>".
-      "<p>".lang("Password").": <input type='password' name='pw' value=''></p>".
-      "<input class='pure-button pure-button-primary' type='submit' value='".lang('Delete')."'></p>".
-      "</form>";
-    kona3showMessage(lang('Delete')." (id:$id)", $del_form);
+    $pdo = database_get();
+    kona3plugins_comment_init_db($pdo);
+    $row = kona3plugins_comment_getComment($pdo, $id);
+    if (!$row) {
+      kona3error($page, 'Comment not found');
+      exit;
+    }
+    if (kona3isLogin()) {
+      if (kona3plugins_comment_canDeleteAsLoginUser($row)) {
+        kona3showMessage(
+          lang('Delete')." (id:$id)",
+          kona3plugins_comment_renderDeleteForm($id, $edit_token, FALSE)
+        );
+        exit;
+      }
+      kona3showMessage(
+        lang('Delete'),
+        '管理ユーザーに削除を依頼するようにしてください。'
+      );
+      exit;
+    }
+    kona3showMessage(
+      lang('Delete')." (id:$id)",
+      kona3plugins_comment_renderDeleteForm($id, $edit_token, TRUE)
+    );
     exit;
   }
   // delete comment (2/2)
   if ($m == "del2") {
-    if (!kona3_checkEditToken()) {
+    if (!kona3_checkEditToken('edit_token')) {
       kona3error(lang('Invalid Token'), lang('Invalid edit token.'));
       exit;
     }
@@ -215,40 +320,40 @@ function kona3plugins_comment_action() {
       exit;
     }
     $pdo = database_get();
-    $stmt = $pdo->prepare('SELECT * FROM comment_list WHERE comment_id=?');
-    $stmt->execute(array($id));
-    $row = $stmt->fetch();
-    // check password hash
-    $delkey = $row['delkey'];
-    $can_delete = hash_equals($delkey, $pw); // for old password
-    if (substr($delkey, 0, 2) == '!!') {
-      list($type, $salt, $hash) = explode('::', $delkey);
-      if ($type != '!!sha256') {
-        kona3error('system error', 'invalid hash type');
-        exit;
-      }
-      $can_delete = hash_equals(
-        kona3plugins_comment_getHash($pw, $salt),
-        $hash);
-      if (!$can_delete) {
-        $bbs_admin_password = kona3getConf('bbs_admin_password', '');
-        if ($bbs_admin_password != '') {
-          if ($pw == $bbs_admin_password) { $can_delete = TRUE; }
-        }
-      }
+    kona3plugins_comment_init_db($pdo);
+    $row = kona3plugins_comment_getComment($pdo, $id);
+    if (!$row) {
+      kona3error($page, 'Comment not found');
+      exit;
     }
+    if (kona3isLogin() && !kona3plugins_comment_canDeleteAsLoginUser($row)) {
+      kona3showMessage(
+        lang('Delete'),
+        '管理ユーザーに削除を依頼するようにしてください。'
+      );
+      exit;
+    }
+    $can_delete = kona3isLogin()
+      ? kona3plugins_comment_canDeleteAsLoginUser($row)
+      : kona3plugins_comment_checkDeletePassword($row, $pw);
     // delete
     if (!$can_delete) {
       kona3error($page, 'Invalid Password');
       exit;
     }
-    $pdo->exec("DELETE FROM comment_list WHERE comment_id=$id");
+    kona3plugins_comment_deleteComment($pdo, $id);
     if ($output_format == "json") _ok($page, "deleted");
-    header('location: index.php?'.urlencode($page));
+    if (!headers_sent()) {
+      header('location: index.php?'.urlencode($page));
+    }
+    return;
   }
   // set todo
   if ($m == "todo") {
-    if (!kona3_checkEditToken()) {
+    if (!kona3isLogin()) {
+      _err($page, 'Please login.'); exit;
+    }
+    if (!kona3_checkEditToken('edit_token')) {
       _err($page, 'Invalid Token'); exit;
     }
     $id = intval(@$_REQUEST['id']);
@@ -275,7 +380,7 @@ function kona3plugins_comment_action_write($page) {
   $pw   = isset($_POST['pw']) ? $_POST['pw'] : '';
 
   // check edit_token
-  if (!kona3_checkEditToken()) {
+  if (!kona3_checkEditToken('edit_token')) {
     kona3error(lang('Invalid Token'), '<a href="javascript:history.back()">'.lang('Please back page.').'</a>'); exit;
   }
   // check paramters
@@ -283,22 +388,30 @@ function kona3plugins_comment_action_write($page) {
   if ($body == '' || $bbs_id <= 0) {
     _err($page, 'Invalid data'); exit;
   }
+  if (kona3isLogin()) {
+    $name = kona3getUserName();
+    $pw = '';
+  }
+  $user_id = kona3isLogin() ? intval(kona3getUserId()) : 0;
   if ($name == '') $name = 'no name';
   // make hash for salt
   $salt = bin2hex(random_bytes(32));
   $pw_hash = "!!sha256::".$salt."::".kona3plugins_comment_getHash($pw, $salt);
   $pdo = database_get();
+  kona3plugins_comment_init_db($pdo);
   $stmt = $pdo->prepare(
-    "INSERT INTO comment_list(bbs_id, name, body, delkey, ctime, mtime)".
-    "VALUES(?, ?, ?, ?, ?, ?)".
+    "INSERT INTO comment_list(bbs_id, name, body, delkey, user_id, ctime, mtime)".
+    "VALUES(?, ?, ?, ?, ?, ?, ?)".
     "");
-  $a = array($bbs_id, $name, $body, $pw_hash, time(), time());
+  $a = array($bbs_id, $name, $body, $pw_hash, $user_id, time(), time());
   $r = $stmt->execute($a);
   
   // show result
   if ($output_format == "json") _ok($page, "inserted"); 
   // jump
-  header("location: index.php?".urlencode($page));
+  if (!headers_sent()) {
+    header("location: index.php?".urlencode($page));
+  }
 }
 
 function kona3plugins_comment_getHash($pw, $salt) {
@@ -306,29 +419,123 @@ function kona3plugins_comment_getHash($pw, $salt) {
 }
 
 function kona3plugins_comment_init_db($pdo) {
-  if (db_table_exists("comment_list")) {
-    return;
-  }
-  $sql = <<< EOS
-    /* comment table */
+  if (!db_table_exists("comment_list")) {
+    $sql = <<< EOS
     CREATE TABLE IF NOT EXISTS comment_list (
       comment_id INTEGER PRIMARY KEY,
       bbs_id INTEGER DEFAULT 0,
       name TEXT DEFAULT 'no name',
       body TEXT DEFAULT '',
       delkey TEXT DEFAULT '',
+      user_id INTEGER DEFAULT 0,
       res_id INTEGER DEFAULT 0,
       todo INTEGER DEFAULT 1, /* 0:done 1:to do */  
       ctime INTEGER,
       mtime INTEGER
     );
-    /* id to bbs_id */
+EOS;
+    $pdo->exec($sql);
+  }
+  if (!kona3plugins_comment_tableHasColumn($pdo, 'comment_list', 'user_id')) {
+    $pdo->exec('ALTER TABLE comment_list ADD COLUMN user_id INTEGER DEFAULT 0');
+  }
+  if (!db_table_exists("comment_bbsid")) {
+    $sql = <<< EOS
     CREATE TABLE IF NOT EXISTS comment_bbsid(
       bbs_id INTEGER PRIMARY KEY,
       name TEXT DEFAULT ''
     );
 EOS;
-  $pdo->exec($sql);
+    $pdo->exec($sql);
+  }
+}
+
+function kona3plugins_comment_tableHasColumn($pdo, $table, $column) {
+  $stmt = $pdo->query('PRAGMA table_info('.$table.')');
+  $rows = $stmt->fetchAll();
+  foreach ($rows as $row) {
+    if (isset($row['name']) && $row['name'] == $column) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+function kona3plugins_comment_getComment($pdo, $id) {
+  $stmt = $pdo->prepare('SELECT * FROM comment_list WHERE comment_id=?');
+  $stmt->execute(array(intval($id)));
+  return $stmt->fetch();
+}
+
+function kona3plugins_comment_deleteComment($pdo, $id) {
+  $stmt = $pdo->prepare('DELETE FROM comment_list WHERE comment_id=?');
+  return $stmt->execute(array(intval($id)));
+}
+
+function kona3plugins_comment_renderDeleteForm($id, $edit_token, $require_password) {
+  $id = intval($id);
+  $edit_token = htmlspecialchars($edit_token, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+  $password_html = '';
+  if ($require_password) {
+    $password_html =
+      "<p>".lang("Password").": <input type='password' name='pw' value=''></p>";
+  }
+  return "<form method='post'>".
+    "<input type='hidden' name='edit_token' value='$edit_token'>".
+    "<input type='hidden' name='m' value='del2'>".
+    "<input type='hidden' name='id' value='$id'>".
+    "<p>".lang('Really?')."</p>".
+    $password_html.
+    "<input class='pure-button pure-button-primary' type='submit' value='".lang('Delete')."'></p>".
+    "</form>";
+}
+
+function kona3plugins_comment_canDeleteAsLoginUser($row) {
+  if (kona3isAdmin()) {
+    return TRUE;
+  }
+  if (!kona3isLogin()) {
+    return FALSE;
+  }
+  $comment_user_id = isset($row['user_id']) ? intval($row['user_id']) : 0;
+  if ($comment_user_id <= 0) {
+    return FALSE;
+  }
+  return $comment_user_id === intval(kona3getUserId());
+}
+
+function kona3plugins_comment_checkDeletePassword($row, $pw) {
+  $delkey = isset($row['delkey']) ? $row['delkey'] : '';
+  $can_delete = hash_equals($delkey, $pw); // for old password
+  if (substr($delkey, 0, 2) == '!!') {
+    $parts = explode('::', $delkey);
+    if (count($parts) !== 3) {
+      return FALSE;
+    }
+    list($type, $salt, $hash) = $parts;
+    if ($type != '!!sha256') {
+      return FALSE;
+    }
+    $can_delete = hash_equals(
+      kona3plugins_comment_getHash($pw, $salt),
+      $hash);
+    if (!$can_delete) {
+      $bbs_admin_password = kona3getConf('bbs_admin_password', '');
+      if ($bbs_admin_password != '') {
+        if ($pw == $bbs_admin_password) { $can_delete = TRUE; }
+      }
+    }
+  }
+  return $can_delete;
+}
+
+function kona3plugins_comment_renderTodoControl($label, $id) {
+  $label = ($label == 'done') ? 'done' : 'todo';
+  $id = intval($id);
+  if (!kona3isLogin()) {
+    return "<span class='$label'>$label</span>";
+  }
+  return "<a class='$label' onclick='chtodo(event,$id)'>$label</a>";
 }
 
 function kona3plugins_comment_getBbsId($pdo, $name) {
@@ -348,13 +555,15 @@ function kona3plugins_comment_getBbsId($pdo, $name) {
 
 function _at_all($pdo, $type) {
   $page = kona3getPage();
+  $edit_token = htmlspecialchars(kona3_getEditToken('edit_token'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
   $q = $pdo->query('SELECT * FROM comment_bbsid');
   $allbbs = $q->fetchAll();
-  $html = "<h3>Comments (type=$type)</h3>";
+  $html = "<input type='hidden' id='edit_token' name='edit_token' value='{$edit_token}'>\n";
   foreach ($allbbs as $row) {
     $bbs_id = $row["bbs_id"];
-    $bbs_name = htmlentities($row["name"]);
+    $bbs_name = htmlspecialchars($row["name"], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     $link = kona3getPageURL($row["name"]);
+    $link_html = htmlspecialchars($link, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     $where = "";
     if ($type == "todo") {
       $where = " AND todo=1";
@@ -367,19 +576,19 @@ function _at_all($pdo, $type) {
     $stmt->execute(array($bbs_id));
     $list = $stmt->fetchAll();
     if (count($list) == 0) continue;
-    $html .= "<h4><a href='$link#CommentBox'>$bbs_name</a></h4>";
+    $html .= "<h4><a href='{$link_html}#CommentBox'>$bbs_name</a></h4>";
     $html .= "<ul>";
     $index = "index.php?".urlencode($page)."&plugin&name=comment";
     foreach ($list as $row) {
-      $id = $row["comment_id"];
-      $name = htmlentities($row["name"]);
-      $body = htmlentities(mb_substr($row["body"],0, 100));
+      $id = intval($row["comment_id"]);
+      $name = htmlspecialchars($row["name"], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+      $body = htmlspecialchars(mb_substr($row["body"],0, 100), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
       $mtime = date("m-d H:i", $row["mtime"]);
       $todo_v = $row["todo"];
       $todo_l = ($todo_v == 0) ? "done" : "todo";
-      $todo = "(<a class='$todo_l' onclick='chtodo(event,$id,$todo_v)'>$todo_l</a>)";
+      $todo = "(".kona3plugins_comment_renderTodoControl($todo_l, $id).")";
       $html .= "<li>".
-        "<a href='{$link}#comment_id_{$id}'>($id)</a>".
+        "<a href='{$link_html}#comment_id_{$id}'>($id)</a>".
         "$name - $body ".
         "<span class='memo'>$mtime {$todo}</span>".
         "</li>\n";
@@ -390,20 +599,47 @@ function _at_all($pdo, $type) {
   return $html;
 }
 
+function _renderCommentAdminPage($pdo, $type) {
+  $page = kona3getPage();
+  $all_url = htmlspecialchars(
+    kona3getPageURL($page, 'plugin', '', 'name=comment&m=list&type=all'),
+    ENT_QUOTES | ENT_SUBSTITUTE,
+    'UTF-8'
+  );
+  $todo_url = htmlspecialchars(
+    kona3getPageURL($page, 'plugin', '', 'name=comment&m=list&type=todo'),
+    ENT_QUOTES | ENT_SUBSTITUTE,
+    'UTF-8'
+  );
+  $title = htmlspecialchars("Comments (type=$type)", ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+  $list = _at_all($pdo, $type);
+  return <<<__EOS__
+<div class="plugin_comment">
+  <div class='plugin_title'>
+    <a name='CommentBox'>{$title}</a>
+    <span class='memo'>[<a href='{$all_url}'>all</a>] [<a href='{$todo_url}'>todo</a>]</span>
+  </div>
+  {$list}
+</div>
+__EOS__;
+}
+
 function _todo_script() {
   global $kona3conf;
   // do not use double
-  global $kona3_todo_script;
-  if ($kona3_comment_todo_script === TRUE) return "";
+  global $kona3_comment_todo_script;
+  if (isset($kona3_comment_todo_script) && $kona3_comment_todo_script === TRUE) return "";
   $kona3_comment_todo_script =TRUE;
   //
   $page = $kona3conf['page'];
-  $action = "index.php?".urlencode($page)."&plugin&name=comment";
+  $action = kona3getPageURL($page, 'plugin', '', 'name=comment');
+  $action_json = json_encode($action, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
   $script = <<< 'EOS'
 function chtodo(event, id) {
   var e = event.target;
   var v = (e.innerHTML == "todo") ? 1 : 0;
-  cv = (v == 0) ? 1 : 0;
+  var cv = (v == 0) ? 1 : 0;
+  event.preventDefault();
   var edit_token = qq("#edit_token").val();
   var para = {"m": "todo", "id": id, "v": cv, "fmt": "json", "edit_token": edit_token};
   qq().post(comment_api, para, function(data){
@@ -433,12 +669,9 @@ function comment_form_close() {
 EOS;
   $script = <<< EOS
 <script type="text/javascript">
-var comment_api = "$action";
+var comment_api = {$action_json};
 {$script}
 </script>
 EOS;
   return $script;
 }
-
-
-
