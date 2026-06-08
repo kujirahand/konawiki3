@@ -35,4 +35,11 @@ $lang_data = [
     'alias' => 'alias',
     'Update' => 'Update',
     'Model' => 'Model',
+    'Version Up' => 'Version Up',
+    'Invalid Parameter' => 'Invalid Parameter',
+    'Invalid version up parameter.' => 'Invalid version up parameter.',
+    'The migration message has been dismissed.' => 'The migration message has been dismissed.',
+    'Alias files have been created successfully.' => 'Alias files have been created successfully.',
+    'No migration target found or already migrated.' => 'No migration target found or already migrated.',
 ];
+

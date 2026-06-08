@@ -1112,3 +1112,36 @@ function kona3lock_load($path, $retry = 3, $usleep = 100000)
     }
     return FALSE;
 }
+
+// versionup notice
+function kona3_getVersionupNotice()
+{
+    if (!kona3isLogin()) {
+        return '';
+    }
+    $json_path = KONA3_PAGE_ID_JSON;
+    if (!file_exists($json_path)) {
+        return '';
+    }
+
+    $exec_url = kona3getPageURL('', 'versionup', '', 'ver=3.3to3.4');
+    $cancel_url = kona3getPageURL('', 'versionup', '', 'ver=3.3to3.4&cmd=delete_msg');
+
+    $html = '
+    <div style="background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%); border: 1px solid #ffeeba; border-radius: 8px; padding: 15px 20px; margin: 15px auto; max-width: 900px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); font-family: sans-serif; color: #856404; display: flex; align-items: center; justify-content: space-between; gap: 15px;">
+        <div style="flex: 1;">
+            <strong style="font-size: 1.1em; display: block; margin-bottom: 5px;">⚠️ ページID廃止に伴うデータ移行のお知らせ</strong>
+            <span style="font-size: 0.9em; line-height: 1.4;">
+                ページIDを利用したショートカットリンク（go.php?pageId）を継続して使用するためには、エイリアスファイルの作成が必要です。<br>
+                ショートカットリンクを使っていた方は、以下のボタンをクリックして実行してください。
+            </span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; min-width: 200px;">
+            <a href="' . $exec_url . '" style="background: #ffc107; color: #212529; text-decoration: none; padding: 8px 16px; border-radius: 4px; text-align: center; font-weight: bold; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: background 0.2s;">エイリアスファイル作成を実行</a>
+            <a href="' . $cancel_url . '" style="background: transparent; color: #6c757d; text-decoration: underline; padding: 4px; border-radius: 4px; text-align: center; font-size: 0.85em; transition: color 0.2s;">このメッセージを消す</a>
+        </div>
+    </div>
+    ';
+    return $html;
+}
+
