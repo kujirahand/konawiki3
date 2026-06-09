@@ -74,9 +74,9 @@ function edit_init() {
       e.preventDefault()
     }
     if (matchesShortcut(e, getShortcutValue('editor_shortcut_new'))) {
-      $url = document.getElementById('new_btn_url').href
-      console.log('open new page:', $url)
-      window.open($url)
+      const url = document.getElementById('new_btn_url').href
+      console.log('open new page:', url)
+      window.open(url)
       e.preventDefault()
     }
     if (matchesShortcut(e, getShortcutValue('ai_shortcut_complete'))) {
