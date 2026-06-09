@@ -154,6 +154,8 @@ function kona3_action_edit()
         "ai_provider" => $ai_provider,
         "ai_edit_template_url" => $ai_edit_template_url,
         "ai_edit_conf_url" => $ai_edit_conf_url,
+        "editor_shortcut_temp_save" => kona3getConf('editor_shortcut_temp_save', 'Ctrl+S'),
+        "editor_shortcut_new" => kona3getConf('editor_shortcut_new', 'Ctrl+Alt+N'),
         "ai_shortcut_complete" => kona3getConf('ai_shortcut_complete', 'Ctrl+Shift+H'),
         "ai_shortcut_spellcheck" => kona3getConf('ai_shortcut_spellcheck', 'Ctrl+Shift+J'),
         "ai_shortcut_user_prompt1" => kona3getConf('ai_shortcut_user_prompt1', 'Ctrl+Alt+1'),

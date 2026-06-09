@@ -103,6 +103,10 @@ function kona3conf_getConfigItems()
             'max_search' => ['label' => 'Max Search', 'default' => 10, 'type' => 'number'],
             'max_search_level' => ['label' => 'Max Search Level', 'default' => 2, 'type' => 'number'],
         ],
+        'Editor' => [
+            'editor_shortcut_temp_save' => ['label' => 'ショートカットキー > 一時保存', 'default' => 'Ctrl+S', 'type' => 'string'],
+            'editor_shortcut_new' => ['label' => 'ショートカットキー > 📖 新規', 'default' => 'Ctrl+Alt+N', 'type' => 'string'],
+        ],
         'Uploader' => [
             'image_pattern' => ['label' => 'Image Pattern', 'default' => '(png|jpg|jpeg|gif|bmp|ico|svg|webp)', 'type' => 'string'],
             'allow_upload' => ['label' => 'Allow Upload', 'default' => FALSE, 'type' => 'bool'],

@@ -58,6 +58,10 @@ test_assert(__LINE__, strpos($edit_template, '{{\'Edit AI Config\' | lang}}') !=
 test_assert(__LINE__, strpos($edit_template, 'https://kujirahand.com/konawiki3/index.php?AI') !== FALSE, "AI編集画面: AIヘルプリンクが表示される");
 test_assert(__LINE__, strpos($edit_template, 'target="_blank"') !== FALSE, "AI編集画面: AIヘルプリンクは新規ウィンドウで開く");
 test_assert(__LINE__, strpos($edit_template, '>？</a>') !== FALSE, "AI編集画面: AIヘルプリンクは疑問符で表示される");
+test_assert(__LINE__, strpos($edit_template, 'id="editor_shortcut_temp_save"') !== FALSE, "編集画面: 一時保存ショートカット設定をJSへ渡す");
+test_assert(__LINE__, strpos($edit_template, 'id="editor_shortcut_new"') !== FALSE, "編集画面: 新規ショートカット設定をJSへ渡す");
+test_assert(__LINE__, strpos($edit_template, '{{$editor_shortcut_temp_save}}') !== FALSE, "編集画面: 一時保存ショートカットをヘルプに表示する");
+test_assert(__LINE__, strpos($edit_template, '{{$editor_shortcut_new}}') !== FALSE, "編集画面: 新規ショートカットをヘルプに表示する");
 test_assert(__LINE__, strpos($edit_template, 'id="ai_shortcut_user_prompt1"') !== FALSE, "AI編集画面: USER_PROMPT1ショートカット設定をJSへ渡す");
 test_assert(__LINE__, strpos($edit_template, 'id="ai_shortcut_user_prompt2"') !== FALSE, "AI編集画面: USER_PROMPT2ショートカット設定をJSへ渡す");
 test_assert(__LINE__, strpos($edit_template, 'id="ai_model"') === FALSE, "AI編集画面: モデル入力UIは表示しない");
@@ -75,6 +79,8 @@ test_assert(__LINE__, strpos($edit_js, 'function aiNormalizeJsonRow') !== FALSE,
 test_assert(__LINE__, strpos($edit_js, "'ErrorLocation'") !== FALSE, "AI結果表示: ErrorLocationキーをngとして扱う");
 test_assert(__LINE__, strpos($edit_js, "'Correction'") !== FALSE, "AI結果表示: Correctionキーをokとして扱う");
 test_assert(__LINE__, strpos($edit_js, "'Reason'") !== FALSE, "AI結果表示: Reasonキーをdescとして扱う");
+test_assert(__LINE__, strpos($edit_js, "getShortcutValue('editor_shortcut_temp_save')") !== FALSE, "編集ショートカット: 一時保存は設定値を使う");
+test_assert(__LINE__, strpos($edit_js, "getShortcutValue('editor_shortcut_new')") !== FALSE, "編集ショートカット: 新規は設定値を使う");
 test_assert(__LINE__, strpos($edit_js, "Boolean(e.altKey) !== wantsAlt") !== FALSE, "AIショートカット: 余分なAltキーを許可しない");
 test_assert(__LINE__, strpos($edit_js, "Boolean(e.shiftKey) !== wantsShift") !== FALSE, "AIショートカット: 余分なShiftキーを許可しない");
 test_assert(__LINE__, strpos($edit_js, "if (wantsCtrl && wantsMeta)") !== FALSE, "AIショートカット: CtrlとMetaの同時指定は無効にする");
