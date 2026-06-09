@@ -11,6 +11,8 @@
       <input type="hidden" id="edit_token" name="edit_token" value="{{$edit_token}}">
       <input type="hidden" id="edit_ext" name="edit_ext" value="{{$edit_ext}}">
       <input type="hidden" id="tags" name="tags" value="{{ $tags }}">
+      <input type="hidden" id="editor_shortcut_temp_save" value="{{ $editor_shortcut_temp_save }}">
+      <input type="hidden" id="editor_shortcut_new" value="{{ $editor_shortcut_new }}">
       <input type="hidden" id="ai_shortcut_complete" value="{{ $ai_shortcut_complete }}">
       <input type="hidden" id="ai_shortcut_spellcheck" value="{{ $ai_shortcut_spellcheck }}">
       <input type="hidden" id="ai_shortcut_user_prompt1" value="{{ $ai_shortcut_user_prompt1 }}">
@@ -67,8 +69,8 @@
           </ul>
           <h3>Shortcut:</h3>
           <ul>
-            <li>{{'Save temp' | lang}} ... Ctrl+S</li>
-            <li><a id="new_btn_url" href="{{$new_btn_url}}" target="_new">{{'New' | lang}}</a> ... Ctrl+Alt+N</li>
+            <li>{{'Save temp' | lang}} ... {{$editor_shortcut_temp_save}}</li>
+            <li><a id="new_btn_url" href="{{$new_btn_url}}" target="_new">{{'New' | lang}}</a> ... {{$editor_shortcut_new}}</li>
           </ul>
         </div>
       </div>

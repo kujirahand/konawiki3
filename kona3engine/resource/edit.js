@@ -67,18 +67,16 @@ function edit_init() {
 
   // shortcut
   qq(window).keydown(function (e) {
-    // shortcut Ctrl+S
-    if ((e.metaKey || e.ctrlKey) && e.keyCode == 83) {
+    if (matchesShortcut(e, getShortcutValue('editor_shortcut_temp_save'))) {
       if (isChanged) {
-        ajaxSave('Shortcut:Ctrl+S')
+        ajaxSave('Shortcut:' + getShortcutValue('editor_shortcut_temp_save'))
       }
       e.preventDefault()
     }
-    // shortcut Ctrl+Alt+N
-    if ((e.metaKey || e.ctrlKey) && e.altKey && e.keyCode == 78) {
-      $url = document.getElementById('new_btn_url').href
-      console.log('open new page:', $url)
-      window.open($url)
+    if (matchesShortcut(e, getShortcutValue('editor_shortcut_new'))) {
+      const url = document.getElementById('new_btn_url').href
+      console.log('open new page:', url)
+      window.open(url)
       e.preventDefault()
     }
     if (matchesShortcut(e, getShortcutValue('ai_shortcut_complete'))) {
