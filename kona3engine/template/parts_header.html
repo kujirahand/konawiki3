@@ -27,13 +27,29 @@
 <script>
   (function() {
     try {
-      // 印刷モードの場合はダークモードを適用しない
-      if (location.search.indexOf('print') !== -1) {
-        return;
+      // 印刷モード以外の場合にのみダークモードを適用する
+      if (location.search.indexOf('print') === -1) {
+        var theme = localStorage.getItem('kona3_theme');
+        if (theme === 'dark' || (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.body.classList.add('dark-theme');
+        }
       }
-      var theme = localStorage.getItem('kona3_theme');
-      if (theme === 'dark' || (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.body.classList.add('dark-theme');
+      // 文字サイズと行間の適用
+      var fontSize = localStorage.getItem('kona3_font_size');
+      var lineHeight = localStorage.getItem('kona3_line_height');
+      var css = '';
+      var numRegex = /^[0-9]+(\.[0-9]+)?$/;
+      if (fontSize && numRegex.test(fontSize)) {
+        css += '#kona3_layout_show, #wikibody { font-size: ' + fontSize + 'em !important; }\n';
+      }
+      if (lineHeight && numRegex.test(lineHeight)) {
+        css += '#kona3_layout_show, #wikibody { line-height: ' + lineHeight + ' !important; }\n';
+      }
+      if (css) {
+        var style = document.createElement('style');
+        style.id = 'kona3-text-style-override';
+        style.appendChild(document.createTextNode(css));
+        document.head.appendChild(style);
       }
     } catch (e) {
       console.warn("Storage access failed:", e);
@@ -64,9 +80,27 @@
         <span class="yum"></span>
     <!-- 飛び出すメニュー -->
     <nav class="menuitems">
-      {{ e:echo kona3getCtrlMenu('list') }}
       <ul>
+        {{ e:
+          $ctrlMenu = kona3getCtrlMenuArray('list');
+          foreach ($ctrlMenu as $it) {
+            $label = $it[0];
+            $href  = $it[1];
+            if ($href != "-") {
+              echo "<li><a href=\"$href\">$label</a></li>";
+            }
+          }
+        }}
+        <li class="menu-separator" aria-hidden="true" role="separator"></li>
         <li><a href="#" id="dark_mode_toggle">🌙 Dark Mode</a></li>
+        <li class="menu-separator" aria-hidden="true" role="separator"></li>
+        <li><a href="#" id="font_size_plus">{{e: echo lang('Increase Font Size') }}</a></li>
+        <li><a href="#" id="font_size_minus">{{e: echo lang('Decrease Font Size') }}</a></li>
+        <li class="menu-separator" aria-hidden="true" role="separator"></li>
+        <li><a href="#" id="line_height_plus">{{e: echo lang('Increase Line Height') }}</a></li>
+        <li><a href="#" id="line_height_minus">{{e: echo lang('Decrease Line Height') }}</a></li>
+        <li class="menu-separator" aria-hidden="true" role="separator"></li>
+        <li><a href="#" id="text_style_reset">{{e: echo lang('Reset Font & Line Height') }}</a></li>
       </ul>
       {{ e:echo kona3getWikiPage('GlobalBar', '') }}
     </nav>

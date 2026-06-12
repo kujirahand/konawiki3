@@ -42,4 +42,9 @@ $lang_data = [
     'The migration message has been dismissed.' => 'The migration message has been dismissed.',
     'Alias files have been created successfully.' => 'Alias files have been created successfully.',
     'No migration target found or already migrated.' => 'No migration target found or already migrated.',
+    'Increase Font Size' => '⊕ Increase Font Size',
+    'Decrease Font Size' => '⊖ Decrease Font Size',
+    'Increase Line Height' => '↕ Increase Line Height',
+    'Decrease Line Height' => '↕ Decrease Line Height',
+    'Reset Font & Line Height' => '⊚ Reset Font & Line Height',
 ];
