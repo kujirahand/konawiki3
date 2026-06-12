@@ -35,6 +35,22 @@
       if (theme === 'dark' || (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.body.classList.add('dark-theme');
       }
+      // 文字サイズと行間の適用
+      var fontSize = localStorage.getItem('kona3_font_size');
+      var lineHeight = localStorage.getItem('kona3_line_height');
+      var css = '';
+      if (fontSize) {
+        css += '#kona3_layout_show, #wikibody { font-size: ' + fontSize + 'em !important; }\n';
+      }
+      if (lineHeight) {
+        css += '#kona3_layout_show, #wikibody { line-height: ' + lineHeight + ' !important; }\n';
+      }
+      if (css) {
+        var style = document.createElement('style');
+        style.id = 'kona3-text-style-override';
+        style.appendChild(document.createTextNode(css));
+        document.head.appendChild(style);
+      }
     } catch (e) {
       console.warn("Storage access failed:", e);
     }
@@ -64,9 +80,27 @@
         <span class="yum"></span>
     <!-- 飛び出すメニュー -->
     <nav class="menuitems">
-      {{ e:echo kona3getCtrlMenu('list') }}
       <ul>
+        {{ e:
+          $ctrlMenu = kona3getCtrlMenuArray('list');
+          foreach ($ctrlMenu as $it) {
+            $label = $it[0];
+            $href  = $it[1];
+            if ($href != "-") {
+              echo "<li><a href=\"$href\">$label</a></li>";
+            }
+          }
+        }}
+        <li class="menu-separator"></li>
         <li><a href="#" id="dark_mode_toggle">🌙 Dark Mode</a></li>
+        <li class="menu-separator"></li>
+        <li><a href="#" id="font_size_plus">➕ 文字を大きく</a></li>
+        <li><a href="#" id="font_size_minus">➖ 文字を小さく</a></li>
+        <li class="menu-separator"></li>
+        <li><a href="#" id="line_height_plus">↕ 行間を広く</a></li>
+        <li><a href="#" id="line_height_minus">↕ 行間を狭く</a></li>
+        <li class="menu-separator"></li>
+        <li><a href="#" id="text_style_reset">🔄 文字と行間をリセット</a></li>
       </ul>
       {{ e:echo kona3getWikiPage('GlobalBar', '') }}
     </nav>
