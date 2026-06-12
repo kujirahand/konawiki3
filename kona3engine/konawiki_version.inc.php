@@ -1,5 +1,5 @@
 <?php
-define("KONAWIKI_VERSION", "3.4.1");
+define("KONAWIKI_VERSION", "3.4.2");
 
 function kona3_version_int()
 {
