@@ -341,14 +341,25 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
     $tags = kona3param('tags', '');
     $edit_ext = kona3param('edit_ext', '');
     $page_mode = kona3param('page_mode', '');
+    $a_mode = kona3param('a_mode', '');
     $postId = intval(kona3param('postId', 0)); // option
+
+    // 既存ファイルの存在確認
+    $original_fname = kona3getEditFile("{$page}.{$edit_ext}", $dummy_ext);
+    $has_existing_file = file_exists($original_fname);
 
     // page_mode に基づいて拡張子を同期
     $new_ext = $edit_ext;
-    if ($page_mode === 'Markdown') {
-        $new_ext = 'md';
-    } else if ($page_mode === 'KonaNotation') {
-        $new_ext = 'txt';
+    if ($has_existing_file) {
+        // 既存ファイルがある場合は拡張子を変更しない
+        $new_ext = $edit_ext;
+    } else {
+        // 新規ファイル作成時のみ、page_mode に応じて拡張子を変更可能
+        if ($page_mode === 'Markdown') {
+            $new_ext = 'md';
+        } else if ($page_mode === 'KonaNotation') {
+            $new_ext = 'txt';
+        }
     }
 
     // ページ名の末尾に拡張子があるか確認 (元の edit_ext で判定)
@@ -439,19 +450,7 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
             @unlink($old_fname);
         }
 
-        // エイリアス同期
-        kona3edit_sync_aliases($page, $old_alias_target, $new_alias_target);
-
         kona3db_writePage($page, trim($edit_txt), $user_id, $tags);
-        
-        // タグもクリア
-        kona3tags_clearPageTags($page);
-        
-        // メタ情報も削除
-        $metaFile = kona3db_getPageMetaFile($page);
-        if (file_exists($metaFile)) {
-            @unlink($metaFile);
-        }
     } else {
         // write
         $b = kona3lock_save($fname, $edit_txt);
@@ -465,54 +464,42 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
             @unlink($old_fname);
         }
 
-        // エイリアス同期
-        kona3edit_sync_aliases($page, $old_alias_target, $new_alias_target);
-
         // === for Database ===
         kona3db_writePage($page, $edit_txt, $user_id, $tags);
-        
-        // === for Meta Info ===
-        // メタ情報を保存
-        $meta = kona3db_loadPageMeta($page);
-        if ($meta === null) {
-            $meta = [];
-        }
-        // modeを更新
-        if ($page_mode === 'Markdown' || $page_mode === 'KonaNotation') {
-            $meta['mode'] = $page_mode;
-        }
-        // タグ情報を更新
-        $oldTags = isset($meta['tags']) ? $meta['tags'] : [];
-        if ($tags !== '') {
-            $tagArray = array_map('trim', explode('/', $tags));
-            // タグの長さを20文字に制限
-            $tagArray = array_map(function($tag) {
-                return mb_strlen($tag) > 20 ? mb_substr($tag, 0, 20) : $tag;
-            }, $tagArray);
-            $meta['tags'] = $tagArray;
-        } else {
-            $meta['tags'] = [];
-        }
-        kona3db_savePageMeta($page, $meta);
-        
-        // === for Tag DB ===
-        kona3tags_updatePageTags($page, $meta['tags']);
-        
-        // === discord ===
-        if (kona3getConf('discord_webhook_url', '') != '') {
-            kona3postDiscordWebhook($page);
-        }
     }
+
+    // === hook ===
+    $orig_edit_ext = kona3param('edit_ext', '');
+    $old_ext = ($orig_edit_ext !== '' && $orig_edit_ext !== $edit_ext) ? $orig_edit_ext : '';
+    try {
+        kona3triggerHook('write', $page, $edit_txt, [
+            'i_mode' => $i_mode,
+            'a_mode' => $a_mode,
+            'edit_ext' => $edit_ext,
+            'old_ext' => $old_ext,
+            'tags' => $tags,
+            'page_mode' => $page_mode,
+            'old_alias_target' => $old_alias_target,
+            'new_alias_target' => $new_alias_target,
+        ]);
+    } catch (Exception $e) {
+        $msg = $e->getMessage();
+        kona3_edit_err($msg, $i_mode, $postId);
+        $result = FALSE;
+        return $msg;
+    }
+
+    $result = TRUE;
 
     // result
     if ($i_mode == "git") {
-        $result = TRUE;
         return TRUE;
     } else if ($i_mode == "ajax") {
         echo json_encode(array(
             'result' => 'ok',
             'a_hash' => kona3getPageHash($edit_txt),
             'postId' => $postId,
+            'edit_ext' => $edit_ext,
         ));
         return TRUE;
     }
@@ -524,42 +511,28 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
 
 function kona3_trygit(&$txt, &$a_hash, $i_mode)
 {
-    require_once dirname(dirname(__FILE__)) . '/vendor/autoload.php';
     global $kona3conf, $page;
-
     $edit_txt = kona3param('edit_txt', '');
-    $a_hash_frm = kona3param('a_hash', '');
-    $fname = kona3getEditFile($page, $ext);
+    $edit_ext = kona3param('edit_ext', '');
+    $page_mode = kona3param('page_mode', '');
 
     // 先に保存
-    kona3_trywrite($txt, $a_hash, 'git', $result);
+    $msg = kona3_trywrite($txt, $a_hash, $i_mode, $result);
     if (!$result) {
-        return;
+        return $msg;
     }
 
-    // Gitが有効?
-    if (!$kona3conf["git_enabled"]) {
-        return;
-    }
+    // 既存ファイルの存在確認
+    $original_fname = kona3getEditFile("{$page}.{$edit_ext}", $dummy_ext);
+    $has_existing_file = file_exists($original_fname);
 
-    // Git操作
-    try {
-        $branch = $kona3conf["git_branch"];
-        $remote_repository = $kona3conf["git_remote_repository"];
-        $repo = new Cz\Git\GitRepository(dirname($fname));
-
-        if ($repo->getCurrentBranchName() != $branch) {
-            $repo->checkout($branch);
+    // page_mode に基づいて拡張子を同期
+    if (!$has_existing_file) {
+        if ($page_mode === 'Markdown') {
+            $edit_ext = 'md';
+        } else if ($page_mode === 'KonaNotation') {
+            $edit_ext = 'txt';
         }
-        $repo->addFile($fname);
-        if ($repo->hasChanges()) {
-            $userId = kona3getUserId();
-            $repo->commit("Update $page by $userId");
-            $repo->push($remote_repository, array($branch));
-        }
-    } catch (Exception $e) {
-        kona3_edit_err('Git Error:' . $e->getMessage(), $i_mode);
-        exit;
     }
 
     // result
@@ -567,12 +540,14 @@ function kona3_trygit(&$txt, &$a_hash, $i_mode)
         echo json_encode(array(
             'result' => 'ok',
             'a_hash' => kona3getPageHash($edit_txt),
+            'edit_ext' => $edit_ext,
         ));
-        return;
+        return TRUE;
     }
     $jump = kona3getPageURL($page);
     header("location:$jump");
     echo "ok, saved.";
+    return TRUE;
 }
 
 function kona3edit_ai_ajax($page)

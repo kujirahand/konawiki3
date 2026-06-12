@@ -26,9 +26,13 @@ function kona3index_main()
     $kona3conf_notExists = kona3index_loadConf();
     kona3conf_init();
 
+    // Register default hooks
+    require_once __DIR__ . '/kona3page_updated.inc.php';
+
     // start session
     $session_name = isset($kona3conf['session_name']) ? $kona3conf['session_name'] : 'kona3session';
     session_start(['name' => $session_name]);
+
     kona3remember_tryAutoLogin();
 
 
