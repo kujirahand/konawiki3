@@ -27,13 +27,12 @@
 <script>
   (function() {
     try {
-      // 印刷モードの場合はダークモードを適用しない
-      if (location.search.indexOf('print') !== -1) {
-        return;
-      }
-      var theme = localStorage.getItem('kona3_theme');
-      if (theme === 'dark' || (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.body.classList.add('dark-theme');
+      // 印刷モード以外の場合にのみダークモードを適用する
+      if (location.search.indexOf('print') === -1) {
+        var theme = localStorage.getItem('kona3_theme');
+        if (theme === 'dark' || (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.body.classList.add('dark-theme');
+        }
       }
       // 文字サイズと行間の適用
       var fontSize = localStorage.getItem('kona3_font_size');
