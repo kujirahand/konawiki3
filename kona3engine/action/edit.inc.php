@@ -476,9 +476,10 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
         return $msg;
     }
 
+    $result = TRUE;
+
     // result
     if ($i_mode == "git") {
-        $result = TRUE;
         return TRUE;
     } else if ($i_mode == "ajax") {
         echo json_encode(array(
