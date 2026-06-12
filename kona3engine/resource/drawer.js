@@ -84,24 +84,64 @@ qq(function(){
   const LINE_HEIGHT_STEP = 0.1;
   
   // 現在の設定値を取得（localStorageまたはデフォルト）
-  let currentFontSize = parseFloat(localStorage.getItem('kona3_font_size')) || DEFAULT_FONT_SIZE;
-  let currentLineHeight = parseFloat(localStorage.getItem('kona3_line_height')) || DEFAULT_LINE_HEIGHT;
+  let currentFontSize = DEFAULT_FONT_SIZE;
+  let currentLineHeight = DEFAULT_LINE_HEIGHT;
+
+  try {
+    var savedFontSize = localStorage.getItem('kona3_font_size');
+    if (savedFontSize) {
+      var val = parseFloat(savedFontSize);
+      if (!isNaN(val)) {
+        currentFontSize = Math.min(2.0, Math.max(0.7, val));
+      }
+    }
+  } catch (err) {
+    console.warn("Storage read failed for font_size:", err);
+  }
+
+  try {
+    var savedLineHeight = localStorage.getItem('kona3_line_height');
+    if (savedLineHeight) {
+      var val = parseFloat(savedLineHeight);
+      if (!isNaN(val)) {
+        currentLineHeight = Math.min(2.5, Math.max(1.2, val));
+      }
+    }
+  } catch (err) {
+    console.warn("Storage read failed for line_height:", err);
+  }
 
   function updateTextStyle() {
     let css = '';
     // デフォルト値と異なる場合のみCSSを適用
     if (Math.abs(currentFontSize - DEFAULT_FONT_SIZE) > 0.01) {
       css += '#kona3_layout_show, #wikibody { font-size: ' + currentFontSize.toFixed(1) + 'em !important; }\n';
-      localStorage.setItem('kona3_font_size', currentFontSize.toFixed(1));
+      try {
+        localStorage.setItem('kona3_font_size', currentFontSize.toFixed(1));
+      } catch (err) {
+        console.warn("Storage write failed for font_size:", err);
+      }
     } else {
-      localStorage.removeItem('kona3_font_size');
+      try {
+        localStorage.removeItem('kona3_font_size');
+      } catch (err) {
+        console.warn("Storage remove failed for font_size:", err);
+      }
     }
     
     if (Math.abs(currentLineHeight - DEFAULT_LINE_HEIGHT) > 0.01) {
       css += '#kona3_layout_show, #wikibody { line-height: ' + currentLineHeight.toFixed(1) + ' !important; }\n';
-      localStorage.setItem('kona3_line_height', currentLineHeight.toFixed(1));
+      try {
+        localStorage.setItem('kona3_line_height', currentLineHeight.toFixed(1));
+      } catch (err) {
+        console.warn("Storage write failed for line_height:", err);
+      }
     } else {
-      localStorage.removeItem('kona3_line_height');
+      try {
+        localStorage.removeItem('kona3_line_height');
+      } catch (err) {
+        console.warn("Storage remove failed for line_height:", err);
+      }
     }
 
     let styleEl = document.getElementById('kona3-text-style-override');
