@@ -1149,3 +1149,88 @@ function kona3_getVersionupNotice()
     return $html;
 }
 
+// --- Hook System ---
+global $kona3hooks;
+$kona3hooks = [];
+
+/**
+ * Register a callback for a hook.
+ * 
+ * @param string $hookName
+ * @param callable $callback
+ * @return void
+ */
+function kona3addHook($hookName, $callback) {
+    global $kona3hooks;
+    if (!isset($kona3hooks[$hookName])) {
+        $kona3hooks[$hookName] = [];
+    }
+    $kona3hooks[$hookName][] = $callback;
+}
+
+/**
+ * Trigger all callbacks registered to a hook.
+ * 
+ * @param string $hookName
+ * @param mixed ...$args
+ * @return void
+ */
+function kona3triggerHook($hookName, ...$args) {
+    global $kona3hooks;
+    if (!isset($kona3hooks[$hookName])) {
+        return;
+    }
+    foreach ($kona3hooks[$hookName] as $callback) {
+        call_user_func_array($callback, $args);
+    }
+}
+
+/**
+ * Git commit and push helper for hooks.
+ * 
+ * @param string $page
+ * @param string $edit_ext
+ * @return void
+ * @throws Exception
+ */
+function kona3git_commit_and_push($page, $edit_ext) {
+    global $kona3conf;
+    $autoload_file = __DIR__ . '/vendor/autoload.php';
+    if (file_exists($autoload_file)) {
+        require_once $autoload_file;
+    } else {
+        throw new Exception('vendor/autoload.php not found. Please run composer install.');
+    }
+
+    // Get absolute path of wiki file
+    $test_ext = kona3getFileExt($page);
+    if ($test_ext != '') {
+        $fname = kona3getWikiFile($page, FALSE, '');
+    } else {
+        $fname = koan3getWikiFileText($page);
+    }
+
+    if (!file_exists($fname)) {
+        return;
+    }
+
+    try {
+        $branch = $kona3conf["git_branch"];
+        $remote_repository = $kona3conf["git_remote_repository"];
+        $repo = new Cz\Git\GitRepository(dirname($fname));
+
+        if ($repo->getCurrentBranchName() != $branch) {
+            $repo->checkout($branch);
+        }
+        $repo->addFile($fname);
+        if ($repo->hasChanges()) {
+            $userId = kona3getUserId();
+            $repo->commit("Update $page by $userId");
+            $repo->push($remote_repository, array($branch));
+        }
+    } catch (Exception $e) {
+        throw new Exception('Git Error:' . $e->getMessage());
+    }
+}
+
+

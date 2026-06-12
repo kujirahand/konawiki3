@@ -129,10 +129,8 @@ function kona3conf_getConfigItems()
             'ai_shortcut_user_prompt1' => ['label' => 'ショートカットキー > USER_PROMPT1', 'default' => 'Ctrl+Alt+1', 'type' => 'string'],
             'ai_shortcut_user_prompt2' => ['label' => 'ショートカットキー > USER_PROMPT2', 'default' => 'Ctrl+Alt+2', 'type' => 'string'],
         ],
-        'Discord' => [
+        'PageUpdatedEvent' => [
             'discord_webhook_url' => ['label' => 'Discord Webhook URL', 'default' => '', 'type' => 'string'],
-        ],
-        'Git' => [
             'git_enabled' => ['label' => 'Git Enabled', 'default' => FALSE, 'type' => 'bool'],
             'git_branch' => ['label' => 'Git Branch', 'default' => 'main', 'type' => 'string'],
             'git_remote_repository' => ['label' => 'Git Remote Repository', 'default' => 'origin', 'type' => 'string'],
