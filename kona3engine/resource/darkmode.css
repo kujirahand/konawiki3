@@ -409,5 +409,17 @@ body.dark-theme .memo {
   color: #aaa !important;
 }
 
+/* date styles in dark mode (#197) */
+body.dark-theme .date {
+  color: #aaa !important;
+}
+body.dark-theme a .date {
+  color: #79c0ff !important;
+}
+body.dark-theme a:hover .date {
+  color: #fff !important;
+}
+
+
 
 
