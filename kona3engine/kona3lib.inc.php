@@ -1193,7 +1193,7 @@ function kona3triggerHook($hookName, ...$args) {
  * @return void
  * @throws Exception
  */
-function kona3git_commit_and_push($page, $edit_ext) {
+function kona3git_commit_and_push($page, $edit_ext, $old_ext = '') {
     global $kona3conf;
     $autoload_file = __DIR__ . '/vendor/autoload.php';
     if (file_exists($autoload_file)) {
@@ -1206,12 +1206,20 @@ function kona3git_commit_and_push($page, $edit_ext) {
     $test_ext = kona3getFileExt($page);
     if ($test_ext != '') {
         $fname = kona3getWikiFile($page, FALSE, '');
+        $page_no_ext = substr($page, 0, strlen($page) - strlen(".{$test_ext}"));
     } else {
         $fname = kona3getWikiFile($page . '.' . $edit_ext, FALSE, '');
+        $page_no_ext = $page;
     }
 
     if (!file_exists($fname)) {
         return;
+    }
+
+    // Resolve old file path for removal if provided
+    $old_fname = '';
+    if ($old_ext !== '' && $old_ext !== $edit_ext) {
+        $old_fname = kona3getWikiFile($page_no_ext . '.' . $old_ext, FALSE, '');
     }
 
     try {
@@ -1222,6 +1230,16 @@ function kona3git_commit_and_push($page, $edit_ext) {
         if ($repo->getCurrentBranchName() != $branch) {
             $repo->checkout($branch);
         }
+
+        // Remove old file from Git if it exists and is different
+        if ($old_fname !== '' && $old_fname !== $fname) {
+            try {
+                $repo->removeFile($old_fname);
+            } catch (Exception $e) {
+                // Ignore errors if the file is not tracked or doesn't exist in git index
+            }
+        }
+
         $repo->addFile($fname);
         if ($repo->hasChanges()) {
             $userId = kona3getUserId();

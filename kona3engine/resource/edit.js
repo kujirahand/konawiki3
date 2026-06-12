@@ -303,6 +303,9 @@ function ajaxProc(a_mode, source) {
       countText()
       // set hash
       qq('#a_hash').val(msg["a_hash"])
+      if (msg["edit_ext"]) {
+        qq('#edit_ext').val(msg["edit_ext"])
+      }
       qq('#edit_info').html('[saved]')
       use_beforeunload(false)
       // effect - flash info field

@@ -344,12 +344,22 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
     $a_mode = kona3param('a_mode', '');
     $postId = intval(kona3param('postId', 0)); // option
 
+    // 既存ファイルの存在確認
+    $original_fname = kona3getEditFile("{$page}.{$edit_ext}", $dummy_ext);
+    $has_existing_file = file_exists($original_fname);
+
     // page_mode に基づいて拡張子を同期
     $new_ext = $edit_ext;
-    if ($page_mode === 'Markdown') {
-        $new_ext = 'md';
-    } else if ($page_mode === 'KonaNotation') {
-        $new_ext = 'txt';
+    if ($has_existing_file) {
+        // 既存ファイルがある場合は拡張子を変更しない
+        $new_ext = $edit_ext;
+    } else {
+        // 新規ファイル作成時のみ、page_mode に応じて拡張子を変更可能
+        if ($page_mode === 'Markdown') {
+            $new_ext = 'md';
+        } else if ($page_mode === 'KonaNotation') {
+            $new_ext = 'txt';
+        }
     }
 
     // ページ名の末尾に拡張子があるか確認 (元の edit_ext で判定)
@@ -459,11 +469,14 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
     }
 
     // === hook ===
+    $orig_edit_ext = kona3param('edit_ext', '');
+    $old_ext = ($orig_edit_ext !== '' && $orig_edit_ext !== $edit_ext) ? $orig_edit_ext : '';
     try {
         kona3triggerHook('write', $page, $edit_txt, [
             'i_mode' => $i_mode,
             'a_mode' => $a_mode,
             'edit_ext' => $edit_ext,
+            'old_ext' => $old_ext,
             'tags' => $tags,
             'page_mode' => $page_mode,
             'old_alias_target' => $old_alias_target,
@@ -486,6 +499,7 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
             'result' => 'ok',
             'a_hash' => kona3getPageHash($edit_txt),
             'postId' => $postId,
+            'edit_ext' => $edit_ext,
         ));
         return TRUE;
     }
@@ -499,6 +513,8 @@ function kona3_trygit(&$txt, &$a_hash, $i_mode)
 {
     global $kona3conf, $page;
     $edit_txt = kona3param('edit_txt', '');
+    $edit_ext = kona3param('edit_ext', '');
+    $page_mode = kona3param('page_mode', '');
 
     // 先に保存
     $msg = kona3_trywrite($txt, $a_hash, $i_mode, $result);
@@ -506,11 +522,25 @@ function kona3_trygit(&$txt, &$a_hash, $i_mode)
         return $msg;
     }
 
+    // 既存ファイルの存在確認
+    $original_fname = kona3getEditFile("{$page}.{$edit_ext}", $dummy_ext);
+    $has_existing_file = file_exists($original_fname);
+
+    // page_mode に基づいて拡張子を同期
+    if (!$has_existing_file) {
+        if ($page_mode === 'Markdown') {
+            $edit_ext = 'md';
+        } else if ($page_mode === 'KonaNotation') {
+            $edit_ext = 'txt';
+        }
+    }
+
     // result
     if ($i_mode == "ajax") {
         echo json_encode(array(
             'result' => 'ok',
             'a_hash' => kona3getPageHash($edit_txt),
+            'edit_ext' => $edit_ext,
         ));
         return TRUE;
     }
