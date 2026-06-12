@@ -15,11 +15,13 @@ test_assert(__LINE__, strpos($header_content, 'id="text_style_reset"') !== false
 test_assert(__LINE__, strpos($header_content, 'id="line_height_plus"') !== false, "parts_header.html contains line_height_plus ID");
 test_assert(__LINE__, strpos($header_content, 'id="line_height_minus"') !== false, "parts_header.html contains line_height_minus ID");
 
-test_assert(__LINE__, strpos($header_content, '文字を大きく') !== false, "parts_header.html contains '文字を大きく'");
-test_assert(__LINE__, strpos($header_content, '文字を小さく') !== false, "parts_header.html contains '文字を小さく'");
-test_assert(__LINE__, strpos($header_content, '行間を広く') !== false, "parts_header.html contains '行間を広く'");
-test_assert(__LINE__, strpos($header_content, '行間を狭く') !== false, "parts_header.html contains '行間を狭く'");
-test_assert(__LINE__, strpos($header_content, '文字と行間をリセット') !== false, "parts_header.html contains '文字と行間をリセット'");
+// Check if parts_header.html contains lang() calls for localization
+test_assert(__LINE__, strpos($header_content, "lang('Increase Font Size')") !== false, "parts_header.html contains Increase Font Size lang call");
+test_assert(__LINE__, strpos($header_content, "lang('Decrease Font Size')") !== false, "parts_header.html contains Decrease Font Size lang call");
+test_assert(__LINE__, strpos($header_content, "lang('Increase Line Height')") !== false, "parts_header.html contains Increase Line Height lang call");
+test_assert(__LINE__, strpos($header_content, "lang('Decrease Line Height')") !== false, "parts_header.html contains Decrease Line Height lang call");
+test_assert(__LINE__, strpos($header_content, "lang('Reset Font & Line Height')") !== false, "parts_header.html contains Reset Font & Line Height lang call");
+
 test_assert(__LINE__, strpos($header_content, 'class="menu-separator"') !== false, "parts_header.html contains menu-separator class");
 
 test_assert(__LINE__, strpos($header_content, 'localStorage.getItem(\'kona3_font_size\')') !== false, "parts_header.html contains inline JS reading font size");
@@ -27,14 +29,33 @@ test_assert(__LINE__, strpos($header_content, 'localStorage.getItem(\'kona3_line
 test_assert(__LINE__, strpos($header_content, 'kona3-text-style-override') !== false, "parts_header.html contains inline JS applying text style override");
 
 
-// 2. Check if drawer.css contains styles for .menu-separator
+// 2. Check if lang files contain the localization keys
+$en_lang_file = dirname(__DIR__) . '/lang/en.inc.php';
+test_assert(__LINE__, file_exists($en_lang_file), "en.inc.php exists");
+include $en_lang_file;
+global $lang_data;
+test_assert(__LINE__, isset($lang_data['Increase Font Size']), "en.inc.php has Increase Font Size");
+test_assert(__LINE__, isset($lang_data['Decrease Font Size']), "en.inc.php has Decrease Font Size");
+test_assert(__LINE__, isset($lang_data['Increase Line Height']), "en.inc.php has Increase Line Height");
+test_assert(__LINE__, isset($lang_data['Decrease Line Height']), "en.inc.php has Decrease Line Height");
+test_assert(__LINE__, isset($lang_data['Reset Font & Line Height']), "en.inc.php has Reset Font & Line Height");
+
+$ja_lang_file = dirname(__DIR__) . '/lang/ja.inc.php';
+test_assert(__LINE__, file_exists($ja_lang_file), "ja.inc.php exists");
+include $ja_lang_file;
+test_assert(__LINE__, isset($lang_data['Increase Font Size']), "ja.inc.php has Increase Font Size");
+test_assert(__LINE__, $lang_data['Increase Font Size'] === '⊕ 文字を大きく', "ja.inc.php has correct translation for Increase Font Size");
+test_assert(__LINE__, $lang_data['Reset Font & Line Height'] === '⊚ 文字と行間をリセット', "ja.inc.php has correct translation for Reset Font & Line Height");
+
+
+// 3. Check if drawer.css contains styles for .menu-separator
 $drawer_css = dirname(__DIR__) . '/resource/drawer.css';
 test_assert(__LINE__, file_exists($drawer_css), "drawer.css exists");
 $css_content = file_get_contents($drawer_css);
 test_assert(__LINE__, strpos($css_content, '.menu-separator') !== false, "drawer.css contains styling for menu-separator");
 
 
-// 3. Check if drawer.js implements the control handlers
+// 4. Check if drawer.js implements the control handlers
 $drawer_js = dirname(__DIR__) . '/resource/drawer.js';
 test_assert(__LINE__, file_exists($drawer_js), "drawer.js exists");
 $js_content = file_get_contents($drawer_js);

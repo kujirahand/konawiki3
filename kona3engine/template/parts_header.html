@@ -94,13 +94,13 @@
         <li class="menu-separator"></li>
         <li><a href="#" id="dark_mode_toggle">🌙 Dark Mode</a></li>
         <li class="menu-separator"></li>
-        <li><a href="#" id="font_size_plus">➕ 文字を大きく</a></li>
-        <li><a href="#" id="font_size_minus">➖ 文字を小さく</a></li>
+        <li><a href="#" id="font_size_plus">{{e: echo lang('Increase Font Size') }}</a></li>
+        <li><a href="#" id="font_size_minus">{{e: echo lang('Decrease Font Size') }}</a></li>
         <li class="menu-separator"></li>
-        <li><a href="#" id="line_height_plus">↕ 行間を広く</a></li>
-        <li><a href="#" id="line_height_minus">↕ 行間を狭く</a></li>
+        <li><a href="#" id="line_height_plus">{{e: echo lang('Increase Line Height') }}</a></li>
+        <li><a href="#" id="line_height_minus">{{e: echo lang('Decrease Line Height') }}</a></li>
         <li class="menu-separator"></li>
-        <li><a href="#" id="text_style_reset">🔄 文字と行間をリセット</a></li>
+        <li><a href="#" id="text_style_reset">{{e: echo lang('Reset Font & Line Height') }}</a></li>
       </ul>
       {{ e:echo kona3getWikiPage('GlobalBar', '') }}
     </nav>

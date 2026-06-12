@@ -140,4 +140,9 @@ $lang_data = [
     'The migration message has been dismissed.' => '移行メッセージを非表示にしました。',
     'Alias files have been created successfully.' => 'エイリアスファイルを正常に作成しました。',
     'No migration target found or already migrated.' => '移行対象が見つからないか、既に移行済みです。',
+    'Increase Font Size' => '⊕ 文字を大きく',
+    'Decrease Font Size' => '⊖ 文字を小さく',
+    'Increase Line Height' => '↕ 行間を広く',
+    'Decrease Line Height' => '↕ 行間を狭く',
+    'Reset Font & Line Height' => '⊚ 文字と行間をリセット',
 ];
