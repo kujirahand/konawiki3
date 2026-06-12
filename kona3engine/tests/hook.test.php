@@ -57,5 +57,5 @@ require_once dirname(__DIR__) . '/kona3page_updated.inc.php';
 
 global $kona3hooks;
 test_assert(__LINE__, isset($kona3hooks['write']), "write hook should be registered");
-test_assert(__LINE__, count($kona3hooks['write']) >= 2, "At least Tag/Meta/Alias, Discord, and Git hooks should be registered");
+test_assert(__LINE__, count($kona3hooks['write']) >= 3, "At least Tag/Meta/Alias, Discord, and Git hooks should be registered");
 

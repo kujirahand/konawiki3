@@ -12,7 +12,6 @@ kona3addHook('write', function($page, $body, $options = []) {
     $new_alias_target = isset($options['new_alias_target']) ? $options['new_alias_target'] : FALSE;
 
     // Load edit action if needed for alias sync helper
-    require_once __DIR__ . '/action/edit.inc.php';
     if (function_exists('kona3edit_sync_aliases')) {
         kona3edit_sync_aliases($page, $old_alias_target, $new_alias_target);
     }

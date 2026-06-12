@@ -1207,7 +1207,7 @@ function kona3git_commit_and_push($page, $edit_ext) {
     if ($test_ext != '') {
         $fname = kona3getWikiFile($page, FALSE, '');
     } else {
-        $fname = koan3getWikiFileText($page);
+        $fname = kona3getWikiFile($page . '.' . $edit_ext, FALSE, '');
     }
 
     if (!file_exists($fname)) {
