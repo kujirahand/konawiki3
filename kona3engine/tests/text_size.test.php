@@ -22,7 +22,7 @@ test_assert(__LINE__, strpos($header_content, "lang('Increase Line Height')") !=
 test_assert(__LINE__, strpos($header_content, "lang('Decrease Line Height')") !== false, "parts_header.html contains Decrease Line Height lang call");
 test_assert(__LINE__, strpos($header_content, "lang('Reset Font & Line Height')") !== false, "parts_header.html contains Reset Font & Line Height lang call");
 
-test_assert(__LINE__, strpos($header_content, 'class="menu-separator"') !== false, "parts_header.html contains menu-separator class");
+test_assert(__LINE__, strpos($header_content, 'class="menu-separator" aria-hidden="true" role="separator"') !== false, "parts_header.html contains accessible menu-separator");
 
 test_assert(__LINE__, strpos($header_content, 'localStorage.getItem(\'kona3_font_size\')') !== false, "parts_header.html contains inline JS reading font size");
 test_assert(__LINE__, strpos($header_content, 'localStorage.getItem(\'kona3_line_height\')') !== false, "parts_header.html contains inline JS reading line height");
