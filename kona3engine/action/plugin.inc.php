@@ -15,7 +15,7 @@ function kona3_action_plugin() {
     header("location: index.php");
     exit;
   }
-  if (!preg_match('#^[a-zA-Z0-9]+$#', $name)) {
+  if (!preg_match('#^[a-zA-Z0-9_]+$#', $name)) {
     err404("Invalid plugin name");
   }
   // pinfo
@@ -35,5 +35,4 @@ function kona3_action_plugin() {
   }
   @call_user_func($func_name);
 }
-
 
