@@ -4,7 +4,7 @@
  * - [引数]
  * -- rows=n ... エディタの行数
  * -- ver=x.x.x ... sakuramml-libplayerのバージョン指定
- * -- sf=url ... SoundFontのURL
+ * -- sf=url ... 現在未対応です。SoundFontはSAKURAMML_SF_SOUNDFONT_URL固定です
  * -- データ  ... 再生したいデータ
  * - [使用例]
 {{{
@@ -107,7 +107,32 @@ function kona3plugins_sakuramml_sf_fetchUrl($url)
             'ignore_errors' => true,
         ],
     ]);
-    return @file_get_contents($url, false, $context);
+    $fp = @fopen($url, 'rb', false, $context);
+    if ($fp === false) {
+        return false;
+    }
+    $meta = stream_get_meta_data($fp);
+    $headers = isset($meta['wrapper_data']) ? $meta['wrapper_data'] : [];
+    if (!kona3plugins_sakuramml_sf_isHttpStatusOk($headers)) {
+        fclose($fp);
+        return false;
+    }
+    $data = stream_get_contents($fp);
+    fclose($fp);
+    return $data;
+}
+
+function kona3plugins_sakuramml_sf_isHttpStatusOk($headers)
+{
+    if (!is_array($headers) || count($headers) === 0) {
+        return false;
+    }
+    foreach ($headers as $header) {
+        if (preg_match('#^HTTP/\S+\s+(\d+)#', $header, $m)) {
+            return intval($m[1]) === 200;
+        }
+    }
+    return false;
 }
 
 function kona3plugins_sakuramml_sf_getTemplate($args)

@@ -7,6 +7,10 @@ function err404($msg) {
   exit;
 }
 
+function kona3_action_plugin_isValidName($name) {
+  return preg_match('#^[a-zA-Z0-9_-]+$#', $name) === 1;
+}
+
 function kona3_action_plugin() {
   global $kona3conf;
   $page = $kona3conf["page"];
@@ -15,7 +19,7 @@ function kona3_action_plugin() {
     header("location: index.php");
     exit;
   }
-  if (!preg_match('#^[a-zA-Z0-9_]+$#', $name)) {
+  if (!kona3_action_plugin_isValidName($name)) {
     err404("Invalid plugin name");
   }
   // pinfo
@@ -35,4 +39,3 @@ function kona3_action_plugin() {
   }
   @call_user_func($func_name);
 }
-
