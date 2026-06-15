@@ -11,6 +11,11 @@ function kona3_action_plugin_isValidName($name) {
   return preg_match('#^[a-zA-Z0-9_-]+$#', $name) === 1;
 }
 
+function kona3_action_plugin_getActionFuncName($name) {
+  $func_name = str_replace('-', '_', $name);
+  return "kona3plugins_{$func_name}_action";
+}
+
 function kona3_action_plugin() {
   global $kona3conf;
   $page = $kona3conf["page"];
@@ -33,7 +38,7 @@ function kona3_action_plugin() {
   }
   // execute
   include_once($pinfo['file']);
-  $func_name = "kona3plugins_{$name}_action";
+  $func_name = kona3_action_plugin_getActionFuncName($name);
   if (!function_exists($func_name)) {
     err404("Plugin function not found: The plugin should have [{$func_name}].");
   }

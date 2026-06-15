@@ -127,12 +127,13 @@ function kona3plugins_sakuramml_sf_isHttpStatusOk($headers)
     if (!is_array($headers) || count($headers) === 0) {
         return false;
     }
+    $status_code = null;
     foreach ($headers as $header) {
         if (preg_match('#^HTTP/\S+\s+(\d+)#', $header, $m)) {
-            return intval($m[1]) === 200;
+            $status_code = intval($m[1]);
         }
     }
-    return false;
+    return $status_code !== null && $status_code >= 200 && $status_code < 300;
 }
 
 function kona3plugins_sakuramml_sf_getTemplate($args)
