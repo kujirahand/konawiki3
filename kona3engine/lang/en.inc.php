@@ -56,4 +56,5 @@ $lang_data = [
     'Month' => 'Month',
     'Login Required' => 'Login Required',
     'You must login to view counter history.' => 'You must login to view counter history.',
+    'Counter table not found.' => 'Counter table not found.',
 ];

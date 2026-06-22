@@ -154,4 +154,5 @@ $lang_data = [
     'Month' => '月',
     'Login Required' => 'ログインが必要です',
     'You must login to view counter history.' => 'カウンター履歴を表示するにはログインする必要があります。',
+    'Counter table not found.' => 'カウンターテーブルが見つかりません。',
 ];

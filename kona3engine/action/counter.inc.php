@@ -15,6 +15,15 @@ function kona3_action_counter()
         exit;
     }
 
+    // テーブル存在チェック
+    if (!db_table_exists('counter', 'subdb') || !db_table_exists('counter_month', 'subdb')) {
+        kona3error(
+            lang('Error'),
+            lang('Counter table not found.')
+        );
+        exit;
+    }
+
     $page = $kona3conf['page'];
     $page_id = kona3db_getPageId($page, FALSE);
     
