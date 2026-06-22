@@ -1,0 +1,36 @@
+{{ include parts_header.html }}
+
+<div id="wikimessage"><div class="box">
+  <div class="box_border">
+    <h2>{{$page}} - {{'Access Log'|lang}}</h2>
+    <p>{{'Total'|lang}}: <strong>{{$total}}</strong></p>
+  </div>
+
+  <div class="box_border">
+    <h3>{{'Monthly Access Log'|lang}}</h3>
+    {{ if count($list) == 0 }}
+      <p>No log data.</p>
+    {{ else }}
+      <table class="pure-table pure-table-bordered" style="width:100%;">
+        <thead>
+          <tr>
+            <th>{{'Year'|lang}} / {{'Month'|lang}}</th>
+            <th>{{'Access Count'|lang}}</th>
+            <th>{{'Last Access'|lang}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{ for $list as $v }}
+          <tr>
+            <td>{{$v.year}} / {{$v.month}}</td>
+            <td>{{$v.value}}</td>
+            <td>{{$v.mtime | datetime}}</td>
+          </tr>
+          {{ endfor }}
+        </tbody>
+      </table>
+    {{ endif }}
+  </div>
+</div></div>
+
+{{ include parts_footer.html }}
