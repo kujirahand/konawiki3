@@ -74,9 +74,13 @@ function kona3plugins_counter_execute($args)
     );
     //
     $m_this = lang('Monthly');
+    $html = "$value" . "<span class='coutner_month'>({$m_this}{$mvalue})</span>";
+    if (kona3isLogin()) {
+        $url = kona3getPageURL($page, 'counter');
+        $html = "<a href='{$url}'>{$html}</a>";
+    }
     return
         "<div class='counter'>" .
-        "$value" .
-        "<span class='coutner_month'>({$m_this}{$mvalue})</span>" .
+        $html .
         "</div>";
 }

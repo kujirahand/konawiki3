@@ -47,4 +47,13 @@ $lang_data = [
     'Increase Line Height' => '↕ Increase Line Height',
     'Decrease Line Height' => '↕ Decrease Line Height',
     'Reset Font & Line Height' => '⊚ Reset Font & Line Height',
+    'Access Log' => 'Access Log',
+    'Monthly Access Log' => 'Monthly Access Log',
+    'Access Count' => 'Access Count',
+    'Last Access' => 'Last Access',
+    'Total' => 'Total',
+    'Year' => 'Year',
+    'Month' => 'Month',
+    'Login Required' => 'Login Required',
+    'You must login to view counter history.' => 'You must login to view counter history.',
 ];
