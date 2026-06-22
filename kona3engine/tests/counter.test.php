@@ -28,7 +28,7 @@ test_eq(__LINE__, kona3isLogin(), TRUE, "Logged in check");
 // counterプラグインを実行して出力を確認
 $html_logged_in = kona3plugins_counter_execute([]);
 test_assert(__LINE__, strpos($html_logged_in, 'href=') !== FALSE, "Logged in should have links in counter");
-test_assert(__LINE__, strpos($html_logged_in, 'counter') !== FALSE, "Logged in link should point to counter action");
+test_assert(__LINE__, preg_match('/href=[\'"][^\'"]*counter/', $html_logged_in) === 1, "Logged in link should point to counter action");
 
 // 3. データベースに正しくカウントが保存されているか確認
 $page_id = kona3db_getPageId($test_page, FALSE);
@@ -50,6 +50,5 @@ $kona3conf['page'] = $original_page;
 if (file_exists($filepath)) {
     unlink($filepath);
 }
-db_exec("DELETE FROM users WHERE user_id=?", [99999]);
 subdb_exec("DELETE FROM counter WHERE page_id=?", [$page_id]);
 subdb_exec("DELETE FROM counter_month WHERE page_id=?", [$page_id]);
