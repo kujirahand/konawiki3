@@ -100,8 +100,8 @@ function kona3_ver33to34() {
     $created = FALSE;
     $time = time();
     foreach ($legacy_page_ids as $name => $id) {
-        // ページIDのバリデーション（安全なファイル名とするため、英数字、ハイフン、アンダースコアのみ許容）
-        if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $id)) {
+        // ページIDのバリデーション（数値のみで1以上であることを確認）
+        if (!preg_match('/^[1-9][0-9]*$/', $id)) {
             continue;
         }
         
