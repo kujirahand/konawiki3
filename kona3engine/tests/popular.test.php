@@ -13,15 +13,17 @@ test_assert(__LINE__, $id1 > 0 && $id2 > 0, "Page IDs created successfully");
 
 // 2. カウンターを登録
 $time = time();
-subdb_exec("INSERT OR REPLACE INTO counter (page_id, value, mtime) VALUES (?, ?, ?)", [$id1, 100, $time]);
-subdb_exec("INSERT OR REPLACE INTO counter (page_id, value, mtime) VALUES (?, ?, ?)", [$id2, 200, $time]);
+$count1 = 1000000100;
+$count2 = 1000000200;
+subdb_exec("INSERT OR REPLACE INTO counter (page_id, value, mtime) VALUES (?, ?, ?)", [$id1, $count1, $time]);
+subdb_exec("INSERT OR REPLACE INTO counter (page_id, value, mtime) VALUES (?, ?, ?)", [$id2, $count2, $time]);
 
 // 3. popularプラグインの実行
 $html = kona3plugins_popular_execute([2]); // limit = 2
 test_assert(__LINE__, strpos($html, $page1) !== FALSE, "Page 1 should be in popular list");
 test_assert(__LINE__, strpos($html, $page2) !== FALSE, "Page 2 should be in popular list");
-test_assert(__LINE__, strpos($html, '(100)') !== FALSE, "Page 1 count should be displayed");
-test_assert(__LINE__, strpos($html, '(200)') !== FALSE, "Page 2 count should be displayed");
+test_assert(__LINE__, strpos($html, "({$count1})") !== FALSE, "Page 1 count should be displayed");
+test_assert(__LINE__, strpos($html, "({$count2})") !== FALSE, "Page 2 count should be displayed");
 
 // 4. レガシーJSON.bakを元にした復元テスト
 // pagesテーブルから page2 のデータを一時的に消す
@@ -55,7 +57,7 @@ kona3db_loadLegacyPageIds(TRUE);
 // 自動的に pages テーブルにインサートしてページ名を解決するはず。
 $html2 = kona3plugins_popular_execute([2]);
 test_assert(__LINE__, strpos($html2, $page2) !== FALSE, "Page 2 should be resolved from legacy .json.bak and shown in popular list");
-test_assert(__LINE__, strpos($html2, '(200)') !== FALSE, "Page 2 count should still be shown");
+test_assert(__LINE__, strpos($html2, "({$count2})") !== FALSE, "Page 2 count should still be shown");
 
 // pages テーブルに復元されていることを検証
 $resolved_name = db_get1("SELECT name FROM pages WHERE page_id=?", [$id2]);
