@@ -26,6 +26,17 @@ function kona3index_main()
     $kona3conf_notExists = kona3index_loadConf();
     kona3conf_init();
 
+    // Ensure sw.js is copied to the index directory for Service Worker
+    if (defined('KONA3_DIR_INDEX')) {
+        $dest_sw = KONA3_DIR_INDEX . '/sw.js';
+        $src_sw = dirname(KONA3_DIR_ENGINE) . '/sw.js';
+        if (file_exists($src_sw)) {
+            if (!file_exists($dest_sw) || (filemtime($src_sw) > filemtime($dest_sw))) {
+                @copy($src_sw, $dest_sw);
+            }
+        }
+    }
+
     // Register default hooks
     require_once __DIR__ . '/kona3page_updated.inc.php';
 

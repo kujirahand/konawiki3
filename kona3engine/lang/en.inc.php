@@ -57,4 +57,10 @@ $lang_data = [
     'Login Required' => 'Login Required',
     'You must login to view counter history.' => 'You must login to view counter history.',
     'Counter table not found.' => 'Counter table not found.',
+    'Offline Cache' => 'Offline Cache',
+    'Clear Cache' => 'Clear Cache',
+    'Offline Cache Enabled' => 'Offline Cache Enabled',
+    'Offline Cache Disabled' => 'Offline Cache Disabled',
+    'Cache Cleared' => 'Cache Cleared',
+    'Showing offline cache: saved at %s' => '(Showing offline cache: saved at %s)',
 ];

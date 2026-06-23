@@ -155,4 +155,10 @@ $lang_data = [
     'Login Required' => 'ログインが必要です',
     'You must login to view counter history.' => 'カウンター履歴を表示するにはログインする必要があります。',
     'Counter table not found.' => 'カウンターテーブルが見つかりません。',
+    'Offline Cache' => '📴 オフラインキャッシュ',
+    'Clear Cache' => '🗑 キャッシュクリア',
+    'Offline Cache Enabled' => 'オフラインキャッシュを有効にしました',
+    'Offline Cache Disabled' => 'オフラインキャッシュを無効にしました',
+    'Cache Cleared' => 'キャッシュをクリアしました',
+    'Showing offline cache: saved at %s' => '（オフラインのためキャッシュを表示中: %s に保存）',
 ];

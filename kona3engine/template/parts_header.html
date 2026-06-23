@@ -25,6 +25,16 @@
 </head>
 <body>
 <script>
+  window.KONA3_LANG = {
+    offline_cache: "{{e: echo lang('Offline Cache') }}",
+    clear_cache: "{{e: echo lang('Clear Cache') }}",
+    cache_cleared: "{{e: echo lang('Cache Cleared') }}",
+    offline_cache_enabled: "{{e: echo lang('Offline Cache Enabled') }}",
+    offline_cache_disabled: "{{e: echo lang('Offline Cache Disabled') }}",
+    showing_offline_cache: "{{e: echo lang('Showing offline cache: saved at %s') }}",
+    enabled: "ON",
+    disabled: "OFF"
+  };
   (function() {
     try {
       // 印刷モード以外の場合にのみダークモードを適用する
@@ -101,6 +111,9 @@
         <li><a href="#" id="line_height_minus">{{e: echo lang('Decrease Line Height') }}</a></li>
         <li class="menu-separator" aria-hidden="true" role="separator"></li>
         <li><a href="#" id="text_style_reset">{{e: echo lang('Reset Font & Line Height') }}</a></li>
+        <li class="menu-separator" aria-hidden="true" role="separator"></li>
+        <li><a href="#" id="offline_cache_toggle">{{e: echo lang('Offline Cache') }}</a></li>
+        <li><a href="#" id="offline_cache_clear">{{e: echo lang('Clear Cache') }}</a></li>
       </ul>
       {{ e:echo kona3getWikiPage('GlobalBar', '') }}
     </nav>
