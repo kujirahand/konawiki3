@@ -2,140 +2,76 @@
 
 Konawiki3 is a simple Wiki designed specifically for writing manuscripts, creating manuals, and sharing information.
 
-- Konawiki3 is Wiki clone.
+- Konawiki3 is a Wiki clone.
 - [URL] http://kujirahand.com/konawiki3/
-- [日本語のREADME](README-ja.md)
+- [Japanese README](README-ja.md)
+
+![Konawiki3's logo](https://raw.githubusercontent.com/kujirahand/konawiki3/refs/heads/master/kona3engine/resource/konawiki3-logo.png)
 
 ## Goals of Konawiki3
 
-The data in the Wiki is **just plain text** files, which allows for detailed differences to be tracked in conjunction with Git.
-You can use Konawiki3 instead of a text editor. Let's accomplish great tasks using the small and simple Konawiki.
+The data in the Wiki is stored as **plain text** files, so you can track detailed changes with Git.
+You can use Konawiki3 as an alternative to a text editor.
+Manage your documents with the small and simple Konawiki!
+The main developer has used Konawiki to write dozens of technical books.
 
-Additionally, through the configuration options, it is possible to save in `Markdown` as well as `KonaNotation`. You can use your preferred notation for markup.
+You can choose either `Markdown` or Konawiki's original markup language, [KonaNotation](docs/kona_notation.md), in the configuration and use whichever markup style you prefer.
+Konawiki3 also includes a [plugin system](kona3engine/plugins/README.md), making it easy to extend its functionality.
 
 ## Text-based Wiki
 
-You can write pages in plain text files that support both `KonaNotation` and `Markdown`. This allows you to easily track changes using Git and manage your content efficiently.
+Pages can be written as plain text files that support both `KonaNotation` and `Markdown`.
+This makes it easy to track changes with Git and manage content efficiently.
 
-And you can switch easily between `KonaNotation` and `Markdown` for your pages. This flexibility allows you to choose the markup language that best suits your needs and preferences. In addition to configuration settings, you can also switch by file extension. Files named `plain.txt` are treated as `KonaNotation`, and `plain.md` files are treated as Markdown automatically.
+You can also switch each page between `KonaNotation` and `Markdown`.
+This flexibility lets you choose the markup language that best fits your needs and preferences.
+In addition to changing the setting, you can switch markup modes by file extension.
 
-### KonaNotation example (*.txt)
+A file named `plain.txt` is automatically treated as `KonaNotation`, while a file named `plain.md` is automatically processed as `Markdown`.
 
-Konawiki notation is a simple markup language. Here are some examples:
+## Configuration Through the Admin Page
 
-```text
-* header
+Konawiki3 lets you configure many settings through the admin page. You do not need to edit the configuration file directly.
+These settings include site appearance, user management, and plugin enablement.
+After logging in as an administrator, open the configuration page to customize how the site works.
 
-text text text text
+## AI Writing Assistance
 
-** header2
+Konawiki3 includes AI writing assistance features. These include text summarization, proofreading, sentence rephrasing, and automatic continuation of writing.
+You can access the AI assistance features by obtaining a [ChatGPT API key](https://platform.openai.com/api-keys) and setting it in Konawiki.
 
-table:
+## Tag System for Page Organization
 
-| table | test
-| aaa | bbb
+Konawiki3 includes a file-based tag system. Add `#tag(TagName)` to a page to organize pages by category.
+Use tags to classify pages, and use `#tags(TagName)` to display a list of pages with a specific tag.
 
-list:
+For details, see the [Tag System documentation](docs/TAG_SYSTEM.md).
 
-- item1
-- item2
-- item3
+## How to Install Konawiki3
 
-code:
+You can easily install Konawiki3 if you have a web server that can run PHP.
 
-{{{#code
-console.log('hello');
-}}}
+### Installing with Git
 
-
-plugins:
-
-#comment
-```
-
-### Japanese Wiki Notation in KonaNotation (*.txt)
-
-We also support Japanese-specific notation.
-
-```text
-■Large Heading
-
-Text Text Text Text
-
-●Medium Heading
-
-Text Text Text Text
-
-▲Small Heading
-
-Text Text Text Text
-
-List
-
-・item1
-・item2
-・item3
-```
-
-### Markdown example (*.md)
-
-Markdown is a widely used markup language. Here are some examples:
-
-````markdown
-# header
-
-text text text text
-
-## header2
-
-table:
-
-| table | test |
-| --- | --- |
-| aaa | bbb |
-
-list:
-
-- item1
-- item2
-
-```js
-console.log('hello');
-```
-
-plugins:
-
-!!comment
-````
-
-### AI Writing Assistance Features
-
-We are implementing AI writing assistance features. These include summarizing texts, proofreading, rephrasing sentences, and automatically continuing writing, among others.
-By obtaining a [ChatGPT API key](https://platform.openai.com/api-keys) and specifying it in the Konawiki settings, users can access AI support functions.
-
-### Tag System for Page Organization
-
-A file-based tag system is built in. By adding `#tag(TagName)` to a page, you can organize pages by category.
-Use tags to classify pages, and display a list of pages with a specific tag using `#tags(TagName)`.
-
-For more details, see the [Tag System Documentation](docs/TAG_SYSTEM.md).
-
-## How to install Konawiki3
-
-### Use Git command
-
-1. Install WebServer and PHP
-2. Clone repository
+1. Install a web server and PHP.
+2. Run the following commands to clone the repository and change permissions.
+3. Open `index.php` in your browser, create an administrator user, and configure the site.
 
 ```sh
+# clone the repository
 git clone https://github.com/kujirahand/konawiki3.git
+# chmod the data, cache, and private directories
+chmod 766 data
+chmod 766 cache
+chmod 766 private
 ```
 
-### Use Uploader to Hosting server
+### Installing on a Hosting Server with an Uploader
 
-1. Download Konawiki3 zip file from [releases](https://github.com/kujirahand/konawiki3/releases)
-2. Unzip
-3. Change permissions
+1. Download the Konawiki3 zip file from [releases](https://github.com/kujirahand/konawiki3/releases).
+2. Unzip it.
+3. Run the following commands to change permissions.
+4. Open `index.php` in your browser, create an administrator user, and configure the site.
 
 ```sh
 chmod 766 data
@@ -143,26 +79,27 @@ chmod 766 cache
 chmod 766 private
 ```
 
-For more details, see also [installation guide](https://kujirahand.com/konawiki3/index.php?install).
+For details, see the [installation guide](https://kujirahand.com/konawiki3/index.php?install).
 
-### Use Docker (Local Environment)
+### Using Docker (Local Environment)
 
-Run the following command in your terminal to start. This runs Konawiki3 using PHP's built-in local server.
+Run the following command in your terminal to start Konawiki3. This runs Konawiki3 using PHP's built-in local server.
 
 ```sh
 docker-compose up
 ```
 
-## Install Library (Option)
+## Installing Libraries (Optional)
 
-When you want to use the Git save feature, install it using composer.
+If you want to use features such as Git saving or simple PDF generation, install the libraries with Composer.
 
 ```sh
 cd kona3engine
 composer install
 ```
 
-* Note: Depending on your hosting server, Git operations from PHP scripts may be restricted. In that case, commit via SSH or set up a cron job to commit regularly as follows:
+Depending on your hosting server, Git operations from PHP scripts may be restricted.
+In that case, commit via SSH or use cron to commit regularly as follows:
 
 ```sh
 cd konawiki_path
@@ -172,38 +109,40 @@ git commit -a
 git push
 ```
 
-## Output PDF (Option)
+## Accessing the Configuration Page
 
-1. Access the config page, and set PDF-output to TRUE.
-2. If mojibake (character corruption) occurs, place your font files (`.ttf`) in `./vendor/fonts`. - [PDF output manual](https://kujirahand.com/konawiki3/index.php?PDF%E5%87%BA%E5%8A%9B%E6%A9%9F%E8%83%BD)
-
-## Git support (Option)
-
-You can commit and push wiki diffs to your git repository.
-
-```sh
-# set your remote repository in `/data` dir
-cd data
-git remote add origin git@github.com:hoge/fuga.git
-```
-
-And set `git_enabled` to `true` in the configuration.
-
-## Config page
-
-First login by Admin User, and access config page.
+First, log in as an administrator and open the configuration page.
 
 ```text
 [URI] index.php?go&editConf
 ```
 
-## Plugin list
+## Plugin List
+
+Open the plugin list page in your Konawiki3 installation.
 
 ```text
 [URI] index.php?FrontPage&plugin&name=pluginlist
 ```
 
-## For Development
+## PDF Output (Optional)
 
-We use the `just` task runner.
+1. Open the configuration page and set PDF output to TRUE.
+2. If mojibake (garbled characters) occurs, place font files (`.ttf`) in `./vendor/fonts`. - [PDF output manual](https://kujirahand.com/konawiki3/index.php?PDF%E5%87%BA%E5%8A%9B%E6%A9%9F%E8%83%BD)
+
+## Git Support (Optional)
+
+You can commit Wiki diffs and push them to a Git repository.
+
+```sh
+# set a remote repository in the data directory
+cd data
+git remote add origin git@github.com:hoge/fuga.git
+```
+
+Then set `git_enabled` to `true` in the configuration.
+
+## For Developers
+
+Konawiki3 uses the `just` task runner.
 To run tests, execute `just test`.
