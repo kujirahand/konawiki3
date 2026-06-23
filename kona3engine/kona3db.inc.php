@@ -14,17 +14,19 @@ function kona3db_getPageId($page, $canCreate = FALSE)
     $legacy_page_ids = kona3db_loadLegacyPageIds();
     if (isset($legacy_page_ids[$page])) {
         $legacy_page_id = intval($legacy_page_ids[$page]);
-        $time = time();
-        db_exec(
-            "INSERT OR IGNORE INTO pages (page_id, name, ctime, mtime) VALUES (?, ?, ?, ?)",
-            [$legacy_page_id, $page, $time, 0]
-        );
-        $r = db_get1(
-            "SELECT page_id FROM pages WHERE name=?",
-            [$page]
-        );
-        if ($r && isset($r['page_id'])) {
-            return intval($r['page_id']);
+        if ($legacy_page_id > 0) {
+            $time = time();
+            db_exec(
+                "INSERT OR IGNORE INTO pages (page_id, name, ctime, mtime) VALUES (?, ?, ?, ?)",
+                [$legacy_page_id, $page, $time, 0]
+            );
+            $r = db_get1(
+                "SELECT page_id FROM pages WHERE name=?",
+                [$page]
+            );
+            if ($r && isset($r['page_id'])) {
+                return intval($r['page_id']);
+            }
         }
     }
     if (!$canCreate) {
@@ -61,27 +63,36 @@ function kona3db_getPageNameById($page_id, $default = '')
         if (intval($id) !== intval($page_id)) {
             continue;
         }
-        $time = time();
-        db_exec(
-            "INSERT OR IGNORE INTO pages (page_id, name, ctime, mtime) VALUES (?, ?, ?, ?)",
-            [intval($page_id), $name, $time, 0]
-        );
-        return $name;
+        if (intval($page_id) > 0) {
+            $time = time();
+            db_exec(
+                "INSERT OR IGNORE INTO pages (page_id, name, ctime, mtime) VALUES (?, ?, ?, ?)",
+                [intval($page_id), $name, $time, 0]
+            );
+            return $name;
+        }
     }
     return $default;
 }
 
-function kona3db_loadLegacyPageIds()
+function kona3db_loadLegacyPageIds($force = FALSE)
 {
     static $legacy_page_ids = NULL;
+    if ($force) {
+        $legacy_page_ids = NULL;
+    }
     if ($legacy_page_ids !== NULL) {
         return $legacy_page_ids;
     }
     $legacy_page_ids = [];
-    if (!file_exists(KONA3_PAGE_ID_JSON)) {
+    $path = KONA3_PAGE_ID_JSON;
+    if (!file_exists($path)) {
+        $path = KONA3_PAGE_ID_JSON . '.bak';
+    }
+    if (!file_exists($path)) {
         return $legacy_page_ids;
     }
-    $jsonData = kona3lock_load(KONA3_PAGE_ID_JSON);
+    $jsonData = kona3lock_load($path);
     $legacy_page_ids = kona3db_decodeLegacyPageIds($jsonData);
     return $legacy_page_ids;
 }
