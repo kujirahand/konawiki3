@@ -32,7 +32,10 @@ function kona3index_main()
         $src_sw = dirname(KONA3_DIR_ENGINE) . '/sw.js';
         if (file_exists($src_sw)) {
             if (!file_exists($dest_sw) || (filemtime($src_sw) > filemtime($dest_sw))) {
-                @copy($src_sw, $dest_sw);
+                $ok = @copy($src_sw, $dest_sw);
+                if (!$ok) {
+                    error_log("KonaWiki3 Error: Failed to copy sw.js to " . $dest_sw . ". Please check directory permissions.");
+                }
             }
         }
     }
