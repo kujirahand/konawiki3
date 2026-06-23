@@ -12,6 +12,11 @@ if (preg_match('/\/sw\.js(?:\?.*)?$/', $request_uri)) {
         header('Content-Type: application/javascript; charset=utf-8');
         readfile($sw_file);
         exit;
+    } else {
+        header("HTTP/1.1 404 Not Found");
+        header('Content-Type: text/plain; charset=utf-8');
+        echo "sw.js not found.";
+        exit;
     }
 }
 
