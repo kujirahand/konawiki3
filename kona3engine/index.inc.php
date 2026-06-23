@@ -26,15 +26,27 @@ function kona3index_main()
     $kona3conf_notExists = kona3index_loadConf();
     kona3conf_init();
 
-    // Ensure sw.js is copied to the index directory for Service Worker
+    // Ensure sw.js and favicon.ico are copied to the index directory
     if (defined('KONA3_DIR_INDEX')) {
+        // copy sw.js (overwrite if newer version exists)
         $dest_sw = KONA3_DIR_INDEX . '/sw.js';
-        $src_sw = dirname(KONA3_DIR_ENGINE) . '/sw.js';
+        $src_sw = KONA3_DIR_ENGINE . '/resource/sw.js';
         if (file_exists($src_sw)) {
             if (!file_exists($dest_sw) || (filemtime($src_sw) > filemtime($dest_sw))) {
                 $ok = @copy($src_sw, $dest_sw);
                 if (!$ok) {
                     error_log("KonaWiki3 Error: Failed to copy sw.js to " . $dest_sw . ". Please check directory permissions.");
+                }
+            }
+        }
+        // copy favicon.ico (only if not exists)
+        $dest_fav = KONA3_DIR_INDEX . '/favicon.ico';
+        $src_fav = KONA3_DIR_ENGINE . '/resource/favicon.ico';
+        if (file_exists($src_fav)) {
+            if (!file_exists($dest_fav)) {
+                $ok = @copy($src_fav, $dest_fav);
+                if (!$ok) {
+                    error_log("KonaWiki3 Error: Failed to copy favicon.ico to " . $dest_fav . ". Please check directory permissions.");
                 }
             }
         }
