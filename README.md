@@ -6,6 +6,8 @@ Konawiki3 is a simple Wiki designed specifically for writing manuscripts, creati
 - [URL] http://kujirahand.com/konawiki3/
 - [Japanese README](README-ja.md)
 
+![Konawiki3's logo](https://raw.githubusercontent.com/kujirahand/konawiki3/refs/heads/master/kona3engine/resource/konawiki3-logo.png)
+
 ## Goals of Konawiki3
 
 The data in the Wiki is stored as **plain text** files, so you can track detailed changes with Git.
