@@ -17,11 +17,11 @@ Plugins can be used within Markdown files using the following syntax:
 
 Or using code block syntax:
 
-```markdown
-\`\`\`#pluginname(arg1, arg2)
+````markdown
+```#pluginname(arg1, arg2)
 arg3
-\`\`\`
 ```
+````
 
 Or `:::` syntax:
 
