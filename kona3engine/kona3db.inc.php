@@ -71,17 +71,24 @@ function kona3db_getPageNameById($page_id, $default = '')
     return $default;
 }
 
-function kona3db_loadLegacyPageIds()
+function kona3db_loadLegacyPageIds($force = FALSE)
 {
     static $legacy_page_ids = NULL;
+    if ($force) {
+        $legacy_page_ids = NULL;
+    }
     if ($legacy_page_ids !== NULL) {
         return $legacy_page_ids;
     }
     $legacy_page_ids = [];
-    if (!file_exists(KONA3_PAGE_ID_JSON)) {
+    $path = KONA3_PAGE_ID_JSON;
+    if (!file_exists($path)) {
+        $path = KONA3_PAGE_ID_JSON . '.bak';
+    }
+    if (!file_exists($path)) {
         return $legacy_page_ids;
     }
-    $jsonData = kona3lock_load(KONA3_PAGE_ID_JSON);
+    $jsonData = kona3lock_load($path);
     $legacy_page_ids = kona3db_decodeLegacyPageIds($jsonData);
     return $legacy_page_ids;
 }

@@ -52,6 +52,11 @@ try {
     test_eq(__LINE__, $content2, "!!alias(TestMigrationPage2)", "Alias file 2 contents match");
     test_eq(__LINE__, $content3, "!!alias(hoge/実行権限)", "Alias file 3 contents match with Japanese page and slashes");
 
+    // 4.5. Verify db mapping
+    test_eq(__LINE__, kona3db_getPageNameById(99991), "TestMigrationPage1", "Database page name for 99991 is restored");
+    test_eq(__LINE__, kona3db_getPageNameById(99992), "TestMigrationPage2", "Database page name for 99992 is restored");
+    test_eq(__LINE__, kona3db_getPageNameById(99993), "hoge/実行権限", "Database page name for 99993 is restored");
+
     // 5. Verify JSON is renamed to JSON.bak
     test_assert(__LINE__, !file_exists($json_path), "Original JSON should be removed");
     test_assert(__LINE__, file_exists($bak_path), "Original JSON should be renamed to JSON.bak");
@@ -71,6 +76,9 @@ try {
     test_eq(__LINE__, $content1_rerun, "Existing content - do not overwrite", "Existing file should not be overwritten");
 
 } finally {
+    // DB cleanup
+    db_exec("DELETE FROM pages WHERE page_id IN (99991, 99992, 99993)");
+
     // Cleanup generated files
     if (file_exists($file1)) { unlink($file1); }
     if (file_exists($file2)) { unlink($file2); }

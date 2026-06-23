@@ -82,17 +82,23 @@ function kona3_action_versionup() {
  */
 function kona3_ver33to34() {
     $json_path = KONA3_PAGE_ID_JSON;
-    if (!file_exists($json_path)) {
+    $bak_path = $json_path . '.bak';
+    $path = $json_path;
+    if (!file_exists($path)) {
+        $path = $bak_path;
+    }
+    if (!file_exists($path)) {
         return FALSE;
     }
     
-    $jsonData = kona3lock_load($json_path);
+    $jsonData = kona3lock_load($path);
     $legacy_page_ids = json_decode($jsonData, TRUE);
     if (!is_array($legacy_page_ids) || empty($legacy_page_ids)) {
         return FALSE;
     }
     
     $created = FALSE;
+    $time = time();
     foreach ($legacy_page_ids as $name => $id) {
         // ページIDのバリデーション（安全なファイル名とするため、英数字、ハイフン、アンダースコアのみ許容）
         if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $id)) {
@@ -101,24 +107,33 @@ function kona3_ver33to34() {
         
         $filepath = KONA3_DIR_DATA . "/{$id}.md";
         // 既存のファイルがあるときは、上書きしない
-        if (file_exists($filepath)) {
-            continue;
+        if (!file_exists($filepath)) {
+            // エイリアスファイルを作成
+            $content = "!!alias({$name})";
+            if (kona3lock_save($filepath, $content)) {
+                $created = TRUE;
+            }
         }
         
-        // エイリアスファイルを作成
-        $content = "!!alias({$name})";
-        if (kona3lock_save($filepath, $content)) {
+        // 復元処理
+        $r = db_get1("SELECT page_id FROM pages WHERE page_id=?", [intval($id)]);
+        if (!$r) {
+            db_exec(
+                "INSERT OR IGNORE INTO pages (page_id, name, ctime, mtime) VALUES (?, ?, ?, ?)",
+                [intval($id), $name, $time, 0]
+            );
             $created = TRUE;
         }
     }
     
     // 最後に、.json を .json.bak にリネーム
-    $bak_path = $json_path . '.bak';
-    if (@rename($json_path, $bak_path) === FALSE) {
-        if (@copy($json_path, $bak_path) === FALSE) {
-            return FALSE;
+    if (file_exists($json_path)) {
+        if (@rename($json_path, $bak_path) === FALSE) {
+            if (@copy($json_path, $bak_path) === FALSE) {
+                return FALSE;
+            }
+            @unlink($json_path);
         }
-        @unlink($json_path);
     }
     
     return $created;

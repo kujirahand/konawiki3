@@ -18,7 +18,7 @@ function kona3plugins_popular_execute($args)
     }
 
     // can i use popular?
-    if (!db_table_exists("counter")) {
+    if (!db_table_exists("counter", "subdb")) {
         return "<h3>" . lang('Popular') . "</h3><p>---</p>";
     }
 
