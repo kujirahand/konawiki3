@@ -4,6 +4,22 @@
 // ----------------------------------------------------
 define('KONA3_DIR_INDEX', __DIR__);
 
+// Serve sw.js correctly even if rewrites/routers redirect the request to index.php
+$request_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+if (preg_match('/\/sw\.js(?:\?.*)?$/', $request_uri)) {
+    $sw_file = __DIR__ . '/sw.js';
+    if (file_exists($sw_file)) {
+        header('Content-Type: application/javascript; charset=utf-8');
+        readfile($sw_file);
+        exit;
+    } else {
+        header("HTTP/1.1 404 Not Found");
+        header('Content-Type: text/plain; charset=utf-8');
+        echo "sw.js not found.";
+        exit;
+    }
+}
+
 // Read Directories info
 $file_kona3dir_def = __DIR__ . '/kona3dir.def.php';
 if (file_exists($file_kona3dir_def)) {

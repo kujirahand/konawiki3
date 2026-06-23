@@ -203,5 +203,215 @@ qq(function(){
       updateTextStyle();
     });
   }
+
+  // --- オフラインキャッシュの制御 ---
+  const DB_NAME = 'kona3_offline_db';
+  const DB_VERSION = 1;
+
+  function openDB(callback) {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = function(e) {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('settings')) {
+        db.createObjectStore('settings', { keyPath: 'key' });
+      }
+      if (!db.objectStoreNames.contains('pages')) {
+        db.createObjectStore('pages', { keyPath: 'url' });
+      }
+    };
+    request.onsuccess = function(e) {
+      callback(e.target.result);
+    };
+    request.onerror = function(e) {
+      console.warn('Database error: ', e.target.error);
+    };
+  }
+
+  function getOfflineCacheSetting(callback) {
+    openDB(function(db) {
+      const tx = db.transaction('settings', 'readonly');
+      const store = tx.objectStore('settings');
+      const req = store.get('offline_cache');
+      req.onsuccess = function() {
+        const res = req.result;
+        callback(res ? res.value : false);
+      };
+      req.onerror = function() {
+        callback(false);
+      };
+    });
+  }
+
+  function setOfflineCacheSetting(value, callback) {
+    openDB(function(db) {
+      const tx = db.transaction('settings', 'readwrite');
+      const store = tx.objectStore('settings');
+      store.put({ key: 'offline_cache', value: value });
+      tx.oncomplete = function() {
+        if (callback) callback();
+      };
+    });
+  }
+
+  function clearOfflineCache(callback) {
+    openDB(function(db) {
+      const tx = db.transaction('pages', 'readwrite');
+      const store = tx.objectStore('pages');
+      const req = store.clear();
+      req.onsuccess = function() {
+        if (window.caches) {
+          window.caches.delete('kona3-assets-v1').then(function() {
+            if (callback) callback();
+          }).catch(function() {
+            if (callback) callback();
+          });
+        } else {
+          if (callback) callback();
+        }
+      };
+    });
+  }
+
+  const cacheToggle = qq('#offline_cache_toggle');
+  const cacheClear = qq('#offline_cache_clear');
+
+  const KONA3_LANG = window.KONA3_LANG || {
+    offline_cache: "Offline Cache",
+    clear_cache: "Clear Cache",
+    cache_cleared: "Cache cleared",
+    offline_cache_enabled: "Offline Cache Enabled",
+    offline_cache_disabled: "Offline Cache Disabled",
+    enabled: "ON",
+    disabled: "OFF"
+  };
+
+  function updateToggleUI(enabled) {
+    if (cacheToggle) {
+      const statusText = enabled ? KONA3_LANG.enabled : KONA3_LANG.disabled;
+      cacheToggle.text(KONA3_LANG.offline_cache + ': ' + statusText);
+      cacheToggle.attr('aria-pressed', enabled ? 'true' : 'false');
+    }
+  }
+
+  if (cacheToggle) {
+    getOfflineCacheSetting(function(enabled) {
+      updateToggleUI(enabled);
+    });
+
+    cacheToggle.click(function(e) {
+      if (e) { e.preventDefault(); }
+      getOfflineCacheSetting(function(enabled) {
+        const nextState = !enabled;
+        setOfflineCacheSetting(nextState, function() {
+          updateToggleUI(nextState);
+          if (nextState) {
+            alert(KONA3_LANG.offline_cache_enabled);
+            saveCurrentPage();
+          } else {
+            alert(KONA3_LANG.offline_cache_disabled);
+          }
+        });
+      });
+    });
+  }
+
+  if (cacheClear) {
+    cacheClear.click(function(e) {
+      if (e) { e.preventDefault(); }
+      if (confirm(KONA3_LANG.clear_cache + '?')) {
+        clearOfflineCache(function() {
+          alert(KONA3_LANG.cache_cleared);
+        });
+      }
+    });
+  }
+
+  function isCacheablePage() {
+    const params = new URLSearchParams(location.search);
+    // KonaWiki3 uses positional params: ?Page&action&status (action may not be action=...)
+    const emptyKeys = [];
+    for (const [k, v] of params.entries()) {
+      if (v === '') { emptyKeys.push(k); }
+    }
+    const action = params.get('action') || emptyKeys[1] || 'show';
+    if (action !== 'show' && action !== 'print') {
+      return false;
+    }
+    if (document.querySelector('.kona3_error')) {
+      return false;
+    }
+    return true;
+  }
+
+  function saveCurrentPage() {
+    if (!isCacheablePage()) return;
+    if (navigator.onLine === false) return; // Do not save cache when offline
+    
+    getOfflineCacheSetting(function(enabled) {
+      if (!enabled) return;
+      
+      const mainEl = document.getElementById('kona3_main');
+      if (!mainEl) return;
+      
+      const url = location.pathname + location.search;
+      
+      // Clone the document to safely manipulate DOM and generate shell HTML
+      const docClone = document.documentElement.cloneNode(true);
+      
+      // 1. Remove the offline banner if it exists in the clone to avoid duplication
+      const cloneBanner = docClone.querySelector('.kona3_offline_banner');
+      if (cloneBanner) {
+        cloneBanner.remove();
+      }
+      
+      // 2. Extract contentHtml from main container (without banner if it exists in mainEl)
+      let contentHtml = mainEl.innerHTML;
+      const banner = document.querySelector('.kona3_offline_banner');
+      if (banner) {
+        const tempMain = mainEl.cloneNode(true);
+        const tempBanner = tempMain.querySelector('.kona3_offline_banner');
+        if (tempBanner) {
+          tempBanner.remove();
+        }
+        contentHtml = tempMain.innerHTML;
+      }
+      
+      // 3. Set the placeholder in the clone's main container to generate shellHtml
+      const cloneMain = docClone.querySelector('#kona3_main');
+      if (cloneMain) {
+        cloneMain.innerHTML = '<!-- KONA3_CONTENT -->';
+      }
+      const shellHtml = docClone.outerHTML;
+      
+      const timestamp = Date.now();
+      const lang = document.documentElement.lang || 'en';
+      const msg_tpl = (window.KONA3_LANG && window.KONA3_LANG.showing_offline_cache) || '';
+      
+      openDB(function(db) {
+        const tx = db.transaction(['pages', 'settings'], 'readwrite');
+        tx.objectStore('pages').put({
+          url: url,
+          html: contentHtml,
+          timestamp: timestamp,
+          lang: lang,
+          msg_tpl: msg_tpl
+        });
+        tx.objectStore('settings').put({
+          key: 'shell_html',
+          value: shellHtml
+        });
+      });
+    });
+  }
+
+  saveCurrentPage();
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').then(function(reg) {
+      // success
+    }).catch(function(err) {
+      console.warn('ServiceWorker registration failed: ', err);
+    });
+  }
   
 });
