@@ -328,8 +328,13 @@ qq(function(){
 
   function isCacheablePage() {
     const params = new URLSearchParams(location.search);
-    const action = params.get('action');
-    if (action && action !== 'show' && action !== 'print') {
+    // KonaWiki3 uses positional params: ?Page&action&status (action may not be action=...)
+    const emptyKeys = [];
+    for (const [k, v] of params.entries()) {
+      if (v === '') { emptyKeys.push(k); }
+    }
+    const action = params.get('action') || emptyKeys[1] || 'show';
+    if (action !== 'show' && action !== 'print') {
       return false;
     }
     if (document.querySelector('.kona3_error')) {
