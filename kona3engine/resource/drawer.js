@@ -354,29 +354,38 @@ qq(function(){
       if (!mainEl) return;
       
       const url = location.pathname + location.search;
-      let contentHtml = mainEl.innerHTML;
-      let fullHtml = document.documentElement.outerHTML;
       
-      // If offline banner exists, clean it up from HTML content to prevent duplicate banners
-      const banner = document.querySelector('.kona3_offline_banner');
-      if (banner) {
-        const docClone = document.documentElement.cloneNode(true);
-        const cloneBanner = docClone.querySelector('.kona3_offline_banner');
-        if (cloneBanner) {
-          cloneBanner.remove();
-        }
-        const cloneMain = docClone.querySelector('#kona3_main');
-        if (cloneMain) {
-          contentHtml = cloneMain.innerHTML;
-        }
-        fullHtml = docClone.outerHTML;
+      // Clone the document to safely manipulate DOM and generate shell HTML
+      const docClone = document.documentElement.cloneNode(true);
+      
+      // 1. Remove the offline banner if it exists in the clone to avoid duplication
+      const cloneBanner = docClone.querySelector('.kona3_offline_banner');
+      if (cloneBanner) {
+        cloneBanner.remove();
       }
       
-      // Replace main container content with a placeholder
-      const shellHtml = fullHtml.replace(contentHtml, '<!-- KONA3_CONTENT -->');
+      // 2. Extract contentHtml from main container (without banner if it exists in mainEl)
+      let contentHtml = mainEl.innerHTML;
+      const banner = document.querySelector('.kona3_offline_banner');
+      if (banner) {
+        const tempMain = mainEl.cloneNode(true);
+        const tempBanner = tempMain.querySelector('.kona3_offline_banner');
+        if (tempBanner) {
+          tempBanner.remove();
+        }
+        contentHtml = tempMain.innerHTML;
+      }
+      
+      // 3. Set the placeholder in the clone's main container to generate shellHtml
+      const cloneMain = docClone.querySelector('#kona3_main');
+      if (cloneMain) {
+        cloneMain.innerHTML = '<!-- KONA3_CONTENT -->';
+      }
+      const shellHtml = docClone.outerHTML;
       
       const timestamp = Date.now();
       const lang = document.documentElement.lang || 'en';
+      const msg_tpl = (window.KONA3_LANG && window.KONA3_LANG.showing_offline_cache) || '';
       
       openDB(function(db) {
         const tx = db.transaction(['pages', 'settings'], 'readwrite');
@@ -384,7 +393,8 @@ qq(function(){
           url: url,
           html: contentHtml,
           timestamp: timestamp,
-          lang: lang
+          lang: lang,
+          msg_tpl: msg_tpl
         });
         tx.objectStore('settings').put({
           key: 'shell_html',

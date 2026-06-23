@@ -103,7 +103,7 @@ self.addEventListener('fetch', function(event) {
           ]).then(([cache, shellHtml]) => {
             if (cache && shellHtml) {
               const lang = cache.lang || 'en';
-              let msg = OFFLINE_MSG[lang] || OFFLINE_MSG['en'];
+              let msg = cache.msg_tpl || OFFLINE_MSG[lang] || OFFLINE_MSG['en'];
               msg = msg.replace('%s', formatTimestamp(cache.timestamp));
               
               // Injects the warning banner immediately after the main container or body start
@@ -140,13 +140,16 @@ self.addEventListener('fetch', function(event) {
     return;
   }
 
-  // Assets (CSS, JS, images, fonts)
-  const isAsset = (request.method === 'GET') && (urlObj.origin === self.location.origin) && (
+  // Assets (CSS, JS, fonts. Images are NOT cached per issue #152)
+  const isImage = (request.destination === 'image') || 
+    /\.(png|jpg|jpeg|gif|svg|ico)(?:\?.*)?$/.test(urlObj.pathname) ||
+    /\.(png|jpg|jpeg|gif|svg|ico)(?:&|\?|$)/.test(urlObj.search);
+
+  const isAsset = (request.method === 'GET') && (urlObj.origin === self.location.origin) && !isImage && (
     request.destination === 'style' ||
     request.destination === 'script' ||
-    request.destination === 'image' ||
     request.destination === 'font' ||
-    /\.(css|js|png|jpg|jpeg|gif|svg|ico|woff2?)(?:\?.*)?$/.test(urlObj.pathname) ||
+    /\.(css|js|woff2?)(?:\?.*)?$/.test(urlObj.pathname) ||
     /(?:\?|&)(?:resource|skin)(?:&|$)/.test(urlObj.search)
   );
 

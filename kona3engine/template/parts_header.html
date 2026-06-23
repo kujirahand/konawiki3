@@ -26,12 +26,12 @@
 <body>
 <script>
   window.KONA3_LANG = {
-    offline_cache: "{{e: echo lang('Offline Cache') }}",
-    clear_cache: "{{e: echo lang('Clear Cache') }}",
-    cache_cleared: "{{e: echo lang('Cache Cleared') }}",
-    offline_cache_enabled: "{{e: echo lang('Offline Cache Enabled') }}",
-    offline_cache_disabled: "{{e: echo lang('Offline Cache Disabled') }}",
-    showing_offline_cache: "{{e: echo lang('Showing offline cache: saved at %s') }}",
+    offline_cache: {{e: echo json_encode(lang('Offline Cache'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }},
+    clear_cache: {{e: echo json_encode(lang('Clear Cache'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }},
+    cache_cleared: {{e: echo json_encode(lang('Cache Cleared'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }},
+    offline_cache_enabled: {{e: echo json_encode(lang('Offline Cache Enabled'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }},
+    offline_cache_disabled: {{e: echo json_encode(lang('Offline Cache Disabled'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }},
+    showing_offline_cache: {{e: echo json_encode(lang('Showing offline cache: saved at %s'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }},
     enabled: "ON",
     disabled: "OFF"
   };
