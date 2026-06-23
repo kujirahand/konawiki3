@@ -260,6 +260,21 @@ $page_id = kona3db_getPageId($page_name, $create = TRUE);
 - **XSS対策**: テンプレートエンジンで自動エスケープ
 - **CSRF対策**: フレーム保護ヘッダー (`X-Frame-Options: SAMEORIGIN`)
 
+### リソース自動コピーシステム
+
+KonaWiki3の実行に必要な静的アセットのうち、いくつかのファイルは初期化時に `kona3engine/resource/` からインデックスディレクトリ（`KONA3_DIR_INDEX`）へ自動的にコピーされます。
+
+- **`sw.js` (Service Worker 用スクリプト)**:
+  - コピー元: `kona3engine/resource/sw.js`
+  - コピー先: `KONA3_DIR_INDEX/sw.js`
+  - 挙動: コピー先が存在しない場合、またはコピー元のファイルの更新日時がコピー先より新しい場合に、自動的に上書きコピーされます。
+- **`favicon.ico` (ファビコン)**:
+  - コピー元: `kona3engine/resource/favicon.ico`
+  - コピー先: `KONA3_DIR_INDEX/favicon.ico`
+  - 挙動: コピー先が存在しない場合にのみコピーされます。既にファイルが存在する場合は上書きされません。
+
+これらのコピーされたアセットファイル（`sw.js`, `favicon.ico`）は、Gitリポジトリのルートレベルで `.gitignore` によって無視されるよう設定されています。マスターファイルを編集する場合は、`kona3engine/resource/` 配下のファイルを編集してコミットしてください。
+
 ## 開発タスク
 
 ### 新しいアクションの追加

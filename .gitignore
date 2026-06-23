@@ -6,3 +6,7 @@ data/
 .DS_Store
 composer.lock
 cache/*
+/sw.js
+/favicon.ico
+
+
