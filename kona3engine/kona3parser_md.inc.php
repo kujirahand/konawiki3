@@ -225,30 +225,81 @@ function kona3markdown_parser_render($tokens, $flag_isContents = TRUE)
             $html .= kona3markdown_parser_render_li($tokens, $index, $cmd);
         }
         else if ($cmd == "|") {
-            $html .= "<table class='grid'>".$eol;
+            // Collect all consecutive table rows
+            $table_rows = [];
             $index--; // back to this line
             while ($index < count($tokens)) {
                 $value = $tokens[$index];
                 $cmd  = $value["cmd"];
-                $text = rtrim($value["text"]);
                 if ($cmd != "|") break;
+                
+                $text = rtrim($value["text"]);
                 if (substr($text, strlen($text) - 1, 1) == "|") {
                     $text = substr($text, 0, strlen($text) - 1);
                 }
                 $cells = explode("|", $text);
-                if (count($cells)) {
-                    $c = trim($cells[0]);
-                    if (preg_match('#^\:?\-{3,}#', $c)) {
-                        $index++;
-                        continue;
+                $table_rows[] = $cells;
+                $index++;
+            }
+
+            // Check if the second row is a separator row
+            $is_separator = false;
+            $aligns = [];
+            if (count($table_rows) >= 2) {
+                $sep_row = $table_rows[1];
+                $is_separator = true;
+                foreach ($sep_row as $cell) {
+                    $trimmed = trim($cell);
+                    if (!preg_match('/^:?-+:?$/', $trimmed)) {
+                        $is_separator = false;
+                        break;
+                    }
+                    if (preg_match('/^:-+:$/', $trimmed)) {
+                        $aligns[] = 'center';
+                    } elseif (preg_match('/^-+:$/', $trimmed)) {
+                        $aligns[] = 'right';
+                    } else {
+                        $aligns[] = 'left';
                     }
                 }
-                $html .= "<tr>";
-                foreach ($cells as $i => $cell) {
-                    $html .= "<td>".kona3markdown_parser_tohtml($cell). "</td>";
+            }
+
+            // Render table HTML
+            $html .= "<table class='grid'>".$eol;
+            if ($is_separator) {
+                // Header row
+                $html .= "<thead><tr>";
+                $header_row = $table_rows[0];
+                foreach ($header_row as $i => $cell) {
+                    $align = isset($aligns[$i]) ? $aligns[$i] : null;
+                    $style = $align ? " style='text-align:$align;'" : "";
+                    $html .= "<th{$style}>" . kona3markdown_parser_tohtml(trim($cell)) . "</th>";
                 }
-                $html .= "</tr>".$eol;
-                $index++;
+                $html .= "</tr></thead>".$eol;
+
+                // Body rows (skip the separator row at index 1)
+                $html .= "<tbody>";
+                for ($row_idx = 2; $row_idx < count($table_rows); $row_idx++) {
+                    $html .= "<tr>";
+                    foreach ($table_rows[$row_idx] as $i => $cell) {
+                        $align = isset($aligns[$i]) ? $aligns[$i] : null;
+                        $style = $align ? " style='text-align:$align;'" : "";
+                        $html .= "<td{$style}>" . kona3markdown_parser_tohtml(trim($cell)) . "</td>";
+                    }
+                    $html .= "</tr>".$eol;
+                }
+                $html .= "</tbody>".$eol;
+            } else {
+                // Fallback for simple tables without separator row
+                $html .= "<tbody>";
+                foreach ($table_rows as $row) {
+                    $html .= "<tr>";
+                    foreach ($row as $cell) {
+                        $html .= "<td>" . kona3markdown_parser_tohtml(trim($cell)) . "</td>";
+                    }
+                    $html .= "</tr>".$eol;
+                }
+                $html .= "</tbody>".$eol;
             }
             $html .= "</table>".$eol;
         }

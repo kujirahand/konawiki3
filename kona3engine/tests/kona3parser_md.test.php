@@ -115,3 +115,22 @@ test_assert(__LINE__, strpos($html, '__bold__') !== false, "Disabled: __bold__ s
 
 // Restore config
 $kona3conf['md_underscore_emphasis'] = $orig_emphasis;
+
+// --- Table Support Tests ---
+// 1. Standard GFM Table with alignment
+$text = "| Header 1 | Header 2 | Header 3 |\n|:---|:---:|---:|\n| Cell 1 | Cell 2 | Cell 3 |";
+$html = kona3markdown_parser_convert($text, false);
+
+test_assert(__LINE__, strpos($html, '<table class=\'grid\'') !== false, "Table tag should be generated");
+test_assert(__LINE__, strpos($html, "<thead><tr><th style='text-align:left;'>Header 1</th><th style='text-align:center;'>Header 2</th><th style='text-align:right;'>Header 3</th></tr></thead>") !== false, "Header with style alignments should be generated");
+test_assert(__LINE__, strpos($html, "<td style='text-align:left;'>Cell 1</td>") !== false, "Cell 1 aligned left");
+test_assert(__LINE__, strpos($html, "<td style='text-align:center;'>Cell 2</td>") !== false, "Cell 2 aligned center");
+test_assert(__LINE__, strpos($html, "<td style='text-align:right;'>Cell 3</td>") !== false, "Cell 3 aligned right");
+
+// 2. Simple Table without separator
+$text = "| Cell 1 | Cell 2 |\n| Cell 3 | Cell 4 |";
+$html = kona3markdown_parser_convert($text, false);
+
+test_assert(__LINE__, strpos($html, '<thead>') === false, "Simple table should not have thead");
+test_assert(__LINE__, strpos($html, '<td>Cell 1</td>') !== false, "Simple cell 1");
+test_assert(__LINE__, strpos($html, '<td>Cell 4</td>') !== false, "Simple cell 4");
