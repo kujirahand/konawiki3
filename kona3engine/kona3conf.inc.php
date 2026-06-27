@@ -103,6 +103,9 @@ function kona3conf_getConfigItems()
             'max_search' => ['label' => 'Max Search', 'default' => 10, 'type' => 'number'],
             'max_search_level' => ['label' => 'Max Search Level', 'default' => 2, 'type' => 'number'],
         ],
+        'Markdown' => [
+            'md_underscore_emphasis' => ['label' => 'Markdown Underscore Emphasis', 'default' => FALSE, 'type' => 'bool'],
+        ],
         'Editor' => [
             'editor_shortcut_temp_save' => ['label' => 'ショートカットキー > 一時保存', 'default' => 'Ctrl+S', 'type' => 'string'],
             'editor_shortcut_new' => ['label' => 'ショートカットキー > 📖 新規', 'default' => 'Ctrl+Alt+N', 'type' => 'string'],

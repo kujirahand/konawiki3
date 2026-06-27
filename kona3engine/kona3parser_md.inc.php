@@ -515,7 +515,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
         if ($c1 == '`') {
             $text = mb_substr($text, 1);
             $s = kona3markdown_parser_token($text, "`");
-            $str = kona3markdown_parser_tohtml($s);
+            $str = htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
             $result .= "<span class='code'><code>$str</code></span>";
             continue;
         }
@@ -528,7 +528,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
             continue;
         }
         // strong2
-        if ($c2 == "__") {
+        if ($c2 == "__" && kona3markdown_param('md_underscore_emphasis', TRUE)) {
             $text = mb_substr($text, 2);
             $s = kona3markdown_parser_token($text, "__");
             $str = kona3markdown_parser_tohtml($s);
