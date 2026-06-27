@@ -134,3 +134,24 @@ $html = kona3markdown_parser_convert($text, false);
 test_assert(__LINE__, strpos($html, '<thead>') === false, "Simple table should not have thead");
 test_assert(__LINE__, strpos($html, '<td>Cell 1</td>') !== false, "Simple cell 1");
 test_assert(__LINE__, strpos($html, '<td>Cell 4</td>') !== false, "Simple cell 4");
+
+// 3. GFM table without leading/trailing pipes
+$text = "Header 1 | Header 2 | Header 3\n:--- | :---: | ---:\nCell 1 | Cell 2 | Cell 3";
+$html = kona3markdown_parser_convert($text, false);
+
+test_assert(__LINE__, strpos($html, "<thead><tr><th style='text-align:left;'>Header 1</th><th style='text-align:center;'>Header 2</th><th style='text-align:right;'>Header 3</th></tr></thead>") !== false, "GFM table without edge pipes should have a header");
+test_assert(__LINE__, strpos($html, "<td style='text-align:right;'>Cell 3</td>") !== false, "GFM table without edge pipes should keep alignment");
+
+// 4. Escaped pipe in table cell
+$text = "| Name | Character |\n| --- | --- |\n| Pipe | \\| |";
+$html = kona3markdown_parser_convert($text, false);
+
+test_assert(__LINE__, strpos($html, "<td style='text-align:left;'>|</td>") !== false, "Escaped pipe should remain in one cell");
+test_assert(__LINE__, strpos($html, "<td style='text-align:left;'></td><td") === false, "Escaped pipe should not create an extra cell");
+
+// 5. A normal paragraph containing a pipe is not a table
+$text = "This is A | B in a sentence.";
+$html = kona3markdown_parser_convert($text, false);
+
+test_assert(__LINE__, strpos($html, "<table") === false, "Plain text with a pipe should not become a table");
+test_assert(__LINE__, strpos($html, "This is A | B in a sentence.") !== false, "Plain text with a pipe should remain a paragraph");
