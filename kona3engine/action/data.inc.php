@@ -41,7 +41,7 @@ function kona3_action_data() {
   // data_dir_allow_pattern
   $allow_pattern = kona3getConf(
     "data_dir_allow_pattern",
-    "(csv|json|xml|doc|docx|xls|xlsx|ppt|pptx|pdf|zip|gz|bz2|wav|mid|mp3|mp4|ogg|mmd|mermaid)");
+    "(csv|json|xml|doc|docx|xls|xlsx|ppt|pptx|pdf|zip|gz|bz2|wav|mid|mp3|mp4|ogg|mmd|mermaid|drawio)");
   $pattern = "#\.($allow_pattern)$#";
   if (!preg_match($pattern, $fname)) {
     header('HTTP/1.0 415 Unsupported Media Type');

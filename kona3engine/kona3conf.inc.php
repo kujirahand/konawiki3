@@ -89,7 +89,7 @@ function kona3conf_getConfigItems()
             'show_data_dir' => ['label' => 'Show Data Directory', 'default' => FALSE, 'type' => 'bool'],
             'data_dir_allow_pattern' => [
                 'label' => 'Data Directory Allow Pattern',
-                'default' => '(csv|json|xml|doc|docx|xls|xlsx|ppt|pptx|pdf|zip|gz|bz2|wav|mid|mp3|mp4|ogg|mmd|mermaid|yaml|yml)',
+                'default' => '(csv|json|xml|doc|docx|xls|xlsx|ppt|pptx|pdf|zip|gz|bz2|wav|mid|mp3|mp4|ogg|mmd|mermaid|yaml|yml|drawio)',
                 'type' => 'string',
                 'note' => 'Specify a pattern excluding images',
             ],
