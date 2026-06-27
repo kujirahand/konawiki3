@@ -1013,17 +1013,21 @@ function kona3markdown_parser_getPlugin($pname)
 function kona3markdown_parser_sourceBlock(&$text)
 {
     $eol = kona3markdown_public("EOL");
-    $endmark = kona3markdown_parser_getStr($text, 3); // skip "```" or "~~~" or ":::"
+    if (!preg_match('/^(`{3,}|~{3,}|:{3,})/', $text, $m)) {
+        $line = kona3markdown_parser_token($text, $eol);
+        return array("cmd"=>"plain", "text"=>$line);
+    }
+    $endmark = kona3markdown_parser_getStr($text, strlen($m[1])); // skip fence marker
     $blockType = "code";
     $fileType = "text";
     $fileName = "";
-    
+
     // get block name
     $name = trim(kona3markdown_parser_token($text, $eol));
     $ch = substr($name, 0, 1);
 
     // :::plugin
-    if ($endmark === ':::') { // plugin
+    if (substr($endmark, 0, 1) === ':') { // plugin
         $blockType = 'plugin';
         $fileType = 'kona3plugin';
         if ($ch !== '#' && $ch !== '♪') {
@@ -1042,12 +1046,30 @@ function kona3markdown_parser_sourceBlock(&$text)
             $fileType = 'kona3plugin';
         }
     }
-    
-    // create end mark
-    $endmark .= $eol;
-    $src = kona3markdown_parser_token($text, $endmark);
+
+    $src = kona3markdown_parser_readFencedBlock($text, $endmark, $eol);
     $src = str_replace("\n\`\`\`", "\n```", $src);
     return array("cmd"=>"block", "text"=>$src, "params" =>[$name, $blockType, $fileType, $fileName]);
+}
+
+function kona3markdown_parser_readFencedBlock(&$text, $endmark, $eol)
+{
+    $mark = substr($endmark, 0, 1);
+    $min = strlen($endmark);
+    $lines = explode($eol, $text);
+    $body = [];
+    $count = count($lines);
+    for ($i = 0; $i < $count; $i++) {
+        $line = $lines[$i];
+        $trimmed = trim($line);
+        if (preg_match('/^'.preg_quote(str_repeat($mark, $min), '/').preg_quote($mark, '/').'*$/', $trimmed)) {
+            $text = implode($eol, array_slice($lines, $i + 1));
+            return count($body) > 0 ? implode($eol, $body).$eol : '';
+        }
+        $body[] = $line;
+    }
+    $text = '';
+    return implode($eol, $body);
 }
 
 function kona3markdown_public($key, $def = "") {

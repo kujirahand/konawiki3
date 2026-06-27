@@ -47,6 +47,10 @@ arg1
 :::
 ```
 
+Use three or more colons for the fence. When the body contains a `:::` line,
+open with a longer fence such as `::::` and close with a line that has at
+least as many colons.
+
 ## Plugin List
 
 You can browse the bundled plugins in this directory:
