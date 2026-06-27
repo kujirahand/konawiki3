@@ -52,24 +52,33 @@ function kona3plugins_ref_execute($args) {
         }
     }
     // make link
-    $caption = htmlspecialchars($caption, ENT_QUOTES);
-    $ext = pathinfo($url, PATHINFO_EXTENSION);
-    $url = htmlspecialchars_url($url);
-    if (!preg_match("#^https?\:\/\/#", $url)) {
+    $caption = kona3htmlspecialchars($caption);
+    $url_path = parse_url($rawurl, PHP_URL_PATH);
+    if ($url_path === null || $url_path === false) {
+        $url_path = $rawurl;
+    }
+    $ext = strtolower(pathinfo($url_path, PATHINFO_EXTENSION));
+    $url = kona3plugins_ref_external_url($rawurl);
+    if ($url === '') {
         // file link
-        $url2 = kona3plugins_ref_file_url($page, $url);
+        $url2 = kona3plugins_ref_file_url($page, $rawurl);
         if ($url2 === '') {
-            $url = htmlspecialchars($url, ENT_QUOTES);
+            $url = kona3plugins_ref_error_url($rawurl);
             return "<div class='error'>#ref({$url})</div>";
         }
-        $url = $url2;
+        $url = kona3htmlspecialchars($url2);
     }
     // Is image?
     $image_type = kona3getConf("image_pattern", "(jpg|jpeg|png|gif|ico|svg|webp)");
     $pattern = "#^($image_type)$#";
     if (preg_match($pattern, $ext)) {
         // image
-        if ($link == '') { $link = $url; }
+        if ($link != '') {
+            $link_safe = kona3plugins_ref_external_url($link);
+            $link = ($link_safe === '') ? $url : $link_safe;
+        } else {
+            $link = $url;
+        }
         $caph = "<div class='memo'>".$caption."</div>";
         $div = "<div>";
         if ($float) { $div = "<div {$float}>"; }
@@ -80,7 +89,7 @@ function kona3plugins_ref_execute($args) {
     } else {
         // not image
         if ($caption == "") {
-            $caption = htmlspecialchars($rawurl);
+            $caption = kona3htmlspecialchars($rawurl);
         }
         $code = "<div><a href='$url'>🔗{$caption}</a></div>";
     }
@@ -93,8 +102,12 @@ function kona3plugins_ref_file_url($page, $url) {
     $url = trim(str_replace('..', '', $url));
 
     // in attach_dir?
-    $f = kona3path_join($kona3conf["path.attach"], $url);
-    if (file_exists($f)) { return kona3path_join($kona3conf["url.attach"], $url); }
+    $attach_path = isset($kona3conf["path.attach"]) ? $kona3conf["path.attach"] : '';
+    $attach_url = isset($kona3conf["url.attach"]) ? $kona3conf["url.attach"] : '';
+    if ($attach_path !== '' && $attach_url !== '') {
+        $f = kona3path_join($attach_path, $url);
+        if (file_exists($f)) { return kona3path_join($attach_url, $url); }
+    }
 
     // check absolute file - Is this file in same directory?
     if (strpos($page, "/") !== FALSE) {
@@ -125,14 +138,21 @@ function kona3plugins_ref_file_url($page, $url) {
     return '';
 }
 
-function htmlspecialchars_url($xss){
-    $s = htmlspecialchars($xss, ENT_QUOTES, 'UTF-8');
-    $s = str_replace('http:','http<',$s);
-    $s = str_replace('https:','https<',$s);
-    $s = str_replace(':','',$s);
-    $s = str_replace(';','',$s);
-    $s = str_replace('http<','http:',$s);
-    $s = str_replace('https<','https:',$s);
-    return $s;
+function kona3plugins_ref_external_url($url) {
+    $url = trim($url);
+    $scheme = parse_url($url, PHP_URL_SCHEME);
+    if ($scheme === null || $scheme === false) {
+        return '';
+    }
+    $scheme = strtolower($scheme);
+    if ($scheme !== 'http' && $scheme !== 'https') {
+        return '';
+    }
+    return kona3htmlspecialchars($url);
 }
 
+function kona3plugins_ref_error_url($url) {
+    $url = trim($url);
+    $url = preg_replace('#^([a-zA-Z][a-zA-Z0-9+\-.]*)\s*:#', '$1_', $url);
+    return kona3htmlspecialchars($url);
+}

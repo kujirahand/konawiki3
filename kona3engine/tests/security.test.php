@@ -26,6 +26,32 @@ $escaped = kona3text2html('こんにちは<世界>');
 test_assert(__LINE__, strpos($escaped, 'こんにちは') !== FALSE, "XSS対策: 日本語はそのまま");
 test_assert(__LINE__, strpos($escaped, '&lt;世界&gt;') !== FALSE, "XSS対策: 日本語内のタグはエスケープ");
 
+// kona3htmlspecialchars() - 共通HTMLエスケープ関数
+$escaped = kona3htmlspecialchars('<script>alert("xss")</script>');
+test_assert(__LINE__, strpos($escaped, '&lt;script&gt;') !== FALSE, "共通HTMLエスケープ: <script>タグがエスケープされる");
+test_assert(__LINE__, strpos($escaped, '&quot;xss&quot;') !== FALSE, "共通HTMLエスケープ: ダブルクォートがエスケープされる");
+
+$escaped = kona3htmlspecialchars(null);
+test_eq(__LINE__, $escaped, '', "共通HTMLエスケープ: nullは空文字として扱う");
+
+$escaped = kona3htmlspecialchars(['tag' => '<b>', 'name' => '太郎']);
+test_assert(__LINE__, strpos($escaped, '&lt;b&gt;') !== FALSE, "共通HTMLエスケープ: 配列内のHTMLタグがエスケープされる");
+test_assert(__LINE__, strpos($escaped, '太郎') !== FALSE, "共通HTMLエスケープ: 配列内の日本語を保持する");
+
+class Kona3HtmlspecialcharsStringableForTest {
+    public function __toString()
+    {
+        return '<strong>ok</strong>';
+    }
+}
+$escaped = kona3htmlspecialchars(new Kona3HtmlspecialcharsStringableForTest());
+test_eq(__LINE__, $escaped, '&lt;strong&gt;ok&lt;/strong&gt;', "共通HTMLエスケープ: __toStringを持つオブジェクトをエスケープする");
+
+class Kona3HtmlspecialcharsObjectForTest {
+}
+$escaped = kona3htmlspecialchars(new Kona3HtmlspecialcharsObjectForTest());
+test_eq(__LINE__, $escaped, '[Object:Kona3HtmlspecialcharsObjectForTest]', "共通HTMLエスケープ: 文字列化できないオブジェクトは識別子にする");
+
 // --- パストラバーサル対策のテスト ---
 
 // kona3parseURI() でのパストラバーサル対策（再テスト）

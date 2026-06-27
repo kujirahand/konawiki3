@@ -244,7 +244,7 @@ function konawiki_parser_render($tokens, $flag_isContents = TRUE)
         } else if ($cmd == "plugin") {
             $html .= konawiki_parser_render_plugin($value);
         } else if ($cmd == "conflict") {
-            $text = htmlspecialchars($text, ENT_QUOTES);
+            $text = kona3htmlspecialchars($text);
             if (trim($text) == "") {
                 $text = "&nbsp;";
             }
@@ -292,7 +292,7 @@ function konawiki_parser_render_hx(&$value)
         $all_text .= $konawiki_headers[$level] . "/";
     }
     $hash   = sprintf("%x", crc32($all_text));
-    $uri = htmlspecialchars(kona3getPageURL(), ENT_QUOTES) . "#h{$hash}";
+    $uri = kona3htmlspecialchars(kona3getPageURL()) . "#h{$hash}";
     $anchor = "<a id='h{$hash}' name='h{$hash}' href='$uri' class='anchor_super'>&nbsp;*</a>";
     $noanchor = konawiki_param("noanchor", FALSE) || konawiki_public('noanchor', FALSE);
     if ($noanchor) $anchor = "";
@@ -485,7 +485,7 @@ function __konawiki_parser_tohtml(&$text, $level)
                 $plugin['disable'] = '';
             }
             if ($plugin['disable'] || !file_exists($plugin["file"])) {
-                $result .= htmlspecialchars("&" . $pname . "(", ENT_QUITES);
+                $result .= kona3htmlspecialchars("&" . $pname . "(");
             } else {
                 $pparam = __konawiki_parser_tohtml($text, $level + 1);
                 $param_ary = explode(",", $pparam);
@@ -571,7 +571,7 @@ function konawiki_parser_tohtml($text)
 
 function konawiki_parser_tosource($src)
 {
-    $src = htmlspecialchars($src, ENT_QUOTES);
+    $src = kona3htmlspecialchars($src);
     return $src;
 }
 
@@ -603,7 +603,7 @@ function konawiki_parser_tosource_block($src)
         }
     }
     // no plugin
-    $src = htmlspecialchars($src, ENT_QUOTES);
+    $src = kona3htmlspecialchars($src);
     $begin = "<div><pre class='code'>";
     $end   = "</pre></div>" . $eol;
     return $begin . $src . $end;
@@ -612,8 +612,8 @@ function konawiki_parser_tosource_block($src)
 function konawiki_parser_makeUriLink($url)
 {
     $disp = mb_strimwidth($url, 0, 60, "..");
-    // $disp = htmlspecialchars($url);
-    $link = htmlspecialchars($url, ENT_QUOTES);
+    $disp = kona3htmlspecialchars($disp);
+    $link = konawiki_parser_checkURL($url, ['http', 'https', 'ftp', 'mailto']);
     return "<a href='$link'>$disp</a>";
 }
 
@@ -640,11 +640,12 @@ function konawiki_parser_makeWikiLink($name)
         $caption = trim($e[1]);
         $link    = trim($e[2]);
         // protocol ?
-        if ($caption == 'http' || $caption == 'https' || $caption == 'ftp') {
+        $caption_scheme = strtolower($caption);
+        if ($caption_scheme == 'http' || $caption_scheme == 'https' || $caption_scheme == 'ftp') {
             $link = $caption = $name;
         }
         // check all url
-        if (strpos($link, '://') !== FALSE) {
+        if (strpos($link, '://') !== FALSE || parse_url($link, PHP_URL_SCHEME) !== null) {
             // url
             $caption = konawiki_parser_disp_url($caption);
             $link = $link;
@@ -659,23 +660,28 @@ function konawiki_parser_makeWikiLink($name)
     }
 
     // check link
-    $link = konawiki_parser_checkURL($link);
+    $caption = konawiki_parser_tohtml($caption);
+    $link = konawiki_parser_checkURL($link, ['http', 'https', 'ftp']);
     return "<a href='$link'>$caption</a>";
 }
 
-function konawiki_parser_checkURL($url)
+function konawiki_parser_checkURL($url, $allowed_schemes = ['http', 'https'])
 {
-    // allow only http:// or https://
+    // allow relative URLs and known-safe schemes only.
     $url = trim($url);
-    if (preg_match('#^(.+?)\:(.*)$#', $url, $m)) {
-        if ($m[1] == 'http' || $m[1] == 'https') {
-            return htmlspecialchars($url, ENT_QUOTES);
+    $scheme = parse_url($url, PHP_URL_SCHEME);
+    if ($scheme !== null) {
+        $scheme = strtolower($scheme);
+        $allowed_schemes = array_map('strtolower', $allowed_schemes);
+        if (!in_array($scheme, $allowed_schemes, true)) {
+            $url = preg_replace('#[^a-zA-Z0-9_]#', '_', $url);
+            $url = "?WIKI_LINK_ERROR_" . $url;
         }
-        print_r("[{$m[1]}]");
+    } else if (preg_match('#^[a-zA-Z][a-zA-Z0-9+\-.]*\s*:#', $url)) {
         $url = preg_replace('#[^a-zA-Z0-9_]#', '_', $url);
         $url = "?WIKI_LINK_ERROR_" . $url;
     }
-    $url = htmlspecialchars($url, ENT_QUOTES);
+    $url = kona3htmlspecialchars($url);
     return $url;
 }
 

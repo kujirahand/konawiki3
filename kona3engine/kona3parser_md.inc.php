@@ -279,7 +279,7 @@ function kona3markdown_parser_render($tokens, $flag_isContents = TRUE)
             $html .= kona3markdown_parser_render_plugin($value);
         }
         else if ($cmd == "conflict") {
-            $text = htmlspecialchars($text, ENT_QUOTES);
+            $text = kona3htmlspecialchars($text);
             if (trim($text) == "") { $text = "&nbsp;"; }
             if ($value["flag"] == "[+]") {
                 $html .= "<div class='conflictadd'>+ $text</div>".$eol;
@@ -342,7 +342,7 @@ function kona3markdown_parser_render_hx(&$value)
         $all_text .= $kona3markdown_headers[$level]."/";
     }
     $hash   = sprintf("%x",crc32($all_text));
-    $uri = htmlspecialchars(kona3getPageURL(), ENT_QUOTES)."#h{$hash}";
+    $uri = kona3htmlspecialchars(kona3getPageURL())."#h{$hash}";
     $anchor = "<a id='h{$hash}' name='h{$hash}' href='$uri' class='anchor_super'>&nbsp;*</a>";
     $noanchor = kona3markdown_param("noanchor", FALSE) || kona3markdown_public('noanchor', FALSE);
     if ($noanchor) $anchor = "";
@@ -507,7 +507,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
         $c2 = mb_substr($text, 0, 2);
         // escape
         if ($c1 == '\\') {
-            $result .= mb_substr($text, 1, 1);
+            $result .= kona3htmlspecialchars(mb_substr($text, 1, 1));
             $text = mb_substr($text, 2);
             continue;
         }
@@ -515,7 +515,7 @@ function __kona3markdown_parser_tohtml(&$text, $level)
         if ($c1 == '`') {
             $text = mb_substr($text, 1);
             $s = kona3markdown_parser_token($text, "`");
-            $str = htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+            $str = kona3htmlspecialchars($s);
             $result .= "<span class='code'><code>$str</code></span>";
             continue;
         }
@@ -608,7 +608,7 @@ function kona3markdown_parser_tohtml($text)
 
 function kona3markdown_parser_tosource($src)
 {
-    $src = htmlspecialchars($src, ENT_QUOTES);
+    $src = kona3htmlspecialchars($src);
     return $src;
 }
 
@@ -647,12 +647,12 @@ function kona3markdown_parser_tosource_block($src, $params = [])
     }
     // no plugin
     $fname = $fileName;
-    $fname = htmlspecialchars($fname, ENT_QUOTES);
+    $fname = kona3htmlspecialchars($fname);
     if ($fname != '') {
         $css = 'font-size:0.7em; background-color:#f0f0f0; color:#909090; padding:2px;';
         $fname = "<div style='$css'>$fname</div>";
     }
-    $src = htmlspecialchars($src, ENT_QUOTES);
+    $src = kona3htmlspecialchars($src);
     $begin = "<div>$fname<pre class='code'>";
     $end   = "</pre></div>" . $eol;
     return $begin.$src.$end;
@@ -661,16 +661,16 @@ function kona3markdown_parser_tosource_block($src, $params = [])
 function kona3markdown_parser_makeUriLink($url)
 {
     $disp = mb_strimwidth($url, 0, 60, "..");
-    // $disp = htmlspecialchars($url);
-    $link = htmlspecialchars($url, ENT_QUOTES);
+    $disp = kona3htmlspecialchars($disp);
+    $link = kona3markdown_parser_checkURL($url, ['http', 'https', 'mailto']);
     return "<a href='$link'>$disp</a>";
 }
 
 function kona3markdown_parser_makeWikiLink($name, $linkto)
 {
-    $caption = $name;
+    $caption = kona3markdown_parser_tohtml($name);
     $link = $linkto;
-    if (strpos($link, '://') === FALSE) {
+    if (strpos($link, '://') === FALSE && parse_url($link, PHP_URL_SCHEME) === null) {
         // wiki link
         $link = kona3getPageURL($linkto);
     }
@@ -680,18 +680,23 @@ function kona3markdown_parser_makeWikiLink($name, $linkto)
     return "<a href='$link'>$caption</a>";
 }
 
-function kona3markdown_parser_checkURL($url)
+function kona3markdown_parser_checkURL($url, $allowed_schemes = ['http', 'https'])
 {
-    // allow only http:// or https://
+    // allow relative URLs and known-safe schemes only.
     $url = trim($url);
-    if (preg_match('#^(.+?)\:(.*)$#', $url, $m)) {
-        if ($m[1] == 'http' || $m[1] == 'https') {
-            return htmlspecialchars($url, ENT_QUOTES);
+    $scheme = parse_url($url, PHP_URL_SCHEME);
+    if ($scheme !== null) {
+        $scheme = strtolower($scheme);
+        $allowed_schemes = array_map('strtolower', $allowed_schemes);
+        if (!in_array($scheme, $allowed_schemes, true)) {
+            $url = preg_replace('#[^a-zA-Z0-9_]#', '_', $url);
+            $url = "?WIKI_LINK_ERROR_".$url;
         }
+    } else if (preg_match('#^[a-zA-Z][a-zA-Z0-9+\-.]*\s*:#', $url)) {
         $url = preg_replace('#[^a-zA-Z0-9_]#', '_', $url);
         $url = "?WIKI_LINK_ERROR_".$url;
     }
-    $url = htmlspecialchars($url, ENT_QUOTES);
+    $url = kona3htmlspecialchars($url);
     return $url;
 }
 

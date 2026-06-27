@@ -143,7 +143,7 @@ function kona3lib_execute()
     $actionFunc = "kona3_action_{$action}";
     $page = $kona3conf['page'];
     if (!file_exists($actionFile)) {
-        $action_html = htmlspecialchars($action);
+        $action_html = kona3htmlspecialchars($action);
         kona3error($page, "Invalid Action `$action_html`");
         exit;
     }
@@ -356,7 +356,7 @@ function kona3getRelativePath($wikiname)
 // show error page
 function kona3error($title, $msg)
 {
-    $title = htmlspecialchars($title);
+    $title = kona3htmlspecialchars($title);
     $err = "<div class='error_box'>" .
         "<h3 class='error'>$title</h3>" .
         "<div class='error pad'>$msg</div>" .
@@ -368,7 +368,7 @@ function kona3error($title, $msg)
 }
 function kona3showMessage($title, $msg, $tpl = '')
 {
-    $title = htmlspecialchars($title);
+    $title = kona3htmlspecialchars($title);
     $body = "<div>" .
         "<h3>$title</h3>" .
         "<div class='pad'>$msg</div>" .
@@ -533,6 +533,23 @@ function kona3getSkinURL($file, $use_mtime = FALSE)
 function kona3text2html($text)
 {
     return htmlentities($text, ENT_QUOTES, 'UTF-8');
+}
+
+function kona3htmlspecialchars($text)
+{
+    if (is_array($text)) {
+        $json = json_encode($text, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $text = ($json === false) ? '[Array]' : $json;
+    } else if (is_object($text)) {
+        if (method_exists($text, '__toString')) {
+            $text = (string)$text;
+        } else {
+            $text = '[Object:' . get_class($text) . ']';
+        }
+    } else if (is_resource($text)) {
+        $text = '[Resource]';
+    }
+    return htmlspecialchars((string)$text, ENT_QUOTES, 'UTF-8');
 }
 
 // filename to wikiname
@@ -908,7 +925,7 @@ function kona3getShortcutLink()
         $page = $_GET['page'];
     }
     $real_url = kona3getPageURL($page);
-    $page_h = htmlspecialchars($page, ENT_QUOTES);
+    $page_h = kona3htmlspecialchars($page);
     $res = "<a href=\"$real_url\">$page_h</a>";
 
     // エイリアスをチェックして表示する
@@ -917,8 +934,8 @@ function kona3getShortcutLink()
         if ($meta && isset($meta['aliases']) && is_array($meta['aliases']) && !empty($meta['aliases'])) {
             $aliases_h = [];
             foreach ($meta['aliases'] as $alias) {
-                $alias_h = htmlspecialchars($alias, ENT_QUOTES);
-                $url = htmlspecialchars(kona3getPageURL($alias), ENT_QUOTES);
+                $alias_h = kona3htmlspecialchars($alias);
+                $url = kona3htmlspecialchars(kona3getPageURL($alias));
                 $aliases_h[] = "<a href=\"$url\">$alias_h</a>";
             }
             $alias_label = lang('alias');
@@ -1128,8 +1145,8 @@ function kona3_getVersionupNotice()
     $exec_url = kona3getPageURL('', 'versionup', '', 'ver=3.3to3.4&write_token=' . urlencode($token));
     $cancel_url = kona3getPageURL('', 'versionup', '', 'ver=3.3to3.4&cmd=delete_msg&write_token=' . urlencode($token));
 
-    $exec_url_h = htmlspecialchars($exec_url, ENT_QUOTES, 'UTF-8');
-    $cancel_url_h = htmlspecialchars($cancel_url, ENT_QUOTES, 'UTF-8');
+    $exec_url_h = kona3htmlspecialchars($exec_url);
+    $cancel_url_h = kona3htmlspecialchars($cancel_url);
 
     $html = '
     <div style="background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%); border: 1px solid #ffeeba; border-radius: 8px; padding: 15px 20px; margin: 15px auto; max-width: 900px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); font-family: sans-serif; color: #856404; display: flex; align-items: center; justify-content: space-between; gap: 15px;">
@@ -1250,5 +1267,3 @@ function kona3git_commit_and_push($page, $edit_ext, $old_ext = '') {
         throw new Exception('Git Error:' . $e->getMessage());
     }
 }
-
-

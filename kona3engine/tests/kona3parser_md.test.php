@@ -53,6 +53,34 @@ $html = kona3markdown_parser_convert($text);
 test_assert(__LINE__, strpos($html, '<h1') !== false, "Markdown Mode: ■ translates to <h1> tag");
 test_assert(__LINE__, strpos($html, '<li>テストリスト') !== false, "Markdown Mode: ・ translates to <li> tag");
 
+// --- Security Rendering Tests ---
+$text = "\\<script\\>alert(1)\\</script\\>";
+$html = kona3markdown_parser_convert($text, false);
+test_assert(__LINE__, strpos($html, '<script>') === false, "Escaped angle brackets must not create script tags");
+test_assert(__LINE__, strpos($html, '&lt;script&gt;alert(1)&lt;/script&gt;') !== false, "Escaped angle brackets are rendered as text");
+
+$text = "[<img src=x onerror=alert(1)>](https://example.com)";
+$html = kona3markdown_parser_convert($text, false);
+test_assert(__LINE__, strpos($html, '<img src=x') === false, "Markdown link labels must escape HTML tags");
+test_assert(__LINE__, strpos($html, '&lt;img src=x onerror=alert(1)&gt;') !== false, "Markdown link labels keep escaped text");
+
+$text = "https://example.com/?a=1&b=<x>";
+$html = kona3markdown_parser_convert($text, false);
+test_assert(__LINE__, strpos($html, '>https://example.com/?a=1&amp;b=') !== false, "Auto-link display text escapes ampersands");
+
+$text = "[safe](HTTPS://example.com/?a=1&b=2)";
+$html = kona3markdown_parser_convert($text, false);
+test_assert(__LINE__, strpos($html, "href='HTTPS://example.com/?a=1&amp;b=2'") !== false, "URL scheme checks are case-insensitive for HTTPS");
+
+$text = "[bad](javascript:alert(1))";
+$html = kona3markdown_parser_convert($text, false);
+test_assert(__LINE__, strpos($html, 'javascript:') === false, "Markdown links must reject javascript scheme");
+test_assert(__LINE__, strpos($html, 'WIKI_LINK_ERROR') !== false, "Rejected schemes become link errors");
+
+$text = "![bad](javascript:alert(1))";
+$html = kona3markdown_parser_convert($text, false);
+test_assert(__LINE__, strpos($html, 'javascript:') === false, "Markdown images must not output javascript scheme");
+
 // --- Inline Code and Underscore Emphasis Tests ---
 global $kona3conf;
 $orig_emphasis = isset($kona3conf['md_underscore_emphasis']) ? $kona3conf['md_underscore_emphasis'] : false;
