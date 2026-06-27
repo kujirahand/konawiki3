@@ -52,3 +52,38 @@ $html = kona3markdown_parser_convert($text);
 
 test_assert(__LINE__, strpos($html, '<h1') !== false, "Markdown Mode: ■ translates to <h1> tag");
 test_assert(__LINE__, strpos($html, '<li>テストリスト') !== false, "Markdown Mode: ・ translates to <li> tag");
+
+// --- Inline Code and Underscore Emphasis Tests ---
+global $kona3conf;
+$orig_emphasis = isset($kona3conf['md_underscore_emphasis']) ? $kona3conf['md_underscore_emphasis'] : false;
+
+// 1. Test when md_underscore_emphasis is enabled (true)
+$kona3conf['md_underscore_emphasis'] = true;
+
+// Double underscore inside inline code should not trigger emphasis
+$text = "`__file__` and `__test__` code";
+$html = kona3markdown_parser_convert($text);
+test_assert(__LINE__, strpos($html, '<strong') === false, "Inside backticks, __ should not be styled as strong");
+test_assert(__LINE__, strpos($html, '<code>__file__</code>') !== false, "Inside backticks, __file__ should be displayed literally");
+
+// __emphasis__ should render as strong2
+$text = "This is __bold__ text";
+$html = kona3markdown_parser_convert($text);
+test_assert(__LINE__, strpos($html, "<strong class='strong2'>bold</strong>") !== false, "Enabled: __bold__ becomes strong2");
+
+// 2. Test when md_underscore_emphasis is disabled (false)
+$kona3conf['md_underscore_emphasis'] = false;
+
+// Double underscore inside inline code should not trigger emphasis
+$text = "`__file__` and `__test__` code";
+$html = kona3markdown_parser_convert($text);
+test_assert(__LINE__, strpos($html, '<strong') === false, "Inside backticks, __ should not be styled as strong");
+
+// __emphasis__ should NOT render as strong
+$text = "This is __bold__ text";
+$html = kona3markdown_parser_convert($text);
+test_assert(__LINE__, strpos($html, '<strong') === false, "Disabled: __bold__ should not become strong tag");
+test_assert(__LINE__, strpos($html, '__bold__') !== false, "Disabled: __bold__ should be literal");
+
+// Restore config
+$kona3conf['md_underscore_emphasis'] = $orig_emphasis;
