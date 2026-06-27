@@ -92,6 +92,10 @@ body {
 	font-size: 0.6em;
 	text-align: right;
 	padding: 12px;
+	line-height: 2em;
+}
+#wikifooter .footer_menu a {
+	margin: 4px;
 }
 #wikifooter .footer_menu > span {
 	background-color: #f0f0f0;
@@ -1179,9 +1183,15 @@ span.konawiki3copyright a {
 	#wikifooter > div.footer_menu {
 		font-size: 24px;
 		text-align: center;
+		overflow-x: auto;
+		white-space: nowrap;
+		-webkit-overflow-scrolling: touch;
+		-webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+		mask-image: linear-gradient(to right, black 85%, transparent 100%);
 	}
 	#wikifooter a {
 		font-size: 20px;
+		margin: 2px 4px;
 	}
 	#loginform {
 		font-size: 28px;

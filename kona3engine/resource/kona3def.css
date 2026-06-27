@@ -1211,6 +1211,27 @@ ul.topnavi a
   font-size:0.6em;
   padding:12px;
   text-align:right;
+  line-height: 2em;
+}
+
+#wikifooter .footer_menu a
+{
+  margin: 4px;
+}
+
+@media screen and (max-width: 480px) {
+  #wikifooter .footer_menu {
+    text-align: center;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding: 12px 6px;
+    -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+    mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  }
+  #wikifooter .footer_menu a {
+    margin: 2px 4px;
+  }
 }
 
 #wikifooter .footer_menu > span
