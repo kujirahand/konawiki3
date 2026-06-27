@@ -115,6 +115,34 @@ $html = konawiki_parser_tohtml("<script>alert('xss')</script>");
 test_assert(__LINE__, strpos($html, '&lt;script&gt;') !== FALSE, "HTMLタグはエスケープされる");
 test_assert(__LINE__, strpos($html, '<script>') === FALSE, "<script>タグは実行されない");
 
+// --- セキュリティのテスト ---
+$html = konawiki_parser_convert("[[<img src=x onerror=alert(1)>]]", false);
+test_assert(__LINE__, strpos($html, '<img src=x') === false, "WikiLinkのページ名はHTMLタグを出力しない");
+test_assert(__LINE__, strpos($html, '&lt;img src=x onerror=alert(1)&gt;') !== false, "WikiLinkのページ名はテキストとして表示される");
+
+$html = konawiki_parser_convert("[[<img src=x onerror=alert(1)>:FrontPage]]", false);
+test_assert(__LINE__, strpos($html, '<img src=x') === false, "WikiLinkのキャプションはHTMLタグを出力しない");
+test_assert(__LINE__, strpos($html, '&lt;img src=x onerror=alert(1)&gt;') !== false, "WikiLinkのキャプションはテキストとして表示される");
+
+$html = konawiki_parser_convert("https://example.com/?a=1&b=2", false);
+test_assert(__LINE__, strpos($html, ">https://example.com/?a=1&amp;b=2</a>") !== false, "自動リンクの表示文字列はHTMLエスケープされる");
+
+$html = konawiki_parser_convert("[[bad:javascript:alert(1)]]", false);
+test_assert(__LINE__, strpos($html, 'javascript:') === false, "WikiLinkはjavascriptスキームを出力しない");
+test_assert(__LINE__, strpos($html, 'WIKI_LINK_ERROR') !== false, "拒否されたURLスキームはエラーリンクになる");
+
+$html = konawiki_parser_convert("&nosuchplugin(test);", false);
+test_assert(__LINE__, strpos($html, '&amp;nosuchplugin(test);') !== false, "存在しないインラインプラグインはFatal Errorにならずテキストとして出力される");
+
+global $kona3conf;
+$orig_plugin_disallow = isset($kona3conf['plugin.disallow']) ? $kona3conf['plugin.disallow'] : [];
+$kona3conf['plugin.disallow'] = ['counter' => true];
+$html = konawiki_parser_convert("#counter\n", false);
+test_assert(__LINE__, strpos($html, '[No Plugin:counter]') !== false, "無効化されたブロックプラグインは実行されない");
+$html = konawiki_parser_convert("&counter();", false);
+test_assert(__LINE__, strpos($html, '&amp;counter();') !== false, "無効化されたインラインプラグインは実行されない");
+$kona3conf['plugin.disallow'] = $orig_plugin_disallow;
+
 // --- 複雑な組み合わせのテスト ---
 $text = "■タイトル\nこれは段落です。\n\n・リスト1\n・リスト2\n|表|のセル|";
 $tokens = konawiki_parser_parse($text);
