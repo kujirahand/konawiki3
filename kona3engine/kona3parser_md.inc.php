@@ -144,10 +144,8 @@ function kona3markdown_parser_parse($text)
             $tokens[] = array("cmd"=>"-", "text"=>kona3markdown_parser_token($text, $eol), "level"=>$level);
         }
         // TABLE
-        else if ($c == "|") {
-            kona3markdown_parser_getchar($text);
-            $line = kona3markdown_parser_token($text, $eol);
-            $tokens[] = array("cmd"=>"|", "text"=>$line);
+        else if (kona3markdown_parser_tryTable($text, $eol, $tokens)) {
+            continue;
         }
         // SOURCE LINE
         else if ($c == " " || $c == "\t") { // src (source) line
@@ -225,30 +223,78 @@ function kona3markdown_parser_render($tokens, $flag_isContents = TRUE)
             $html .= kona3markdown_parser_render_li($tokens, $index, $cmd);
         }
         else if ($cmd == "|") {
-            $html .= "<table class='grid'>".$eol;
+            // Collect all consecutive table rows
+            $table_rows = [];
             $index--; // back to this line
             while ($index < count($tokens)) {
                 $value = $tokens[$index];
                 $cmd  = $value["cmd"];
-                $text = rtrim($value["text"]);
                 if ($cmd != "|") break;
-                if (substr($text, strlen($text) - 1, 1) == "|") {
-                    $text = substr($text, 0, strlen($text) - 1);
-                }
-                $cells = explode("|", $text);
-                if (count($cells)) {
-                    $c = trim($cells[0]);
-                    if (preg_match('#^\:?\-{3,}#', $c)) {
-                        $index++;
-                        continue;
+
+                $text = rtrim($value["text"]);
+                $cells = kona3markdown_parser_splitTableRow($text);
+                $table_rows[] = $cells;
+                $index++;
+            }
+
+            // Check if the second row is a separator row
+            $is_separator = false;
+            $aligns = [];
+            if (count($table_rows) >= 2) {
+                $sep_row = $table_rows[1];
+                $is_separator = true;
+                foreach ($sep_row as $cell) {
+                    $trimmed = trim($cell);
+                    if (!preg_match('/^:?-{3,}:?$/', $trimmed)) {
+                        $is_separator = false;
+                        break;
+                    }
+                    if (preg_match('/^:-{3,}:$/', $trimmed)) {
+                        $aligns[] = 'center';
+                    } elseif (preg_match('/^-{3,}:$/', $trimmed)) {
+                        $aligns[] = 'right';
+                    } else {
+                        $aligns[] = 'left';
                     }
                 }
-                $html .= "<tr>";
-                foreach ($cells as $i => $cell) {
-                    $html .= "<td>".kona3markdown_parser_tohtml($cell). "</td>";
+            }
+
+            // Render table HTML
+            $html .= "<table class='grid'>".$eol;
+            if ($is_separator) {
+                // Header row
+                $html .= "<thead><tr>";
+                $header_row = $table_rows[0];
+                foreach ($header_row as $i => $cell) {
+                    $align = isset($aligns[$i]) ? $aligns[$i] : null;
+                    $style = $align ? " style='text-align:$align;'" : "";
+                    $html .= "<th{$style}>" . kona3markdown_parser_tohtml(trim($cell)) . "</th>";
                 }
-                $html .= "</tr>".$eol;
-                $index++;
+                $html .= "</tr></thead>".$eol;
+
+                // Body rows (skip the separator row at index 1)
+                $html .= "<tbody>";
+                for ($row_idx = 2; $row_idx < count($table_rows); $row_idx++) {
+                    $html .= "<tr>";
+                    foreach ($table_rows[$row_idx] as $i => $cell) {
+                        $align = isset($aligns[$i]) ? $aligns[$i] : null;
+                        $style = $align ? " style='text-align:$align;'" : "";
+                        $html .= "<td{$style}>" . kona3markdown_parser_tohtml(trim($cell)) . "</td>";
+                    }
+                    $html .= "</tr>".$eol;
+                }
+                $html .= "</tbody>".$eol;
+            } else {
+                // Fallback for simple tables without separator row
+                $html .= "<tbody>";
+                foreach ($table_rows as $row) {
+                    $html .= "<tr>";
+                    foreach ($row as $cell) {
+                        $html .= "<td>" . kona3markdown_parser_tohtml(trim($cell)) . "</td>";
+                    }
+                    $html .= "</tr>".$eol;
+                }
+                $html .= "</tbody>".$eol;
             }
             $html .= "</table>".$eol;
         }
@@ -347,6 +393,151 @@ function kona3markdown_parser_render_hx(&$value)
     $noanchor = kona3markdown_param("noanchor", FALSE) || kona3markdown_public('noanchor', FALSE);
     if ($noanchor) $anchor = "";
     return "<h$i>".kona3markdown_parser_tohtml($text)."{$anchor}</h$i>{$eol}";
+}
+
+function kona3markdown_parser_tryTable(&$text, $eol, &$tokens)
+{
+    $lines = explode($eol, $text);
+    if (count($lines) == 0 || $lines[0] === "") {
+        return false;
+    }
+
+    $rows = [];
+    $line0 = $lines[0];
+    $is_leading_pipe_table = (substr($line0, 0, 1) === "|");
+    if ($is_leading_pipe_table) {
+        $has_separator = false;
+        $line_count = count($lines);
+        for ($i = 0; $i < $line_count; $i++) {
+            $line = $lines[$i];
+            if ($line === "") {
+                break;
+            }
+            if (substr($line, 0, 1) === "|") {
+                $rows[] = $line;
+                if ($i == 1 && kona3markdown_parser_isTableSeparatorRow($line)) {
+                    $has_separator = true;
+                }
+                continue;
+            }
+            if ($has_separator && kona3markdown_parser_hasUnescapedPipe($line)) {
+                $rows[] = $line;
+                continue;
+            }
+            break;
+        }
+    } else {
+        if (!kona3markdown_parser_hasUnescapedPipe($line0) ||
+            !isset($lines[1]) ||
+            !kona3markdown_parser_isTableSeparatorRow($lines[1])) {
+            return false;
+        }
+
+        $rows[] = $line0;
+        $rows[] = $lines[1];
+        $line_count = count($lines);
+        for ($i = 2; $i < $line_count; $i++) {
+            $line = $lines[$i];
+            if ($line === "" || !kona3markdown_parser_hasUnescapedPipe($line)) {
+                break;
+            }
+            $rows[] = $line;
+        }
+    }
+
+    if (count($rows) == 0) {
+        return false;
+    }
+
+    $text = implode($eol, array_slice($lines, count($rows)));
+    foreach ($rows as $row) {
+        $tokens[] = array("cmd"=>"|", "text"=>$row);
+    }
+    return true;
+}
+
+function kona3markdown_parser_isTableSeparatorRow($line)
+{
+    $cells = kona3markdown_parser_splitTableRow($line);
+    if (count($cells) == 0) {
+        return false;
+    }
+    foreach ($cells as $cell) {
+        if (!preg_match('/^:?-{3,}:?$/', trim($cell))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function kona3markdown_parser_hasUnescapedPipe($line)
+{
+    $len = strlen($line);
+    $escaped = false;
+    for ($i = 0; $i < $len; $i++) {
+        $ch = $line[$i];
+        if ($escaped) {
+            $escaped = false;
+            continue;
+        }
+        if ($ch === "\\") {
+            $escaped = true;
+            continue;
+        }
+        if ($ch === "|") {
+            return true;
+        }
+    }
+    return false;
+}
+
+function kona3markdown_parser_splitTableRow($line)
+{
+    $line = trim($line);
+    if ($line !== "" && substr($line, 0, 1) === "|") {
+        $line = substr($line, 1);
+    }
+    if ($line !== "" && substr($line, -1) === "|" &&
+        !kona3markdown_parser_isEscapedPipeAt($line, strlen($line) - 1)) {
+        $line = substr($line, 0, -1);
+    }
+
+    $cells = [];
+    $cell = "";
+    $escaped = false;
+    $len = strlen($line);
+    for ($i = 0; $i < $len; $i++) {
+        $ch = $line[$i];
+        if ($escaped) {
+            $cell .= ($ch === "|") ? "|" : "\\".$ch;
+            $escaped = false;
+            continue;
+        }
+        if ($ch === "\\") {
+            $escaped = true;
+            continue;
+        }
+        if ($ch === "|") {
+            $cells[] = $cell;
+            $cell = "";
+            continue;
+        }
+        $cell .= $ch;
+    }
+    if ($escaped) {
+        $cell .= "\\";
+    }
+    $cells[] = $cell;
+    return $cells;
+}
+
+function kona3markdown_parser_isEscapedPipeAt($line, $pos)
+{
+    $slashes = 0;
+    for ($i = $pos - 1; $i >= 0 && $line[$i] === "\\"; $i--) {
+        $slashes++;
+    }
+    return ($slashes % 2) == 1;
 }
 
 function kona3markdown_parser_render_li(&$tokens, &$index, &$cmd)
@@ -822,17 +1013,21 @@ function kona3markdown_parser_getPlugin($pname)
 function kona3markdown_parser_sourceBlock(&$text)
 {
     $eol = kona3markdown_public("EOL");
-    $endmark = kona3markdown_parser_getStr($text, 3); // skip "```" or "~~~" or ":::"
+    if (!preg_match('/^(`{3,}|~{3,}|:{3,})/', $text, $m)) {
+        $line = kona3markdown_parser_token($text, $eol);
+        return array("cmd"=>"plain", "text"=>$line);
+    }
+    $endmark = kona3markdown_parser_getStr($text, strlen($m[1])); // skip fence marker
     $blockType = "code";
     $fileType = "text";
     $fileName = "";
-    
+
     // get block name
     $name = trim(kona3markdown_parser_token($text, $eol));
     $ch = substr($name, 0, 1);
 
     // :::plugin
-    if ($endmark === ':::') { // plugin
+    if (substr($endmark, 0, 1) === ':') { // plugin
         $blockType = 'plugin';
         $fileType = 'kona3plugin';
         if ($ch !== '#' && $ch !== '♪') {
@@ -851,12 +1046,30 @@ function kona3markdown_parser_sourceBlock(&$text)
             $fileType = 'kona3plugin';
         }
     }
-    
-    // create end mark
-    $endmark .= $eol;
-    $src = kona3markdown_parser_token($text, $endmark);
+
+    $src = kona3markdown_parser_readFencedBlock($text, $endmark, $eol);
     $src = str_replace("\n\`\`\`", "\n```", $src);
     return array("cmd"=>"block", "text"=>$src, "params" =>[$name, $blockType, $fileType, $fileName]);
+}
+
+function kona3markdown_parser_readFencedBlock(&$text, $endmark, $eol)
+{
+    $mark = substr($endmark, 0, 1);
+    $min = strlen($endmark);
+    $lines = explode($eol, $text);
+    $body = [];
+    $count = count($lines);
+    for ($i = 0; $i < $count; $i++) {
+        $line = $lines[$i];
+        $trimmed = trim($line);
+        if (preg_match('/^'.preg_quote(str_repeat($mark, $min), '/').preg_quote($mark, '/').'*$/', $trimmed)) {
+            $text = implode($eol, array_slice($lines, $i + 1));
+            return count($body) > 0 ? implode($eol, $body).$eol : '';
+        }
+        $body[] = $line;
+    }
+    $text = '';
+    return implode($eol, $body);
 }
 
 function kona3markdown_public($key, $def = "") {
@@ -872,4 +1085,3 @@ function kona3markdown_param($key, $def = "") {
     global $kona3conf;
     return isset($kona3conf[$key]) ? $kona3conf[$key] : $def;
 }
-

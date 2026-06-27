@@ -30,3 +30,15 @@ Or `:::` syntax:
 arg3
 :::
 ```
+
+The colon fence can use three or more colons. This is useful when the plugin
+body itself contains a `:::` line. Close the block with a line that has at
+least as many colons as the opening fence.
+
+```markdown
+::::pluginname(arg1, arg2)
+arg3
+:::
+arg4
+::::
+```
