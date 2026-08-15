@@ -11,6 +11,18 @@
  * -- left/right ... その後の文章を左寄せ/右寄せする(#clearで解除)
  */
 function kona3plugins_ref_execute($args) {
+    return kona3plugins_ref_render($args, FALSE, 'ref');
+}
+
+/**
+ * ref/image プラグイン共通の描画処理
+ *
+ * @param array<int, string> $args
+ * @param bool $force_image 拡張子にかかわらず画像として描画する
+ * @param string $plugin_name エラー表示に使うプラグイン名
+ * @return string
+ */
+function kona3plugins_ref_render($args, $force_image = FALSE, $plugin_name = 'ref') {
     global $kona3conf;
     $page = kona3getPage();
     // get args
@@ -64,14 +76,14 @@ function kona3plugins_ref_execute($args) {
         $url2 = kona3plugins_ref_file_url($page, $rawurl);
         if ($url2 === '') {
             $url = kona3plugins_ref_error_url($rawurl);
-            return "<div class='error'>#ref({$url})</div>";
+            return "<div class='error'>#{$plugin_name}({$url})</div>";
         }
         $url = kona3htmlspecialchars($url2);
     }
     // Is image?
     $image_type = kona3getConf("image_pattern", "(jpg|jpeg|png|gif|ico|svg|webp)");
     $pattern = "#^($image_type)$#";
-    if (preg_match($pattern, $ext)) {
+    if ($force_image || preg_match($pattern, $ext)) {
         // image
         if ($link != '') {
             $link_safe = kona3plugins_ref_external_url($link);
