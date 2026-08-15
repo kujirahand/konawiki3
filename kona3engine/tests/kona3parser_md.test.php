@@ -111,8 +111,13 @@ test_assert(__LINE__, strpos($html, "<span class='code'><code>code</code></span>
 $text = "![alt text](https://example.com/a.png)";
 $html = kona3markdown_parser_convert($text, false);
 
-test_assert(__LINE__, strpos($html, "<img src='https://example.com/a.png'") !== false, "Standard Markdown: image is rendered through ref plugin");
+test_assert(__LINE__, strpos($html, "<img src='https://example.com/a.png'") !== false, "Standard Markdown: image is rendered through image plugin");
 test_assert(__LINE__, strpos($html, "<div class='memo'>alt text</div>") !== false, "Standard Markdown: image alt is rendered as caption");
+
+$text = "![xxx](https://n3s.nadesi.com/image.php?t=token&f=778.jpeg)";
+$html = kona3markdown_parser_convert($text, false);
+
+test_assert(__LINE__, strpos($html, "<img src='https://n3s.nadesi.com/image.php?t=token&amp;f=778.jpeg'") !== false, "Standard Markdown: extensionless image URL is rendered through image plugin");
 
 $text = "```php\necho 1;\n```";
 $html = kona3markdown_parser_convert($text, false);
