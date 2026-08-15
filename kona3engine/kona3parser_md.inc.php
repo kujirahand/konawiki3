@@ -747,10 +747,10 @@ function __kona3markdown_parser_tohtml(&$text, $level)
             $text = substr($text, strlen($m[0]));
             $alt = $m[1];
             $link = $m[2];
-            $plugin = kona3markdown_parser_getPlugin('ref');
+            $plugin = kona3markdown_parser_getPlugin('image');
             $param_ary = [$link, '*'.$alt];
             include_once($plugin["file"]);
-            $p = array("cmd"=>"plugin", "text"=>"ref", "params"=>$param_ary);
+            $p = array("cmd"=>"plugin", "text"=>"image", "params"=>$param_ary);
             $s = kona3markdown_parser_render_plugin($p);
             $result .= $s;
             continue;
