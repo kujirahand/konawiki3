@@ -6,7 +6,7 @@ if (!defined('KONA3_ALIAS_JSON_NAME')) {
 }
 /** max depth to resolve chained aliases */
 if (!defined('KONA3_ALIAS_MAX_DEPTH')) {
-    define('KONA3_ALIAS_MAX_DEPTH', 10);
+    define('KONA3_ALIAS_MAX_DEPTH', 5);
 }
 
 /** KonaWiki3 go */
