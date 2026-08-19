@@ -52,7 +52,8 @@ function kona3go_loadAliasList($path = NULL)
 
 /**
  * alias.json の内容(JSON文字列)を解析して、[エイリアス名 => 実際のWiki名] の配列を返す
- * 文字列以外の値や、空のキー・値は無視する。
+ * NOTE: json_decode() は "1" のような数値のキーを int に変換するため、キーは文字列に戻して扱う。
+ * 真偽値・配列などの値や、空のキー・値は無視する。
  *
  * @param string $json
  * @return array
@@ -65,11 +66,12 @@ function kona3go_parseAliasList($json)
     }
     $result = [];
     foreach ($data as $alias => $page) {
-        if (!is_string($alias) || !is_string($page)) {
+        // 文字列・数値以外(配列・真偽値・null)は無視する
+        if (!is_string($page) && !is_int($page) && !is_float($page)) {
             continue;
         }
-        $alias = trim($alias);
-        $page = trim($page);
+        $alias = trim((string)$alias);
+        $page = trim((string)$page);
         if ($alias === '' || $page === '') {
             continue;
         }

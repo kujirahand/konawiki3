@@ -13,7 +13,14 @@ $aliases = kona3go_parseAliasList('{"a1":"RealPage1","エイリアス":"実際�
 test_eq(__LINE__, $aliases['a1'], 'RealPage1', "parse alias.json");
 test_eq(__LINE__, $aliases['エイリアス'], '実際のWiki名', "parse alias.json (Japanese)");
 test_eq(__LINE__, count(kona3go_parseAliasList('broken json')), 0, "broken alias.json is ignored");
-test_eq(__LINE__, count(kona3go_parseAliasList('{"a":123,"b":{"c":"d"},"":"x","y":"  "}')), 0, "invalid alias entries are ignored");
+test_eq(__LINE__, count(kona3go_parseAliasList('{"b":{"c":"d"},"c":true,"d":null,"":"x","y":"  "}')), 0, "invalid alias entries are ignored");
+// json_decode() は "1" のような数値のキーを int に変換するので、それも扱えること
+$num_aliases = kona3go_parseAliasList('{"1":"FrontPage","2":"aaaa","3":"MenuBar","MenuBar":"m"}');
+test_eq(__LINE__, count($num_aliases), 4, "numeric alias keys are kept");
+test_eq(__LINE__, $num_aliases['2'], 'aaaa', "numeric alias key can be looked up");
+test_eq(__LINE__, kona3go_parseAliasList('{"n":123}')['n'], '123', "numeric page name is converted to string");
+test_eq(__LINE__, kona3go_getRedirectURL('2', $num_aliases), 'index.php?aaaa&show', "go.php?2 redirects to the aliased page");
+test_eq(__LINE__, kona3go_getRedirectURL('3', $num_aliases), 'index.php?m&show', "go.php?3 follows the chained alias");
 test_eq(__LINE__, kona3go_parseAliasList('{" sp ":" Page "}')['sp'], 'Page', "alias entries are trimmed");
 
 // --- エイリアスの解決 ---
