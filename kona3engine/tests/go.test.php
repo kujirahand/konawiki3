@@ -13,7 +13,14 @@ $aliases = kona3go_parseAliasList('{"a1":"RealPage1","エイリアス":"実際�
 test_eq(__LINE__, $aliases['a1'], 'RealPage1', "parse alias.json");
 test_eq(__LINE__, $aliases['エイリアス'], '実際のWiki名', "parse alias.json (Japanese)");
 test_eq(__LINE__, count(kona3go_parseAliasList('broken json')), 0, "broken alias.json is ignored");
-test_eq(__LINE__, count(kona3go_parseAliasList('{"a":123,"b":{"c":"d"},"":"x","y":"  "}')), 0, "invalid alias entries are ignored");
+test_eq(__LINE__, count(kona3go_parseAliasList('{"b":{"c":"d"},"c":true,"d":null,"":"x","y":"  "}')), 0, "invalid alias entries are ignored");
+// json_decode() は "1" のような数値のキーを int に変換するので、それも扱えること
+$num_aliases = kona3go_parseAliasList('{"1":"FrontPage","2":"aaaa","3":"MenuBar","MenuBar":"m"}');
+test_eq(__LINE__, count($num_aliases), 4, "numeric alias keys are kept");
+test_eq(__LINE__, $num_aliases['2'], 'aaaa', "numeric alias key can be looked up");
+test_eq(__LINE__, kona3go_parseAliasList('{"n":123}')['n'], '123', "numeric page name is converted to string");
+test_eq(__LINE__, kona3go_getRedirectURL('2', $num_aliases), 'index.php?aaaa&show', "go.php?2 redirects to the aliased page");
+test_eq(__LINE__, kona3go_getRedirectURL('3', $num_aliases), 'index.php?m&show', "go.php?3 follows the chained alias");
 test_eq(__LINE__, kona3go_parseAliasList('{" sp ":" Page "}')['sp'], 'Page', "alias entries are trimmed");
 
 // --- エイリアスの解決 ---
@@ -22,6 +29,10 @@ test_eq(__LINE__, kona3go_resolveAlias('short', $aliases), 'LongPageName', "reso
 test_eq(__LINE__, kona3go_resolveAlias('NoAlias', $aliases), 'NoAlias', "page without alias is kept");
 test_eq(__LINE__, kona3go_resolveAlias('a', $aliases), 'c', "resolve chained alias");
 test_eq(__LINE__, kona3go_resolveAlias('x', ['x' => 'y', 'y' => 'x']), 'x', "circular alias does not loop forever");
+// 連鎖は最大5段まで
+$deep = ['c1' => 'c2', 'c2' => 'c3', 'c3' => 'c4', 'c4' => 'c5', 'c5' => 'c6', 'c6' => 'c7'];
+test_eq(__LINE__, kona3go_resolveAlias('c2', $deep), 'c7', "resolve 5 chained aliases");
+test_eq(__LINE__, kona3go_resolveAlias('c1', $deep), 'c6', "chained alias stops at 5 hops");
 
 // --- go.php?{ALIAS} のリダイレクト ---
 $aliases = ['10' => 'FrontPage', '20' => 'Category/SubPage', 'jp' => '日本語ページ'];
