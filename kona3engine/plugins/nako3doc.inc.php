@@ -4,6 +4,15 @@
  * - [備考] data/nako3commands.db に nadesiko3doc リポジトリのDBを配置
  */
 
+/** ページの編集履歴(GitHub)へのリンク書式 - {WikiName} がページ名に置換される */
+if (!defined('NAKO3DOC_HISTORY_URL')) {
+    define('NAKO3DOC_HISTORY_URL', 'https://github.com/kujirahand/nadesiko3doc/commits/master/data/{WikiName}.txt');
+}
+/** 履歴リンクのラベル */
+if (!defined('NAKO3DOC_HISTORY_LABEL')) {
+    define('NAKO3DOC_HISTORY_LABEL', '📝履歴');
+}
+
 function kona3plugins_nako3doc_execute($parg)
 {
     global $kona3conf;
@@ -70,6 +79,7 @@ function kona3plugins_nako3doc_execute($parg)
     $search_url = "https://www.google.com/search?q=site%3A%2F%2Fn3s.nadesi.com+{$nameenc}";
     $search_name_n3s .= " / [[🔍貯蔵庫:{$search_url}]]";
     $src_link = "[[👓ソース:{$src_url}]]";
+    $history_link = nako3doc_getHistoryLink($page);
     $wiki = <<<EOS
 * {$name} ($kana)
 
@@ -93,10 +103,40 @@ EOS;
 }}}
 EOS;
     }
-    $wiki = $wiki . "\n{$search_name_n3s} / {$search_name} / {$src_link}\n";
+    $wiki = $wiki . "\n{$search_name_n3s} / {$search_name} / {$src_link}";
+    if ($history_link != '') {
+        $wiki .= " / {$history_link}";
+    }
+    $wiki .= "\n";
     $s = konawiki_parser_convert($wiki);
 
     return $s;
+}
+
+/** ページのGitHub履歴へのリンク(Wiki書式)を返す */
+function nako3doc_getHistoryLink($page)
+{
+    $url = nako3doc_getHistoryURL($page);
+    if ($url == '') {
+        return '';
+    }
+    $label = NAKO3DOC_HISTORY_LABEL;
+    return "[[{$label}:{$url}]]";
+}
+
+/** ページのGitHub履歴のURLを返す */
+function nako3doc_getHistoryURL($page)
+{
+    if ($page == '' || NAKO3DOC_HISTORY_URL == '') {
+        return '';
+    }
+    // パス区切りの「/」は残したままURLエンコードする
+    $parts = explode('/', $page);
+    foreach ($parts as $i => $part) {
+        $parts[$i] = rawurlencode($part);
+    }
+    $pageenc = implode('/', $parts);
+    return str_replace('{WikiName}', $pageenc, NAKO3DOC_HISTORY_URL);
 }
 
 function nako3doc_checkGenre($page)
