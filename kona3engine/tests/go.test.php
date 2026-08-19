@@ -29,6 +29,10 @@ test_eq(__LINE__, kona3go_resolveAlias('short', $aliases), 'LongPageName', "reso
 test_eq(__LINE__, kona3go_resolveAlias('NoAlias', $aliases), 'NoAlias', "page without alias is kept");
 test_eq(__LINE__, kona3go_resolveAlias('a', $aliases), 'c', "resolve chained alias");
 test_eq(__LINE__, kona3go_resolveAlias('x', ['x' => 'y', 'y' => 'x']), 'x', "circular alias does not loop forever");
+// 連鎖は最大5段まで
+$deep = ['c1' => 'c2', 'c2' => 'c3', 'c3' => 'c4', 'c4' => 'c5', 'c5' => 'c6', 'c6' => 'c7'];
+test_eq(__LINE__, kona3go_resolveAlias('c2', $deep), 'c7', "resolve 5 chained aliases");
+test_eq(__LINE__, kona3go_resolveAlias('c1', $deep), 'c6', "chained alias stops at 5 hops");
 
 // --- go.php?{ALIAS} のリダイレクト ---
 $aliases = ['10' => 'FrontPage', '20' => 'Category/SubPage', 'jp' => '日本語ページ'];
