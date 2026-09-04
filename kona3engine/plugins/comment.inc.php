@@ -104,11 +104,12 @@ function _renderCommentHeader($page) {
     ENT_QUOTES | ENT_SUBSTITUTE,
     'UTF-8'
   );
+  $page_name = htmlspecialchars($page, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
   return <<<__EOS__
 <!-- title -->
 <div class='plugin_title'>
   <a name='CommentBox'>#comment</a>
-  <span class='memo'>[<a href='{$comment_list_url}'>comment list</a>]</span>
+  <span class='memo'>[<a href='{$comment_list_url}'>comment list</a>] - {$page_name}</span>
 </div>
 __EOS__;
 }

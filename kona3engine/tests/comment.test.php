@@ -43,6 +43,7 @@ $stmt->execute([$bbs_id, 'Alice & Bob', "hello <world>\n>1", '', 100, 100]);
 $html = kona3plugins_comment_execute([]);
 test_assert(__LINE__, strpos($html, 'plugin_comment') !== FALSE, 'commentプラグイン: HTMLを生成');
 test_assert(__LINE__, strpos($html, 'name=comment&amp;m=list') !== FALSE, 'commentプラグイン: コメント一覧リンクを表示');
+test_assert(__LINE__, strpos($html, '[<a href=\'index.php?CommentTest&amp;plugin&amp;name=comment&amp;m=list\'>comment list</a>] - CommentTest') !== FALSE, 'commentプラグイン: ヘッダーにWiki名を表示');
 test_assert(__LINE__, strpos($html, 'Alice &amp; Bob') !== FALSE, 'commentプラグイン: 名前をエスケープ');
 test_assert(__LINE__, strpos($html, 'hello&nbsp;&lt;world&gt;<br><a href="#comment_id_1">&gt;1</a>') !== FALSE, 'commentプラグイン: 本文をエスケープして改行を表示');
 test_assert(__LINE__, strpos($html, 'href="#comment_id_1"') !== FALSE, 'commentプラグイン: 返信リンクを生成');
