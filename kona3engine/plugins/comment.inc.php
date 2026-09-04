@@ -2,10 +2,13 @@
 /**
  * 簡易コメント掲示板を追加
  *
- * - 書式: #comment(id=bbsid,type=***,loginOnly)
+ * - 書式: #comment(id=bbsid,type=***,sort=***,loginOnly)
  * - id=***: 掲示板のIDを指定する。省略時は現在のページ名を使う。
  * - type=all: 全ページのコメント一覧を表示する。
  * - type=todo: 全ページの未完了(todo)コメント一覧を表示する。
+ * - sort=new: (一覧表示時)コメントの最新順に並べる。(既定値)
+ * - sort=old: (一覧表示時)コメントの古い順に並べる。
+ * - sort=name: (一覧表示時)Wiki名順に並べる。
  * - loginOnly: 未ログイン時は投稿フォームを隠し、ログイン案内とログインリンクを表示する。
  * - 通常のコメント欄には、全ページのコメントを管理する comment list リンクを表示する。
  * - 未ログイン投稿では、従来どおり名前と削除パスワードの入力欄を表示する。
@@ -22,6 +25,7 @@ function kona3plugins_comment_execute($params) {
   $page = $kona3conf['page'];
   $bbsid = $page;
   $type = "";
+  $sort = "";
   $loginOnly = FALSE;
   $pdo = database_get();
   if (!$pdo) {
@@ -43,6 +47,10 @@ function kona3plugins_comment_execute($params) {
       $type = $val;
       continue;
     }
+    if ($key == "sort") {
+      $sort = $val;
+      continue;
+    }
     if ($key == "loginOnly") {
       $loginOnly = ($val != '' && $val != '0' && strtolower($val) != 'false');
       continue;
@@ -50,16 +58,17 @@ function kona3plugins_comment_execute($params) {
   }
   // check table exists?
   kona3plugins_comment_init_db($pdo);
+  $sort = kona3plugins_comment_checkSort($sort);
   if ($type == "all") {
     if (!kona3isLogin()) {
       return _renderCommentLoginRequired($page);
     }
-    return _at_all($pdo, 'all');
+    return _at_all($pdo, 'all', $sort);
   } else if ($type == "todo") {
     if (!kona3isLogin()) {
       return _renderCommentLoginRequired($page);
     }
-    return _at_all($pdo, 'todo');
+    return _at_all($pdo, 'todo', $sort);
   }
   // select logs
   $bbs_id = kona3plugins_comment_getBbsId($pdo, $bbsid);
@@ -265,9 +274,10 @@ function kona3plugins_comment_action() {
     }
     $type = kona3param("type", "all");
     if ($type != "todo") $type = "all";
+    $sort = kona3plugins_comment_checkSort(kona3param("sort", ""));
     $pdo = database_get();
     kona3plugins_comment_init_db($pdo);
-    kona3showMessage('Comments', _renderCommentAdminPage($pdo, $type));
+    kona3showMessage('Comments', _renderCommentAdminPage($pdo, $type, $sort));
     return;
   }
   // write comment
@@ -553,12 +563,81 @@ function kona3plugins_comment_getBbsId($pdo, $name) {
 }
 
 
-function _at_all($pdo, $type) {
-  $page = kona3getPage();
-  $edit_token = htmlspecialchars(kona3_getEditToken('edit_token'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+/**
+ * 並び順パラメータを正規化する
+ * - new : コメントの最新順(既定値)
+ * - old : コメントの古い順
+ * - name: Wiki名順
+ */
+function kona3plugins_comment_checkSort($sort) {
+  $sort = strtolower(trim((string)$sort));
+  if ($sort == 'old' || $sort == 'name') return $sort;
+  return 'new';
+}
+
+function kona3plugins_comment_getSortLabel($sort) {
+  switch ($sort) {
+    case 'old': return 'コメント古い順';
+    case 'name': return 'Wiki名順';
+    default: return 'コメント最新順';
+  }
+}
+
+/**
+ * 掲示板(Wikiページ)の一覧を、指定の並び順で取得する
+ */
+function kona3plugins_comment_getSortedBbsList($pdo, $type, $sort) {
+  $where = ($type == "todo") ? " WHERE todo=1" : "";
+  // 掲示板ごとの最終コメント日時を求める
+  $q = $pdo->query(
+    "SELECT bbs_id, MAX(mtime) AS last_mtime, MAX(comment_id) AS last_id ".
+    "  FROM comment_list".$where.
+    "  GROUP BY bbs_id");
+  $times = array();
+  foreach ($q->fetchAll() as $row) {
+    $times[intval($row['bbs_id'])] = array(
+      'mtime' => intval($row['last_mtime']),
+      'id' => intval($row['last_id']),
+    );
+  }
   $q = $pdo->query('SELECT * FROM comment_bbsid');
-  $allbbs = $q->fetchAll();
+  $list = array();
+  foreach ($q->fetchAll() as $row) {
+    $bbs_id = intval($row['bbs_id']);
+    if (!isset($times[$bbs_id])) continue; // コメントの無い掲示板は表示しない
+    $list[] = array(
+      'bbs_id' => $bbs_id,
+      'name' => $row['name'],
+      'mtime' => $times[$bbs_id]['mtime'],
+      'last_id' => $times[$bbs_id]['id'],
+    );
+  }
+  if ($sort == 'name') {
+    usort($list, function ($a, $b) {
+      return strcmp($a['name'], $b['name']);
+    });
+  } else if ($sort == 'old') {
+    usort($list, function ($a, $b) {
+      if ($a['mtime'] != $b['mtime']) return ($a['mtime'] < $b['mtime']) ? -1 : 1;
+      return ($a['last_id'] < $b['last_id']) ? -1 : 1;
+    });
+  } else { // new
+    usort($list, function ($a, $b) {
+      if ($a['mtime'] != $b['mtime']) return ($a['mtime'] > $b['mtime']) ? -1 : 1;
+      return ($a['last_id'] > $b['last_id']) ? -1 : 1;
+    });
+  }
+  return $list;
+}
+
+function _at_all($pdo, $type, $sort = 'new') {
+  $page = kona3getPage();
+  $sort = kona3plugins_comment_checkSort($sort);
+  $edit_token = htmlspecialchars(kona3_getEditToken('edit_token'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+  $allbbs = kona3plugins_comment_getSortedBbsList($pdo, $type, $sort);
   $html = "<input type='hidden' id='edit_token' name='edit_token' value='{$edit_token}'>\n";
+  // 掲示板内のコメントの並び順
+  $order = ($sort == 'old') ? 'ASC' : 'DESC';
   foreach ($allbbs as $row) {
     $bbs_id = $row["bbs_id"];
     $bbs_name = htmlspecialchars($row["name"], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -571,8 +650,8 @@ function _at_all($pdo, $type) {
     $stmt = $pdo->prepare(
       "SELECT * FROM comment_list ".
       "  WHERE bbs_id=? $where ".
-      "  ORDER BY comment_id DESC ".
-      "  LIMIT 30"); // 最新の30件
+      "  ORDER BY comment_id $order ".
+      "  LIMIT 30"); // 最新(古い順の時は古い方)の30件
     $stmt->execute(array($bbs_id));
     $list = $stmt->fetchAll();
     if (count($list) == 0) continue;
@@ -599,25 +678,46 @@ function _at_all($pdo, $type) {
   return $html;
 }
 
-function _renderCommentAdminPage($pdo, $type) {
+function _renderCommentAdminPage($pdo, $type, $sort = 'new') {
   $page = kona3getPage();
-  $all_url = htmlspecialchars(
-    kona3getPageURL($page, 'plugin', '', 'name=comment&m=list&type=all'),
-    ENT_QUOTES | ENT_SUBSTITUTE,
-    'UTF-8'
-  );
-  $todo_url = htmlspecialchars(
-    kona3getPageURL($page, 'plugin', '', 'name=comment&m=list&type=todo'),
-    ENT_QUOTES | ENT_SUBSTITUTE,
-    'UTF-8'
-  );
+  $sort = kona3plugins_comment_checkSort($sort);
+  // type切り替えリンク
+  $type_links = array();
+  foreach (array('all' => 'all', 'todo' => 'todo') as $t => $label) {
+    $url = htmlspecialchars(
+      kona3getPageURL($page, 'plugin', '', "name=comment&m=list&type={$t}&sort={$sort}"),
+      ENT_QUOTES | ENT_SUBSTITUTE,
+      'UTF-8'
+    );
+    $type_links[] = ($t == $type)
+      ? "[<b>{$label}</b>]"
+      : "[<a href='{$url}'>{$label}</a>]";
+  }
+  // sort切り替えリンク
+  $sort_links = array();
+  foreach (array('new', 'old', 'name') as $sv) {
+    $label = htmlspecialchars(kona3plugins_comment_getSortLabel($sv), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    $url = htmlspecialchars(
+      kona3getPageURL($page, 'plugin', '', "name=comment&m=list&type={$type}&sort={$sv}"),
+      ENT_QUOTES | ENT_SUBSTITUTE,
+      'UTF-8'
+    );
+    $sort_links[] = ($sv == $sort)
+      ? "[<b>{$label}</b>]"
+      : "[<a href='{$url}'>{$label}</a>]";
+  }
+  $type_links_html = implode(' ', $type_links);
+  $sort_links_html = implode(' ', $sort_links);
   $title = htmlspecialchars("Comments (type=$type)", ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-  $list = _at_all($pdo, $type);
+  $list = _at_all($pdo, $type, $sort);
   return <<<__EOS__
 <div class="plugin_comment">
   <div class='plugin_title'>
     <a name='CommentBox'>{$title}</a>
-    <span class='memo'>[<a href='{$all_url}'>all</a>] [<a href='{$todo_url}'>todo</a>]</span>
+    <span class='memo'>{$type_links_html}</span>
+  </div>
+  <div class='comment_sort_bar'>
+    <span class='memo'>sort: {$sort_links_html}</span>
   </div>
   {$list}
 </div>
