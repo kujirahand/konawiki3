@@ -747,10 +747,25 @@ function __kona3markdown_parser_tohtml(&$text, $level)
             $text = substr($text, strlen($m[0]));
             $alt = $m[1];
             $link = $m[2];
-            $plugin = kona3markdown_parser_getPlugin('image');
+            // External (http/https) URLs always render as images (extension may be hidden
+            // behind a query string, e.g. an image proxy). For local/attached files, only
+            // render as an image when the extension is actually an image type; otherwise
+            // (e.g. .mmd, .mermaid) fall back to a plain link via the ref plugin so it
+            // doesn't show up as a broken image.
+            $scheme = strtolower((string) parse_url($link, PHP_URL_SCHEME));
+            $is_external = ($scheme === 'http' || $scheme === 'https');
+            if ($is_external) {
+                $is_image = TRUE;
+            } else {
+                $ext = strtolower(pathinfo(parse_url($link, PHP_URL_PATH) ?: $link, PATHINFO_EXTENSION));
+                $image_type = kona3getConf("image_pattern", "(jpg|jpeg|png|gif|ico|svg|webp)");
+                $is_image = preg_match("#^($image_type)$#", $ext);
+            }
+            $plugin_name = $is_image ? 'image' : 'ref';
+            $plugin = kona3markdown_parser_getPlugin($plugin_name);
             $param_ary = [$link, '*'.$alt];
             include_once($plugin["file"]);
-            $p = array("cmd"=>"plugin", "text"=>"image", "params"=>$param_ary);
+            $p = array("cmd"=>"plugin", "text"=>$plugin_name, "params"=>$param_ary);
             $s = kona3markdown_parser_render_plugin($p);
             $result .= $s;
             continue;
