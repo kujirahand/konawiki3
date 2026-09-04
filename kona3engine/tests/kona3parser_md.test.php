@@ -119,6 +119,12 @@ $html = kona3markdown_parser_convert($text, false);
 
 test_assert(__LINE__, strpos($html, "<img src='https://n3s.nadesi.com/image.php?t=token&amp;f=778.jpeg'") !== false, "Standard Markdown: extensionless image URL is rendered through image plugin");
 
+$text = "![diagram](diagram.mmd)";
+$html = kona3markdown_parser_convert($text, false);
+
+test_assert(__LINE__, strpos($html, '<img') === false, "Standard Markdown: local .mmd file is not rendered as an image");
+test_assert(__LINE__, strpos($html, "#ref(") !== false, "Standard Markdown: local .mmd file is routed through the ref plugin, not the image plugin");
+
 $text = "```php\necho 1;\n```";
 $html = kona3markdown_parser_convert($text, false);
 
