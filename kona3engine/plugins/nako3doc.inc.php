@@ -56,7 +56,9 @@ function kona3plugins_nako3doc_execute($parg)
     $nakotype = nako3doc_getNakoTypeWiki($plugin);
     // 拡張かどうか
     $extra_plugin = "";
-    if (strpos($nakotype, '拡張プラグイン') !== FALSE) {
+    if (strpos($page, 'gonako/') === 0) {
+        $extra_plugin = "[[なでしこ3(Go版):gonako]]でのみ実行できる命令です。\n";
+    } elseif (strpos($nakotype, '拡張プラグイン') !== FALSE) {
         $pluginUrl = $plugin;
         if (strpos($nakotype, '[[wnako]]') !== FALSE) {
             $pluginUrl = "https://cdn.jsdelivr.net/npm/{$plugin}@latest/{$plugin}.js";

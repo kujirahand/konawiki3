@@ -58,6 +58,17 @@ function nako3_main($params) {
   $nako3['can_save'] = ($nako3['editable']) ? 'true' : 'false';
   $nako3['edit_height'] = (ceil(intval($nako3['rows']) * 1.5)).'em';
 
+  // gonako/, cnako/, phpnako/ 以下のページではコードのみ表示し、[実行][クリア]ボタンは表示しない
+  global $kona3conf;
+  $page = isset($kona3conf['page']) ? $kona3conf['page'] : '';
+  $nako3['controls_style'] = '';
+  foreach (['gonako/', 'cnako/', 'phpnako/'] as $prefix) {
+    if (strpos($page, $prefix) === 0) {
+      $nako3['controls_style'] = 'display:none;';
+      break;
+    }
+  }
+
   // show template
   $src = nako3_template('tpl-code.html', $nako3);
   return
