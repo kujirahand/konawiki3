@@ -33,6 +33,10 @@ function kona3plugins_nako3doc_execute($parg)
     if ($pa == 'list-plugins' || $pa == 'plugins') {
         return nako3doc_list_plugins();
     }
+    // gonako ページは何も出力しない
+    if ($page == 'gonako') {
+        return '';
+    }
     // check page
     $ra = nako3doc_run(
         'SELECT * FROM commands WHERE pagename=?',
@@ -211,6 +215,7 @@ function nako3doc_getPluginInfo($plugin)
         "wnako" => FALSE,
         "cnako" => FALSE,
         "phpnako" => FALSE,
+        "gonako" => FALSE,
         "基本プラグイン" => FALSE,
         "拡張プラグイン" => FALSE,
         "nakotype" => "",
@@ -327,6 +332,10 @@ function nako3doc_list_func($pagetype)
     }
     // プラグイン順に出力
     $fn = function ($cmd, $plugin) use ($pluginInfo) {
+        // このプラグインの命令がない場合は出力しない
+        if (empty($cmd[$plugin])) {
+            return ['', ''];
+        }
         $type = $pluginInfo[$plugin];
         $type = preg_replace('#([a-z]+)#', '[[$1]]', $type);
         $type = str_replace(',', ', ', $type);
