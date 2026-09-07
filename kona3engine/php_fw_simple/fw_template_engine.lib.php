@@ -84,9 +84,8 @@ function template_render($tpl_filename, $tpl_params)
         '#\{\{\s*include\s+[\'\"]?(.+?)[\'\"]?\s*}}#is' => function ($m) use ($tpl_params) {
             $file = $m[1];
             $enc = json_encode($tpl_params, JSON_UNESCAPED_UNICODE);
-            $quote = "__#@QUOTE@#__";
-            $enc = str_replace('\'', $quote, $enc);
-            return "<?php template_render('$file', json_decode(str_replace('$quote', '\'', '$enc'), TRUE));?>";
+            $b64 = base64_encode($enc);
+            return "<?php template_render('$file', json_decode(base64_decode('$b64'), TRUE));?>";
         },
         // {{ if $var.name cond }}
         '#\{\{\s*if\s+\$([a-zA-Z0-9_\.]+)(.*?)\}\}#is' => function ($m) {
@@ -154,7 +153,13 @@ function template_render($tpl_filename, $tpl_params)
     if ($tpl_params) {
         extract($tpl_params);
     }
-    file_put_contents($__file_cache, $__fw_contents);
+    // 同時アクセス時に書き込み途中のキャッシュがincludeされないよう、一時ファイル経由で入れ替える
+    $__tmp_cache = $__file_cache.'.'.getmypid().'.'.mt_rand().'.tmp';
+    file_put_contents($__tmp_cache, $__fw_contents);
+    if (!@rename($__tmp_cache, $__file_cache)) {
+        file_put_contents($__file_cache, $__fw_contents);
+        @unlink($__tmp_cache);
+    }
     include($__file_cache);
 }
 

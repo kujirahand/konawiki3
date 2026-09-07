@@ -161,6 +161,34 @@ $output = ob_get_clean();
 test_assert(__LINE__, strpos($output, "Parent:") !== FALSE, "include: 親テンプレート");
 test_assert(__LINE__, strpos($output, "Child: Test") !== FALSE, "include: 子テンプレート");
 
+// include: 値にクォートやバックスラッシュ、スラッシュが含まれても正しく渡ること
+$specialValues = [
+    "文法/計算",           // json_encodeで "\/" になる
+    "it's a test",         // シングルクォート
+    'C:\\path\\to\\file',  // バックスラッシュ
+    'back\\',              // 末尾がバックスラッシュ
+    "quote\" and 'quote'", // ダブルクォートとシングルクォート
+];
+foreach ($specialValues as $i => $specialValue) {
+    ob_start();
+    template_render("test_include_parent.html", ['value' => $specialValue]);
+    $output = ob_get_clean();
+    test_assert(__LINE__, strpos($output, "Child: ".htmlspecialchars($specialValue, ENT_QUOTES)) !== FALSE,
+        "include: 特殊文字を含む値($i)");
+}
+
+// キャッシュ書き込みがアトミックであること(書き込み途中のファイルがincludeされるとPHPパースエラーになる)
+$tpl_file = $test_tpl_dir . "/test_atomic.html";
+file_put_contents($tpl_file, "Atomic: {{include test_include_child.html}}");
+ob_start();
+template_render("test_atomic.html", ['value' => str_repeat('長い本文テキスト ', 500)]);
+ob_get_clean();
+$cache_file = $test_cache_dir . "/test_atomic.html.php";
+test_assert(__LINE__, file_exists($cache_file), "アトミック書き込み: キャッシュが作成される");
+test_assert(__LINE__, count(glob($test_cache_dir . "/*.tmp")) === 0, "アトミック書き込み: 一時ファイルが残らない");
+$lint = shell_exec(escapeshellarg(PHP_BINARY) . ' -l ' . escapeshellarg($cache_file) . ' 2>&1');
+test_assert(__LINE__, strpos($lint, 'No syntax errors') !== FALSE, "アトミック書き込み: キャッシュが完全なPHPである");
+
 // --- コメントのテスト ---
 
 $tpl_file = $test_tpl_dir . "/test_comment.html";

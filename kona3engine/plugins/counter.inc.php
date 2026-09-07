@@ -24,55 +24,14 @@ function kona3plugins_counter_execute($args)
         return '<span style="color:red;">Counter table not found</span>';
     }
 
-    // === total counter ===
-    $value = 0;
-    $r = subdb_get1(
-        "SELECT * FROM counter WHERE page_id=?",
-        [$page_id]
-    );
-    if (!isset($r['value'])) {
-        subdb_insert(
-            "INSERT INTO counter " .
-                "(page_id, value, mtime) VALUES (?,?,?)",
-            [$page_id, 0, time()]
-        );
-    } else {
-        $value = $r['value'];
+    // 同時アクセスでも数え落ちや一意制約エラーが起きないよう、
+    // 行の作成はINSERT OR IGNORE、加算はSQL側(value=value+1)で行う
+    // また、DBが混み合っていてもページ表示は続けられるようにする
+    try {
+        list($value, $mvalue) = kona3plugins_counter_countUp($page_id);
+    } catch (Exception $e) {
+        return "<div class='counter'>-</div>";
     }
-    $value += 1;
-    subdb_exec(
-        "UPDATE counter SET value=?, mtime=? " .
-            "WHERE page_id=?",
-        [$value, time(), $page_id]
-    );
-    // === monthly counter ===
-    $year  = intval(date('Y'));
-    $month = intval(date('n'));
-    $mvalue = 0;
-    $counter_id = 0;
-    $r = subdb_get1(
-        "SELECT * FROM counter_month " .
-            "WHERE (page_id=?)AND(year=?)AND(month=?) LIMIT 1",
-        [$page_id, $year, $month]
-    );
-    if (!isset($r['value'])) {
-        $counter_id = subdb_insert(
-            "INSERT INTO counter_month " .
-                "(page_id, year, month, value, mtime) " .
-                "VALUES(?,?,?,?,?)",
-            [$page_id, $year, $month, 0, time()]
-        );
-    } else {
-        $mvalue = $r['value'];
-        $counter_id = $r['counter_id'];
-    }
-    $mvalue += 1;
-    subdb_exec(
-        "UPDATE counter_month SET value=?, mtime=? " .
-            "WHERE counter_id=?",
-        [$mvalue, time(), $counter_id]
-    );
-    //
     $m_this = lang('Monthly');
     $html = "$value" . "<span class='coutner_month'>({$m_this}{$mvalue})</span>";
     if (kona3isLogin()) {
@@ -83,4 +42,46 @@ function kona3plugins_counter_execute($args)
         "<div class='counter'>" .
         $html .
         "</div>";
+}
+
+// カウンターを1つ増やして [合計, 今月] を返す
+function kona3plugins_counter_countUp($page_id)
+{
+    // === total counter ===
+    subdb_exec(
+        "INSERT OR IGNORE INTO counter " .
+            "(page_id, value, mtime) VALUES (?,0,?)",
+        [$page_id, time()]
+    );
+    subdb_exec(
+        "UPDATE counter SET value=value+1, mtime=? " .
+            "WHERE page_id=?",
+        [time(), $page_id]
+    );
+    $r = subdb_get1(
+        "SELECT value FROM counter WHERE page_id=?",
+        [$page_id]
+    );
+    $value = isset($r['value']) ? intval($r['value']) : 1;
+    // === monthly counter ===
+    $year  = intval(date('Y'));
+    $month = intval(date('n'));
+    subdb_exec(
+        "INSERT OR IGNORE INTO counter_month " .
+            "(page_id, year, month, value, mtime) " .
+            "VALUES(?,?,?,0,?)",
+        [$page_id, $year, $month, time()]
+    );
+    subdb_exec(
+        "UPDATE counter_month SET value=value+1, mtime=? " .
+            "WHERE (page_id=?)AND(year=?)AND(month=?)",
+        [time(), $page_id, $year, $month]
+    );
+    $r = subdb_get1(
+        "SELECT value FROM counter_month " .
+            "WHERE (page_id=?)AND(year=?)AND(month=?) LIMIT 1",
+        [$page_id, $year, $month]
+    );
+    $mvalue = isset($r['value']) ? intval($r['value']) : 1;
+    return [$value, $mvalue];
 }
