@@ -43,6 +43,9 @@ function database_get($dbname = 'main')
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     // 連想配列を返す
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    // 複数読み取り+単一書き込みを同時許可し、書き込み競合時は例外を投げる前に待機させる
+    $pdo->exec('PRAGMA journal_mode=WAL');
+    $pdo->exec('PRAGMA busy_timeout=5000');
     // 生成
     if ($need_init) {
         $sql = file_get_contents($file_sql);
@@ -58,11 +61,32 @@ function database_get($dbname = 'main')
     return $pdo;
 }
 
+// SQLITE_BUSY(database is locked)時に指数バックオフで再試行する
+function db_retry_busy($fn, $max_retries = 4)
+{
+    $attempt = 0;
+    while (true) {
+        try {
+            return $fn();
+        } catch (PDOException $e) {
+            $is_busy = (stripos($e->getMessage(), 'database is locked') !== false)
+                || (stripos($e->getMessage(), 'SQLITE_BUSY') !== false);
+            $attempt++;
+            if (! $is_busy || $attempt > $max_retries) {
+                throw $e;
+            }
+            usleep((int)(50000 * (2 ** ($attempt - 1)))); // 50ms, 100ms, 200ms, 400ms...
+        }
+    }
+}
+
 function db_begin($dbname = 'main')
 {
     $db = database_get($dbname);
-    $db->beginTransaction();
-    return $db;
+    return db_retry_busy(function () use ($db) {
+        $db->beginTransaction();
+        return $db;
+    });
 }
 
 function db_commit($dbname = 'main')
@@ -82,21 +106,25 @@ function db_rollback($dbname = 'main')
 function db_exec($sql, $params = array(), $dbname = 'main')
 {
     $db = database_get($dbname);
-    $stmt = $db->prepare($sql);
-    $stmt->execute($params);
-    return $db;
+    return db_retry_busy(function () use ($db, $sql, $params) {
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $db;
+    });
 }
 
 function db_insert($sql, $params = array(), $dbname = 'main')
 {
     $db = database_get($dbname);
-    $stmt = $db->prepare($sql);
-    $result = $stmt->execute($params);
-    if ($result) {
-        $id = $db->lastInsertId();
-        return $id;
-    }
-    return 0;
+    return db_retry_busy(function () use ($db, $sql, $params) {
+        $stmt = $db->prepare($sql);
+        $result = $stmt->execute($params);
+        if ($result) {
+            $id = $db->lastInsertId();
+            return $id;
+        }
+        return 0;
+    });
 }
 
 function db_get($sql, $params = array(), $dbname = 'main')
