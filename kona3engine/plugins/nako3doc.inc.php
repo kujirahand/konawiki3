@@ -255,12 +255,20 @@ function nako3doc_list_func($pagetype)
         $pagetype = '';
     }
 
+    $cache_dir = KONA3_DIR_CACHE;
+    $cache_file = $cache_dir . "/nako3doc.cache.list_func_{$pagetype}.html";
+
+    // cache=0 が指定された場合は既存のキャッシュファイルを削除
+    if (isset($_GET['cache']) && intval($_GET['cache']) === 0) {
+        if (file_exists($cache_file)) {
+            @unlink($cache_file);
+        }
+    }
+
     // check page cache
     $conf_use_cache = isset($_GET['cache']) ? (intval($_GET['cache']) == 1) : TRUE;
     if ($conf_use_cache) {
         $use_cache = FALSE;
-        $cache_dir = KONA3_DIR_CACHE;
-        $cache_file = $cache_dir . "/nako3doc.cache.list_func_{$pagetype}.html";
         if (file_exists($cache_file)) {
             $cache_time = filemtime($cache_file);
             $db_time = nako3doc_getDBTime();
