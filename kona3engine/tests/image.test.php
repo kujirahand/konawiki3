@@ -16,3 +16,23 @@ $html = kona3plugins_image_execute([
 ]);
 test_assert(__LINE__, strpos($html, 'javascript:') === false, '#image: unsafe URL scheme is not output');
 test_assert(__LINE__, strpos($html, '#image(javascript_alert') !== false, '#image: error uses the image plugin name');
+
+// --- zoom (issue #245) ---
+global $kona3conf;
+unset($kona3conf['plugins.image.zoom.init']);
+
+$html = kona3plugins_image_execute(['https://example.com/a.png']);
+test_assert(__LINE__, strpos($html, "class='kona3-image-zoom'") !== false, '#image: image link has zoom class');
+test_assert(__LINE__, strpos($html, 'kona3-image-zoom-overlay') !== false, '#image: zoom CSS/JS is output on first use');
+test_assert(__LINE__, strpos($html, 'ダウンロード') !== false && strpos($html, '閉じる') !== false, '#image: zoom has download and close buttons');
+
+$html = kona3plugins_image_execute(['https://example.com/b.png']);
+test_assert(__LINE__, strpos($html, "class='kona3-image-zoom'") !== false, '#image: second image also zoomable');
+test_assert(__LINE__, strpos($html, '<script>') === false, '#image: zoom script is output only once');
+
+$html = kona3plugins_image_execute(['https://example.com/c.png', '@https://example.com/page']);
+test_assert(__LINE__, strpos($html, "class='kona3-image-zoom'") === false, '#image: explicit @link disables zoom');
+test_assert(__LINE__, strpos($html, "href='https://example.com/page'") !== false, '#image: explicit @link is kept');
+
+$html = kona3plugins_ref_execute(['https://example.com/d.png']);
+test_assert(__LINE__, strpos($html, 'kona3-image-zoom') === false, '#ref: no zoom');
