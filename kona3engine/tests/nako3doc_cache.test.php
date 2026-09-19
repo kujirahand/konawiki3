@@ -23,3 +23,25 @@ if (file_exists($cache_file)) {
     @unlink($cache_file);
 }
 unset($_GET['cache']);
+
+// --- DBファイルが無い環境(CIなど)でも例外にならないこと ---
+$dbfile = nako3doc_getDBFile();
+if (!file_exists($dbfile)) {
+    test_eq(__LINE__, nako3doc_getDBTime(), 0, "DBが無い場合 getDBTime は 0");
+    test_eq(__LINE__, nako3doc_run("SELECT * FROM plugins", []), [], "DBが無い場合 run は空配列");
+    test_eq(__LINE__, nako3doc_getPlugins(''), [], "DBが無い場合 getPlugins は空配列");
+    test_assert(__LINE__, !file_exists($dbfile), "DBが無い場合に空のDBファイルを作らないこと");
+} else {
+    // テーブルが無い不完全なDBでも例外にならないこと
+    $tmp = KONA3_DIR_CACHE . '/nako3doc_empty_test.db';
+    @unlink($tmp);
+    global $nako3doc_db;
+    $backup = $nako3doc_db ?? null;
+    $nako3doc_db = new PDO("sqlite:$tmp");
+    test_eq(__LINE__, nako3doc_getPlugins(''), [], "テーブルが無いDBでも getPlugins は空配列");
+    $nako3doc_db = $backup;
+    if ($backup === null) {
+        unset($nako3doc_db);
+    }
+    @unlink($tmp);
+}

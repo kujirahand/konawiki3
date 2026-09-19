@@ -584,7 +584,11 @@ function nako3doc_getDBFile()
 
 function nako3doc_getDBTime()
 {
-    return filemtime(nako3doc_getDBFile());
+    $dbfile = nako3doc_getDBFile();
+    if (!file_exists($dbfile)) {
+        return 0;
+    }
+    return filemtime($dbfile);
 }
 
 function nako3doc_getDB()
@@ -601,10 +605,19 @@ function nako3doc_getDB()
 
 function nako3doc_run($sql, $params = [])
 {
+    // DBファイルが無い場合は、空のDBを作らずに空の結果を返す
+    if (!file_exists(nako3doc_getDBFile())) {
+        return [];
+    }
     $db = nako3doc_getDB();
-    $stmt = $db->prepare($sql);
-    $stmt->execute($params);
-    $r = $stmt->fetchAll(PDO::FETCH_BOTH);
+    try {
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $r = $stmt->fetchAll(PDO::FETCH_BOTH);
+    } catch (PDOException $e) {
+        // テーブルが無いなど、DBが不完全な場合
+        return [];
+    }
     if (empty($r)) {
         return [];
     }
