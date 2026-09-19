@@ -63,4 +63,6 @@ $lang_data = [
     'Offline Cache Disabled' => 'Offline Cache Disabled',
     'Cache Cleared' => 'Cache Cleared',
     'Showing offline cache: saved at %s' => '(Showing offline cache: saved at %s)',
+    'Image Download' => '⬇️ Download',
+    'Image Close' => '❌ Close',
 ];

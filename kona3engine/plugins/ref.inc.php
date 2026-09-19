@@ -183,7 +183,11 @@ function kona3plugins_ref_zoom_head() {
     $key = 'plugins.image.zoom.init';
     if (!empty($kona3conf[$key])) { return ''; }
     $kona3conf[$key] = 1;
-    return <<<'EOS'
+    // ボタンのラベルをローカライズしてJSへ渡す
+    $flags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+    $label_download = json_encode(lang('Image Download'), $flags);
+    $label_close = json_encode(lang('Image Close'), $flags);
+    $html = <<<'EOS'
 <style>
 .kona3-image-zoom { cursor: zoom-in; }
 #kona3-image-zoom-overlay {
@@ -231,10 +235,10 @@ function kona3plugins_ref_zoom_head() {
         dl.download = '';
         dl.target = '_blank';
         dl.rel = 'noopener';
-        dl.textContent = 'ダウンロード';
+        dl.textContent = __LABEL_DOWNLOAD__;
         const cl = document.createElement('button');
         cl.type = 'button';
-        cl.textContent = '閉じる';
+        cl.textContent = __LABEL_CLOSE__;
         cl.addEventListener('click', close);
         buttons.append(dl, cl);
         overlay.append(img, buttons);
@@ -255,4 +259,9 @@ function kona3plugins_ref_zoom_head() {
 </script>
 
 EOS;
+    return str_replace(
+        ['__LABEL_DOWNLOAD__', '__LABEL_CLOSE__'],
+        [$label_download, $label_close],
+        $html
+    );
 }

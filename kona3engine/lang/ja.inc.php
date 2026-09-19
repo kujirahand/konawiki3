@@ -161,4 +161,6 @@ $lang_data = [
     'Offline Cache Disabled' => 'オフラインキャッシュを無効にしました',
     'Cache Cleared' => 'キャッシュをクリアしました',
     'Showing offline cache: saved at %s' => '（オフラインのためキャッシュを表示中: %s に保存）',
+    'Image Download' => '⬇️ ダウンロード',
+    'Image Close' => '❌ 閉じる',
 ];
