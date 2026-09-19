@@ -202,16 +202,26 @@ function kona3plugins_ref_zoom_head() {
 #kona3-image-zoom-overlay .kona3-zoom-buttons {
     position: absolute; top: 0.6em; right: 0.8em; display: flex; gap: 0.5em;
 }
-#kona3-image-zoom-overlay .kona3-zoom-buttons a,
-#kona3-image-zoom-overlay .kona3-zoom-buttons button {
+#kona3-image-zoom-overlay .kona3-zoom-buttons a {
     font-size: 1em; padding: 0.4em 0.9em; cursor: pointer;
     color: #fff; background: rgba(255, 255, 255, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 4px;
     text-decoration: none; font-family: inherit;
 }
-#kona3-image-zoom-overlay .kona3-zoom-buttons a:hover,
-#kona3-image-zoom-overlay .kona3-zoom-buttons button:hover {
+#kona3-image-zoom-overlay .kona3-zoom-buttons a:hover {
     background: rgba(255, 255, 255, 0.4);
+}
+#kona3-image-zoom-overlay .kona3-zoom-buttons .kona3-zoom-close {
+    display: flex; align-items: center; justify-content: center;
+    width: 2em; height: 2em; padding: 0; box-sizing: border-box;
+    cursor: pointer; color: #fff; background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 50%;
+}
+#kona3-image-zoom-overlay .kona3-zoom-close:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+#kona3-image-zoom-overlay .kona3-zoom-close svg {
+    width: 1em; height: 1em; stroke: currentColor;
 }
 </style>
 <script>
@@ -238,7 +248,10 @@ function kona3plugins_ref_zoom_head() {
         dl.textContent = __LABEL_DOWNLOAD__;
         const cl = document.createElement('button');
         cl.type = 'button';
-        cl.textContent = __LABEL_CLOSE__;
+        cl.className = 'kona3-zoom-close';
+        cl.setAttribute('aria-label', __LABEL_CLOSE__);
+        cl.title = __LABEL_CLOSE__;
+        cl.innerHTML = '<svg viewBox="0 0 20 20" fill="none" stroke-width="2" stroke-linecap="round"><line x1="4" y1="4" x2="16" y2="16"/><line x1="16" y1="4" x2="4" y2="16"/></svg>';
         cl.addEventListener('click', close);
         buttons.append(dl, cl);
         overlay.append(img, buttons);
