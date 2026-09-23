@@ -362,14 +362,28 @@ function kona3markdown_parser_render($tokens, $flag_isContents = TRUE)
                 }
             }
             $block_html = kona3markdown_parser_tohtml($block);
-            $block_html = preg_replace('#\n#', '<br/>', $block_html);
-            $html .= "<p>{$block_html}</p>{$eol}";
+            // The image/ref plug-ins return block-level <div> elements. Wrapping a
+            // standalone Markdown image in <p> creates invalid HTML; browsers then
+            // repair it by inserting an empty paragraph. Also, replacing newlines
+            // in the plug-in's CSS/JavaScript with <br> creates visible blank lines
+            // before the first image on a page.
+            if (kona3markdown_parser_isStandaloneImage($block)) {
+                $html .= "{$block_html}{$eol}";
+            } else {
+                $block_html = preg_replace('#\n#', '<br/>', $block_html);
+                $html .= "<p>{$block_html}</p>{$eol}";
+            }
         }
     }
     if ($flag_isContents) {
         $html .= "</div>\n";
     }
     return $html;
+}
+
+function kona3markdown_parser_isStandaloneImage($text)
+{
+    return preg_match('#^[ \t]*!\[(.*?)\]\(([^)\r\n]+)\)[ \t]*\z#', $text) === 1;
 }
 
 function kona3markdown_parser_render_hx(&$value)
