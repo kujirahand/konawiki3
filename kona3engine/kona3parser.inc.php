@@ -224,7 +224,7 @@ function konawiki_parser_render($tokens, $flag_isContents = TRUE)
             // Check if the second row is a separator row (Markdown-compatible)
             $is_separator = false;
             $aligns = [];
-            if (count($table_rows) >= 2) {
+            if (count($table_rows) >= 2 && count($table_rows[0]) === count($table_rows[1])) {
                 $sep_row = $table_rows[1];
                 $is_separator = true;
                 foreach ($sep_row as $cell) {

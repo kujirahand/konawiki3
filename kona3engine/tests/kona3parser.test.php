@@ -206,3 +206,10 @@ test_assert(__LINE__, strpos($html, '<td>Cell 4</td>') !== false, "区切り線�
 $text = "|A|B|\n|---|---|\n|x|y|";
 $html = konawiki_parser_convert($text, false);
 test_assert(__LINE__, strpos($html, "<th style='text-align:left;'>A</th><th style='text-align:left;'>B</th>") !== false, "デフォルトは左寄せ");
+
+// 4. 列数がヘッダーと異なる2行目は区切り線として誤検出しない
+$text = "|A|B|\n|---|\n|x|y|";
+$html = konawiki_parser_convert($text, false);
+test_assert(__LINE__, strpos($html, '<thead>') === false, "列数不一致の2行目は区切り線とみなさない");
+test_assert(__LINE__, strpos($html, '<td>---</td>') !== false, "列数不一致の2行目はデータ行として残る");
+test_assert(__LINE__, strpos($html, '<td>x</td><td>y</td>') !== false, "3行目もデータ行として残る");
