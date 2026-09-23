@@ -102,6 +102,13 @@ function kona3conf_getConfigItems()
             'max_edit_size' => ['label' => 'Max Edit Size', 'default' => 3, 'type' => 'number', 'note' => '0:no limit, unit=MB'],
             'max_search' => ['label' => 'Max Search', 'default' => 10, 'type' => 'number'],
             'max_search_level' => ['label' => 'Max Search Level', 'default' => 2, 'type' => 'number'],
+            'newline_code' => [
+                'label' => 'Newline Code',
+                'default' => 'original',
+                'type' => 'select',
+                'items' => ['original', 'LF', 'CRLF'],
+                'note' => 'original: keep existing file as-is (new files use LF)',
+            ],
         ],
         'Markdown' => [
             'md_underscore_emphasis' => ['label' => 'Markdown Underscore Emphasis', 'default' => FALSE, 'type' => 'bool'],

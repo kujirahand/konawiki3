@@ -1081,6 +1081,34 @@ EOS;
 }
 
 // file lock save
+// 改行コード正規化 (issue #251)
+// 設定 'newline_code' に応じてテキストの改行コードを統一する
+//   'LF': LF(\n)に統一
+//   'CRLF': CRLF(\r\n)に統一
+//   'original'(既定): 保存対象ファイル($fname)の改行コードを維持する
+//     (既存ファイルがCRLFならCRLF、それ以外はLF。新規ファイルはLF)
+function kona3_normalizeNewlineCode($contents, $fname)
+{
+    global $kona3conf;
+    $mode = isset($kona3conf['newline_code'])
+        ? $kona3conf['newline_code'] : 'original';
+    // まずすべて LF に正規化
+    $lf = str_replace(["\r\n", "\r"], "\n", $contents);
+    $use_crlf = FALSE;
+    if ($mode === 'CRLF') {
+        $use_crlf = TRUE;
+    } else if ($mode === 'original' && is_string($fname) && $fname !== ''
+        && file_exists($fname)) {
+        // 元のファイルの改行コードを検出
+        $orig = @file_get_contents($fname);
+        $use_crlf = is_string($orig) && strpos($orig, "\r\n") !== FALSE;
+    }
+    if ($use_crlf) {
+        return str_replace("\n", "\r\n", $lf);
+    }
+    return $lf;
+}
+
 function kona3lock_save($path, $contents, $retry = 3, $usleep = 100000)
 {
     for ($try = 0; $try < $retry; $try++) {
