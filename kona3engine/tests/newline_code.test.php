@@ -56,6 +56,41 @@ test_eq(__LINE__,
     kona3_normalizeNewlineCode("new\r\ncontent\r\n", $path_txt),
     "new\ncontent\n", "original mode uses LF for new files");
 
+// original 設定: LF主体の混在ファイルはLF維持 (CRLFが少数)
+cleanup_newline_code_test();
+file_put_contents($path_txt, "a\nb\r\nc\nd\n");
+test_eq(__LINE__,
+    kona3_normalizeNewlineCode("a\nb edited\rc\n", $path_txt),
+    "a\nb edited\nc\n", "original mode keeps LF-majority mixed file as LF");
+
+// original 設定: CRLF主体の混在ファイルはCRLF維持 (LFが少数)
+cleanup_newline_code_test();
+file_put_contents($path_txt, "a\r\nb\r\nc\r\nd\n");
+test_eq(__LINE__,
+    kona3_normalizeNewlineCode("a\nb\nc\n", $path_txt),
+    "a\r\nb\r\nc\r\n", "original mode keeps CRLF-majority mixed file as CRLF");
+
+// original 設定: CRLFとLFが同数のときはLF
+cleanup_newline_code_test();
+file_put_contents($path_txt, "a\r\nb\nc");
+test_eq(__LINE__,
+    kona3_normalizeNewlineCode("a\nb\nc\n", $path_txt),
+    "a\nb\nc\n", "original mode uses LF when CRLF count equals LF count");
+
+// original 設定: 改行なし(単一文字列)のファイルはLF
+cleanup_newline_code_test();
+file_put_contents($path_txt, "no newline here");
+test_eq(__LINE__,
+    kona3_normalizeNewlineCode("new content", $path_txt),
+    "new content", "original mode uses LF for file without newlines");
+
+// original 設定: CR単独(旧Mac)の既存ファイルはLF
+cleanup_newline_code_test();
+file_put_contents($path_txt, "old\rcontent\rold");
+test_eq(__LINE__,
+    kona3_normalizeNewlineCode("new\ncontent\n", $path_txt),
+    "new\ncontent\n", "original mode uses LF for CR-only legacy file");
+
 // --- 統合テスト: kona3_trywrite() 経由の保存 ---
 
 // textarea送信を想定したCRLFテキストを保存 (既存ファイルはLF)

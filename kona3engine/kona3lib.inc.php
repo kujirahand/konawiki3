@@ -1086,7 +1086,8 @@ EOS;
 //   'LF': LF(\n)に統一
 //   'CRLF': CRLF(\r\n)に統一
 //   'original'(既定): 保存対象ファイル($fname)の改行コードを維持する
-//     (既存ファイルがCRLFならCRLF、それ以外はLF。新規ファイルはLF)
+//     (既存ファイルの CRLF と LF の数を数えて多い方を採用。
+//      同数のときは LF。新規ファイルはLF)
 function kona3_normalizeNewlineCode($contents, $fname)
 {
     global $kona3conf;
@@ -1099,9 +1100,15 @@ function kona3_normalizeNewlineCode($contents, $fname)
         $use_crlf = TRUE;
     } else if ($mode === 'original' && is_string($fname) && $fname !== ''
         && file_exists($fname)) {
-        // 元のファイルの改行コードを検出
+        // 元のファイルの改行コードを検出する
+        // (混在ファイルの場合は CRLF と LF の多い方を採用し、
+        //  同数のときは LF を選択して既存行の変化を防ぐ)
         $orig = @file_get_contents($fname);
-        $use_crlf = is_string($orig) && strpos($orig, "\r\n") !== FALSE;
+        if (is_string($orig)) {
+            $cnt_crlf = substr_count($orig, "\r\n");
+            $cnt_lf = substr_count($orig, "\n") - $cnt_crlf;
+            $use_crlf = ($cnt_crlf > $cnt_lf);
+        }
     }
     if ($use_crlf) {
         return str_replace("\n", "\r\n", $lf);
