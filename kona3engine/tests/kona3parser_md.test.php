@@ -108,11 +108,22 @@ test_assert(__LINE__, strpos($html, '<del>gone</del>') !== false, "Standard Mark
 test_assert(__LINE__, strpos($html, "<a href='https://example.com'>link</a>") !== false, "Standard Markdown: link is rendered");
 test_assert(__LINE__, strpos($html, "<span class='code'><code>code</code></span>") !== false, "Standard Markdown: inline code is rendered");
 
+global $kona3conf;
+unset($kona3conf['plugins.image.zoom.init']);
 $text = "![alt text](https://example.com/a.png)";
 $html = kona3markdown_parser_convert($text, false);
 
 test_assert(__LINE__, strpos($html, "<img src='https://example.com/a.png'") !== false, "Standard Markdown: image is rendered through image plugin");
 test_assert(__LINE__, strpos($html, "<div class='memo'>alt text</div>") !== false, "Standard Markdown: image alt is rendered as caption");
+test_assert(__LINE__, strpos($html, '<p>') === false, "Standard Markdown: standalone image is not wrapped in a paragraph");
+test_assert(__LINE__, strpos($html, '<br/>') === false, "Standard Markdown: image plugin CSS and JavaScript newlines do not become visible breaks");
+
+$text = "before\n\n![alt text](https://example.com/a.png)\n\nafter";
+$html = kona3markdown_parser_convert($text, false);
+
+test_eq(__LINE__, substr_count($html, '<p>'), 2, "Standard Markdown: standalone image does not create an empty paragraph between text blocks");
+test_assert(__LINE__, strpos($html, '<p>before</p>') !== false, "Standard Markdown: text before standalone image keeps its paragraph");
+test_assert(__LINE__, strpos($html, '<p>after</p>') !== false, "Standard Markdown: text after standalone image keeps its paragraph");
 
 $text = "![xxx](https://n3s.nadesi.com/image.php?t=token&f=778.jpeg)";
 $html = kona3markdown_parser_convert($text, false);
