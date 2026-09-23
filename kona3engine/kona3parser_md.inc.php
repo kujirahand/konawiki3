@@ -802,6 +802,12 @@ function __kona3markdown_parser_tohtml(&$text, $level)
             $text = substr($text, strlen($c2));
             continue;
         }
+        // <br> tag (line break)
+        if (preg_match('#^<br\s*/?>#i', $text, $m)) {
+            $result .= "<br/>";
+            $text = substr($text, strlen($m[0]));
+            continue;
+        }
         // 1chars replace
         $c = $c1;
         switch ($c) {

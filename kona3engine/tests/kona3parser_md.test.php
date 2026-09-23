@@ -301,3 +301,15 @@ $html = kona3markdown_parser_convert($text, false);
 test_assert(__LINE__, strpos($html, "<td style='text-align:left;'></td><td style='text-align:left;'>x</td>") !== false, "Table should keep an empty leading cell");
 test_assert(__LINE__, strpos($html, "<td style='text-align:left;'>y</td><td style='text-align:left;'></td>") !== false, "Table should keep an empty trailing cell");
 test_assert(__LINE__, strpos($html, "<td>value</td>") !== false, "Table should render an extra uneven cell without alignment");
+
+// 8. <br> tag inside a table cell should break the line
+$text = "| A | B |\n| --- | --- |\n| line1<br>line2 | x |";
+$html = kona3markdown_parser_convert($text, false);
+
+test_assert(__LINE__, strpos($html, "<td style='text-align:left;'>line1<br/>line2</td>") !== false, "Table cell with <br> should render a line break");
+
+// 9. <br/> and <br /> variants should also work
+$text = "| A |\n| --- |\n| a<br/>b<br />c |";
+$html = kona3markdown_parser_convert($text, false);
+
+test_assert(__LINE__, strpos($html, "<td style='text-align:left;'>a<br/>b<br/>c</td>") !== false, "Table cell should support <br/> and <br /> variants");
