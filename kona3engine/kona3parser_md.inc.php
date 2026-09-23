@@ -1050,7 +1050,12 @@ function kona3markdown_parser_sourceBlock(&$text)
         }
     } else {
         // check markdown source code ```type:filename ... ```
-        if (preg_match('/^([a-zA-Z_\-]+)\:(.+)$/', $name, $m)) {
+        if ($name === 'mermaid') {
+            // Standard Markdown Mermaid fences behave like :::mermaid blocks.
+            $name = '#mermaid';
+            $blockType = 'plugin';
+            $fileType = 'kona3plugin';
+        } else if (preg_match('/^([a-zA-Z_\-]+)\:(.+)$/', $name, $m)) {
             $fileType = $m[1];
             $fileName = $m[2];
         } else if (preg_match('/^[0-9a-zA-Z_\-]+/', $name)) {

@@ -130,6 +130,18 @@ $html = kona3markdown_parser_convert($text, false);
 
 test_assert(__LINE__, strpos($html, "<pre class='code'>echo 1;") !== false, "Standard Markdown: backtick code block is rendered");
 
+$text = "```mermaid\ngraph TD; A-->B;\n```";
+$tokens = kona3markdown_parser_parse($text);
+
+test_eq(__LINE__, $tokens[0]['cmd'], 'block', "Markdown Mode: mermaid fence creates a block token");
+test_eq(__LINE__, $tokens[0]['params'][0], '#mermaid', "Markdown Mode: mermaid fence targets the mermaid plugin");
+test_eq(__LINE__, $tokens[0]['params'][1], 'plugin', "Markdown Mode: mermaid fence is treated as a plugin block");
+
+$html = kona3markdown_parser_render($tokens, false);
+
+test_assert(__LINE__, strpos($html, '<pre class="mermaid">graph TD; A--&gt;B;') !== false, "Markdown Mode: mermaid fence renders a Mermaid diagram");
+test_assert(__LINE__, strpos($html, "<pre class='code'>") === false, "Markdown Mode: mermaid fence is not rendered as source code");
+
 $text = "~~~js\nlet x = 1;\n~~~";
 $html = kona3markdown_parser_convert($text, false);
 
