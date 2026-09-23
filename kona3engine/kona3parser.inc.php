@@ -594,6 +594,12 @@ function __konawiki_parser_tohtml(&$text, $level)
             $text = substr($text, 1);
             continue;
         }
+        // <br> tag (line break)
+        if (preg_match('#^<br\s*/?>#i', $text, $m)) {
+            $result .= "<br/>";
+            $text = substr($text, strlen($m[0]));
+            continue;
+        }
         // escape ?
         $c = $c1;
         switch ($c) {

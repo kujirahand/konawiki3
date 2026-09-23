@@ -213,3 +213,15 @@ $html = konawiki_parser_convert($text, false);
 test_assert(__LINE__, strpos($html, '<thead>') === false, "列数不一致の2行目は区切り線とみなさない");
 test_assert(__LINE__, strpos($html, '<td>---</td>') !== false, "列数不一致の2行目はデータ行として残る");
 test_assert(__LINE__, strpos($html, '<td>x</td><td>y</td>') !== false, "3行目もデータ行として残る");
+
+// --- <br> タグによる改行のテスト (KonaWiki記法) ---
+$html = konawiki_parser_convert("1行目<br>2行目", false);
+test_assert(__LINE__, strpos($html, '1行目<br/>2行目') !== false, "KonaWiki記法: <br>は改行になる");
+
+$html = konawiki_parser_convert("1行目<br/>2行目<br />3行目", false);
+test_assert(__LINE__, strpos($html, '1行目<br/>2行目<br/>3行目') !== false, "KonaWiki記法: <br/>と<br />も改行になる");
+
+// 表のセル内でも<br>で改行できる
+$text = "|A|B|\n|---|---|\n|line1<br>line2|x|";
+$html = konawiki_parser_convert($text, false);
+test_assert(__LINE__, strpos($html, "<td style='text-align:left;'>line1<br/>line2</td>") !== false, "KonaWiki記法: 表セル内の<br>も改行になる");
