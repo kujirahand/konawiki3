@@ -70,7 +70,7 @@ function trywrite_page($content) {
     if ($txt === FALSE) $txt = "";
     $a_hash = kona3getPageHash($txt);
     $result = FALSE;
-    kona3_trywrite($txt, $a_hash, 'form', $result);
+    kona3_trywrite($txt, $a_hash, 'ajax', $result);
     return $result;
 }
 
