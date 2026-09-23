@@ -377,6 +377,10 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
     $fname = kona3getEditFile("{$page}.{$edit_ext}", $ext);
     $user_id = kona3getUserId();
 
+    // 改行コードを設定に基づいて正規化 (issue #251)
+    // (ブラウザのtextareaは送信時にLFをCRLFに変えてしまうため)
+    $edit_txt = kona3_normalizeNewlineCode($edit_txt, $fname);
+
     $result = FALSE;
     // check hash
     if ($a_hash_frm !== $a_hash) { // conflict
@@ -537,6 +541,8 @@ function kona3_trygit(&$txt, &$a_hash, $i_mode)
 
     // result
     if ($i_mode == "ajax") {
+        // 保存時と同じ改行コード正規化を適用したテキストでハッシュを返す (issue #251)
+        $edit_txt = kona3_normalizeNewlineCode($edit_txt, $original_fname);
         echo json_encode(array(
             'result' => 'ok',
             'a_hash' => kona3getPageHash($edit_txt),
