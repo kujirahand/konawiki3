@@ -240,7 +240,7 @@ function kona3markdown_parser_render($tokens, $flag_isContents = TRUE)
             // Check if the second row is a separator row
             $is_separator = false;
             $aligns = [];
-            if (count($table_rows) >= 2) {
+            if (count($table_rows) >= 2 && count($table_rows[0]) === count($table_rows[1])) {
                 $sep_row = $table_rows[1];
                 $is_separator = true;
                 foreach ($sep_row as $cell) {
@@ -800,6 +800,12 @@ function __kona3markdown_parser_tohtml(&$text, $level)
         if ($c2 == "~\n" || $c2 == "~\r") {
             $result .= "<br/>";
             $text = substr($text, strlen($c2));
+            continue;
+        }
+        // <br> tag (line break)
+        if (preg_match('#^<br\s*/?>#i', $text, $m)) {
+            $result .= "<br/>";
+            $text = substr($text, strlen($m[0]));
             continue;
         }
         // 1chars replace

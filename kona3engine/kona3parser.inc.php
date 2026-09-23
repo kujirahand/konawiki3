@@ -205,23 +205,80 @@ function konawiki_parser_render($tokens, $flag_isContents = TRUE)
         } else if ($cmd == "-" || $cmd == "+") {
             $html .= konawiki_parser_render_li($tokens, $index, $cmd);
         } else if ($cmd == "|") {
-            $html .= "<table class='grid'>" . $eol;
+            // Collect all consecutive table rows
+            $table_rows = [];
             $index--; // back to this line
             while ($index < count($tokens)) {
                 $value = $tokens[$index];
                 $cmd  = $value["cmd"];
-                $text = rtrim($value["text"]);
                 if ($cmd != "|") break;
+
+                $text = rtrim($value["text"]);
                 if (substr($text, strlen($text) - 1, 1) == "|") {
                     $text = substr($text, 0, strlen($text) - 1);
                 }
-                $html .= "<tr>";
-                $cells = explode("|", $text);
-                foreach ($cells as $i => $cell) {
-                    $html .= "<td>" . konawiki_parser_tohtml($cell) . "</td>";
-                }
-                $html .= "</tr>" . $eol;
+                $table_rows[] = explode("|", $text);
                 $index++;
+            }
+
+            // Check if the second row is a separator row (Markdown-compatible)
+            $is_separator = false;
+            $aligns = [];
+            if (count($table_rows) >= 2 && count($table_rows[0]) === count($table_rows[1])) {
+                $sep_row = $table_rows[1];
+                $is_separator = true;
+                foreach ($sep_row as $cell) {
+                    $trimmed = trim($cell);
+                    if (!preg_match('/^:?-{3,}:?$/', $trimmed)) {
+                        $is_separator = false;
+                        break;
+                    }
+                    if (preg_match('/^:-{3,}:$/', $trimmed)) {
+                        $aligns[] = 'center';
+                    } elseif (preg_match('/^-{3,}:$/', $trimmed)) {
+                        $aligns[] = 'right';
+                    } else {
+                        $aligns[] = 'left';
+                    }
+                }
+            }
+
+            // Render table HTML
+            $html .= "<table class='grid'>" . $eol;
+            if ($is_separator) {
+                // Header row
+                $html .= "<thead><tr>";
+                $header_row = $table_rows[0];
+                foreach ($header_row as $i => $cell) {
+                    $align = isset($aligns[$i]) ? $aligns[$i] : null;
+                    $style = $align ? " style='text-align:$align;'" : "";
+                    $html .= "<th{$style}>" . konawiki_parser_tohtml(trim($cell)) . "</th>";
+                }
+                $html .= "</tr></thead>" . $eol;
+
+                // Body rows (skip the separator row at index 1)
+                $html .= "<tbody>";
+                for ($row_idx = 2; $row_idx < count($table_rows); $row_idx++) {
+                    $html .= "<tr>";
+                    foreach ($table_rows[$row_idx] as $i => $cell) {
+                        $align = isset($aligns[$i]) ? $aligns[$i] : null;
+                        $style = $align ? " style='text-align:$align;'" : "";
+                        $html .= "<td{$style}>" . konawiki_parser_tohtml(trim($cell)) . "</td>";
+                    }
+                    $html .= "</tr>" . $eol;
+                }
+                $html .= "</tbody>" . $eol;
+            } else {
+                // Fallback for tables without a separator row (backward compatibility)
+                $html .= "<tbody>";
+                foreach ($table_rows as $row) {
+                    $html .= "<tr>";
+                    foreach ($row as $cell) {
+                        $html .= "<td>" . konawiki_parser_tohtml($cell) . "</td>";
+                    }
+                    $html .= "</tr>" . $eol;
+                }
+                $html .= "</tbody>" . $eol;
             }
             $html .= "</table>" . $eol;
         } else if ($cmd == "src") {
@@ -535,6 +592,12 @@ function __konawiki_parser_tohtml(&$text, $level)
         if ($c2 == "~\n" || $c2 == "~\r") {
             $result .= "<br/>";
             $text = substr($text, 1);
+            continue;
+        }
+        // <br> tag (line break)
+        if (preg_match('#^<br\s*/?>#i', $text, $m)) {
+            $result .= "<br/>";
+            $text = substr($text, strlen($m[0]));
             continue;
         }
         // escape ?

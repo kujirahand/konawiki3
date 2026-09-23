@@ -183,3 +183,45 @@ $tokens = konawiki_parser_parse($text);
 // プラグインがパースされたか確認
 test_assert(__LINE__, count($tokens) > 0, "テキストがパースされる");
 test_assert(__LINE__, is_array($tokens), "トークン配列が返される");
+
+// --- 表(テーブル)のテスト ---
+
+// 1. 区切り線ありの表(Markdown互換)
+$text = "|Header 1|Header 2|Header 3|\n|---|:---:|---:|\n|Cell 1|Cell 2|Cell 3|";
+$html = konawiki_parser_convert($text, false);
+test_assert(__LINE__, strpos($html, "<table class='grid'>") !== false, "表タグが生成される");
+test_assert(__LINE__, strpos($html, "<thead><tr><th style='text-align:left;'>Header 1</th><th style='text-align:center;'>Header 2</th><th style='text-align:right;'>Header 3</th></tr></thead>") !== false, "区切り線から左寄せ・中央寄せ・右寄せが反映される");
+test_assert(__LINE__, strpos($html, "<td style='text-align:left;'>Cell 1</td>") !== false, "左寄せセル");
+test_assert(__LINE__, strpos($html, "<td style='text-align:center;'>Cell 2</td>") !== false, "中央寄せセル");
+test_assert(__LINE__, strpos($html, "<td style='text-align:right;'>Cell 3</td>") !== false, "右寄せセル");
+
+// 2. 区切り線なしの表(互換性維持)
+$text = "|Cell 1|Cell 2|\n|Cell 3|Cell 4|";
+$html = konawiki_parser_convert($text, false);
+test_assert(__LINE__, strpos($html, '<thead>') === false, "区切り線がない表にはtheadがない");
+test_assert(__LINE__, strpos($html, '<td>Cell 1</td>') !== false, "区切り線なし表のセル1");
+test_assert(__LINE__, strpos($html, '<td>Cell 4</td>') !== false, "区切り線なし表のセル4");
+
+// 3. 左寄せのみの区切り線(:なし)
+$text = "|A|B|\n|---|---|\n|x|y|";
+$html = konawiki_parser_convert($text, false);
+test_assert(__LINE__, strpos($html, "<th style='text-align:left;'>A</th><th style='text-align:left;'>B</th>") !== false, "デフォルトは左寄せ");
+
+// 4. 列数がヘッダーと異なる2行目は区切り線として誤検出しない
+$text = "|A|B|\n|---|\n|x|y|";
+$html = konawiki_parser_convert($text, false);
+test_assert(__LINE__, strpos($html, '<thead>') === false, "列数不一致の2行目は区切り線とみなさない");
+test_assert(__LINE__, strpos($html, '<td>---</td>') !== false, "列数不一致の2行目はデータ行として残る");
+test_assert(__LINE__, strpos($html, '<td>x</td><td>y</td>') !== false, "3行目もデータ行として残る");
+
+// --- <br> タグによる改行のテスト (KonaWiki記法) ---
+$html = konawiki_parser_convert("1行目<br>2行目", false);
+test_assert(__LINE__, strpos($html, '1行目<br/>2行目') !== false, "KonaWiki記法: <br>は改行になる");
+
+$html = konawiki_parser_convert("1行目<br/>2行目<br />3行目", false);
+test_assert(__LINE__, strpos($html, '1行目<br/>2行目<br/>3行目') !== false, "KonaWiki記法: <br/>と<br />も改行になる");
+
+// 表のセル内でも<br>で改行できる
+$text = "|A|B|\n|---|---|\n|line1<br>line2|x|";
+$html = konawiki_parser_convert($text, false);
+test_assert(__LINE__, strpos($html, "<td style='text-align:left;'>line1<br/>line2</td>") !== false, "KonaWiki記法: 表セル内の<br>も改行になる");
