@@ -383,7 +383,7 @@ function kona3markdown_parser_render($tokens, $flag_isContents = TRUE)
 
 function kona3markdown_parser_isStandaloneImage($text)
 {
-    return preg_match('#^\s*!\[(.*?)\]\((.+?)\)\s*$#s', $text) === 1;
+    return preg_match('#^[ \t]*!\[(.*?)\]\(([^)\r\n]+)\)[ \t]*\z#', $text) === 1;
 }
 
 function kona3markdown_parser_render_hx(&$value)

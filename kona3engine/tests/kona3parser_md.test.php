@@ -125,6 +125,12 @@ test_eq(__LINE__, substr_count($html, '<p>'), 2, "Standard Markdown: standalone 
 test_assert(__LINE__, strpos($html, '<p>before</p>') !== false, "Standard Markdown: text before standalone image keeps its paragraph");
 test_assert(__LINE__, strpos($html, '<p>after</p>') !== false, "Standard Markdown: text after standalone image keeps its paragraph");
 
+$text = "![alt text](https://example.com/a.png)\ndetails (note)";
+$html = kona3markdown_parser_convert($text, false);
+
+test_eq(__LINE__, substr_count($html, '<p>'), 1, "Standard Markdown: image followed by text ending in a parenthesis remains a paragraph");
+test_assert(__LINE__, strpos($html, '<br/>details (note)</p>') !== false, "Standard Markdown: text after an inline image keeps its line break");
+
 $text = "![xxx](https://n3s.nadesi.com/image.php?t=token&f=778.jpeg)";
 $html = kona3markdown_parser_convert($text, false);
 
