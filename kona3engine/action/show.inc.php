@@ -170,7 +170,7 @@ function kona3_action_show($actionMode = "")
 
 /**
  * alias-show.json でページ名を変換した場合のリダイレクト先URLを返す(変換しない場合は FALSE)
- * 変換後の名前がさらに変換される場合(循環・段数超過)は、リダイレクトの無限ループを避けるため FALSE を返す。
+ * 変換が終端に到達しない場合(循環・段数超過)は、リダイレクトの無限ループを避けるため FALSE を返す。
  *
  * @param string $page
  * @param array|NULL $aliases 省略時は data/alias-show.json を読み込む
@@ -184,11 +184,9 @@ function kona3show_get_alias_json_url($page, $aliases = NULL)
     if (empty($aliases)) {
         return FALSE;
     }
-    $target = kona3go_resolveAlias($page, $aliases);
-    if ($target === '' || $target === $page) {
-        return FALSE;
-    }
-    if (kona3go_resolveAlias($target, $aliases) !== $target) {
+    list($target, $terminated) = kona3go_resolveAliasEx($page, $aliases);
+    // 循環・段数超過の場合はリダイレクトしない
+    if (!$terminated || $target === '' || $target === $page) {
         return FALSE;
     }
     return kona3getPageURL($target, 'show');
