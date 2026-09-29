@@ -90,3 +90,30 @@ $DIR_TEMPLATE_CACHE = $orig_cache;
 @rmdir($test_tpl_dir);
 @unlink($cache_file);
 @rmdir($test_cache_dir);
+
+// === 3. include されたテンプレートにキャッシュ済みの古い変数が渡らないこと (issue #254) ===
+$test_tpl_dir = KONA3_DIR_CACHE . '/test_tpl_' . uniqid();
+$test_cache_dir = KONA3_DIR_CACHE . '/test_tpl_cache_' . uniqid();
+@mkdir($test_tpl_dir, 0777, true);
+@mkdir($test_cache_dir, 0777, true);
+$DIR_TEMPLATE = $test_tpl_dir;
+$DIR_TEMPLATE_CACHE = $test_cache_dir;
+
+file_put_contents($test_tpl_dir . '/inc_child.html', '<title>{{$page_title}}</title>');
+file_put_contents($test_tpl_dir . '/inc_parent.html', '{{ include inc_child.html }}');
+
+ob_start();
+template_render('inc_parent.html', ['page_title' => 'PageA']);
+$out_a = ob_get_clean();
+ob_start();
+template_render('inc_parent.html', ['page_title' => 'PageB']);
+$out_b = ob_get_clean();
+test_assert(__LINE__, strpos($out_a, '<title>PageA</title>') !== false, "include: 1回目のタイトルが反映されること");
+test_assert(__LINE__, strpos($out_b, '<title>PageB</title>') !== false, "include: キャッシュ利用時も2回目のタイトルが反映されること");
+
+$DIR_TEMPLATE = $orig_tpl;
+$DIR_TEMPLATE_CACHE = $orig_cache;
+foreach (glob($test_tpl_dir . '/*') as $f) { @unlink($f); }
+@rmdir($test_tpl_dir);
+foreach (glob($test_cache_dir . '/*') as $f) { @unlink($f); }
+@rmdir($test_cache_dir);

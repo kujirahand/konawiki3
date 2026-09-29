@@ -87,6 +87,12 @@
       <input type='submit' value='Save'>
     </div>
     </form>
+    <form method='POST' class="pure-form" style="margin-top: 1em;">
+      <h3>{{'Template cache'|lang}}</h3>
+      <input type='hidden' name='q' value='clear_cache'>
+      <input type='hidden' name='edit_token' value='{{$edit_token}}'>
+      <input type='submit' value='{{'Clear template cache'|lang}}'>
+    </form>
   </div>
 </div>
 

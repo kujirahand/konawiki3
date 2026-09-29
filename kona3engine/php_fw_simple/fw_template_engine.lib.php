@@ -99,11 +99,10 @@ function template_render($tpl_filename, $tpl_params)
             return "<?php $code;?>";
         },
         // {{ include filename }}
-        '#\{\{\s*include\s+[\'\"]?(.+?)[\'\"]?\s*}}#is' => function ($m) use ($tpl_params) {
+        '#\{\{\s*include\s+[\'\"]?(.+?)[\'\"]?\s*}}#is' => function ($m) {
             $file = $m[1];
-            $enc = json_encode($tpl_params, JSON_UNESCAPED_UNICODE);
-            $b64 = base64_encode($enc);
-            return "<?php template_render('$file', json_decode(base64_decode('$b64'), TRUE));?>";
+            // 実行時の $tpl_params を渡す(コンパイル時の値をキャッシュに埋め込まない)
+            return "<?php template_render('$file', isset(\$tpl_params) ? \$tpl_params : []);?>";
         },
         // {{ if $var.name cond }}
         '#\{\{\s*if\s+\$([a-zA-Z0-9_\.]+)(.*?)\}\}#is' => function ($m) {
