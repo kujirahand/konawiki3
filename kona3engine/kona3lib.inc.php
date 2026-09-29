@@ -829,7 +829,7 @@ function kona3getPluginPathInfo($pname)
             $path = $localPath;
         }
     }
-    $func  = str_replace("%", "_", $uname);
+    $func  = str_replace(["%", "-"], "_", $uname);
 
     // check disabled
     $disallow = FALSE;

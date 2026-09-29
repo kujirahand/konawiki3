@@ -49,6 +49,10 @@ function kona3__get_pluginlist() {
             $pnameOrg = $alias[$pname];
             $base_url = urlencode($pnameOrg.'.inc.php');
             $f = __DIR__."/$pnameOrg.inc.php";
+            if (!file_exists($f)) {
+                // 別名の参照先がローカルプラグインの場合
+                $f = KONA3_DIR_DATA."/.plugins/$pnameOrg.inc.php";
+            }
         }
         $pname2 = urldecode($pname);
         if (strpos($f, KONA3_DIR_DATA.'/.plugins/') === 0) {
@@ -56,7 +60,7 @@ function kona3__get_pluginlist() {
         } else {
             $url = htmlspecialchars("$GITHUB_PLUGIN_URL/$base_url");
         }
-        $txt = file_get_contents($f);
+        $txt = file_exists($f) ? file_get_contents($f) : '';
         $descript = '?';
         if (preg_match('#\/\*\* (.+)#', $txt, $m)) {
             $s = $m[1];
