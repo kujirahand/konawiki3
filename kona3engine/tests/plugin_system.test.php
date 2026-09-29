@@ -205,3 +205,20 @@ test_eq(__LINE__, $name, urlencode("b"), "プラグインエイリアス: aはb�
 
 // エイリアスをクリア
 $kona3conf['plugin_alias'] = $original_alias;
+
+// --- ローカルプラグイン (data/.plugins/) のテスト ---
+$localDir = KONA3_DIR_DATA . '/.plugins';
+$localFile = $localDir . '/zz_local_test.inc.php';
+$localDirCreated = !is_dir($localDir);
+if ($localDirCreated) { mkdir($localDir, 0777, true); }
+file_put_contents($localFile, "<?php\nfunction kona3plugins_zz_local_test_execute(\$args) { return 'ok'; }\n");
+$info = kona3getPluginPathInfo("zz_local_test");
+test_eq(__LINE__, $info['file'], $localFile, "ローカルプラグイン: data/.plugins から検索される");
+// エンジン標準が優先される
+$info = kona3getPluginPathInfo("br");
+test_eq(__LINE__, $info['file'], KONA3_DIR_ENGINE . "/plugins/br.inc.php", "ローカルプラグイン: 標準プラグインが優先");
+// 存在しない場合は標準パスのまま
+$info = kona3getPluginPathInfo("zz_not_exists_xyz");
+test_eq(__LINE__, $info['file'], KONA3_DIR_ENGINE . "/plugins/zz_not_exists_xyz.inc.php", "ローカルプラグイン: 未存在は標準パス");
+unlink($localFile);
+if ($localDirCreated) { rmdir($localDir); }
