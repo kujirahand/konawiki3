@@ -86,3 +86,21 @@ if (file_exists($metaFile)) {
     @unlink($metaFile);
 }
 
+
+// --- alias-show.json (常にエイリアス変換) ---
+$show_aliases = kona3go_parseAliasList('{"@re-rule":[["/^n(\\\\d+)$/","Note$1"]],"short":"LongPage","loop1":"loop2","loop2":"loop1"}');
+$u = kona3show_get_alias_json_url('short', $show_aliases);
+test_eq(__LINE__, $u, kona3getPageURL('LongPage', 'show'), "alias-show converts simple alias");
+$u = kona3show_get_alias_json_url('n12', $show_aliases);
+test_eq(__LINE__, $u, kona3getPageURL('Note12', 'show'), "alias-show converts by regex rule");
+test_eq(__LINE__, kona3show_get_alias_json_url('Other', $show_aliases), FALSE, "alias-show ignores unmatched page");
+test_eq(__LINE__, kona3show_get_alias_json_url('loop1', $show_aliases), FALSE, "alias-show avoids redirect loop");
+test_eq(__LINE__, kona3show_get_alias_json_url('short', []), FALSE, "alias-show with empty list does nothing");
+// 循環に入る前に別名がある場合(x -> a -> b -> a)もリダイレクトしない
+$pre_loop = ['x' => 'a', 'a' => 'b', 'b' => 'a'];
+test_eq(__LINE__, kona3show_get_alias_json_url('x', $pre_loop), FALSE, "alias-show avoids redirect when entering a loop midway");
+test_eq(__LINE__, kona3go_resolveAliasEx('x', $pre_loop)[1], FALSE, "resolveAliasEx reports loop");
+test_eq(__LINE__, kona3go_resolveAliasEx('short', $show_aliases), ['LongPage', TRUE], "resolveAliasEx reports termination");
+// 段数ちょうどで終端に到達する場合はリダイレクトする
+$exact = ['c1' => 'c2', 'c2' => 'c3', 'c3' => 'c4', 'c4' => 'c5', 'c5' => 'c6'];
+test_eq(__LINE__, kona3show_get_alias_json_url('c1', $exact), kona3getPageURL('c6', 'show'), "alias-show redirects when chain ends exactly at max depth");

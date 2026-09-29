@@ -163,9 +163,21 @@ function kona3go_applyReRules($page, $aliases)
  */
 function kona3go_resolveAlias($page, $aliases)
 {
+    return kona3go_resolveAliasEx($page, $aliases)[0];
+}
+
+/**
+ * kona3go_resolveAlias() と同じ変換をして、終端に到達したかどうかも返す
+ *
+ * @param string $page
+ * @param array $aliases
+ * @return array [変換後のページ名, 終端に到達したか(循環・段数超過ならFALSE)]
+ */
+function kona3go_resolveAliasEx($page, $aliases)
+{
     $page = trim($page);
     if ($page === '' || !is_array($aliases)) {
-        return $page;
+        return [$page, TRUE];
     }
     $used = [];
     for ($i = 0; $i < KONA3_ALIAS_MAX_DEPTH; $i++) {
@@ -174,16 +186,18 @@ function kona3go_resolveAlias($page, $aliases)
         } else {
             $next = kona3go_applyReRules($page, $aliases);
             if ($next === FALSE) {
-                break;
+                return [$page, TRUE]; // これ以上変換されない
             }
         }
         if (isset($used[$page])) {
-            break; // 循環参照
+            return [$page, FALSE]; // 循環参照
         }
         $used[$page] = TRUE;
         $page = $next;
     }
-    return $page;
+    // 段数上限に達した。次でちょうど終端なら到達扱い
+    $terminated = !isset($aliases[$page]) && kona3go_applyReRules($page, $aliases) === FALSE;
+    return [$page, $terminated];
 }
 
 /**
