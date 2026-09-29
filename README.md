@@ -125,6 +125,12 @@ Open the plugin list page in your Konawiki3 installation.
 [URI] index.php?FrontPage&plugin&name=pluginlist
 ```
 
+## Local Plugins
+
+Besides the built-in plugins (`kona3engine/plugins/`), you can place your own plugins in `data/.plugins/*.inc.php`.
+Built-in plugins take priority over local plugins with the same name.
+This lets you maintain plugins in a separate repository. See [docs/plugins.md](docs/plugins.md) for details.
+
 ## PDF Output (Optional)
 
 1. Open the configuration page and set PDF output to TRUE.

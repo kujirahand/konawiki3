@@ -25,6 +25,15 @@ function kona3plugins_pluginlist_action() {
 function kona3__get_pluginlist() {
     global $GITHUB_PLUGIN_URL;
     $files = glob(__DIR__.'/*.inc.php');
+    // ローカルプラグイン (data/.plugins/)
+    $localFiles = glob(KONA3_DIR_DATA.'/.plugins/*.inc.php');
+    if ($localFiles) {
+        foreach ($localFiles as $lf) {
+            if (!file_exists(__DIR__.'/'.basename($lf))) {
+                $files[] = $lf;
+            }
+        }
+    }
     $alias = kona3getConf("plugin_alias", []);
     foreach ($alias as $pname => $aliasname) {
         $files[] = __DIR__."/$pname.inc.php";
@@ -40,10 +49,18 @@ function kona3__get_pluginlist() {
             $pnameOrg = $alias[$pname];
             $base_url = urlencode($pnameOrg.'.inc.php');
             $f = __DIR__."/$pnameOrg.inc.php";
+            if (!file_exists($f)) {
+                // 別名の参照先がローカルプラグインの場合
+                $f = KONA3_DIR_DATA."/.plugins/$pnameOrg.inc.php";
+            }
         }
         $pname2 = urldecode($pname);
-        $url = htmlspecialchars("$GITHUB_PLUGIN_URL/$base_url");
-        $txt = file_get_contents($f);
+        if (strpos($f, KONA3_DIR_DATA.'/.plugins/') === 0) {
+            $url = '#'; // ローカルプラグイン
+        } else {
+            $url = htmlspecialchars("$GITHUB_PLUGIN_URL/$base_url");
+        }
+        $txt = file_exists($f) ? file_get_contents($f) : '';
         $descript = '?';
         if (preg_match('#\/\*\* (.+)#', $txt, $m)) {
             $s = $m[1];

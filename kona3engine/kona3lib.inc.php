@@ -821,8 +821,15 @@ function kona3getPluginPathInfo($pname)
     $uname = kona3getPluginName($pname);
 
     // path
+    // 1段目: エンジン標準プラグイン, 2段目: ローカルプラグイン (data/.plugins/)
     $path  = KONA3_DIR_ENGINE . "/plugins/$uname.inc.php";
-    $func  = str_replace("%", "_", $uname);
+    if (!file_exists($path)) {
+        $localPath = KONA3_DIR_DATA . "/.plugins/$uname.inc.php";
+        if (file_exists($localPath)) {
+            $path = $localPath;
+        }
+    }
+    $func  = str_replace(["%", "-"], "_", $uname);
 
     // check disabled
     $disallow = FALSE;

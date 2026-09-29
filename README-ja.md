@@ -125,6 +125,12 @@ git push
 [URI] index.php?FrontPage&plugin&name=pluginlist
 ```
 
+## ローカルプラグイン
+
+標準プラグイン(`kona3engine/plugins/`)とは別に、`data/.plugins/*.inc.php` に独自のプラグインを配置できます。
+同名の場合は標準プラグインが優先されます。
+別リポジトリでプラグインを管理する用途に便利です。詳細は [docs/plugins.md](docs/plugins.md) を参照してください。
+
 ## PDF出力 (オプション)
 
 1.設定ページにアクセスし、PDF出力を TRUE に設定する

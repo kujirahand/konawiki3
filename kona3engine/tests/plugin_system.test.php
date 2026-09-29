@@ -205,3 +205,43 @@ test_eq(__LINE__, $name, urlencode("b"), "プラグインエイリアス: aはb�
 
 // エイリアスをクリア
 $kona3conf['plugin_alias'] = $original_alias;
+
+// --- ローカルプラグイン (data/.plugins/) のテスト ---
+require_once dirname(__DIR__) . '/plugins/pluginlist.inc.php';
+$localDir = KONA3_DIR_DATA . '/.plugins';
+$localFile = $localDir . '/zz_local_test.inc.php';
+$localBr = $localDir . '/br.inc.php';
+$localHyphen = $localDir . '/zz-hyphen.inc.php';
+$localDirCreated = !is_dir($localDir);
+if ($localDirCreated) { mkdir($localDir, 0777, true); }
+file_put_contents($localFile, "<?php\n/** ローカルテスト */\nfunction kona3plugins_zz_local_test_execute(\$args) { return 'ok'; }\n");
+file_put_contents($localBr, "<?php\nfunction kona3plugins_br_execute(\$args) { return 'LOCAL'; }\n");
+file_put_contents($localHyphen, "<?php\nfunction kona3plugins_zz_hyphen_execute(\$args) { return 'h'; }\n");
+
+$info = kona3getPluginPathInfo("zz_local_test");
+test_eq(__LINE__, $info['file'], $localFile, "ローカルプラグイン: data/.plugins から検索される");
+// 同名ファイルがローカルにも存在しても標準が優先される
+$info = kona3getPluginPathInfo("br");
+test_eq(__LINE__, $info['file'], KONA3_DIR_ENGINE . "/plugins/br.inc.php", "ローカルプラグイン: 同名でも標準プラグインが優先");
+// 存在しない場合は標準パスのまま
+$info = kona3getPluginPathInfo("zz_not_exists_xyz");
+test_eq(__LINE__, $info['file'], KONA3_DIR_ENGINE . "/plugins/zz_not_exists_xyz.inc.php", "ローカルプラグイン: 未存在は標準パス");
+// ハイフンは関数名で _ に変換される
+$info = kona3getPluginPathInfo("zz-hyphen");
+test_eq(__LINE__, $info['func'], "kona3plugins_zz_hyphen_execute", "ハイフン名: 関数名は _ に変換");
+test_eq(__LINE__, $info['file'], $localHyphen, "ハイフン名: ローカルから検索される");
+
+// pluginlist
+$saved_alias = isset($kona3conf['plugin_alias']) ? $kona3conf['plugin_alias'] : [];
+$kona3conf['plugin_alias'] = ['zz_alias' => 'zz_local_test'];
+$html = kona3__get_pluginlist();
+test_assert(__LINE__, strpos($html, 'zz_local_test') !== FALSE, "pluginlist: ローカルプラグインが表示される");
+test_assert(__LINE__, strpos($html, 'ローカルテスト') !== FALSE, "pluginlist: ローカルの説明が表示される");
+test_assert(__LINE__, strpos($html, 'zz_alias') !== FALSE, "pluginlist: ローカルを参照する別名が表示される");
+test_eq(__LINE__, substr_count($html, '>br</a>'), 1, "pluginlist: 標準と同名のローカルは重複しない");
+$kona3conf['plugin_alias'] = $saved_alias;
+
+unlink($localFile);
+unlink($localBr);
+unlink($localHyphen);
+if ($localDirCreated) { rmdir($localDir); }
