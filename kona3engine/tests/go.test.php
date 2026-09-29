@@ -49,3 +49,15 @@ $loaded = kona3go_loadAliasList($tmp_alias);
 test_eq(__LINE__, $loaded['t1'], 'TestPage', "load alias.json from file");
 test_eq(__LINE__, kona3go_getRedirectURL('t1', $loaded), 'index.php?TestPage&show', "go.php?ALIAS with loaded alias.json");
 @unlink($tmp_alias);
+
+// --- 正規表現ルール(@re-rule) ---
+$re_json = '{"@re-rule":[["/^user(\\\\d+)$/","User/$1"],["/^bad(/","x"],["/^d-(.+)$/","Doc/$1"],["broken"]],"simple":"SimplePage","user5":"Exact"}';
+$re_aliases = kona3go_parseAliasList($re_json);
+test_eq(__LINE__, count($re_aliases['@re-rule']), 2, "invalid regex rules are ignored");
+test_eq(__LINE__, kona3go_resolveAlias('user42', $re_aliases), 'User/42', "regex rule replaces with capture");
+test_eq(__LINE__, kona3go_resolveAlias('d-abc', $re_aliases), 'Doc/abc', "second regex rule is applied");
+test_eq(__LINE__, kona3go_resolveAlias('user5', $re_aliases), 'Exact', "simple alias has priority over regex rule");
+test_eq(__LINE__, kona3go_resolveAlias('simple', $re_aliases), 'SimplePage', "simple alias works with regex rules");
+test_eq(__LINE__, kona3go_resolveAlias('other', $re_aliases), 'other', "unmatched page is kept");
+test_eq(__LINE__, kona3go_getRedirectURL('user7', $re_aliases), 'index.php?User%2F7&show', "redirect uses regex rule");
+test_eq(__LINE__, count(kona3go_parseAliasList('{"@re-rule":"str"}')), 0, "non-array @re-rule is ignored");
