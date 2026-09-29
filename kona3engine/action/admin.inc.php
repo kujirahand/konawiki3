@@ -122,8 +122,35 @@ function kona3setup_config()
         kona3setup_showMessage('<h1>Saved</h1><p><a href="./index.php">Go to FrontPage.</a></p>');
         exit;
     }
+    if ($q == 'clear_cache') {
+        if (!kona3_checkEditToken($editTokenKey)) {
+            kona3error(lang("Invalid Token"), lang('Please go back and resubmit the form.'));
+            exit;
+        }
+        $n = kona3admin_clearTemplateCache();
+        kona3setup_showMessage('<h1>' . lang('Template cache cleared.') . " ({$n})</h1>" .
+            '<p><a href="index.php?go&admin">Back</a></p>');
+        exit;
+    }
     echo "unknown parameter [q]";
     exit;
+}
+
+// テンプレートキャッシュ(cache/*.html*.php)を削除して、削除した数を返す
+function kona3admin_clearTemplateCache($dir = NULL)
+{
+    if ($dir === NULL) {
+        $dir = KONA3_DIR_CACHE;
+    }
+    $count = 0;
+    foreach (glob($dir . '/*') as $f) {
+        if (!is_file($f)) continue;
+        // 例: show.html.php, show.html.<mtime>_<ver>.php, 書き込み途中の *.tmp
+        if (preg_match('/\.html(\..+)?\.(php|tmp)$/', basename($f)) && @unlink($f)) {
+            $count++;
+        }
+    }
+    return $count;
 }
 
 function kona3setup_error($msg)
