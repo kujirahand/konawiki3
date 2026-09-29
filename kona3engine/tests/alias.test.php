@@ -86,3 +86,13 @@ if (file_exists($metaFile)) {
     @unlink($metaFile);
 }
 
+
+// --- alias-show.json (常にエイリアス変換) ---
+$show_aliases = kona3go_parseAliasList('{"@re-rule":[["/^n(\\\\d+)$/","Note$1"]],"short":"LongPage","loop1":"loop2","loop2":"loop1"}');
+$u = kona3show_get_alias_json_url('short', $show_aliases);
+test_eq(__LINE__, $u, kona3getPageURL('LongPage', 'show'), "alias-show converts simple alias");
+$u = kona3show_get_alias_json_url('n12', $show_aliases);
+test_eq(__LINE__, $u, kona3getPageURL('Note12', 'show'), "alias-show converts by regex rule");
+test_eq(__LINE__, kona3show_get_alias_json_url('Other', $show_aliases), FALSE, "alias-show ignores unmatched page");
+test_eq(__LINE__, kona3show_get_alias_json_url('loop1', $show_aliases), FALSE, "alias-show avoids redirect loop");
+test_eq(__LINE__, kona3show_get_alias_json_url('short', []), FALSE, "alias-show with empty list does nothing");

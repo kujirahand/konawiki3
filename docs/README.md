@@ -11,3 +11,4 @@
 ## リンク
 
 - [go.phpのエイリアス機能](go_alias.md)
+- [showアクションのエイリアス機能](show_alias.md)

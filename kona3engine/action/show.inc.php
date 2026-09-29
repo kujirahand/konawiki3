@@ -2,6 +2,13 @@
 
 /** KonaWiki3 show */
 
+require_once __DIR__ . '/go.inc.php';
+
+/** alias-show.json file name (relative to KONA3_DIR_DATA) */
+if (!defined('KONA3_ALIAS_SHOW_JSON_NAME')) {
+    define('KONA3_ALIAS_SHOW_JSON_NAME', 'alias-show.json');
+}
+
 function kona3_action_show($actionMode = "")
 {
     global $kona3conf;
@@ -10,6 +17,9 @@ function kona3_action_show($actionMode = "")
 
     // check login
     kona3show_check_private($page);
+
+    // data/alias-show.json による常時エイリアス変換
+    kona3show_redirect_alias_json($page);
 
     // detect file type
     $ext = '';
@@ -156,6 +166,43 @@ function kona3_action_show($actionMode = "")
         "is_login" => $is_login,
         "edit_button_html" => $edit_button_html,
     ]);
+}
+
+/**
+ * alias-show.json でページ名を変換した場合のリダイレクト先URLを返す(変換しない場合は FALSE)
+ * 変換後の名前がさらに変換される場合(循環・段数超過)は、リダイレクトの無限ループを避けるため FALSE を返す。
+ *
+ * @param string $page
+ * @param array|NULL $aliases 省略時は data/alias-show.json を読み込む
+ * @return string|FALSE
+ */
+function kona3show_get_alias_json_url($page, $aliases = NULL)
+{
+    if ($aliases === NULL) {
+        $aliases = kona3go_loadAliasList(KONA3_DIR_DATA . '/' . KONA3_ALIAS_SHOW_JSON_NAME);
+    }
+    if (empty($aliases)) {
+        return FALSE;
+    }
+    $target = kona3go_resolveAlias($page, $aliases);
+    if ($target === '' || $target === $page) {
+        return FALSE;
+    }
+    if (kona3go_resolveAlias($target, $aliases) !== $target) {
+        return FALSE;
+    }
+    return kona3getPageURL($target, 'show');
+}
+
+function kona3show_redirect_alias_json($page)
+{
+    $url = kona3show_get_alias_json_url($page);
+    if ($url === FALSE) {
+        return;
+    }
+    header("location: $url");
+    echo "<a href='$url'>JUMP</a>";
+    exit;
 }
 
 function kona3show_redirect_alias($txt)
