@@ -74,39 +74,61 @@ function kona3plugins_recent_meta_execute($args)
 }
 
 /** 全メタ情報から [ページ名, updated_at] の一覧を新しい順に返す
- * - 全JSONを毎回読むと重いので、結果をキャッシュファイルに保存する(有効期間 10分)
+ * - 結果をキャッシュファイルに保存する(有効期間 10分)
+ * - 期限切れのときは、ファイルのmtimeを調べ、変更のあったJSONだけを読み直す(差分更新)
  */
 function kona3plugins_recent_meta_index()
 {
     $ttl = 600;
     $cacheFile = KONA3_DIR_CACHE . '/recent_meta_index.json';
-    if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $ttl) {
-        $cached = json_decode(file_get_contents($cacheFile), TRUE);
-        if (is_array($cached)) {
-            return $cached;
+    $cache = ['files' => [], 'items' => []]; // files: 相対パス => [mtime, ページ名, updated_at]
+    if (file_exists($cacheFile)) {
+        $c = json_decode(file_get_contents($cacheFile), TRUE);
+        if (is_array($c) && isset($c['files'], $c['items'])) {
+            $cache = $c;
+            if ((time() - filemtime($cacheFile)) < $ttl) {
+                return $cache['items'];
+            }
         }
     }
-    $items = [];
+    // 差分更新: mtimeが変わったファイルだけ読み直す
+    $files = [];
     $metaDir = KONA3_DIR_DATA . '/.meta';
     if (is_dir($metaDir)) {
         $it = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($metaDir, FilesystemIterator::SKIP_DOTS)
         );
+        $prefix = strlen($metaDir) + 1;
         foreach ($it as $file) {
             if ($file->getExtension() !== 'json') {
+                continue;
+            }
+            $key = substr($file->getPathname(), $prefix);
+            $mtime = $file->getMTime();
+            $old = isset($cache['files'][$key]) ? $cache['files'][$key] : NULL;
+            if ($old && $old[0] === $mtime) {
+                $files[$key] = $old;
                 continue;
             }
             $meta = json_decode(file_get_contents($file->getPathname()), TRUE);
             if (!is_array($meta) || empty($meta['page']) || empty($meta['updated_at'])) {
                 continue;
             }
-            $items[] = [$meta['page'], intval($meta['updated_at'])];
+            $files[$key] = [$mtime, $meta['page'], intval($meta['updated_at'])];
         }
+    }
+    $items = [];
+    foreach ($files as $v) {
+        $items[] = [$v[1], $v[2]];
     }
     usort($items, function ($a, $b) {
         return $b[1] <=> $a[1];
     });
     // 書き込みに失敗しても表示は続ける
-    @file_put_contents($cacheFile, json_encode($items, JSON_UNESCAPED_UNICODE), LOCK_EX);
+    @file_put_contents(
+        $cacheFile,
+        json_encode(['files' => $files, 'items' => $items], JSON_UNESCAPED_UNICODE),
+        LOCK_EX
+    );
     return $items;
 }
