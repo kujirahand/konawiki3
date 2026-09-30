@@ -31,13 +31,23 @@ function kona3plugins_recent_meta_execute($args)
     }
     $head = "<h3>" . lang('Recent') . "</h3>";
 
+    // filterは正規表現。デリミタ(#)をエスケープし、不正な正規表現ならエラーを返す
+    $pattern = '';
+    if ($filter !== '') {
+        $pattern = '#' . str_replace('#', '\\#', $filter) . '#';
+        if (@preg_match($pattern, '') === FALSE) {
+            return $head . "<p>Invalid filter</p>";
+        }
+    }
+
     // 更新日時の一覧(キャッシュ済み)を取得して、フィルタする
     $items = [];
     foreach (kona3plugins_recent_meta_index() as list($page, $mtime)) {
         if ($page == "FrontPage" || $page == "MenuBar" || $page == "GlobalBar") {
             continue;
         }
-        if ($filter && !preg_match("#$filter#", $page)) {
+        // preg_matchが失敗(FALSE)した場合も、除外として扱う
+        if ($pattern !== '' && preg_match($pattern, $page) !== 1) {
             continue;
         }
         $items[] = [$page, $mtime];
@@ -54,21 +64,26 @@ function kona3plugins_recent_meta_execute($args)
         if (!$is_live) {
             continue;
         }
-        $url = kona3getPageURL($page);
+        $url = htmlspecialchars(kona3getPageURL($page), ENT_QUOTES);
         $page_h = kona3text2html($page);
         $mtime_h = kona3date($mtime);
         if ($title) {
-            $a = explode("\n", trim(file_get_contents($fname)));
-            $page_h = htmlspecialchars($a[0], ENT_QUOTES);
-            if (mb_strlen($page_h) > 70) {
-                $page_h = mb_strimwidth($page_h, 0, 70, "...");
+            // 先頭行だけ読み、エスケープの前に切り詰める
+            $fp = @fopen($fname, 'r');
+            $line = $fp ? trim((string)fgets($fp)) : '';
+            if ($fp) {
+                fclose($fp);
             }
+            if (mb_strlen($line) > 70) {
+                $line = mb_strimwidth($line, 0, 70, "...");
+            }
+            $page_h = htmlspecialchars($line, ENT_QUOTES);
         }
         $list .= "<li><a href='$url'>$page_h $mtime_h</a></li>";
         $count++;
     }
     if ($list === "") {
-        return $head . "<li>no recent page</li>";
+        return $head . "<p>" . lang('no recent page', 'no recent page') . "</p>";
     }
     return $head . "<ul class='recent'>$list</ul>";
 }
