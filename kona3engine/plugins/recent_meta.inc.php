@@ -31,34 +31,17 @@ function kona3plugins_recent_meta_execute($args)
     }
     $head = "<h3>" . lang('Recent') . "</h3>";
 
-    // メタ情報を集める
-    $metaDir = KONA3_DIR_DATA . '/.meta';
+    // 更新日時の一覧(キャッシュ済み)を取得して、フィルタする
     $items = [];
-    if (is_dir($metaDir)) {
-        $it = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($metaDir, FilesystemIterator::SKIP_DOTS)
-        );
-        foreach ($it as $file) {
-            if ($file->getExtension() !== 'json') {
-                continue;
-            }
-            $meta = json_decode(file_get_contents($file->getPathname()), TRUE);
-            if (!is_array($meta) || empty($meta['page']) || empty($meta['updated_at'])) {
-                continue;
-            }
-            $page = $meta['page'];
-            if ($page == "FrontPage" || $page == "MenuBar" || $page == "GlobalBar") {
-                continue;
-            }
-            if ($filter && !preg_match("#$filter#", $page)) {
-                continue;
-            }
-            $items[] = [$page, intval($meta['updated_at'])];
+    foreach (kona3plugins_recent_meta_index() as list($page, $mtime)) {
+        if ($page == "FrontPage" || $page == "MenuBar" || $page == "GlobalBar") {
+            continue;
         }
+        if ($filter && !preg_match("#$filter#", $page)) {
+            continue;
+        }
+        $items[] = [$page, $mtime];
     }
-    usort($items, function ($a, $b) {
-        return $b[1] <=> $a[1];
-    });
 
     $list = "";
     $count = 0;
@@ -88,4 +71,42 @@ function kona3plugins_recent_meta_execute($args)
         return $head . "<li>no recent page</li>";
     }
     return $head . "<ul class='recent'>$list</ul>";
+}
+
+/** 全メタ情報から [ページ名, updated_at] の一覧を新しい順に返す
+ * - 全JSONを毎回読むと重いので、結果をキャッシュファイルに保存する(有効期間 10分)
+ */
+function kona3plugins_recent_meta_index()
+{
+    $ttl = 600;
+    $cacheFile = KONA3_DIR_CACHE . '/recent_meta_index.json';
+    if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $ttl) {
+        $cached = json_decode(file_get_contents($cacheFile), TRUE);
+        if (is_array($cached)) {
+            return $cached;
+        }
+    }
+    $items = [];
+    $metaDir = KONA3_DIR_DATA . '/.meta';
+    if (is_dir($metaDir)) {
+        $it = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($metaDir, FilesystemIterator::SKIP_DOTS)
+        );
+        foreach ($it as $file) {
+            if ($file->getExtension() !== 'json') {
+                continue;
+            }
+            $meta = json_decode(file_get_contents($file->getPathname()), TRUE);
+            if (!is_array($meta) || empty($meta['page']) || empty($meta['updated_at'])) {
+                continue;
+            }
+            $items[] = [$meta['page'], intval($meta['updated_at'])];
+        }
+    }
+    usort($items, function ($a, $b) {
+        return $b[1] <=> $a[1];
+    });
+    // 書き込みに失敗しても表示は続ける
+    @file_put_contents($cacheFile, json_encode($items, JSON_UNESCAPED_UNICODE), LOCK_EX);
+    return $items;
 }
