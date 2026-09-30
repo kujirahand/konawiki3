@@ -89,12 +89,12 @@ function kona3plugins_recent_meta_execute($args)
 }
 
 /** 全メタ情報から [ページ名, updated_at] の一覧を新しい順に返す
- * - 結果をキャッシュファイルに保存する(有効期間 10分)
+ * - 結果をキャッシュファイルに保存する(有効期間 30分)
  * - 期限切れのときは、ファイルのmtimeを調べ、変更のあったJSONだけを読み直す(差分更新)
  */
 function kona3plugins_recent_meta_index()
 {
-    $ttl = 600;
+    $ttl = 60 * 30;
     $cacheFile = KONA3_DIR_CACHE . '/recent_meta_index.json';
     $cache = ['files' => [], 'items' => []]; // files: 相対パス => [mtime, ページ名, updated_at]
     if (file_exists($cacheFile)) {
