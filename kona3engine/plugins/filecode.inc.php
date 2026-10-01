@@ -135,7 +135,13 @@ function kona3plugins_filecode_lines($htm, $start, $omit_head, $omit_tail) {
     preg_match_all('#<(/?)([a-zA-Z0-9]+)\b[^>]*>#', $line, $m, PREG_SET_ORDER);
     foreach ($m as $t) {
       if ($t[1] === '/') {
-        array_pop($stack);
+        // 対応する開始タグを探して取り除く(ネストが崩れていても安全)
+        for ($k = count($stack) - 1; $k >= 0; $k--) {
+          if (preg_match('#^<'.preg_quote($t[2], '#').'\b#i', $stack[$k])) {
+            array_splice($stack, $k, 1);
+            break;
+          }
+        }
       } else if (substr($t[0], -2) !== '/>') {
         $stack[] = $t[0];
       }
@@ -184,16 +190,28 @@ function kona3plugins_filecode_tokenize($txt, $lang) {
     $comment = '\#[^\n]*';
     $string = '(?:[rRbBuUfF]{0,2})(?:"""(?:\\\\.|[^\\\\])*?"""|\'\'\'(?:\\\\.|[^\\\\])*?\'\'\'|"(?:\\\\.|[^"\\\\\n])*"|\'(?:\\\\.|[^\'\\\\\n])*\')';
     $deco = '(?<=^|\n)[ \t]*@[A-Za-z_][\w.]*';
+    $regex = '(?!)';
   } else {
     $comment = '//[^\n]*|/\*.*?\*/';
     $string = '"(?:\\\\.|[^"\\\\\n])*"|\'(?:\\\\.|[^\'\\\\\n])*\'|`(?:\\\\.|[^`\\\\])*`';
     $deco = '(?!)';
+    // 正規表現リテラル: 直前が値(単語/閉じ括弧)でなければ、除算ではなくリテラルとみなす
+    // (空白を挟んでも判定できるよう、0〜4個の空白を飛ばした直前の文字を見る)
+    $v = '[\w$)\]]';
+    $regex = '(?:(?<=\breturn\s)|(?<=\btypeof\s)|(?<=\bcase\s)|'.
+             "(?<!$v)(?<!$v\\s)(?<!$v\\s{2})(?<!$v\\s{3})(?<!$v\\s{4}))".
+             '/(?![/*])(?:\\\\.|\[(?:\\\\.|[^\]\\\\\n])*\]|[^/\\\\\n\[])+/[dgimsuyv]*';
   }
-  $re = '~(?<c>'.$comment.')|(?<s>'.$string.')|(?<d>'.$deco.')'.
+  $re = '~(?<c>'.$comment.')|(?<s>'.$string.')|(?<d>'.$deco.')|(?<r>'.$regex.')'.
         '|(?<n>\b0[xX][0-9a-fA-F_]+\b|\b\d[\d_]*(?:\.\d+)?(?:[eE][+-]?\d+)?\b)'.
-        '|(?<w>[A-Za-z_$][\w$]*)(?<p>(?=\())?|(?<o>[^\w"\'`#\/@$]+|.)~su';
+        '|(?<w>[A-Za-z_$][\w$]*)(?<p>(?=\())?|(?<o>[^\w"\'`#\/@$\s]+|\s+|.)~su';
   $esc = function ($t) { return htmlspecialchars($t, ENT_QUOTES); };
   $out = preg_replace_callback($re, function ($m) use ($esc, $kw_set, $bi_set) {
+    if (isset($m['r']) && $m['r'] !== '') {
+      $body = ltrim($m['r']);
+      $ws = substr($m['r'], 0, strlen($m['r']) - strlen($body));
+      return $ws."<span class='tok-s'>".$esc($body)."</span>";
+    }
     foreach (['c' => 'c', 's' => 's', 'd' => 'd', 'n' => 'n'] as $k => $cls) {
       if (isset($m[$k]) && $m[$k] !== '') {
         return "<span class='tok-{$cls}'>".$esc($m[$k])."</span>";

@@ -48,3 +48,13 @@ test_eq(__LINE__, strpos($h, "<span class='tok-f'>log</span>") !== false, true, 
 // 日本語を含んでも壊れない
 $h = kona3plugins_filecode_tokenize("print('こんにちは') # 日本語", 'py');
 test_eq(__LINE__, strpos($h, "こんにちは") !== false && strpos($h, "日本語") !== false, true, "multibyte");
+
+// JSの正規表現リテラルは文字列色、除算はそのまま
+$h = kona3plugins_filecode_tokenize("const r = /ab+c\\/[/]/gi;\nconst d = a / b / c;\nreturn /x/.test(s);", 'js');
+test_eq(__LINE__, strpos($h, "<span class='tok-s'>/ab+c\\/[/]/gi</span>") !== false, true, "js regex literal");
+test_eq(__LINE__, strpos($h, "a / b / c;") !== false, true, "js division stays plain");
+test_eq(__LINE__, strpos($h, "<span class='tok-s'>/x/</span>") !== false, true, "js regex after return");
+
+// ネストが崩れた閉じタグでもスタックが壊れない
+$h = kona3plugins_filecode_lines("<b><i>a\nb</b>c\nd", 1, false, false);
+test_eq(__LINE__, strpos($h, "data-n='3'><i>d</i>") !== false, true, "mismatched close tag keeps <i> open");

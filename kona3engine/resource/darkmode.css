@@ -159,8 +159,7 @@ body.dark-theme #drawer_wrapper nav.menuitems ul li a:hover {
 /* pre / code / syntax highlighting */
 body.dark-theme pre,
 body.dark-theme code,
-body.dark-theme .mathjax,
-body.dark-theme .filecode {
+body.dark-theme .mathjax {
   background-color: #1a1a1a !important;
   color: #e0e0e0 !important;
   border: 1px solid #333 !important;
@@ -182,9 +181,10 @@ body.dark-theme .filecode {
   --tok-f:#d2a8ff;
   --tok-b:#ffa657;
   --tok-d:#7ee787;
-  background-color: var(--fc-code-bg) !important;
-  border: 1px solid var(--fc-border) !important;
+  background-color: var(--fc-code-bg);
+  border: 1px solid var(--fc-border);
 }
+/* 上の汎用 pre ルールが !important のため、ここだけ !important が必要 */
 body.dark-theme .filecode .filecode-body > .code {
   border: 0 !important;
   background-color: var(--fc-code-bg) !important;
