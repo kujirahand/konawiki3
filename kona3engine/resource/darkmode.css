@@ -166,6 +166,37 @@ body.dark-theme .filecode {
   border: 1px solid #333 !important;
 }
 
+/* filecode plugin */
+body.dark-theme .filecode {
+  --fc-border:#30363d;
+  --fc-head-bg:#161b22;
+  --fc-head-fg:#8b949e;
+  --fc-gutter-bg:#161b22;
+  --fc-gutter-fg:#6e7681;
+  --fc-code-bg:#0d1117;
+  --fc-code-fg:#e6edf3;
+  --tok-c:#8b949e;
+  --tok-s:#a5d6ff;
+  --tok-n:#79c0ff;
+  --tok-k:#ff7b72;
+  --tok-f:#d2a8ff;
+  --tok-b:#ffa657;
+  --tok-d:#7ee787;
+  background-color: var(--fc-code-bg) !important;
+  border: 1px solid var(--fc-border) !important;
+}
+body.dark-theme .filecode .filecode-body > .code {
+  border: 0 !important;
+  background-color: var(--fc-code-bg) !important;
+  color: var(--fc-code-fg) !important;
+}
+/* PHPのハイライト色(highlight_string)を暗い背景向けに置き換え */
+body.dark-theme .filecode .code span[style*="#0000BB"] { color: #79c0ff !important; }
+body.dark-theme .filecode .code span[style*="#007700"] { color: #ff7b72 !important; }
+body.dark-theme .filecode .code span[style*="#DD0000"] { color: #a5d6ff !important; }
+body.dark-theme .filecode .code span[style*="#FF8000"] { color: #8b949e !important; }
+body.dark-theme .filecode .code span[style*="#000000"] { color: var(--fc-code-fg) !important; }
+
 /* plugins comment */
 body.dark-theme .plugin_comment .plugin_title {
   background-color: #1a1a2e !important;

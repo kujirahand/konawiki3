@@ -1478,3 +1478,128 @@ ul.topnavi a
     border-left-color: #555 !important;
   }
 }
+
+/* filecode plugin */
+.filecode
+{
+  --fc-border:#d8dee4;
+  --fc-head-bg:#f6f8fa;
+  --fc-head-fg:#57606a;
+  --fc-gutter-bg:#f6f8fa;
+  --fc-gutter-fg:#8c959f;
+  --fc-code-bg:#ffffff;
+  --fc-code-fg:#24292f;
+  --tok-c:#6a737d;
+  --tok-s:#0a3069;
+  --tok-n:#0550ae;
+  --tok-k:#cf222e;
+  --tok-f:#8250df;
+  --tok-b:#953800;
+  --tok-d:#116329;
+  margin:12px 0;
+  border:1px solid var(--fc-border);
+  border-radius:8px;
+  overflow:hidden;
+  background-color:var(--fc-code-bg);
+  box-shadow:0 1px 3px rgba(0,0,0,0.06);
+}
+.filecode > .filename
+{
+  background-color:var(--fc-head-bg);
+  color:var(--fc-head-fg);
+  border-bottom:1px solid var(--fc-border);
+  font-family:"Menlo", "Consolas", monospace;
+  font-size:0.8em;
+  padding:6px 12px;
+}
+.filecode > .filename a
+{
+  margin-right:6px;
+}
+.filecode-body
+{
+  --fc-gutter-w:3.5em;
+  overflow-x:auto;
+}
+.filecode .filecode-body > .code
+{
+  box-sizing:border-box;
+  min-width:100%;
+  margin:0;
+  border:0;
+  border-radius:0;
+  padding:10px 0;
+  /* 行番号列の背景と区切り線 */
+  background-color:var(--fc-code-bg);
+  background-image:linear-gradient(to right,
+    var(--fc-gutter-bg) var(--fc-gutter-w),
+    var(--fc-border) var(--fc-gutter-w),
+    var(--fc-border) calc(var(--fc-gutter-w) + 1px),
+    transparent calc(var(--fc-gutter-w) + 1px));
+  color:var(--fc-code-fg);
+  font-family:"Menlo", "Consolas", "monospace", "ＭＳ ゴシック";
+  font-size:13px;
+  line-height:20px;
+  letter-spacing:0;
+  overflow:visible;
+}
+.filecode .filecode-body > pre.code
+{
+  width:max-content;
+  white-space:pre;
+}
+.filecode .filecode-body > div.code
+{
+  white-space:pre-wrap;
+  word-break:break-all;
+}
+.filecode .code .line
+{
+  position:relative;
+  display:block;
+  min-height:20px;
+  padding:0 16px 0 calc(var(--fc-gutter-w) + 14px);
+}
+.filecode .code .line::before
+{
+  content:attr(data-n);
+  position:absolute;
+  left:0;
+  top:0;
+  box-sizing:border-box;
+  width:var(--fc-gutter-w);
+  padding-right:10px;
+  text-align:right;
+  color:var(--fc-gutter-fg);
+  user-select:none;
+  -webkit-user-select:none;
+}
+.filecode .code .line:hover
+{
+  background-color:rgba(127,127,127,0.10);
+}
+.filecode .code .line:hover::before
+{
+  color:var(--fc-code-fg);
+}
+.filecode.nonum .code
+{
+  background-image:none;
+}
+.filecode.nonum .code .line
+{
+  padding-left:16px;
+}
+.filecode.nonum .code .line::before
+{
+  display:none;
+}
+
+/* filecode: Python/JavaScript syntax highlight */
+.filecode .tok-c { color:var(--tok-c); font-style:italic; }
+.filecode .tok-s { color:var(--tok-s); }
+.filecode .tok-n { color:var(--tok-n); }
+.filecode .tok-k { color:var(--tok-k); }
+.filecode .tok-f { color:var(--tok-f); }
+.filecode .tok-b { color:var(--tok-b); }
+.filecode .tok-d { color:var(--tok-d); }
