@@ -12,3 +12,7 @@
 
 - [go.phpのエイリアス機能](go_alias.md)
 - [showアクションのエイリアス機能](show_alias.md)
+
+## 静的サイト出力
+
+- [静的Wiki出力 仕様](static_wiki.md)
