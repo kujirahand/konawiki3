@@ -226,3 +226,12 @@ test_assert(__LINE__, empty($kona3conf['static_mode']), 'static_mode is cleared 
 @unlink($file_b);
 @rmdir($dir_sub);
 static_test_rmdir($tmp);
+
+// テンプレート用に static_mode が常に定義される (#275: 未定義変数の警告対策)
+unset($kona3conf['static_mode']);
+kona3template_prepare('show.html', []);
+test_assert(__LINE__, array_key_exists('static_mode', $kona3conf) && $kona3conf['static_mode'] === FALSE, 'static_mode is defined as FALSE for templates');
+$kona3conf['static_mode'] = TRUE;
+kona3template_prepare('show.html', []);
+test_assert(__LINE__, $kona3conf['static_mode'] === TRUE, 'static_mode stays TRUE in static mode');
+$kona3conf['static_mode'] = FALSE;

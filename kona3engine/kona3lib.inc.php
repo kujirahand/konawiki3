@@ -400,6 +400,9 @@ function kona3template_prepare($name, $params)
     }
     $kona3conf['head_tags'] = $head_tags;
 
+    // 静的出力モードのフラグ (テンプレートが未定義変数を参照しないよう常に定義する)
+    $kona3conf['static_mode'] = !empty($kona3conf['static_mode']);
+
     // css tags
     $css = "";
     if (isset($kona3conf['css'])) {
