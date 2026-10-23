@@ -132,16 +132,26 @@ function kona3plugins_ref_file_url($page, $url) {
         $url2 = str_replace('..', '', $url2);
         $fullpath = KONA3_DIR_DATA . "/" . $url2;
         if (file_exists($fullpath)) {
-            $url = "index.php?" . urlencode($url2) . "&data";
-            return $url;
+            if (!kona3static_isStaticMode()) {
+                $url = "index.php?" . urlencode($url2) . "&data";
+                return $url;
+            }
+            if (kona3static_isCopyable($url2)) {
+                return kona3static_attachUrl($url2);
+            }
         }
     }
 
     // in data_dir? (full path)
     $f = kona3path_join(KONA3_DIR_DATA, $url);
     if (file_exists($f)) {
-        $file_url = "index.php?".urlencode($url)."&data";
-        return $file_url;
+        if (!kona3static_isStaticMode()) {
+            $file_url = "index.php?".urlencode($url)."&data";
+            return $file_url;
+        }
+        if (kona3static_isCopyable($url)) {
+            return kona3static_attachUrl($url);
+        }
     }
 
     /*

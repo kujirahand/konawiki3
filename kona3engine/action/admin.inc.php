@@ -115,11 +115,28 @@ function kona3setup_config()
             kona3setup_error('Skin name could not include path flag "/" and special chars.');
             exit;
         }
+        // check static output settings (docs/static_wiki.md 13章)
+        $purged = 0;
+        try {
+            kona3static_checkOutdir(isset($conf['static_outdir']) ? $conf['static_outdir'] : 'dist');
+            // Wikiを非公開にしたら、生成済みの出力を削除する (11章)
+            if (!empty($conf['wiki_private'])) {
+                $purged = kona3static_purge(isset($conf['static_outdir']) ? $conf['static_outdir'] : 'dist');
+            }
+        } catch (Kona3StaticException $e) {
+            kona3setup_error('Static Output Dir: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8'));
+            exit;
+        }
         // save
         unset($conf['plugin.disallow']);
         unset($conf['config_items']);
         jsonphp_save($file_conf, $conf);
-        kona3setup_showMessage('<h1>Saved</h1><p><a href="./index.php">Go to FrontPage.</a></p>');
+        $msg = '<h1>Saved</h1>';
+        if ($purged > 0) {
+            $msg .= '<p>' . intval($purged) . ' static files were removed because Wiki Private is enabled. ' .
+                'Copies already published elsewhere must be removed separately.</p>';
+        }
+        kona3setup_showMessage($msg . '<p><a href="./index.php">Go to FrontPage.</a></p>');
         exit;
     }
     if ($q == 'clear_cache') {

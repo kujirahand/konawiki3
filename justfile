@@ -5,3 +5,5 @@ TEST_DIR := "`pwd`/kona3engine/tests"
 test:
     {{PHP}} {{TEST_DIR}}/test_main.php go_test
 
+build *ARGS:
+    {{PHP}} script/build_static.php {{ARGS}}

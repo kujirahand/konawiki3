@@ -285,6 +285,27 @@ function kona3static_assetUrl($kind, $path)
         kona3static_encodePathForUrl($path);
 }
 
+/**
+ * 添付ファイルの出力パス (出力先からの相対。`_kona3/files/` 以下に階層を維持する)
+ * @param string $dataRelPath `data/` からの相対パス (`/` 区切り)
+ */
+function kona3static_attachFile($dataRelPath)
+{
+    $segments = kona3static_encodeWikiName($dataRelPath);
+    $path = KONA3_STATIC_SYSTEM_DIR . '/files/' . implode('/', $segments);
+    if (strlen($path) > KONA3_STATIC_MAX_PATH_BYTES) {
+        throw new Kona3StaticException('Path too long: ' . $dataRelPath);
+    }
+    return $path;
+}
+
+/** 添付ファイルの公開URL */
+function kona3static_attachUrl($dataRelPath)
+{
+    $segments = kona3static_encodeWikiName($dataRelPath);
+    return kona3static_assetUrl('files', implode('/', $segments));
+}
+
 // ---------------------------------------------------------------------------
 // 6章: 衝突検出
 // ---------------------------------------------------------------------------

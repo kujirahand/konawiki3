@@ -8,5 +8,4 @@ composer.lock
 cache/*
 /sw.js
 /favicon.ico
-
-
+/dist
