@@ -79,3 +79,20 @@ $result15 = kona3plugins_ls_execute(['test//file']);
 test_assert(__LINE__, is_string($result15), "ls should handle multiple slashes safely");
 
 echo "\nls plugin tests completed.\n";
+
+// Test 11: ディレクトリ名を指定するとその中のページを列挙する (#269)
+$ls_testdir = KONA3_DIR_DATA . '/__ls_test_dir';
+@mkdir($ls_testdir);
+file_put_contents($ls_testdir . '/挨拶.txt', 'a');
+file_put_contents($ls_testdir . '/空港にて.txt', 'b');
+file_put_contents($ls_testdir . '/地図.md', 'c');
+$result11 = kona3plugins_ls_execute(['__ls_test_dir']);
+test_assert(__LINE__, strpos($result11, '挨拶') !== false, "ls(dir) should list pages in the directory");
+test_assert(__LINE__, strpos($result11, '空港にて') !== false, "ls(dir) should list all pages in the directory");
+test_assert(__LINE__, strpos($result11, '地図') !== false, "ls(dir) should list .md pages in the directory");
+$result11b = kona3plugins_ls_execute(['__ls_test_dir/']);
+test_assert(__LINE__, strpos($result11b, '挨拶') !== false, "ls(dir/) should list pages in the directory");
+unlink($ls_testdir . '/挨拶.txt');
+unlink($ls_testdir . '/空港にて.txt');
+unlink($ls_testdir . '/地図.md');
+rmdir($ls_testdir);
