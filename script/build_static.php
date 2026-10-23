@@ -1,6 +1,7 @@
 <?php
 // 静的Wiki出力 CLI (docs/static_wiki.md 12章)
-//   php script/build_static.php            全ページを出力する
+//   php script/build_static.php            更新されたページだけを出力する (差分生成)
+//   php script/build_static.php --full     すべてのページを再生成する
 //   php script/build_static.php --purge    生成済みの出力を削除する
 //   php script/build_static.php --adopt --yes  出力先の既存ファイルを上書きして生成する
 if (php_sapi_name() !== 'cli') {
@@ -18,13 +19,13 @@ require_once $root . '/kona3engine/index.inc.php';
 
 $opts = array_slice($argv, 1);
 foreach ($opts as $o) {
-    if (!in_array($o, ['--purge', '--adopt', '--yes', '--help'], true)) {
+    if (!in_array($o, ['--full', '--purge', '--adopt', '--yes', '--help'], true)) {
         fwrite(STDERR, "Unknown option: $o\n");
         exit(2);
     }
 }
 if (in_array('--help', $opts, true)) {
-    echo "Usage: php script/build_static.php [--purge] [--adopt --yes]\n";
+    echo "Usage: php script/build_static.php [--full] [--purge] [--adopt --yes]\n";
     exit(0);
 }
 
@@ -40,12 +41,12 @@ try {
         fwrite(STDERR, "--adopt overwrites existing files in the output directory. Add --yes to confirm.\n");
         exit(2);
     }
-    $r = kona3static_buildAll(['adopt' => $adopt]);
+    $r = kona3static_buildAll(['adopt' => $adopt, 'full' => in_array('--full', $opts, true)]);
 } catch (Kona3StaticException $e) {
     fwrite(STDERR, 'ERROR: ' . $e->getMessage() . "\n");
     exit(1);
 }
-echo "pages: {$r['pages']}, assets: {$r['assets']}, deleted: {$r['deleted']}, failed: {$r['failed']}\n";
+echo "pages: {$r['pages']}, skipped: {$r['skipped']}, assets: {$r['assets']}, deleted: {$r['deleted']}, failed: {$r['failed']}\n";
 foreach ($r['warnings'] as $w) {
     echo "WARN: $w\n";
 }

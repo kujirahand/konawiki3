@@ -136,6 +136,17 @@ This lets you maintain plugins in a separate repository. See [docs/plugins.md](d
 1. Open the configuration page and set PDF output to TRUE.
 2. If mojibake (garbled characters) occurs, place font files (`.ttf`) in `./vendor/fonts`. - [PDF output manual](https://kujirahand.com/konawiki3/index.php?PDF%E5%87%BA%E5%8A%9B%E6%A9%9F%E8%83%BD)
 
+## Static HTML Output (Optional)
+
+Konawiki3 can export all public pages as static HTML, so that viewing does not need PHP. Editing stays on the PHP side.
+
+1. Open the config page and, in the "Static" group, enable `static_enable` (and set `static_outdir` / `static_base_url` if needed).
+2. Pages are generated into `dist/` (default) when you save them. Admins can also press "Build static pages" (only updated pages) or "Rebuild all" on their user page.
+3. From the command line: `php script/build_static.php` (diff build), `--full` (rebuild all), `--purge` (delete generated files). `just build` does the same.
+4. If `static_base_url` is an absolute URL such as `https://example.com/wiki/`, `sitemap.xml` is generated too.
+
+See [docs/static_wiki.md](docs/static_wiki.md) for details.
+
 ## Git Support (Optional)
 
 You can commit Wiki diffs and push them to a Git repository.

@@ -7,6 +7,7 @@
  * - 公開対象の列挙と除外 (7・11章)
  * - ビルドロックとマニフェスト (12.1・12.7章)
  * - 全ページ・アセット・添付ファイルの出力と 404.html (12.4章)
+ * - 差分生成、編集時の1ページ生成、pending、sitemap.xml (12.2・12.3・12.7章)
  */
 
 require_once __DIR__ . '/kona3static.inc.php';
@@ -136,17 +137,22 @@ function kona3static_manifestFile()
 
 /**
  * ビルドロックを取得する。取れなければ例外
+ * @param float $waitSec 取得できるまで待つ秒数 (0 なら待たない)
  * @return resource
  */
-function kona3static_lock()
+function kona3static_lock($waitSec = 0)
 {
     $fp = @fopen(KONA3_DIR_CACHE . '/static_build.lock', 'c');
     if ($fp === false) {
         throw new Kona3StaticException('Cannot open the build lock file.');
     }
-    if (!flock($fp, LOCK_EX | LOCK_NB)) {
-        fclose($fp);
-        throw new Kona3StaticException('Another static build is running.');
+    $limit = microtime(true) + $waitSec;
+    while (!flock($fp, LOCK_EX | LOCK_NB)) {
+        if (microtime(true) >= $limit) {
+            fclose($fp);
+            throw new Kona3StaticException('Another static build is running.');
+        }
+        usleep(100000);
     }
     return $fp;
 }
@@ -161,7 +167,7 @@ function kona3static_unlock($fp)
 
 function kona3static_emptyManifest($outdir)
 {
-    return ['outdir' => $outdir, 'pages' => [], 'assets' => [], 'dirs' => [], 'built_at' => 0];
+    return ['outdir' => $outdir, 'pages' => [], 'assets' => [], 'dirs' => [], 'built_at' => 0, 'inputs' => []];
 }
 
 /** マニフェストが記録している出力先 (無ければ null) */
@@ -196,6 +202,9 @@ function kona3static_loadManifest($outdir)
     }
     if (!isset($m['built_at'])) {
         $m['built_at'] = 0;
+    }
+    if (!isset($m['inputs']) || !is_array($m['inputs'])) {
+        $m['inputs'] = [];
     }
     return $m;
 }
@@ -330,7 +339,7 @@ function kona3static_isExcluded($wikiName)
 
 /**
  * `data/` を走査して公開対象を集める。ページ内容は読まない
- * @return array ['pages' => [Wiki名 => 'page'|'dir'], 'files' => [data相対パス => 実パス]]
+ * @return array ['pages' => [Wiki名 => 'page'|'dir'|'alias'], 'files' => [data相対パス => 実パス], 'sources' => [Wiki名 => [ソースの実パス]]]
  */
 function kona3static_scanData()
 {
@@ -338,7 +347,8 @@ function kona3static_scanData()
     $pages = [];
     $dirs = [];
     $files = [];
-    $walk = function ($absDir, $rel) use (&$walk, &$pages, &$dirs, &$files) {
+    $sources = [];
+    $walk = function ($absDir, $rel) use (&$walk, &$pages, &$dirs, &$files, &$sources) {
         $entries = @scandir($absDir);
         if ($entries === false) {
             // 不完全な一覧で生成すると、既存の出力を古いものとして消してしまうため中止する
@@ -369,6 +379,7 @@ function kona3static_scanData()
             if (preg_match('/^(.+)\.(txt|md)$/', $relPath, $m)) {
                 $name = implode('/', array_map('kona3static_decodeFileSegment', explode('/', $m[1])));
                 $pages[$name] = 'page';
+                $sources[$name][] = $abs;
                 continue;
             }
             if (kona3static_isAttachable($e)) {
@@ -394,7 +405,7 @@ function kona3static_scanData()
     }
     ksort($pages, SORT_STRING);
     ksort($files, SORT_STRING);
-    return ['pages' => $pages, 'files' => $files];
+    return ['pages' => $pages, 'files' => $files, 'sources' => $sources];
 }
 
 /** スキンと resource のアセット一覧 [出力パス => 実パス] */
@@ -565,14 +576,182 @@ function kona3static_renderForBuild($wikiName)
 }
 
 // ---------------------------------------------------------------------------
+// 12.3: 差分生成の補助
+// ---------------------------------------------------------------------------
+
+/** 公開URLのベースが絶対URLか (sitemap.xml を生成できるか) */
+function kona3static_isAbsoluteBase()
+{
+    return preg_match('#^https?://#i', kona3static_baseUrl()) === 1;
+}
+
+/**
+ * ページ集合の変化で内容が変わるプラグイン (10章 B 分類、ls、include) を含むか
+ * 差分生成では内容を読まないため、描画時に判定してマニフェストへ記録する
+ */
+function kona3static_isVolatileSource($paths)
+{
+    foreach ($paths as $p) {
+        $t = @file_get_contents($p);
+        if ($t !== false && preg_match('/(?:#|♪|!!)\s*(?:recent_meta|recent|tags|tag|taglist|filelist|countpages|ls|include)\b/u', $t)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/** ソースとメタデータのうち新しい方の mtime */
+function kona3static_sourceMtime($wikiName, $paths)
+{
+    $m = 0;
+    foreach ($paths as $p) {
+        $m = max($m, (int)@filemtime($p));
+    }
+    $meta = kona3db_getPageMetaFile($wikiName);
+    if (is_string($meta) && is_file($meta)) {
+        $m = max($m, (int)@filemtime($meta));
+    }
+    return $m;
+}
+
+/** 「全体の入力」の記録 (設定・MenuBar・スキンとresource・エンジンのバージョン) */
+function kona3static_currentInputs($scan, $assetPlan)
+{
+    global $kona3conf;
+    $menu = isset($scan['sources']['MenuBar']) ? kona3static_sourceMtime('MenuBar', $scan['sources']['MenuBar']) : 0;
+    $assets = 0;
+    foreach ($assetPlan as $abs) {
+        $assets = max($assets, (int)@filemtime($abs));
+    }
+    return [
+        'version' => defined('KONAWIKI_VERSION') ? KONAWIKI_VERSION : '',
+        'skin' => isset($kona3conf['skin']) ? $kona3conf['skin'] : 'def',
+        'conf' => (int)@filemtime(KONA3_DIR_PRIVATE . '/kona3conf.json.php'),
+        'menubar' => $menu,
+        'assets' => $assets,
+    ];
+}
+
+/** sitemap.xml の内容 (13章 `static_base_url` が絶対URLのときのみ) */
+function kona3static_sitemapXml($entries)
+{
+    $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" .
+        "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n";
+    foreach ($entries as $url => $mtime) {
+        $u = htmlspecialchars($url, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+        $xml .= "  <url><loc>{$u}</loc>";
+        if ($mtime > 0) {
+            $xml .= '<lastmod>' . gmdate('Y-m-d\TH:i:s\Z', $mtime) . '</lastmod>';
+        }
+        $xml .= "</url>\n";
+    }
+    return $xml . "</urlset>\n";
+}
+
+// ---------------------------------------------------------------------------
+// 12.7: pending (ビルドロックが取れなかった編集の記録)
+// ---------------------------------------------------------------------------
+
+function kona3static_pendingFile()
+{
+    return KONA3_DIR_CACHE . '/static_pending.json';
+}
+
+/** @return resource */
+function kona3static_pendingLock()
+{
+    $fp = @fopen(KONA3_DIR_CACHE . '/static_pending.lock', 'c');
+    if ($fp === false) {
+        throw new Kona3StaticException('Cannot open the pending lock file.');
+    }
+    flock($fp, LOCK_EX);
+    return $fp;
+}
+
+/** 生成待ちのページ名を追記する (編集処理側) */
+function kona3static_addPending($wikiName)
+{
+    $fp = kona3static_pendingLock();
+    try {
+        $line = json_encode($wikiName, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+        if (@file_put_contents(kona3static_pendingFile(), $line, FILE_APPEND) === false) {
+            throw new Kona3StaticException('Cannot write the pending file.');
+        }
+    } finally {
+        kona3static_unlock($fp);
+    }
+}
+
+/** 生成待ちの記録があるか */
+function kona3static_hasPending()
+{
+    $g = glob(KONA3_DIR_CACHE . '/static_pending.*json');
+    return file_exists(kona3static_pendingFile()) || (is_array($g) && count($g) > 0);
+}
+
+/**
+ * pending を取り込む (ビルドロックを保持した状態で呼ぶ)
+ * `static_pending.json` を `static_pending.<ID>.json` へ rename するのが原子的な取り込み。
+ * 前回の異常終了で残ったファイルも含めて返す
+ * @return string[] 取り込んだファイルのパス
+ */
+function kona3static_takePending()
+{
+    $fp = kona3static_pendingLock();
+    try {
+        $main = kona3static_pendingFile();
+        if (file_exists($main)) {
+            $taken = KONA3_DIR_CACHE . '/static_pending.' . bin2hex(random_bytes(4)) . '.json';
+            @rename($main, $taken);
+        }
+        $files = glob(KONA3_DIR_CACHE . '/static_pending.*.json');
+        return is_array($files) ? $files : [];
+    } finally {
+        kona3static_unlock($fp);
+    }
+}
+
+/** 取り込んだファイルからページ名の一覧を作る */
+function kona3static_readPending($files)
+{
+    $names = [];
+    foreach ($files as $f) {
+        foreach ((array)@file($f, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+            $n = json_decode($line, true);
+            if (is_string($n) && $n !== '') {
+                $names[$n] = true;
+            }
+        }
+    }
+    return array_keys($names);
+}
+
+/** エラーを `cache/static_error.log` に記録する (12.2) */
+function kona3static_logError($msg)
+{
+    $line = date('Y-m-d H:i:s') . "\t" . str_replace(["\r", "\n"], ' ', $msg) . "\n";
+    @file_put_contents(KONA3_DIR_CACHE . '/static_error.log', $line, FILE_APPEND);
+}
+
+// ---------------------------------------------------------------------------
 // 12.4: 全体生成
 // ---------------------------------------------------------------------------
+
+/** 出力先が無ければ作る (親が存在する場合のみ) */
+function kona3static_prepareOutdir($outdir)
+{
+    if (!is_dir($outdir)) {
+        if (!is_dir(dirname($outdir)) || !@mkdir($outdir, 0777)) {
+            throw new Kona3StaticException("Cannot create the output directory: $outdir");
+        }
+    }
+}
 
 /**
  * 全ページ・アセット・添付ファイルを出力する
  *
- * @param array $options 'outdir' => 出力先(省略時は設定), 'adopt' => bool
- * @return array ['pages' => 件数, 'failed' => 件数, 'assets' => 件数, 'deleted' => 件数, 'errors' => [], 'warnings' => []]
+ * @param array $options 'outdir' => 出力先(省略時は設定), 'adopt' => bool, 'full' => bool (差分判定なしで全ページを再生成)
+ * @return array ['pages' => 生成数, 'skipped' => 差分判定で省いた数, 'failed' => 件数, 'assets' => 件数, 'deleted' => 件数, 'errors' => [], 'warnings' => []]
  * @throws Kona3StaticException 全体を中止するエラー (非公開Wiki、衝突、出力先の不正、実行中)
  */
 function kona3static_buildAll($options = [])
@@ -587,11 +766,7 @@ function kona3static_buildAll($options = [])
         throw new Kona3StaticException("Private wiki cannot be exported as static files. ($n files removed)");
     }
 
-    if (!is_dir($outdir)) {
-        if (!is_dir(dirname($outdir)) || !@mkdir($outdir, 0777)) {
-            throw new Kona3StaticException("Cannot create the output directory: $outdir");
-        }
-    }
+    kona3static_prepareOutdir($outdir);
 
     $lock = kona3static_lock();
     try {
@@ -601,11 +776,16 @@ function kona3static_buildAll($options = [])
     }
 }
 
-function kona3static_buildLocked($outdir, $options)
+function kona3static_buildLocked($outdir, $options, $depth = 0)
 {
     global $kona3conf;
     $old = kona3static_loadManifest($outdir);
-    $result = ['pages' => 0, 'failed' => 0, 'assets' => 0, 'deleted' => 0, 'errors' => [], 'warnings' => []];
+    $result = ['pages' => 0, 'skipped' => 0, 'failed' => 0, 'assets' => 0, 'deleted' => 0, 'errors' => [], 'warnings' => []];
+    $full = !empty($options['full']);
+
+    // pending を取り込む (12.7)。取り込んだページは mtime に関わらず再生成する
+    $pendingFiles = kona3static_takePending();
+    $pendingSet = array_flip(kona3static_readPending($pendingFiles));
 
     // 公開対象を列挙し、物理パスを計算して衝突を検出する (何も書く前に中止できる)
     $scan = kona3static_scanData();
@@ -645,44 +825,106 @@ function kona3static_buildLocked($outdir, $options)
         $addKey($rel, $rel);
     }
     $addKey('404.html', '404.html');
+    $sitemap = kona3static_isAbsoluteBase();
+    if ($sitemap) {
+        $addKey('sitemap.xml', 'sitemap.xml');
+    }
     foreach ($keys as $k => $labels) {
         if (count($labels) > 1) {
             throw new Kona3StaticException('Output path collision: ' . implode(' / ', $labels));
         }
     }
 
+    // 全体の入力が変わっていれば全ページを再生成する。先に全ページを stale にして保存し、
+    // 途中で失敗・中断しても次回の生成で再試行されるようにする (12.3)
+    $inputs = kona3static_currentInputs($scan, $assetPlan);
+    $inputsChanged = $full || json_encode($inputs) !== json_encode($old['inputs']);
+    if ($inputsChanged && count($old['pages']) > 0) {
+        foreach ($old['pages'] as $n => $_) {
+            $old['pages'][$n]['state'] = 'stale';
+        }
+        $staleManifest = $old;
+        $staleManifest['inputs'] = $old['inputs'];
+        kona3static_saveManifest($staleManifest);
+    }
+
     $state = ['outdir' => $outdir, 'old' => $old, 'dirs' => $old['dirs'], 'adopt' => !empty($options['adopt'])];
     $new = kona3static_emptyManifest($outdir);
+    $new['built_at'] = $old['built_at'];
+    $new['inputs'] = $old['inputs'];
 
     // ページ
+    $sitemapEntries = [];
     foreach ($plan as $name => $rel) {
+        $info = isset($old['pages'][$name]) ? $old['pages'][$name] : null;
+        $paths = isset($scan['sources'][$name]) ? $scan['sources'][$name] : [];
+        $mtime = ($scan['pages'][$name] === 'page') ? kona3static_sourceMtime($name, $paths) : 0;
+        $target = $outdir . '/' . $rel;
+        $need = $inputsChanged || $info === null || isset($pendingSet[$name])
+            || (isset($info['state']) ? $info['state'] : 'ok') !== 'ok'
+            || !empty($info['volatile']) || $scan['pages'][$name] !== 'page'
+            || $info['path'] !== $rel || !is_file($target) || is_link($target)
+            || $mtime > (int)@filemtime($target);
+        if (!$need) {
+            $new['pages'][$name] = $info;
+            $result['skipped']++;
+            if ($sitemap) {
+                $sitemapEntries[kona3getStaticURL($name)] = $mtime;
+            }
+            continue;
+        }
         try {
             $html = kona3static_renderForBuild($name);
             kona3static_publish($state, $rel, $html, false);
-            $new['pages'][$name] = ['path' => $rel, 'state' => 'ok'];
+            $new['pages'][$name] = ['path' => $rel, 'state' => 'ok', 'volatile' => kona3static_isVolatileSource($paths)];
             $result['pages']++;
+            if ($sitemap && $scan['pages'][$name] === 'page') {
+                $sitemapEntries[kona3getStaticURL($name)] = $mtime;
+            }
         } catch (Throwable $e) {
             $result['errors'][] = "$name: " . $e->getMessage();
             $result['failed']++;
             // 旧出力は残し、失敗として記録する
-            if (isset($old['pages'][$name])) {
-                $new['pages'][$name] = ['path' => $old['pages'][$name]['path'], 'state' => 'failed'];
+            if ($info !== null) {
+                $new['pages'][$name] = ['path' => $info['path'], 'state' => 'failed'];
             }
         }
     }
 
-    // アセット・添付ファイル・404.html
-    $assets = [];
+    // アセット・添付ファイル (ソースが新しいものだけコピーする)・404.html・sitemap.xml
     foreach ($assetPlan + $attachPlan as $rel => $abs) {
+        $target = $outdir . '/' . $rel;
+        if (!$inputsChanged && isset($old['assets'][$rel]) && is_file($target) && !is_link($target)
+            && (int)@filemtime($abs) <= (int)@filemtime($target)) {
+            $new['assets'][$rel] = true;
+            continue;
+        }
         $content = @file_get_contents($abs);
         if ($content === false) {
             $result['errors'][] = "$rel: cannot read the source file.";
             continue;
         }
-        $assets[$rel] = $content;
+        try {
+            kona3static_publish($state, $rel, $content, true);
+            $new['assets'][$rel] = true;
+            $result['assets']++;
+        } catch (Throwable $e) {
+            $result['errors'][] = "$rel: " . $e->getMessage();
+            if (isset($old['assets'][$rel])) {
+                $new['assets'][$rel] = true;
+            }
+        }
     }
-    $assets['404.html'] = kona3static_notFoundHtml();
-    foreach ($assets as $rel => $content) {
+    $generated = ['404.html' => kona3static_notFoundHtml()];
+    if ($sitemap) {
+        ksort($sitemapEntries, SORT_STRING);
+        if (count($sitemapEntries) > 50000) {
+            $result['warnings'][] = 'sitemap.xml has more than 50000 URLs; the excess is omitted.';
+            $sitemapEntries = array_slice($sitemapEntries, 0, 50000, true);
+        }
+        $generated['sitemap.xml'] = kona3static_sitemapXml($sitemapEntries);
+    }
+    foreach ($generated as $rel => $content) {
         try {
             kona3static_publish($state, $rel, $content, true);
             $new['assets'][$rel] = true;
@@ -721,9 +963,240 @@ function kona3static_buildLocked($outdir, $options)
     kona3static_removeEmptyDirs($outdir, $state['dirs']);
 
     $new['dirs'] = $state['dirs'];
-    $new['built_at'] = ($result['failed'] === 0 && count($result['errors']) === 0) ? time() : $old['built_at'];
+    // 全ページが ok のときだけ、全体の入力の記録を更新する (12.3)
+    if ($result['failed'] === 0 && count($result['errors']) === 0) {
+        $new['built_at'] = time();
+        $new['inputs'] = $inputs;
+    }
     kona3static_saveManifest($new);
+
+    // 取り込んだ pending は、処理を終えてから削除する。失敗したページは failed として残っている
+    foreach ($pendingFiles as $f) {
+        @unlink($f);
+    }
+    // 生成中に追記された pending があれば、なくなるまで繰り返す (12.7)
+    if ($depth < 3 && kona3static_hasPending()) {
+        $r = kona3static_buildLocked($outdir, ['adopt' => !empty($options['adopt'])], $depth + 1);
+        foreach (['pages', 'skipped', 'failed', 'assets', 'deleted'] as $k) {
+            $result[$k] += $r[$k];
+        }
+        $result['errors'] = array_merge($result['errors'], $r['errors']);
+        $result['warnings'] = array_merge($result['warnings'], $r['warnings']);
+    }
     return $result;
+}
+
+// ---------------------------------------------------------------------------
+// 12.2: 編集時の1ページ生成
+// ---------------------------------------------------------------------------
+
+/** Wiki名に対応する `data/` 内のパス (拡張子なし) */
+function kona3static_dataBase($wikiName)
+{
+    global $kona3conf;
+    $segments = explode('/', $wikiName);
+    if (!empty($kona3conf['enc_pagename'])) {
+        $segments = array_map('urlencode', $segments);
+    }
+    return KONA3_DIR_DATA . '/' . implode('/', $segments);
+}
+
+/** ページの種別: 'page' / 'dir' / 'alias'。公開対象のソースが無ければ null */
+function kona3static_pageKind($wikiName)
+{
+    $base = kona3static_dataBase($wikiName);
+    foreach (['txt', 'md'] as $ext) {
+        if (is_file("$base.$ext") && !is_link("$base.$ext")) {
+            return 'page';
+        }
+    }
+    if (is_dir($base) && !is_link($base)) {
+        return 'dir';
+    }
+    require_once __DIR__ . '/action/show.inc.php';
+    $aliasFile = KONA3_DIR_DATA . '/' . KONA3_ALIAS_SHOW_JSON_NAME;
+    if (is_file($aliasFile) && !is_link($aliasFile)) {
+        $list = kona3go_loadAliasList($aliasFile);
+        if (isset($list[$wikiName]) && $wikiName !== KONA3_ALIAS_RE_RULE_KEY) {
+            return 'alias';
+        }
+    }
+    return null;
+}
+
+/**
+ * ページ保存後に、そのページだけを生成する。保存の成否には影響させない
+ * 対象外のページは、既存の出力があれば削除する。ロックが取れなければ pending に記録する
+ *
+ * @return string 警告メッセージ (問題がなければ空文字)
+ */
+function kona3static_onPageSaved($wikiName)
+{
+    global $kona3conf;
+    if (empty($kona3conf['static_enable'])) {
+        return '';
+    }
+    $savedPage = isset($GLOBALS['page']) ? $GLOBALS['page'] : null;
+    $savedConf = $kona3conf;
+    $level = ob_get_level();
+    try {
+        $outdir = kona3static_checkOutdir();
+        // 非公開Wikiは生成せず、生成済みの出力を削除する (11章)
+        if (!empty($kona3conf['wiki_private'])) {
+            kona3static_purge($outdir);
+            return '';
+        }
+        kona3static_prepareOutdir($outdir);
+        try {
+            $lock = kona3static_lock(5);
+        } catch (Kona3StaticException $e) {
+            kona3static_addPending($wikiName);
+            return '';
+        }
+        try {
+            kona3static_buildOneLocked($outdir, $wikiName);
+        } finally {
+            kona3static_unlock($lock);
+        }
+        return '';
+    } catch (Throwable $e) {
+        while (ob_get_level() > $level) {
+            ob_end_clean();
+        }
+        kona3static_logError("$wikiName: " . $e->getMessage());
+        return 'Static page generation failed. See cache/static_error.log';
+    } finally {
+        $kona3conf = $savedConf;
+        $GLOBALS['page'] = $savedPage;
+    }
+}
+
+/** ビルドロックを保持した状態で1ページを生成または削除する */
+function kona3static_buildOneLocked($outdir, $wikiName)
+{
+    $old = kona3static_loadManifest($outdir);
+    $new = $old;
+    $state = ['outdir' => $outdir, 'old' => $old, 'dirs' => $old['dirs'], 'adopt' => false];
+    $kind = kona3static_pageKind($wikiName);
+
+    // 対象外 (削除・除外) なら、記録済みの出力を削除する
+    if ($kind === null || kona3static_isExcluded($wikiName)) {
+        if (isset($old['pages'][$wikiName])) {
+            kona3static_safeUnlink($outdir, $old['pages'][$wikiName]['path']);
+            unset($new['pages'][$wikiName]);
+            kona3static_removeEmptyDirs($outdir, $state['dirs']);
+            $new['dirs'] = $state['dirs'];
+            kona3static_saveManifest($new);
+        }
+        return;
+    }
+
+    $rel = kona3getStaticFile($wikiName);
+    // 他のページ・アセットと出力パスが衝突するなら書き出さない (6章)
+    $key = kona3static_collisionKey($rel);
+    $others = [];
+    foreach ($old['pages'] as $n => $info) {
+        if ($n !== $wikiName) {
+            $others[$info['path']] = $n;
+        }
+    }
+    foreach ($old['assets'] as $a => $_) {
+        $others[$a] = $a;
+    }
+    foreach ($others as $p => $label) {
+        if (kona3static_collisionKey($p) === $key) {
+            throw new Kona3StaticException("Output path collision: $wikiName / $label");
+        }
+    }
+
+    try {
+        $html = kona3static_renderForBuild($wikiName);
+        kona3static_publish($state, $rel, $html, false);
+    } catch (Throwable $e) {
+        // 旧出力は残し、失敗として記録する
+        if (isset($old['pages'][$wikiName])) {
+            $new['pages'][$wikiName]['state'] = 'failed';
+            kona3static_saveManifest($new);
+        }
+        throw $e;
+    }
+    $paths = [];
+    $base = kona3static_dataBase($wikiName);
+    foreach (['txt', 'md'] as $ext) {
+        if (is_file("$base.$ext")) {
+            $paths[] = "$base.$ext";
+        }
+    }
+    $new['pages'][$wikiName] = ['path' => $rel, 'state' => 'ok', 'volatile' => kona3static_isVolatileSource($paths)];
+    $new['dirs'] = $state['dirs'];
+    kona3static_saveManifest($new);
+}
+
+// ---------------------------------------------------------------------------
+// 12.5: マイページのボタンから呼ばれる処理
+// ---------------------------------------------------------------------------
+
+/** マニフェストに出力が記録されているか (「静的出力を削除」ボタンの表示条件) */
+function kona3static_hasOutput()
+{
+    $recorded = kona3static_recordedOutdir();
+    if ($recorded === null) {
+        return false;
+    }
+    $m = kona3static_loadManifest($recorded);
+    return count($m['pages']) > 0 || count($m['assets']) > 0;
+}
+
+/**
+ * `static` アクションの本体。条件を満たさなければ例外を投げ、成功すれば結果のHTMLを返す
+ * @param string $mode build(差分生成) | full(すべて再生成) | purge(削除)
+ */
+function kona3static_handleRequest($mode)
+{
+    global $kona3conf;
+    if (!kona3isAdmin()) {
+        throw new Kona3StaticException(lang('You do not have admin perm.'));
+    }
+    if (!isset($_SERVER['REQUEST_METHOD']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Kona3StaticException('POST only.');
+    }
+    if (!kona3_checkEditToken('edit_token')) {
+        throw new Kona3StaticException(lang('Invalid Token'));
+    }
+    $h = function ($s) {
+        return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
+    };
+    if ($mode === 'purge') {
+        if (!kona3static_hasOutput()) {
+            throw new Kona3StaticException('No static output is recorded.');
+        }
+        $n = kona3static_purge();
+        return '<p>' . $h(sprintf(lang('%d files removed.'), $n)) . '</p>';
+    }
+    if ($mode !== 'build' && $mode !== 'full') {
+        throw new Kona3StaticException('Invalid mode.');
+    }
+    if (empty($kona3conf['static_enable'])) {
+        throw new Kona3StaticException('Static output is disabled.');
+    }
+    $r = kona3static_buildAll(['full' => ($mode === 'full')]);
+    $html = '<p>' . $h(sprintf(
+        lang('Generated: %d, Skipped: %d, Removed: %d, Errors: %d'),
+        $r['pages'],
+        $r['skipped'],
+        $r['deleted'],
+        count($r['errors'])
+    )) . '</p>';
+    foreach ([['warnings', 'Warnings'], ['errors', 'Errors']] as $g) {
+        if (count($r[$g[0]]) > 0) {
+            $html .= '<h4>' . $h(lang($g[1])) . '</h4><ul>';
+            foreach ($r[$g[0]] as $line) {
+                $html .= '<li>' . $h($line) . '</li>';
+            }
+            $html .= '</ul>';
+        }
+    }
+    return $html;
 }
 
 // ---------------------------------------------------------------------------
