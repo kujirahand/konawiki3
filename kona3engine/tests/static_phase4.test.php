@@ -22,7 +22,7 @@ function sp4_rmdir($dir)
 }
 
 // --- 準備 ---
-$tmpRoot = sys_get_temp_dir() . '/kona3static_p4_' . getmypid();
+$tmpRoot = realpath(sys_get_temp_dir()) . '/kona3static_p4_' . getmypid();
 sp4_rmdir($tmpRoot);
 mkdir($tmpRoot);
 $out = $tmpRoot . '/out';

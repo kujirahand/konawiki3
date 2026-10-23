@@ -98,6 +98,9 @@ function kona3static_normalize($s)
  */
 function kona3static_splitWikiName($wikiName)
 {
+    if (is_int($wikiName)) {
+        $wikiName = (string)$wikiName; // 数字だけのページ名は配列キーが int になる
+    }
     if (!is_string($wikiName) || $wikiName === '') {
         throw new Kona3StaticException('Empty wiki name.');
     }

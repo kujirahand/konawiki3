@@ -32,6 +32,7 @@ function sb_throws($fn)
 }
 
 // --- 出力先の安全確認 ---
+@mkdir(KONA3_DIR_DATA, 0777, true); // 他のテストが data を消している場合に備える
 $idx = kona3static_indexDir();
 test_assert(__LINE__, sb_throws(function () { kona3static_checkOutdir(KONA3_DIR_DATA); }), 'reject data dir');
 test_assert(__LINE__, sb_throws(function () { kona3static_checkOutdir(KONA3_DIR_DATA . '/sub'); }), 'reject under data dir');
@@ -41,14 +42,14 @@ test_assert(__LINE__, sb_throws(function () { kona3static_checkOutdir(KONA3_DIR_
 test_assert(__LINE__, sb_throws(function () { kona3static_checkOutdir(KONA3_DIR_SKIN); }), 'reject skin dir');
 test_assert(__LINE__, sb_throws(function () use ($idx) { kona3static_checkOutdir($idx); }), 'reject index dir');
 test_assert(__LINE__, sb_throws(function () use ($idx) { kona3static_checkOutdir(dirname($idx)); }), 'reject parent of index dir');
-test_assert(__LINE__, sb_throws(function () { kona3static_checkOutdir('dist/../data'); }), 'reject .. into data');
+test_assert(__LINE__, sb_throws(function () { kona3static_checkOutdir(KONA3_DIR_DATA . '/dist/../x'); }), 'reject .. into data');
 test_eq(__LINE__, kona3static_checkOutdir('dist'), str_replace('\\', '/', $idx) . '/dist', 'relative outdir');
 
 test_assert(__LINE__, sb_throws(function () { kona3static_checkOutdir(strtoupper(KONA3_DIR_DATA) . '/static'); }) || !file_exists(strtoupper(KONA3_DIR_DATA)), 'reject data dir regardless of case');
 test_assert(__LINE__, sb_throws(function () { kona3static_checkOutdir(KONA3_DIR_DATA . '/../DATA/x'); }), 'reject data dir via .. and case');
 
 // --- 準備 ---
-$tmpRoot = sys_get_temp_dir() . '/kona3static_build_' . getmypid();
+$tmpRoot = realpath(sys_get_temp_dir()) . '/kona3static_build_' . getmypid();
 sb_rmdir($tmpRoot);
 mkdir($tmpRoot);
 $out = $tmpRoot . '/out';
@@ -179,10 +180,13 @@ kona3static_purge($out);
 // --- 衝突は何も書かずに中止する ---
 file_put_contents("$dir/about.txt", "a\n");
 file_put_contents("$dir/About.txt", "b\n");
-test_assert(__LINE__, sb_throws(function () use ($out) { kona3static_buildAll(['outdir' => $out]); }), 'collision aborts the build');
-test_assert(__LINE__, !file_exists("$out/StaticBuildTest/Page/index.html"), 'collision: nothing is written');
-unlink("$dir/about.txt");
-unlink("$dir/About.txt");
+// 大文字小文字を区別しないFS (macOS, Windows) では2ファイルが同一になるので衝突を作れない
+if (count(glob("$dir/[aA]bout.txt")) === 2) {
+    test_assert(__LINE__, sb_throws(function () use ($out) { kona3static_buildAll(['outdir' => $out]); }), 'collision aborts the build');
+    test_assert(__LINE__, !file_exists("$out/StaticBuildTest/Page/index.html"), 'collision: nothing is written');
+}
+@unlink("$dir/about.txt");
+@unlink("$dir/About.txt");
 
 // --- 出力先を変更しても、記録済みの旧出力先を削除できる ---
 $out2 = $tmpRoot . '/out2';

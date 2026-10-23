@@ -321,3 +321,23 @@ $html = kona3markdown_parser_convert($text, false);
 test_assert(__LINE__, strpos($html, '<thead>') === false, "Column-count mismatch on row 2 must not be treated as a separator");
 test_assert(__LINE__, strpos($html, '<td>---</td>') !== false, "Row 2 should remain as ordinary data");
 test_assert(__LINE__, strpos($html, '<td>x</td><td>y</td>') !== false, "Row 3 should remain as ordinary data");
+
+// --- ルビ記法 {親文字|ルビ} ---
+$html = kona3markdown_parser_convert("{中国語|zhōng guó yǔ}です", false);
+test_assert(__LINE__, strpos($html, "<ruby>中国語<rp>(</rp><rt>zhōng guó yǔ</rt><rp>)</rp></ruby>") !== false, "Markdown: ルビ");
+
+// ルビ記法のオンオフ (enable_ruby)
+global $kona3conf;
+$orig_ruby = isset($kona3conf['enable_ruby']) ? $kona3conf['enable_ruby'] : TRUE;
+$kona3conf['enable_ruby'] = FALSE;
+$html = kona3markdown_parser_convert("{日本語|にほんご}", false);
+test_assert(__LINE__, strpos($html, "<ruby>") === false, "Markdown: enable_ruby=false でルビ無効");
+$kona3conf['enable_ruby'] = TRUE;
+$html = kona3markdown_parser_convert("{日本語|にほんご}", false);
+test_assert(__LINE__, strpos($html, "<ruby>") !== false, "Markdown: enable_ruby=true でルビ有効");
+$kona3conf['enable_ruby'] = $orig_ruby;
+
+// ルビ記法のエスケープ
+$html = kona3markdown_parser_convert("{<b>|<i>}", false);
+test_assert(__LINE__, strpos($html, "<ruby>&lt;b&gt;<rp>(</rp><rt>&lt;i&gt;</rt>") !== false, "Markdown: 親文字とルビの両方がエスケープされる");
+test_assert(__LINE__, strpos($html, "<b>") === false && strpos($html, "<i>") === false, "Markdown: ルビ内にタグが出力されない");

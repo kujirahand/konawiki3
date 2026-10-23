@@ -97,6 +97,7 @@ function kona3conf_getConfigItems()
             'enc_pagename' => ['label' => 'Encode Page Name', 'default' => FALSE, 'type' => 'bool'],
             'use_pdf_out' => ['label' => 'Use PDF Output', 'default' => FALSE, 'type' => 'bool'],
             'para_enabled_br' => ['label' => 'Paragraph BR', 'default' => TRUE, 'type' => 'bool'],
+            'enable_ruby' => ['label' => 'Ruby Notation {base|ruby}', 'default' => TRUE, 'type' => 'bool'],
             'path_max_mkdir' => ['label' => 'Path Max Mkdir', 'default' => 3, 'type' => 'number', 'note' => '0:off, 1,2,3...:on'],
             'chmod_mkdir' => ['label' => 'Chmod Mkdir', 'default' => '0777', 'type' => 'string'],
             'max_edit_size' => ['label' => 'Max Edit Size', 'default' => 3, 'type' => 'number', 'note' => '0:no limit, unit=MB'],

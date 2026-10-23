@@ -225,3 +225,24 @@ test_assert(__LINE__, strpos($html, '1行目<br/>2行目<br/>3行目') !== false
 $text = "|A|B|\n|---|---|\n|line1<br>line2|x|";
 $html = konawiki_parser_convert($text, false);
 test_assert(__LINE__, strpos($html, "<td style='text-align:left;'>line1<br/>line2</td>") !== false, "KonaWiki記法: 表セル内の<br>も改行になる");
+
+// --- ルビ記法 {親文字|ルビ} ---
+$html = konawiki_parser_convert("{日本語|にほんご}です", FALSE);
+test_assert(__LINE__, strpos($html, "<ruby>日本語<rp>(</rp><rt>にほんご</rt><rp>)</rp></ruby>") !== false, "Konawiki記法: ルビ");
+$html = konawiki_parser_convert("{Selamat pagi|スラマッ パギ}", FALSE);
+test_assert(__LINE__, strpos($html, "<rt>スラマッ パギ</rt>") !== false, "Konawiki記法: スペースを含むルビ");
+$html = konawiki_parser_convert("{<b>|x}", FALSE);
+test_assert(__LINE__, strpos($html, "&lt;b&gt;") !== false, "Konawiki記法: ルビはエスケープされる");
+
+// ルビ記法のオンオフ (enable_ruby)
+global $kona3conf;
+$orig_ruby = isset($kona3conf['enable_ruby']) ? $kona3conf['enable_ruby'] : TRUE;
+$kona3conf['enable_ruby'] = FALSE;
+$html = konawiki_parser_convert("{日本語|にほんご}", FALSE);
+test_assert(__LINE__, strpos($html, "<ruby>") === false, "Konawiki記法: enable_ruby=false でルビ無効");
+$kona3conf['enable_ruby'] = $orig_ruby;
+
+// ルビ側のエスケープ
+$html = konawiki_parser_convert("{<b>|<i>}", FALSE);
+test_assert(__LINE__, strpos($html, "<ruby>&lt;b&gt;<rp>(</rp><rt>&lt;i&gt;</rt>") !== false, "Konawiki記法: 親文字とルビの両方がエスケープされる");
+test_assert(__LINE__, strpos($html, "<b>") === false && strpos($html, "<i>") === false, "Konawiki記法: ルビ内にタグが出力されない");
