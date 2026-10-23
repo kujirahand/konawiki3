@@ -69,7 +69,7 @@ test_assert(__LINE__, isset($byTitle['StaticP4/A']), 'search: page is indexed');
 test_eq(__LINE__, $byTitle['StaticP4/A']['u'], '/StaticP4/A/', 'search: page URL');
 test_assert(__LINE__, strpos($byTitle['StaticP4/A']['b'], '検索対象') !== FALSE, 'search: body is indexed');
 test_assert(__LINE__, strpos($json, 'secret-only-for-login') === FALSE, 'search: login-only lines are not indexed');
-test_eq(__LINE__, json_encode($byTitle['StaticP4/A']['g']), '["TagOne","a/b"]', 'search: tags are indexed');
+test_eq(__LINE__, json_encode($byTitle['StaticP4/A']['g']), '["TagOne","a\\/b"]', 'search: tags are indexed');
 test_assert(__LINE__, !isset($byTitle['MenuBar']), 'search: excluded pages are not indexed');
 $sp = (string)@file_get_contents("$out/_kona3/search/index.html");
 test_assert(__LINE__, strpos($sp, '/_kona3/search/index.json') !== FALSE, 'search: page loads the index');
