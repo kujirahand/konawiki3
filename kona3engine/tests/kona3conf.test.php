@@ -250,6 +250,18 @@ foreach (['ja', 'en'] as $lc) {
     }
     test_assert(__LINE__, $all_have_desc, "設定説明($lc): すべての項目に説明がある");
 }
+// 既定の項目名は英語 (日本語は lang/conf.ja.inc.php で翻訳する)
+$all_ascii = TRUE;
+foreach (kona3conf_getFlatConfigItems() as $key => $item) {
+    if (!preg_match('/^[\x20-\x7e]+$/', $item['label'])) {
+        $all_ascii = FALSE;
+        echo "non-ascii label: $key\n";
+    }
+}
+test_assert(__LINE__, $all_ascii, "設定項目定義: 既定の項目名はすべて英語");
+$kona3conf['lang'] = 'en';
+$form_items = kona3conf_getConfigFormItems([]);
+test_eq(__LINE__, $form_items['Editor']['items']['editor_shortcut_temp_save']['label'], 'Shortcut: Temp Save', "設定フォーム: ショートカットの項目名が英語");
 $kona3conf['lang'] = 'ja';
 $form_items = kona3conf_getConfigFormItems([]);
 test_eq(__LINE__, $form_items['Basic']['label'], '基本設定', "設定フォーム: カテゴリ名が日本語");

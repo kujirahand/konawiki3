@@ -115,8 +115,8 @@ function kona3conf_getConfigItems()
             'md_underscore_emphasis' => ['label' => 'Markdown Underscore Emphasis', 'default' => FALSE, 'type' => 'bool'],
         ],
         'Editor' => [
-            'editor_shortcut_temp_save' => ['label' => 'ショートカットキー > 一時保存', 'default' => 'Ctrl+S', 'type' => 'string'],
-            'editor_shortcut_new' => ['label' => 'ショートカットキー > 📖 新規', 'default' => 'Ctrl+Alt+N', 'type' => 'string'],
+            'editor_shortcut_temp_save' => ['label' => 'Shortcut: Temp Save', 'default' => 'Ctrl+S', 'type' => 'string'],
+            'editor_shortcut_new' => ['label' => 'Shortcut: New Page', 'default' => 'Ctrl+Alt+N', 'type' => 'string'],
         ],
         'Uploader' => [
             'image_pattern' => ['label' => 'Image Pattern', 'default' => '(png|jpg|jpeg|gif|bmp|ico|svg|webp)', 'type' => 'string'],
@@ -140,10 +140,10 @@ function kona3conf_getConfigItems()
             'openrouter_apikey' => ['label' => 'OpenRouter API Key', 'default' => '', 'type' => 'string'],
             'openrouter_model' => ['label' => 'OpenRouter Model', 'default' => '', 'type' => 'string', 'note' => 'e.g. meta-llama/llama-3-8b-instruct:free'],
             'openai_api_basic_instruction' => ['label' => 'OpenAI Basic Instruction', 'default' => 'You are helpful AI assistant.', 'type' => 'string'],
-            'ai_shortcut_complete' => ['label' => 'ショートカットキー > 文章補完', 'default' => 'Ctrl+Shift+H', 'type' => 'string'],
-            'ai_shortcut_spellcheck' => ['label' => 'ショートカットキー > 誤字脱字修正', 'default' => 'Ctrl+Shift+J', 'type' => 'string'],
-            'ai_shortcut_user_prompt1' => ['label' => 'ショートカットキー > USER_PROMPT1', 'default' => 'Ctrl+Alt+1', 'type' => 'string'],
-            'ai_shortcut_user_prompt2' => ['label' => 'ショートカットキー > USER_PROMPT2', 'default' => 'Ctrl+Alt+2', 'type' => 'string'],
+            'ai_shortcut_complete' => ['label' => 'Shortcut: AI Complete', 'default' => 'Ctrl+Shift+H', 'type' => 'string'],
+            'ai_shortcut_spellcheck' => ['label' => 'Shortcut: AI Spellcheck', 'default' => 'Ctrl+Shift+J', 'type' => 'string'],
+            'ai_shortcut_user_prompt1' => ['label' => 'Shortcut: AI User Prompt 1', 'default' => 'Ctrl+Alt+1', 'type' => 'string'],
+            'ai_shortcut_user_prompt2' => ['label' => 'Shortcut: AI User Prompt 2', 'default' => 'Ctrl+Alt+2', 'type' => 'string'],
         ],
         'PageUpdatedEvent' => [
             'discord_webhook_url' => ['label' => 'Discord Webhook URL', 'default' => '', 'type' => 'string'],
