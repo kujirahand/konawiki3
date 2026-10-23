@@ -129,12 +129,22 @@ function kona3_action_show($actionMode = "")
             foreach ($tags_array as $tag) {
                 $tag_h = htmlspecialchars($tag);
                 $tag_u = urlencode($tag);
+                if (kona3static_isStaticMode()) {
+                    // 静的版ではタグ一覧(plugin)へのリンクを作らない (docs/static_wiki.md 8.1)
+                    $a[] = "<span class='kona3_tag'>$tag_h</span>";
+                    continue;
+                }
                 $url = kona3getPageURL($page, 'plugin', '', "name=tags&tag=$tag_u");
                 $a[] = "<a href='$url'>$tag_h</a>";
             }
-            $taglist_url = kona3getPageURL($page, 'plugin', '', 'name=taglist');
-            $tags = '<div class="desc" style="text-align:right;font-size:0.8em;color:gray;"><a href="' . $taglist_url . '">Tags</a>: ' .
-                implode('/', $a) . '</div>';
+            if (kona3static_isStaticMode()) {
+                $tags = '<div class="desc" style="text-align:right;font-size:0.8em;color:gray;">Tags: ' .
+                    implode('/', $a) . '</div>';
+            } else {
+                $taglist_url = kona3getPageURL($page, 'plugin', '', 'name=taglist');
+                $tags = '<div class="desc" style="text-align:right;font-size:0.8em;color:gray;"><a href="' . $taglist_url . '">Tags</a>: ' .
+                    implode('/', $a) . '</div>';
+            }
         }
     }
     //
@@ -198,6 +208,9 @@ function kona3show_redirect_alias_json($page)
     if ($url === FALSE) {
         return;
     }
+    if (kona3static_isStaticMode()) {
+        throw new Kona3StaticRedirectException($url);
+    }
     header("location: $url");
     echo "<a href='$url'>JUMP</a>";
     exit;
@@ -210,6 +223,9 @@ function kona3show_redirect_alias($txt)
         return;
     }
     $url = kona3getPageURL($target, 'show');
+    if (kona3static_isStaticMode()) {
+        throw new Kona3StaticRedirectException($url);
+    }
     header("location: $url");
     echo "<a href='$url'>JUMP</a>";
     exit;
@@ -229,6 +245,9 @@ function kona3show_find_alias_target($txt)
 
 function kona3show_check_private($page, $showLoginLink = TRUE)
 {
+    if (kona3static_isStaticMode() && kona3getConf('wiki_private')) {
+        throw new Kona3StaticException('Private wiki cannot be exported as static files.');
+    }
     if (kona3getConf('wiki_private')) {
         if (!kona3isLogin()) {
             header('HTTP/1.0 403 Forbidden');

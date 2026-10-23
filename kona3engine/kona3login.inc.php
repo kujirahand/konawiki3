@@ -258,6 +258,11 @@ function kona3logout() {
 // --- 現在のログイン情報を取得 ---
 // ログインしていなければFALSE、していれば配列を返す
 function kona3getLoginInfo() {
+  // 静的出力は常に匿名ユーザーとして描画する (docs/static_wiki.md 1章)
+  global $kona3conf;
+  if (!empty($kona3conf['static_mode'])) {
+    return FALSE;
+  }
   if (empty($_SESSION[KONA3_SESSKEY_LOGIN])) {
     return FALSE;
   }
