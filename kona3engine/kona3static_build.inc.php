@@ -11,6 +11,7 @@
  */
 
 require_once __DIR__ . '/kona3static.inc.php';
+require_once __DIR__ . '/kona3static_index.inc.php';
 
 /** 添付ファイルの拒否リスト (14章。設定では変更できない) */
 function kona3static_denyExtensions()
@@ -829,6 +830,14 @@ function kona3static_buildLocked($outdir, $options, $depth = 0)
     if ($sitemap) {
         $addKey('sitemap.xml', 'sitemap.xml');
     }
+    // 検索・タグ一覧 (20章)。`_kona3/` 以下で、ページとは衝突しない
+    $indexFiles = kona3static_buildIndexFiles($plan, $scan);
+    foreach ($indexFiles['warnings'] as $w) {
+        $result['warnings'][] = $w;
+    }
+    foreach ($indexFiles['files'] as $rel => $_) {
+        $addKey($rel, $rel);
+    }
     foreach ($keys as $k => $labels) {
         if (count($labels) > 1) {
             throw new Kona3StaticException('Output path collision: ' . implode(' / ', $labels));
@@ -919,7 +928,7 @@ function kona3static_buildLocked($outdir, $options, $depth = 0)
             }
         }
     }
-    $generated = ['404.html' => kona3static_notFoundHtml()];
+    $generated = ['404.html' => kona3static_notFoundHtml()] + $indexFiles['files'];
     if ($sitemap) {
         ksort($sitemapEntries, SORT_STRING);
         if (count($sitemapEntries) > 50000) {
