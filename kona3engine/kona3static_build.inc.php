@@ -334,6 +334,7 @@ function kona3static_isExcluded($wikiName)
  */
 function kona3static_scanData()
 {
+    require_once __DIR__ . '/action/show.inc.php';
     $pages = [];
     $dirs = [];
     $files = [];
