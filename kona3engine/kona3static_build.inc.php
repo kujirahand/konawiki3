@@ -887,6 +887,10 @@ function kona3static_buildLocked($outdir, $options, $depth = 0)
             // 旧出力は残し、失敗として記録する
             if ($info !== null) {
                 $new['pages'][$name] = ['path' => $info['path'], 'state' => 'failed'];
+                // 旧出力は配信され続けるため、サイトマップにも残す
+                if ($sitemap && $scan['pages'][$name] === 'page') {
+                    $sitemapEntries[kona3getStaticURL($name)] = $mtime;
+                }
             }
         }
     }
