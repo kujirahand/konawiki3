@@ -241,3 +241,8 @@ $kona3conf['enable_ruby'] = FALSE;
 $html = konawiki_parser_convert("{日本語|にほんご}", FALSE);
 test_assert(__LINE__, strpos($html, "<ruby>") === false, "Konawiki記法: enable_ruby=false でルビ無効");
 $kona3conf['enable_ruby'] = $orig_ruby;
+
+// ルビ側のエスケープ
+$html = konawiki_parser_convert("{<b>|<i>}", FALSE);
+test_assert(__LINE__, strpos($html, "<ruby>&lt;b&gt;<rp>(</rp><rt>&lt;i&gt;</rt>") !== false, "Konawiki記法: 親文字とルビの両方がエスケープされる");
+test_assert(__LINE__, strpos($html, "<b>") === false && strpos($html, "<i>") === false, "Konawiki記法: ルビ内にタグが出力されない");
