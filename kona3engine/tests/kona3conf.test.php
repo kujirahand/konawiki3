@@ -261,6 +261,13 @@ test_eq(__LINE__, $form_items['Basic']['items']['wiki_title']['label'], 'Wiki Ti
 $kona3conf['lang'] = 'xx'; // 未対応言語は英語にフォールバック
 $texts = kona3conf_loadConfigTexts();
 test_assert(__LINE__, !empty($texts['items']['wiki_title']['desc']), "設定説明: 未対応言語は英語にフォールバック");
+// kona3getLangCode() を繰り返し呼んでも設定値が書き換わらない
+$kona3conf['lang'] = 'ja';
+kona3getLangCode();
+test_eq(__LINE__, kona3getLangCode(), 'ja', "言語コード: 2回呼んでも日本語のまま");
+test_eq(__LINE__, $kona3conf['lang'], 'ja', "言語コード: 設定値が書き換わらない");
+$kona3conf['lang'] = 'ja/../x';
+test_eq(__LINE__, kona3getLangCode(), 'en', "言語コード: 不正な値は英語");
 if ($orig_lang === null) { unset($kona3conf['lang']); } else { $kona3conf['lang'] = $orig_lang; }
 
 // --- 定数のテスト ---
