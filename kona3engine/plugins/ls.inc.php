@@ -96,6 +96,15 @@ function kona3plugins_ls_execute($args) {
     } else {
         $dir = dirname($fname_real);
     }
+    // フィルタがディレクトリ名なら、そのディレクトリ内を列挙する (例: #ls(旅行))
+    $filter_dir = rtrim($filter, '/');
+    if ($filter_dir !== '' && strpbrk($filter_dir, '*?[') === false) {
+        $sub = realpath($dir . '/' . $filter_dir);
+        if ($sub !== false && is_dir($sub) && strpos($sub, $data_dir) === 0) {
+            $dir = $sub;
+            $filter_patterns = ['*.txt', '*.md'];
+        }
+    }
     // get all files
     $files = glob_recursive($dir."/*");
     if ($sort_by_time) {
