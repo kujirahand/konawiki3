@@ -330,6 +330,33 @@ function kona3static_findCollisions($wikiNames)
 // ---------------------------------------------------------------------------
 
 /**
+ * 出力先自身と、その既存の親階層にシンボリックリンクがあれば拒否する (14章)
+ * `realpath()` はリンクをたどってしまうため、その前に検査する
+ */
+function kona3static_rejectSymlinkPath($outdir)
+{
+    $path = rtrim(str_replace('\\', '/', $outdir), '/');
+    if ($path === '' || $path[0] !== '/' && !preg_match('#^[A-Za-z]:#', $path)) {
+        $path = str_replace('\\', '/', getcwd()) . '/' . $path;
+    }
+    $cur = '';
+    foreach (explode('/', $path) as $seg) {
+        if ($seg === '' || $seg === '.') {
+            if ($cur === '') { $cur = ''; }
+            continue;
+        }
+        $cur .= '/' . $seg;
+        if (preg_match('#^/[A-Za-z]:$#', $cur)) {
+            $cur = substr($cur, 1);
+            continue;
+        }
+        if (is_link($cur)) {
+            throw new Kona3StaticException("Output directory contains a symbolic link: $cur");
+        }
+    }
+}
+
+/**
  * 出力先 `$outdir` の配下の相対パスに、一時ファイル→rename で原子的に書き込む
  * @return string 書き込んだ実パス
  */
@@ -338,6 +365,7 @@ function kona3static_writeFile($outdir, $relativePath, $content)
     if (!is_dir($outdir)) {
         throw new Kona3StaticException("Output directory does not exist: $outdir");
     }
+    kona3static_rejectSymlinkPath($outdir);
     $realOut = realpath($outdir);
     if ($realOut === false) {
         throw new Kona3StaticException("Invalid output directory: $outdir");
@@ -395,10 +423,16 @@ function kona3static_findDynamicLinks($html)
     global $kona3conf;
     $script = !empty($kona3conf['scriptname']) ? $kona3conf['scriptname'] : 'index.php';
     $found = [];
-    $pattern = '/\b(?:href|src|action)\s*=\s*(["\'])(.*?)\1/is';
-    if (preg_match_all($pattern, $html, $m)) {
-        foreach ($m[2] as $url) {
+    $phpUrl = !empty($kona3conf['static_php_url']) ? $kona3conf['static_php_url'] : '';
+    $pattern = '/\b(?:href|src|action)\s*=\s*(?:(["\'])(.*?)\1|([^\s"\'>]+))/is';
+    if (preg_match_all($pattern, $html, $m, PREG_SET_ORDER)) {
+        foreach ($m as $mm) {
+            $url = isset($mm[3]) ? $mm[3] : $mm[2];
             $u = html_entity_decode($url, ENT_QUOTES, 'UTF-8');
+            // PHP版への導線 (static_php_url) は許可する
+            if ($phpUrl !== '' && strpos($u, $phpUrl) === 0) {
+                continue;
+            }
             if (preg_match('#(^|/)' . preg_quote($script, '#') . '(\?|$)#', $u) ||
                 preg_match('#(^|/)(index|go)\.php(\?|$)#', $u)) {
                 $found[] = $url;

@@ -119,6 +119,10 @@ test_assert(__LINE__, strpos(kona3getPageURL('a/b'), 'index.php') !== FALSE, 'pa
 // --- 動的リンク検出 ---
 $bad = kona3static_findDynamicLinks('<a href="index.php?a&edit">x</a><a href="/ok/">y</a><img src=\'./go.php?x\'>');
 test_eq(__LINE__, count($bad), 2, 'find dynamic links');
+test_eq(__LINE__, count(kona3static_findDynamicLinks('<a href=index.php?a>x</a>')), 1, 'unquoted dynamic link');
+$kona3conf['static_php_url'] = 'https://example.com/index.php';
+test_eq(__LINE__, count(kona3static_findDynamicLinks('<a href="https://example.com/index.php">x</a>')), 0, 'static_php_url is allowed');
+unset($kona3conf['static_php_url']);
 test_eq(__LINE__, count(kona3static_findDynamicLinks('<a href="/a/index.html">x</a><a href="https://example.com/">y</a>')), 0, 'no dynamic links');
 
 // --- 書き込み ---
@@ -142,6 +146,14 @@ mkdir($outside);
 if (@symlink($outside, "$tmp/link")) {
     test_assert(__LINE__, static_test_throws(function () use ($tmp) { kona3static_writeFile($tmp, 'link/x.html', 'x'); }), 'reject symlink escape');
     test_assert(__LINE__, !file_exists("$outside/x.html"), 'symlink target is untouched');
+}
+// 出力先自身がシンボリックリンクなら拒否する
+$linkOut = sys_get_temp_dir() . '/kona3static_linkout_' . getmypid();
+@unlink($linkOut);
+if (@symlink($outside, $linkOut)) {
+    test_assert(__LINE__, static_test_throws(function () use ($linkOut) { kona3static_writeFile($linkOut, 'x.html', 'x'); }), 'reject symlinked outdir');
+    test_assert(__LINE__, !file_exists("$outside/x.html"), 'symlinked outdir target is untouched');
+    @unlink($linkOut);
 }
 static_test_rmdir($outside);
 
