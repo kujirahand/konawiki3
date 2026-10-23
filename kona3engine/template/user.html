@@ -13,6 +13,18 @@
     <a class="pure-button" href="{{$emailLogs_link}}">
     {{'Email Logs'|lang}}</a>
   </div>
+  {{if $static_enable || $static_has_output }}
+  <form method="POST" action="{{$static_link}}" style="padding:8px;">
+    <input type="hidden" name="edit_token" value="{{$static_edit_token}}">
+    {{if $static_enable }}
+    <button class="pure-button" type="submit" name="mode" value="build">{{'Static Build'|lang}}</button>
+    <button class="pure-button" type="submit" name="mode" value="full">{{'Static Rebuild All'|lang}}</button>
+    {{endif}}
+    {{if $static_has_output }}
+    <button class="pure-button" type="submit" name="mode" value="purge" onclick="return confirm('{{'Static Purge Confirm'|lang}}');">{{'Static Purge'|lang}}</button>
+    {{endif}}
+  </form>
+  {{endif}}
 </div>
 {{endif}}
 

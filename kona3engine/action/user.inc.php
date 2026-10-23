@@ -29,6 +29,10 @@ function kona3_action_user() {
     "userList_link" => kona3getPageURL($name, 'users', '', "edit_token=$edit_token"),
     "emailLogs_link" => kona3getPageURL($name, 'emailLogs'),
     "editConf_link" => kona3getPageURL($name, 'editConf'),
+    "static_link" => kona3getPageURL($name, 'static'),
+    "static_enable" => !empty($kona3conf['static_enable']),
+    "static_has_output" => kona3static_hasOutput(),
+    "static_edit_token" => kona3_getEditToken('edit_token'),
   ]);
 }
 

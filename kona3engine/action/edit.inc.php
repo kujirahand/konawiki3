@@ -495,16 +495,23 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
 
     $result = TRUE;
 
+    // 静的ページの生成 (失敗しても保存は成功扱い)
+    $static_warning = kona3static_onPageSaved($page);
+
     // result
     if ($i_mode == "git") {
         return TRUE;
     } else if ($i_mode == "ajax") {
-        echo json_encode(array(
+        $json = array(
             'result' => 'ok',
             'a_hash' => kona3getPageHash($edit_txt),
             'postId' => $postId,
             'edit_ext' => $edit_ext,
-        ));
+        );
+        if ($static_warning !== '') {
+            $json['warning'] = $static_warning;
+        }
+        echo json_encode($json);
         return TRUE;
     }
     $jump = kona3getPageURL($page);
