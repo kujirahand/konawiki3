@@ -132,6 +132,9 @@ function kona3plugins_ref_file_url($page, $url) {
         $url2 = str_replace('..', '', $url2);
         $fullpath = KONA3_DIR_DATA . "/" . $url2;
         if (file_exists($fullpath)) {
+            if (kona3static_isStaticMode()) {
+                return kona3static_attachUrl($url2);
+            }
             $url = "index.php?" . urlencode($url2) . "&data";
             return $url;
         }
@@ -140,6 +143,9 @@ function kona3plugins_ref_file_url($page, $url) {
     // in data_dir? (full path)
     $f = kona3path_join(KONA3_DIR_DATA, $url);
     if (file_exists($f)) {
+        if (kona3static_isStaticMode()) {
+            return kona3static_attachUrl($url);
+        }
         $file_url = "index.php?".urlencode($url)."&data";
         return $file_url;
     }

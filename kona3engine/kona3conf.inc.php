@@ -127,6 +127,11 @@ function kona3conf_getConfigItems()
             ],
             'upload_max_file_size' => ['label' => 'Upload Max File Size', 'default' => 1024 * 1024 * 5, 'type' => 'number', 'note' => 'bytes'],
         ],
+        'Static' => [
+            'static_enable' => ['label' => 'Static Enable', 'default' => FALSE, 'type' => 'bool', 'note' => 'Generate static HTML files (not generated while Wiki Private is enabled; existing output is removed)'],
+            'static_outdir' => ['label' => 'Static Output Dir', 'default' => 'dist', 'type' => 'string', 'note' => 'relative to the index directory, or absolute path'],
+            'static_base_url' => ['label' => 'Static Base URL', 'default' => '/', 'type' => 'string', 'note' => 'e.g. /wiki/ or https://example.com/wiki/'],
+        ],
         'AI' => [
             'openai_provider' => ['label' => 'AI Provider', 'default' => 'none', 'type' => 'select', 'items' => ['none', 'OpenAI', 'OpenRouter']],
             'openai_apikey' => ['label' => 'OpenAI API Key', 'default' => '', 'type' => 'string', 'note' => 'for ChatGPT'],
