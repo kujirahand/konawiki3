@@ -406,7 +406,7 @@ qq(function(){
 
   saveCurrentPage();
 
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && !window.KONA3_STATIC) {
     navigator.serviceWorker.register('./sw.js').then(function(reg) {
       // success
     }).catch(function(err) {

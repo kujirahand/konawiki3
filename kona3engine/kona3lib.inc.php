@@ -356,6 +356,9 @@ function kona3getRelativePath($wikiname)
 // show error page
 function kona3error($title, $msg)
 {
+    if (!empty($GLOBALS['kona3conf']['static_mode'])) {
+        throw new Kona3StaticException(trim(strip_tags("$title: $msg")));
+    }
     $title = kona3htmlspecialchars($title);
     $err = "<div class='error_box'>" .
         "<h3 class='error'>$title</h3>" .
@@ -368,6 +371,9 @@ function kona3error($title, $msg)
 }
 function kona3showMessage($title, $msg, $tpl = '')
 {
+    if (!empty($GLOBALS['kona3conf']['static_mode'])) {
+        throw new Kona3StaticException(trim(strip_tags("$title: $msg")));
+    }
     $title = kona3htmlspecialchars($title);
     $body = "<div>" .
         "<h3>$title</h3>" .
@@ -464,6 +470,10 @@ function kona3getPageURL($page = "", $action = "", $stat = "", $paramStr = "")
 {
     global $kona3conf;
     if ($page == "") $page = $kona3conf["page"];
+    // 静的出力モード: showアクションは静的URLにする (docs/static_wiki.md 8章)
+    if (!empty($kona3conf['static_mode']) && ($action == "" || $action == "show") && $stat == "" && $paramStr == "") {
+        return kona3getStaticURL($page);
+    }
     $page_ = urlencode($page);
     if ($action == "") $action = "show";
     $action_ = urlencode($action);
@@ -499,6 +509,9 @@ function kona3getResourceURL($file, $use_mtime = FALSE)
     global $kona3conf;
     // remove dir travasal
     $file = str_replace('..', '', $file);
+    if (!empty($kona3conf['static_mode'])) {
+        return kona3static_assetUrl('resource', $file);
+    }
     $path_resource = $kona3conf['path_resource'];
     $path = "{$path_resource}/$file";
     if ($use_mtime && file_exists($path)) {
@@ -521,6 +534,10 @@ function kona3getSkinURL($file, $use_mtime = FALSE)
     // skinディレクトリにファイルがなければresourceを探す
     if (!file_exists($path)) {
         return kona3getResourceURL($file, $use_mtime);
+    }
+    // 静的出力モード
+    if (!empty($kona3conf['static_mode'])) {
+        return kona3static_assetUrl('skin', "{$skin}/{$file}");
     }
     // mtimeをつけて出力?
     if ($use_mtime && file_exists($path)) {
@@ -599,6 +616,16 @@ function kona3getCtrlMenuArray($type)
     $FrontPage_label = '🏠 ' . $kona3conf['FrontPage'];
     //
     $list = array();
+    // 静的出力モード: 動的な機能(検索・ログイン等)へのリンクは出さない
+    if (!empty($kona3conf['static_mode'])) {
+        if ($type != "bar") {
+            $list[] = array($FrontPage_label, $FrontPage_uri);
+        }
+        if (!empty($kona3conf['static_php_url'])) {
+            $list[] = array(lang('Edit'), $kona3conf['static_php_url']);
+        }
+        return $list;
+    }
     if (!kona3isLogin()) {
         if ($type == "bar") {
             $list[] = array(lang('Search'), $search_uri);
