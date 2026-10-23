@@ -75,7 +75,9 @@ function kona3static_absPath($path)
 /** `$a` が `$b` と同じか、その配下か */
 function kona3static_isSameOrUnder($a, $b)
 {
-    $b = rtrim($b, '/');
+    // 大文字小文字を区別しない環境 (Windows, macOS) でも保護できるよう、常に小文字で比較する
+    $a = mb_strtolower($a, 'UTF-8');
+    $b = mb_strtolower(rtrim($b, '/'), 'UTF-8');
     return $a === $b || strpos($a, $b . '/') === 0;
 }
 
@@ -116,7 +118,8 @@ function kona3static_checkOutdir($outdir = null)
     $ip = realpath($index);
     $ip = str_replace('\\', '/', $ip !== false ? $ip : kona3static_absPath($index));
     // インデックスディレクトリそのもの、またはその親は拒否 (配下は許可)
-    if ($abs === rtrim($ip, '/') || kona3static_isSameOrUnder($ip, $abs)) {
+    $ipl = mb_strtolower(rtrim($ip, '/'), 'UTF-8');
+    if (mb_strtolower($abs, 'UTF-8') === $ipl || kona3static_isSameOrUnder($ip, $abs)) {
         throw new Kona3StaticException("static_outdir must not be the index directory or its parent: $outdir");
     }
     return $abs;
@@ -161,6 +164,20 @@ function kona3static_emptyManifest($outdir)
     return ['outdir' => $outdir, 'pages' => [], 'assets' => [], 'dirs' => [], 'built_at' => 0];
 }
 
+/** マニフェストが記録している出力先 (無ければ null) */
+function kona3static_recordedOutdir()
+{
+    $file = kona3static_manifestFile();
+    if (!file_exists($file)) {
+        return null;
+    }
+    $m = json_decode((string)@file_get_contents($file), true);
+    if (is_array($m) && isset($m['outdir']) && is_string($m['outdir']) && $m['outdir'] !== '') {
+        return $m['outdir'];
+    }
+    return null;
+}
+
 /** マニフェストを読む。出力先が違う、または壊れていれば空を返す */
 function kona3static_loadManifest($outdir)
 {
@@ -193,6 +210,47 @@ function kona3static_saveManifest($manifest)
         @unlink($tmp);
         throw new Kona3StaticException('Cannot save the manifest.');
     }
+}
+
+/**
+ * 出力先からの相対パスとして安全か (絶対パス・`..`・空の階層を含まない)
+ * マニフェストの値は改ざんや破損があり得るため、削除の前にも通す
+ */
+function kona3static_isSafeRelPath($rel)
+{
+    if (!is_string($rel) || $rel === '' || $rel[0] === '/' || strpos($rel, "\0") !== false
+        || strpos($rel, '\\') !== false) {
+        return false;
+    }
+    foreach (explode('/', $rel) as $seg) {
+        if ($seg === '' || $seg === '.' || $seg === '..') {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * 出力先の配下にある通常ファイルを安全に削除する
+ * 相対パスが不正、または途中の階層にシンボリックリンクがあるものは削除しない
+ * @return bool 削除した
+ */
+function kona3static_safeUnlink($outdir, $rel)
+{
+    if (!kona3static_isSafeRelPath($rel)) {
+        return false;
+    }
+    $cur = $outdir;
+    $segments = explode('/', $rel);
+    $last = array_pop($segments);
+    foreach ($segments as $seg) {
+        $cur .= '/' . $seg;
+        if (is_link($cur) || !is_dir($cur)) {
+            return false;
+        }
+    }
+    $abs = $cur . '/' . $last;
+    return is_file($abs) && !is_link($abs) && @unlink($abs);
 }
 
 /** マニフェストに記録済みの出力パスか */
@@ -282,7 +340,8 @@ function kona3static_scanData()
     $walk = function ($absDir, $rel) use (&$walk, &$pages, &$dirs, &$files) {
         $entries = @scandir($absDir);
         if ($entries === false) {
-            return;
+            // 不完全な一覧で生成すると、既存の出力を古いものとして消してしまうため中止する
+            throw new Kona3StaticException("Cannot read the directory: $absDir");
         }
         sort($entries, SORT_STRING);
         foreach ($entries as $e) {
@@ -320,6 +379,16 @@ function kona3static_scanData()
     foreach ($dirs as $name => $_) {
         if (!isset($pages[$name])) {
             $pages[$name] = 'dir';
+        }
+    }
+    // data/alias-show.json で定義されたエイリアスもリダイレクトページにする (7章)
+    $aliasFile = KONA3_DIR_DATA . '/' . KONA3_ALIAS_SHOW_JSON_NAME;
+    if (is_file($aliasFile) && !is_link($aliasFile)) {
+        foreach (kona3go_loadAliasList($aliasFile) as $alias => $_target) {
+            if ($alias === KONA3_ALIAS_RE_RULE_KEY || isset($pages[$alias])) {
+                continue;
+            }
+            $pages[$alias] = 'alias';
         }
     }
     ksort($pages, SORT_STRING);
@@ -382,6 +451,9 @@ function kona3static_scanAssets()
 function kona3static_publish(&$state, $rel, $content, $sameContentOk)
 {
     $outdir = $state['outdir'];
+    if (!kona3static_isSafeRelPath($rel)) {
+        throw new Kona3StaticException("Invalid output path: $rel");
+    }
     $target = $outdir . '/' . $rel;
     if (is_link($target)) {
         throw new Kona3StaticException("Refusing to write to a symbolic link: $rel");
@@ -405,6 +477,9 @@ function kona3static_publish(&$state, $rel, $content, $sameContentOk)
     foreach ($segments as $seg) {
         $cur = ($cur === '') ? $seg : "$cur/$seg";
         $abs = $outdir . '/' . $cur;
+        if (is_link($abs)) {
+            throw new Kona3StaticException("Refusing to write through a symbolic link: $cur");
+        }
         if (file_exists($abs) && !is_dir($abs)) {
             throw new Kona3StaticException("A file exists where a directory is needed: $cur");
         }
@@ -423,6 +498,10 @@ function kona3static_removeEmptyDirs($outdir, &$dirs)
         return substr_count($b, '/') - substr_count($a, '/');
     });
     foreach ($names as $d) {
+        if (!kona3static_isSafeRelPath($d)) {
+            unset($dirs[$d]);
+            continue;
+        }
         $abs = $outdir . '/' . $d;
         if (is_link($abs)) {
             unset($dirs[$d]);
@@ -634,8 +713,7 @@ function kona3static_buildLocked($outdir, $options)
         if (isset($keep[$rel])) {
             continue;
         }
-        $abs = $outdir . '/' . $rel;
-        if (is_file($abs) && !is_link($abs) && @unlink($abs)) {
+        if (kona3static_safeUnlink($outdir, $rel)) {
             $result['deleted']++;
         }
     }
@@ -657,7 +735,9 @@ function kona3static_buildLocked($outdir, $options)
  */
 function kona3static_purge($outdir = null)
 {
-    $outdir = kona3static_checkOutdir($outdir);
+    // マニフェストが記録している出力先を優先する (static_outdir を変更した後でも旧出力を消せるように)
+    $recorded = kona3static_recordedOutdir();
+    $outdir = kona3static_checkOutdir($recorded !== null ? $recorded : $outdir);
     $lock = kona3static_lock();
     try {
         $m = kona3static_loadManifest($outdir);
@@ -670,8 +750,7 @@ function kona3static_purge($outdir = null)
             $paths[] = $rel;
         }
         foreach ($paths as $rel) {
-            $abs = $outdir . '/' . $rel;
-            if (is_file($abs) && !is_link($abs) && @unlink($abs)) {
+            if (kona3static_safeUnlink($outdir, $rel)) {
                 $n++;
             }
         }
@@ -683,4 +762,39 @@ function kona3static_purge($outdir = null)
     } finally {
         kona3static_unlock($lock);
     }
+}
+
+/**
+ * 全体生成で実際にコピーされる添付ファイルか (`data/` からの相対パス)
+ * `ref` プラグインが、コピーされないファイルへの静的URLを出さないための共通判定
+ */
+function kona3static_isCopyable($dataRelPath)
+{
+    $rel = str_replace('\\', '/', (string)$dataRelPath);
+    $rel = ltrim($rel, '/');
+    if (!kona3static_isSafeRelPath($rel)) {
+        return false;
+    }
+    $segments = explode('/', $rel);
+    $cur = KONA3_DIR_DATA;
+    foreach ($segments as $seg) {
+        if ($seg[0] === '.') {
+            return false;
+        }
+        $cur .= '/' . $seg;
+        if (is_link($cur)) {
+            return false;
+        }
+    }
+    if (!is_file($cur)) {
+        return false;
+    }
+    $name = end($segments);
+    if (count($segments) === 1 && $name === KONA3_ALIAS_SHOW_JSON_NAME) {
+        return false;
+    }
+    if (preg_match('/\.(txt|md)$/', $name)) {
+        return false;
+    }
+    return kona3static_isAttachable($name);
 }

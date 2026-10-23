@@ -12,6 +12,8 @@ $file_def = $root . '/kona3dir.def.php';
 if (file_exists($file_def)) {
     require_once $file_def;
 }
+// index.inc.php は読み込み時に kona3index_main() を実行し、設定ファイルの読み込みと初期化を行う
+// (CLI では画面の描画だけを行わない)
 require_once $root . '/kona3engine/index.inc.php';
 
 $opts = array_slice($argv, 1);

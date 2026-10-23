@@ -44,6 +44,9 @@ test_assert(__LINE__, sb_throws(function () use ($idx) { kona3static_checkOutdir
 test_assert(__LINE__, sb_throws(function () { kona3static_checkOutdir('dist/../data'); }), 'reject .. into data');
 test_eq(__LINE__, kona3static_checkOutdir('dist'), str_replace('\\', '/', $idx) . '/dist', 'relative outdir');
 
+test_assert(__LINE__, sb_throws(function () { kona3static_checkOutdir(strtoupper(KONA3_DIR_DATA) . '/static'); }) || !file_exists(strtoupper(KONA3_DIR_DATA)), 'reject data dir regardless of case');
+test_assert(__LINE__, sb_throws(function () { kona3static_checkOutdir(KONA3_DIR_DATA . '/../DATA/x'); }), 'reject data dir via .. and case');
+
 // --- 準備 ---
 $tmpRoot = sys_get_temp_dir() . '/kona3static_build_' . getmypid();
 sb_rmdir($tmpRoot);
@@ -57,6 +60,9 @@ file_put_contents("$dir/Page.txt", "* Build Page\n[[StaticBuildTest/Md]]\n#ref(a
 file_put_contents("$dir/Md.md", "# Md Page\n");
 file_put_contents("$dir/Sub/Deep.txt", "deep\n");
 file_put_contents("$dir/Old.txt", "!!alias(StaticBuildTest/Page)\n");
+$aliasJson = KONA3_DIR_DATA . '/' . KONA3_ALIAS_SHOW_JSON_NAME;
+$aliasBackup = file_exists($aliasJson) ? file_get_contents($aliasJson) : null;
+file_put_contents($aliasJson, json_encode(['StaticBuildJsonAlias' => 'StaticBuildTest/Page']));
 file_put_contents("$dir/Hidden.txt", "hidden\n");
 file_put_contents("$dir/a.png", "PNGDATA");
 file_put_contents("$dir/evil.php", "<?php echo 1;");
@@ -100,6 +106,9 @@ test_assert(__LINE__, !file_exists("$out/_kona3/files/StaticBuildTest/evil.php")
 $page = (string)@file_get_contents("$out/StaticBuildTest/Page/index.html");
 test_assert(__LINE__, strpos($page, '/_kona3/files/StaticBuildTest/a.png') !== FALSE, 'build: ref points to the copied attachment');
 test_assert(__LINE__, strpos($page, '/StaticBuildTest/Md/') !== FALSE, 'build: link to markdown page');
+$jsonAlias = (string)@file_get_contents("$out/StaticBuildJsonAlias/index.html");
+test_assert(__LINE__, strpos($jsonAlias, 'http-equiv="refresh"') !== FALSE && strpos($jsonAlias, '/StaticBuildTest/Page/') !== FALSE, 'build: alias-show.json only alias is output');
+test_assert(__LINE__, !file_exists("$out/alias-show.json") && !file_exists("$out/_kona3/files/alias-show.json"), 'build: alias-show.json is not published');
 $alias = (string)@file_get_contents("$out/StaticBuildTest/Old/index.html");
 test_assert(__LINE__, strpos($alias, 'http-equiv="refresh"') !== FALSE && strpos($alias, '/StaticBuildTest/Page/') !== FALSE, 'build: alias redirect');
 test_assert(__LINE__, strpos($alias, 'rel="canonical"') !== FALSE, 'build: alias canonical');
@@ -112,6 +121,37 @@ $r = kona3static_buildAll(['outdir' => $out]);
 test_assert(__LINE__, !file_exists("$out/StaticBuildTest/Md/index.html"), 'rebuild: removed page output is deleted');
 test_assert(__LINE__, !is_dir("$out/StaticBuildTest/Md"), 'rebuild: empty directory is removed');
 test_assert(__LINE__, file_exists("$out/StaticBuildTest/Page/index.html"), 'rebuild: other pages stay');
+
+// --- 添付判定 (ref プラグインと共通) ---
+test_assert(__LINE__, kona3static_isCopyable('StaticBuildTest/a.png'), 'copyable: png');
+test_assert(__LINE__, !kona3static_isCopyable('StaticBuildTest/evil.php'), 'not copyable: php');
+test_assert(__LINE__, !kona3static_isCopyable('StaticBuildTest/Page.txt'), 'not copyable: page source');
+test_assert(__LINE__, !kona3static_isCopyable('../private/kona3json_iv.bin'), 'not copyable: parent dir');
+test_assert(__LINE__, !kona3static_isCopyable(KONA3_ALIAS_SHOW_JSON_NAME), 'not copyable: alias-show.json');
+
+// --- 中間階層のシンボリックリンクを通して書かない ---
+mkdir("$out/inner");
+$other = $tmpRoot . '/other';
+mkdir($other);
+if (@symlink($other, "$out/linked")) {
+    $st = ['outdir' => $out, 'old' => kona3static_loadManifest($out), 'dirs' => [], 'adopt' => FALSE];
+    test_assert(__LINE__, sb_throws(function () use (&$st) { kona3static_publish($st, 'linked/x.html', 'x', false); }), 'reject symlinked intermediate dir');
+    test_assert(__LINE__, !file_exists("$other/x.html"), 'symlinked dir target is untouched');
+    unlink("$out/linked");
+}
+rmdir("$out/inner");
+
+// --- 改ざんされたマニフェストでも出力先の外は消さない ---
+file_put_contents("$tmpRoot/victim.txt", 'keep');
+test_assert(__LINE__, !kona3static_safeUnlink($out, '../victim.txt'), 'safeUnlink: rejects ..');
+test_assert(__LINE__, !kona3static_safeUnlink($out, '/etc/passwd'), 'safeUnlink: rejects absolute');
+test_eq(__LINE__, file_get_contents("$tmpRoot/victim.txt"), 'keep', 'safeUnlink: outside file stays');
+$m = kona3static_loadManifest($out);
+$m['assets']['../victim.txt'] = true;
+kona3static_saveManifest($m);
+kona3static_purge($out);
+test_eq(__LINE__, file_get_contents("$tmpRoot/victim.txt"), 'keep', 'purge: tampered manifest does not delete outside file');
+kona3static_buildAll(['outdir' => $out]);
 
 // --- 利用者のファイルは上書き・削除しない ---
 file_put_contents("$out/mine.txt", 'mine');
@@ -144,6 +184,15 @@ test_assert(__LINE__, !file_exists("$out/StaticBuildTest/Page/index.html"), 'col
 unlink("$dir/about.txt");
 unlink("$dir/About.txt");
 
+// --- 出力先を変更しても、記録済みの旧出力先を削除できる ---
+$out2 = $tmpRoot . '/out2';
+kona3static_buildAll(['outdir' => $out, 'adopt' => TRUE]);
+test_assert(__LINE__, file_exists("$out/StaticBuildTest/Page/index.html"), 'moved outdir: prepared');
+$kona3conf['static_outdir'] = $out2;
+$n = kona3static_purge($out2);
+test_assert(__LINE__, $n > 0 && !file_exists("$out/StaticBuildTest/Page/index.html"), 'purge removes the output at the recorded outdir');
+unset($kona3conf['static_outdir']);
+
 // --- 非公開Wikiは生成せず、出力を削除する ---
 kona3static_buildAll(['outdir' => $out, 'adopt' => TRUE]);
 test_assert(__LINE__, file_exists("$out/StaticBuildTest/Page/index.html"), 'private: prepared');
@@ -162,6 +211,11 @@ kona3static_unlock($fp);
 
 // --- 後片付け ---
 sb_rmdir($dir);
+if ($aliasBackup === null) {
+    @unlink($aliasJson);
+} else {
+    file_put_contents($aliasJson, $aliasBackup);
+}
 @unlink($metaFile);
 @unlink($manifest);
 sb_rmdir($tmpRoot);
