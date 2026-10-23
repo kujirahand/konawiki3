@@ -797,6 +797,7 @@ function kona3static_buildLocked($outdir, $options, $depth = 0)
         $keys[$k][] = $label;
     };
     foreach ($scan['pages'] as $name => $kind) {
+        $name = (string)$name; // 数字だけのページ名は配列キーが int になる
         if (kona3static_isExcluded($name)) {
             continue;
         }
@@ -865,6 +866,7 @@ function kona3static_buildLocked($outdir, $options, $depth = 0)
     // ページ
     $sitemapEntries = [];
     foreach ($plan as $name => $rel) {
+        $name = (string)$name;
         $info = isset($old['pages'][$name]) ? $old['pages'][$name] : null;
         $paths = isset($scan['sources'][$name]) ? $scan['sources'][$name] : [];
         $mtime = ($scan['pages'][$name] === 'page') ? kona3static_sourceMtime($name, $paths) : 0;
@@ -1111,6 +1113,7 @@ function kona3static_buildOneLocked($outdir, $wikiName)
     $key = kona3static_collisionKey($rel);
     $others = [];
     foreach ($old['pages'] as $n => $info) {
+        $n = (string)$n;
         if ($n !== $wikiName) {
             $others[$info['path']] = $n;
         }

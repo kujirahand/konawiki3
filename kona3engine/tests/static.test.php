@@ -126,7 +126,7 @@ unset($kona3conf['static_php_url']);
 test_eq(__LINE__, count(kona3static_findDynamicLinks('<a href="/a/index.html">x</a><a href="https://example.com/">y</a>')), 0, 'no dynamic links');
 
 // --- 書き込み ---
-$tmp = sys_get_temp_dir() . '/kona3static_test_' . getmypid();
+$tmp = realpath(sys_get_temp_dir()) . '/kona3static_test_' . getmypid();
 static_test_rmdir($tmp);
 mkdir($tmp);
 kona3static_writeFile($tmp, 'a/b/index.html', 'hello');
@@ -140,7 +140,7 @@ test_assert(__LINE__, static_test_throws(function () use ($tmp) { kona3static_wr
 test_assert(__LINE__, static_test_throws(function () use ($tmp) { kona3static_writeFile($tmp . '/nothing', 'x.html', 'x'); }), 'reject missing outdir');
 test_assert(__LINE__, !file_exists(dirname($tmp) . '/evil.html'), 'nothing is written outside');
 // シンボリックリンク経由で出力先の外に書けない
-$outside = sys_get_temp_dir() . '/kona3static_outside_' . getmypid();
+$outside = realpath(sys_get_temp_dir()) . '/kona3static_outside_' . getmypid();
 static_test_rmdir($outside);
 mkdir($outside);
 if (@symlink($outside, "$tmp/link")) {
@@ -148,7 +148,7 @@ if (@symlink($outside, "$tmp/link")) {
     test_assert(__LINE__, !file_exists("$outside/x.html"), 'symlink target is untouched');
 }
 // 出力先自身がシンボリックリンクなら拒否する
-$linkOut = sys_get_temp_dir() . '/kona3static_linkout_' . getmypid();
+$linkOut = realpath(sys_get_temp_dir()) . '/kona3static_linkout_' . getmypid();
 @unlink($linkOut);
 if (@symlink($outside, $linkOut)) {
     test_assert(__LINE__, static_test_throws(function () use ($linkOut) { kona3static_writeFile($linkOut, 'x.html', 'x'); }), 'reject symlinked outdir');

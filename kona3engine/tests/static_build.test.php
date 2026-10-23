@@ -48,7 +48,7 @@ test_assert(__LINE__, sb_throws(function () { kona3static_checkOutdir(strtoupper
 test_assert(__LINE__, sb_throws(function () { kona3static_checkOutdir(KONA3_DIR_DATA . '/../DATA/x'); }), 'reject data dir via .. and case');
 
 // --- 準備 ---
-$tmpRoot = sys_get_temp_dir() . '/kona3static_build_' . getmypid();
+$tmpRoot = realpath(sys_get_temp_dir()) . '/kona3static_build_' . getmypid();
 sb_rmdir($tmpRoot);
 mkdir($tmpRoot);
 $out = $tmpRoot . '/out';

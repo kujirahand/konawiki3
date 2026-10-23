@@ -32,7 +32,7 @@ function sp_throws($fn)
 }
 
 // --- 準備 ---
-$tmpRoot = sys_get_temp_dir() . '/kona3static_p3_' . getmypid();
+$tmpRoot = realpath(sys_get_temp_dir()) . '/kona3static_p3_' . getmypid();
 sp_rmdir($tmpRoot);
 mkdir($tmpRoot);
 $out = $tmpRoot . '/out';
