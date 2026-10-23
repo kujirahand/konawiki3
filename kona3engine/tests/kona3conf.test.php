@@ -226,11 +226,42 @@ $form_items = kona3conf_getConfigFormItems([
     'max_search' => 25,
     'def_text_ext' => 'html',
 ]);
-test_assert(__LINE__, strpos($form_items['Basic']['wiki_private']['input_html'], '<select') !== FALSE, "設定フォーム: boolはselect");
-test_assert(__LINE__, strpos($form_items['Basic']['wiki_private']['input_html'], 'value="false" selected') !== FALSE, "設定フォーム: boolの選択状態");
-test_assert(__LINE__, strpos($form_items['Basic']['lang']['input_html'], 'value="en" selected') !== FALSE, "設定フォーム: selectの選択状態");
-test_assert(__LINE__, strpos($form_items['Basic']['def_text_ext']['input_html'], 'value="txt" selected') !== FALSE, "設定フォーム: invalid selectはdefault表示");
-test_assert(__LINE__, strpos($form_items['Options']['max_search']['input_html'], 'type="number"') !== FALSE, "設定フォーム: number入力");
+test_assert(__LINE__, strpos($form_items['Basic']['items']['wiki_private']['input_html'], '<select') !== FALSE, "設定フォーム: boolはselect");
+test_assert(__LINE__, strpos($form_items['Basic']['items']['wiki_private']['input_html'], 'value="false" selected') !== FALSE, "設定フォーム: boolの選択状態");
+test_assert(__LINE__, strpos($form_items['Basic']['items']['lang']['input_html'], 'value="en" selected') !== FALSE, "設定フォーム: selectの選択状態");
+test_assert(__LINE__, strpos($form_items['Basic']['items']['def_text_ext']['input_html'], 'value="txt" selected') !== FALSE, "設定フォーム: invalid selectはdefault表示");
+test_assert(__LINE__, strpos($form_items['Options']['items']['max_search']['input_html'], 'type="number"') !== FALSE, "設定フォーム: number入力");
+
+// --- 設定画面のローカライズと説明 ---
+global $kona3conf;
+$orig_lang = isset($kona3conf['lang']) ? $kona3conf['lang'] : null;
+foreach (['ja', 'en'] as $lc) {
+    $kona3conf['lang'] = $lc;
+    $texts = kona3conf_loadConfigTexts();
+    $all_have_desc = TRUE;
+    foreach (kona3conf_getConfigItems() as $cat => $items) {
+        test_assert(__LINE__, !empty($texts['categories'][$cat]), "設定説明($lc): カテゴリ名 $cat");
+        foreach ($items as $key => $_item) {
+            if (empty($texts['items'][$key]['desc'])) {
+                $all_have_desc = FALSE;
+                echo "missing desc ($lc): $key\n";
+            }
+        }
+    }
+    test_assert(__LINE__, $all_have_desc, "設定説明($lc): すべての項目に説明がある");
+}
+$kona3conf['lang'] = 'ja';
+$form_items = kona3conf_getConfigFormItems([]);
+test_eq(__LINE__, $form_items['Basic']['label'], '基本設定', "設定フォーム: カテゴリ名が日本語");
+test_eq(__LINE__, $form_items['Basic']['items']['wiki_title']['label'], 'Wikiのタイトル', "設定フォーム: 項目名が日本語");
+test_assert(__LINE__, $form_items['Basic']['items']['wiki_title']['desc'] !== '', "設定フォーム: 説明がある");
+$kona3conf['lang'] = 'en';
+$form_items = kona3conf_getConfigFormItems([]);
+test_eq(__LINE__, $form_items['Basic']['items']['wiki_title']['label'], 'Wiki Title', "設定フォーム: 英語は既定の項目名");
+$kona3conf['lang'] = 'xx'; // 未対応言語は英語にフォールバック
+$texts = kona3conf_loadConfigTexts();
+test_assert(__LINE__, !empty($texts['items']['wiki_title']['desc']), "設定説明: 未対応言語は英語にフォールバック");
+if ($orig_lang === null) { unset($kona3conf['lang']); } else { $kona3conf['lang'] = $orig_lang; }
 
 // --- 定数のテスト ---
 

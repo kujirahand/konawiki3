@@ -176,21 +176,46 @@ function kona3conf_getFlatConfigItems()
     return $flatItems;
 }
 
+/**
+ * 設定画面用の項目名・説明を読み込む (lang/conf.{lang}.inc.php)
+ * 該当する言語ファイルがなければ英語を使う
+ */
+function kona3conf_loadConfigTexts()
+{
+    $lang = kona3getLangCode();
+    $file = KONA3_DIR_ENGINE . "/lang/conf.$lang.inc.php";
+    if (!file_exists($file)) {
+        $file = KONA3_DIR_ENGINE . '/lang/conf.en.inc.php';
+    }
+    $texts = include $file;
+    return is_array($texts) ? $texts : ['categories' => [], 'items' => []];
+}
+
 function kona3conf_getConfigFormItems($conf)
 {
+    $texts = kona3conf_loadConfigTexts();
     $categories = kona3conf_getConfigItems();
-    foreach ($categories as &$items) {
-        foreach ($items as $key => &$item) {
+    $result = [];
+    foreach ($categories as $category => $items) {
+        $catLabel = isset($texts['categories'][$category]) ? $texts['categories'][$category] : $category;
+        foreach ($items as $key => $item) {
+            $t = isset($texts['items'][$key]) ? $texts['items'][$key] : [];
             $item['name'] = $key;
-            if (!isset($item['note'])) {
-                $item['note'] = '';
+            foreach (['label', 'note', 'desc'] as $f) {
+                if (isset($t[$f])) {
+                    $item[$f] = $t[$f];
+                } elseif (!isset($item[$f])) {
+                    $item[$f] = '';
+                }
             }
             $value = array_key_exists($key, $conf) ? $conf[$key] : $item['default'];
             $value = kona3conf_normalizeConfigValue($value, $item);
             $item['input_html'] = kona3conf_renderConfigInput($key, $item, $value);
+            $items[$key] = $item;
         }
+        $result[$category] = ['label' => $catLabel, 'items' => $items];
     }
-    return $categories;
+    return $result;
 }
 
 function kona3conf_renderConfigInput($key, $item, $value)

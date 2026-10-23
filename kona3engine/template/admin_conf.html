@@ -43,6 +43,11 @@
       font-weight: bold;
       margin-bottom: 0.25em;
     }
+    #wikimessage .conf-desc {
+      color: #444;
+      font-size: 0.9em;
+      margin: 0 0 0.35em 0;
+    }
     #wikimessage .conf-note {
       color: #555;
       font-size: 0.9em;
@@ -60,9 +65,9 @@
         {{ 'Please review the settings.' | lang }}<br>
         <input type='button' value='Save' onclick='document.forms[0].submit();'>
       </div>
-      {{ for $config_items as $category => $items }}
-      <h3 id="conf_category_{{$category}}">{{$category}}</h3>
-        {{ for $items as $item }}
+      {{ for $config_items as $category => $cat }}
+      <h3 id="conf_category_{{$category}}">{{$cat.label}}</h3>
+        {{ for $cat.items as $item }}
         <div class="conf-item">
           <label for="conf_{{$item.name}}">
             {{$item.label}}
@@ -70,6 +75,9 @@
             <span class="conf-note">({{$item.note}})</span>
             {{ endif }}
           </label>
+          {{ if $item.desc }}
+          <div class="conf-desc">{{$item.desc}}</div>
+          {{ endif }}
           {{$item.input_html | safe}}
         </div>
         {{ endfor }}
