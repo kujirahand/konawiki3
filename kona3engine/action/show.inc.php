@@ -130,15 +130,16 @@ function kona3_action_show($actionMode = "")
                 $tag_h = htmlspecialchars($tag);
                 $tag_u = urlencode($tag);
                 if (kona3static_isStaticMode()) {
-                    // 静的版ではタグ一覧(plugin)へのリンクを作らない (docs/static_wiki.md 8.1)
-                    $a[] = "<span class='kona3_tag'>$tag_h</span>";
+                    // 静的版ではタグ一覧(plugin)の代わりに、生成済みのタグページへリンクする (docs/static_wiki.md 20章)
+                    $a[] = "<a href='" . htmlspecialchars(kona3static_tagUrl($tag), ENT_QUOTES) . "'>$tag_h</a>";
                     continue;
                 }
                 $url = kona3getPageURL($page, 'plugin', '', "name=tags&tag=$tag_u");
                 $a[] = "<a href='$url'>$tag_h</a>";
             }
             if (kona3static_isStaticMode()) {
-                $tags = '<div class="desc" style="text-align:right;font-size:0.8em;color:gray;">Tags: ' .
+                $taglist_url = htmlspecialchars(kona3static_tagUrl(), ENT_QUOTES);
+                $tags = '<div class="desc" style="text-align:right;font-size:0.8em;color:gray;"><a href="' . $taglist_url . '">Tags</a>: ' .
                     implode('/', $a) . '</div>';
             } else {
                 $taglist_url = kona3getPageURL($page, 'plugin', '', 'name=taglist');
