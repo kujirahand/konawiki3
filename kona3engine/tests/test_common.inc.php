@@ -1,5 +1,27 @@
 <?php
 $engine_dir = dirname(__DIR__);
+
+// テストは手元の data/ private/ cache/ に左右されないよう、一時ディレクトリで実行する
+// (実データ制御: KONA3_TEST_REAL_DIRS=1 で従来どおり実ディレクトリを使う)
+if (!getenv('KONA3_TEST_REAL_DIRS') && !defined('KONA3_DIR_DATA')) {
+    $sandbox = realpath(sys_get_temp_dir()) . '/kona3_test_sandbox_' . getmypid();
+    foreach (['data', 'private', 'cache'] as $d) {
+        @mkdir("$sandbox/$d", 0777, true);
+    }
+    define('KONA3_DIR_DATA', "$sandbox/data");
+    define('KONA3_DIR_PRIVATE', "$sandbox/private");
+    define('KONA3_DIR_CACHE', "$sandbox/cache");
+    register_shutdown_function(function () use ($sandbox) {
+        $it = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($sandbox, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST
+        );
+        foreach ($it as $f) {
+            $f->isDir() && !$f->isLink() ? @rmdir($f->getPathname()) : @unlink($f->getPathname());
+        }
+        @rmdir($sandbox);
+    });
+}
 require_once $engine_dir . '/konawiki_version.inc.php';
 require_once $engine_dir . '/kona3conf.inc.php';
 require_once $engine_dir . '/kona3lib.inc.php';
