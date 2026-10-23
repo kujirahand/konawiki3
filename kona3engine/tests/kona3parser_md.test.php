@@ -325,3 +325,14 @@ test_assert(__LINE__, strpos($html, '<td>x</td><td>y</td>') !== false, "Row 3 sh
 // --- ルビ記法 {親文字|ルビ} ---
 $html = kona3markdown_parser_convert("{中国語|zhōng guó yǔ}です", false);
 test_assert(__LINE__, strpos($html, "<ruby>中国語<rp>(</rp><rt>zhōng guó yǔ</rt><rp>)</rp></ruby>") !== false, "Markdown: ルビ");
+
+// ルビ記法のオンオフ (enable_ruby)
+global $kona3conf;
+$orig_ruby = isset($kona3conf['enable_ruby']) ? $kona3conf['enable_ruby'] : TRUE;
+$kona3conf['enable_ruby'] = FALSE;
+$html = kona3markdown_parser_convert("{日本語|にほんご}", false);
+test_assert(__LINE__, strpos($html, "<ruby>") === false, "Markdown: enable_ruby=false でルビ無効");
+$kona3conf['enable_ruby'] = TRUE;
+$html = kona3markdown_parser_convert("{日本語|にほんご}", false);
+test_assert(__LINE__, strpos($html, "<ruby>") !== false, "Markdown: enable_ruby=true でルビ有効");
+$kona3conf['enable_ruby'] = $orig_ruby;

@@ -233,3 +233,11 @@ $html = konawiki_parser_convert("{Selamat pagi|スラマッ パギ}", FALSE);
 test_assert(__LINE__, strpos($html, "<rt>スラマッ パギ</rt>") !== false, "Konawiki記法: スペースを含むルビ");
 $html = konawiki_parser_convert("{<b>|x}", FALSE);
 test_assert(__LINE__, strpos($html, "&lt;b&gt;") !== false, "Konawiki記法: ルビはエスケープされる");
+
+// ルビ記法のオンオフ (enable_ruby)
+global $kona3conf;
+$orig_ruby = isset($kona3conf['enable_ruby']) ? $kona3conf['enable_ruby'] : TRUE;
+$kona3conf['enable_ruby'] = FALSE;
+$html = konawiki_parser_convert("{日本語|にほんご}", FALSE);
+test_assert(__LINE__, strpos($html, "<ruby>") === false, "Konawiki記法: enable_ruby=false でルビ無効");
+$kona3conf['enable_ruby'] = $orig_ruby;
