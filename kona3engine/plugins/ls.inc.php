@@ -85,7 +85,7 @@ function kona3plugins_ls_execute($args) {
         $fname_real = realpath($parent);
     }
     
-    if ($fname_real === false || strpos($fname_real, $data_dir) !== 0) {
+    if ($fname_real === false || !kona3plugins_ls_in_dir($fname_real, $data_dir)) {
         // data/ディレクトリ外へのアクセスを禁止
         return "";
     }
@@ -100,7 +100,7 @@ function kona3plugins_ls_execute($args) {
     $filter_dir = rtrim($filter, '/');
     if ($filter_dir !== '' && strpbrk($filter_dir, '*?[') === false) {
         $sub = realpath($dir . '/' . $filter_dir);
-        if ($sub !== false && is_dir($sub) && strpos($sub, $data_dir) === 0) {
+        if ($sub !== false && is_dir($sub) && kona3plugins_ls_in_dir($sub, $data_dir)) {
             $dir = $sub;
             $filter_patterns = ['*.txt', '*.md'];
         }
@@ -190,4 +190,10 @@ function glob_recursive($pattern, $max_depth = 5, $current_depth = 0) {
     }
     
     return $files;
+}
+
+// $path が $base 自身、または $base 配下(区切り文字付き接頭辞)かを判定
+function kona3plugins_ls_in_dir($path, $base) {
+    $base = rtrim($base, '/\\');
+    return $path === $base || strpos($path, $base . DIRECTORY_SEPARATOR) === 0;
 }
