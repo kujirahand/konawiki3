@@ -796,6 +796,12 @@ function __kona3markdown_parser_tohtml(&$text, $level)
             $text = substr($text, strlen($m[0]));
             continue;
         }
+        // ruby {base|ruby}
+        if ($c1 == '{' && preg_match('/^\{([^{}|\r\n]+)\|([^{}|\r\n]+)\}/u', $text, $m)) {
+            $text = substr($text, strlen($m[0]));
+            $result .= "<ruby>" . kona3htmlspecialchars($m[1]) . "<rp>(</rp><rt>" . kona3htmlspecialchars($m[2]) . "</rt><rp>)</rp></ruby>";
+            continue;
+        }
         // ~
         if ($c2 == "~\n" || $c2 == "~\r") {
             $result .= "<br/>";

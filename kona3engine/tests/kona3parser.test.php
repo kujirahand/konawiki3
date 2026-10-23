@@ -225,3 +225,11 @@ test_assert(__LINE__, strpos($html, '1行目<br/>2行目<br/>3行目') !== false
 $text = "|A|B|\n|---|---|\n|line1<br>line2|x|";
 $html = konawiki_parser_convert($text, false);
 test_assert(__LINE__, strpos($html, "<td style='text-align:left;'>line1<br/>line2</td>") !== false, "KonaWiki記法: 表セル内の<br>も改行になる");
+
+// --- ルビ記法 {親文字|ルビ} ---
+$html = konawiki_parser_convert("{日本語|にほんご}です", FALSE);
+test_assert(__LINE__, strpos($html, "<ruby>日本語<rp>(</rp><rt>にほんご</rt><rp>)</rp></ruby>") !== false, "Konawiki記法: ルビ");
+$html = konawiki_parser_convert("{Selamat pagi|スラマッ パギ}", FALSE);
+test_assert(__LINE__, strpos($html, "<rt>スラマッ パギ</rt>") !== false, "Konawiki記法: スペースを含むルビ");
+$html = konawiki_parser_convert("{<b>|x}", FALSE);
+test_assert(__LINE__, strpos($html, "&lt;b&gt;") !== false, "Konawiki記法: ルビはエスケープされる");
