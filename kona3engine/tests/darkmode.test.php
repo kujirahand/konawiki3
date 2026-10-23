@@ -32,3 +32,7 @@ test_assert(__LINE__, file_exists($drawer_js), "drawer.js exists");
 $js_content = file_get_contents($drawer_js);
 test_assert(__LINE__, strpos($js_content, '#dark_mode_toggle') !== false, "drawer.js targets #dark_mode_toggle");
 test_assert(__LINE__, strpos($js_content, 'localStorage.setItem(\'kona3_theme\'') !== false, "drawer.js saves theme preference");
+
+// 4. OSのダーク設定に追従せず、明示的に選択した場合のみダークにする (デフォルトはライト)
+test_assert(__LINE__, strpos($header_content, 'prefers-color-scheme') === false, "parts_header.html does not follow OS dark preference");
+test_assert(__LINE__, strpos($header_content, "theme === 'dark'") !== false, "parts_header.html applies dark theme only when explicitly chosen");
