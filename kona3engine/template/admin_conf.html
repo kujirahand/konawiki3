@@ -36,12 +36,25 @@
       width: 20em;
     }
     #wikimessage .conf-item {
-      margin: 0.6em 0;
+      margin: 0.8em 0;
+      padding: 0.7em 0.9em;
+      border: 1px solid #d8d8e8;
+      border-left: 4px solid #9aa5d8;
+      border-radius: 4px;
+      background-color: #fff;
+    }
+    #wikimessage .conf-item:hover {
+      background-color: #fafaff;
     }
     #wikimessage .conf-item label {
       display: block;
       font-weight: bold;
       margin-bottom: 0.25em;
+    }
+    #wikimessage .conf-desc {
+      color: #444;
+      font-size: 0.9em;
+      margin: 0 0 0.35em 0;
     }
     #wikimessage .conf-note {
       color: #555;
@@ -60,9 +73,9 @@
         {{ 'Please review the settings.' | lang }}<br>
         <input type='button' value='Save' onclick='document.forms[0].submit();'>
       </div>
-      {{ for $config_items as $category => $items }}
-      <h3 id="conf_category_{{$category}}">{{$category}}</h3>
-        {{ for $items as $item }}
+      {{ for $config_items as $category => $cat }}
+      <h3 id="conf_category_{{$category}}">{{$cat.label}}</h3>
+        {{ for $cat.items as $item }}
         <div class="conf-item">
           <label for="conf_{{$item.name}}">
             {{$item.label}}
@@ -70,6 +83,9 @@
             <span class="conf-note">({{$item.note}})</span>
             {{ endif }}
           </label>
+          {{ if $item.desc }}
+          <div class="conf-desc">{{$item.desc}}</div>
+          {{ endif }}
           {{$item.input_html | safe}}
         </div>
         {{ endfor }}

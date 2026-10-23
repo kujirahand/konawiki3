@@ -723,9 +723,6 @@ function kona3getLangCode()
     // language should be [a-z]+
     if (!preg_match('#^[a-z]+$#', $lang)) {
         $lang = 'en';
-    } else {
-        global $kona3conf;
-        $kona3conf['lang'] = 'en';
     }
     return $lang;
 }
