@@ -25,11 +25,14 @@ function kona3static_tagUrl($tag = null)
     return $url . kona3static_encodePathForUrl(kona3static_tagDir($tag)) . '/';
 }
 
-/** タグ名の物理名 (`/` を含むタグも1階層にする) */
+/**
+ * タグ名の物理名 (`/` を含むタグも1階層にする)
+ * 大文字小文字などの違いだけのタグ (TagOne と tagone) は、衝突キーで正規化して同じページにまとめる
+ */
 function kona3static_tagDir($tag)
 {
     $parts = [];
-    foreach (explode('/', $tag) as $p) {
+    foreach (explode('/', kona3static_collisionKey((string)$tag)) as $p) {
         $parts[] = ($p === '') ? '' : kona3static_encodeSegment($p);
     }
     return implode(kona3static_escapeChar('/'), $parts);
@@ -48,26 +51,44 @@ function kona3static_pageTags($wikiName)
     $res = [];
     if (is_array($meta) && isset($meta['tags']) && is_array($meta['tags'])) {
         foreach ($meta['tags'] as $t) {
-            $t = trim((string)$t);
-            if ($t !== '' && !in_array($t, $res, true)) {
-                $res[] = $t;
-            }
+            $res[] = $t;
+        }
+    } elseif (function_exists('kona3tags_getPageTags')) {
+        // メタ情報が無い旧データは、表示側 (show) と同じくタグのデータベースから取得する
+        $res = kona3tags_getPageTags($wikiName);
+    }
+    $uniq = [];
+    foreach ($res as $t) {
+        $t = trim((string)$t);
+        if ($t !== '' && !in_array($t, $uniq, true)) {
+            $uniq[] = $t;
         }
     }
-    return $res;
+    return $uniq;
+}
+
+/** 表示 (show) が実際に読むソースファイル。.txt と .md が両方あるときも1つだけ選ぶ */
+function kona3static_displayedSource($wikiName)
+{
+    require_once __DIR__ . '/action/show.inc.php';
+    $fname = '';
+    $ext = '';
+    if (!kona3show_detect_file($wikiName, $fname, $ext)) {
+        return null;
+    }
+    $ext = strtolower($ext);
+    return ($ext === '.txt' || $ext === '.md') ? $fname : null;
 }
 
 /** 検索インデックス用の本文。ログイン時だけ見える行は載せない */
-function kona3static_searchBody($paths)
+function kona3static_searchBody($path)
 {
     $text = '';
-    foreach ($paths as $p) {
-        $t = @file_get_contents($p);
-        if ($t !== false) {
-            $text .= $t . "\n";
-        }
+    $t = ($path === null) ? false : @file_get_contents($path);
+    if ($t !== false) {
+        $text = $t;
     }
-    $text = preg_replace('/^[^\n]*[#♪]iflogin\b[^\n]*$/mu', '', $text);
+    $text = preg_replace('/^[^\n]*(?:[#♪]|!!)iflogin\b[^\n]*$/mu', '', $text);
     $text = preg_replace('/\s+/u', ' ', $text);
     $text = trim((string)$text);
     return mb_substr($text, 0, KONA3_STATIC_SEARCH_BODY_CHARS);
@@ -103,6 +124,7 @@ function kona3static_buildIndexFiles($plan, $scan)
     $entries = [];
     $tagPages = []; // タグ => [Wiki名 => true]
     foreach ($plan as $name => $_rel) {
+        $name = (string)$name; // 数字だけの名前は配列キーが整数になる
         if ($scan['pages'][$name] !== 'page') {
             continue;
         }
@@ -110,11 +132,15 @@ function kona3static_buildIndexFiles($plan, $scan)
         $entries[] = [
             'u' => kona3getStaticURL($name),
             't' => $name,
-            'b' => kona3static_searchBody(isset($scan['sources'][$name]) ? $scan['sources'][$name] : []),
+            'b' => kona3static_searchBody(kona3static_displayedSource($name)),
             'g' => $tags,
         ];
         foreach ($tags as $tag) {
-            $tagPages[$tag][$name] = true;
+            $key = kona3static_collisionKey($tag);
+            if (!isset($tagPages[$key])) {
+                $tagPages[$key] = ['title' => $tag, 'pages' => []];
+            }
+            $tagPages[$key]['pages'][$name] = true;
         }
     }
     $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE;
@@ -123,14 +149,13 @@ function kona3static_buildIndexFiles($plan, $scan)
     $files["$dir/search/index.json"] = json_encode($entries, $flags) . "\n";
     $files["$dir/search/index.html"] = kona3static_searchPageHtml();
 
-    // タグ一覧。物理名が衝突するタグ (大文字小文字違いなど) と、長すぎるタグは載せない
+    // タグ一覧。衝突キーが同じタグ (大文字小文字違いなど) は1ページにまとめる。長すぎるタグは載せない
     ksort($tagPages, SORT_STRING);
-    $seen = [];
     $list = '';
-    foreach ($tagPages as $tag => $pages) {
+    foreach ($tagPages as $info) {
+        $tag = $info['title'];
         try {
-            $tdir = kona3static_tagDir($tag);
-            $rel = "$dir/tags/$tdir/index.html";
+            $rel = "$dir/tags/" . kona3static_tagDir($tag) . '/index.html';
             if (strlen($rel) > KONA3_STATIC_MAX_PATH_BYTES) {
                 throw new Kona3StaticException('Path too long');
             }
@@ -138,13 +163,7 @@ function kona3static_buildIndexFiles($plan, $scan)
             $warnings[] = "tag `$tag`: " . $e->getMessage() . '; the tag page is not generated.';
             continue;
         }
-        $key = kona3static_collisionKey($rel);
-        if (isset($seen[$key])) {
-            $warnings[] = "tag `$tag` collides with `{$seen[$key]}`; the tag page is not generated.";
-            continue;
-        }
-        $seen[$key] = $tag;
-        $names = array_keys($pages);
+        $names = array_map('strval', array_keys($info['pages']));
         sort($names, SORT_STRING);
         $li = '';
         foreach ($names as $n) {

@@ -38,6 +38,15 @@ $metaB = kona3db_getPageMetaFile('StaticP4/B');
 file_put_contents($metaA, json_encode(['tags' => ['TagOne', 'a/b']]));
 file_put_contents($metaB, json_encode(['tags' => ['TagOne', 'tagone']]));
 
+// 表示されない側のファイル (.md と .txt が両方ある場合) と、Markdown の !!iflogin は載せない
+file_put_contents("$dir/D.txt", "* Page D\nshown-text\n");
+file_put_contents("$dir/D.md", "# D\nhidden-md-text\n");
+file_put_contents("$dir/E.md", "# E\n!!iflogin(md-secret)\n");
+// 数字だけのタグ名・ページ名
+file_put_contents("$dir/123.txt", "* Num\n");
+$metaN = kona3db_getPageMetaFile('StaticP4/123');
+file_put_contents($metaN, json_encode(['tags' => ['123']]));
+
 $kona3conf['wiki_private'] = FALSE;
 $kona3conf['skin'] = 'def';
 $kona3conf['static_base_url'] = '/';
@@ -53,7 +62,7 @@ test_eq(__LINE__, implode("\n", $r['errors']), '', 'build: no errors');
 
 // --- URL ---
 test_eq(__LINE__, kona3static_tagUrl(), '/_kona3/tags/', 'tagUrl: list');
-test_eq(__LINE__, kona3static_tagUrl('TagOne'), '/_kona3/tags/TagOne/', 'tagUrl: tag');
+test_eq(__LINE__, kona3static_tagUrl('TagOne'), '/_kona3/tags/tagone/', 'tagUrl: tag');
 test_eq(__LINE__, kona3static_tagUrl('a/b'), '/_kona3/tags/a_2Fb/', 'tagUrl: slash is one segment');
 test_eq(__LINE__, kona3static_searchUrl(), '/_kona3/search/', 'searchUrl');
 
@@ -75,19 +84,24 @@ $sp = (string)@file_get_contents("$out/_kona3/search/index.html");
 test_assert(__LINE__, strpos($sp, '/_kona3/search/index.json') !== FALSE, 'search: page loads the index');
 test_assert(__LINE__, strpos($sp, 'index.php?') === FALSE, 'search: page has no dynamic links');
 
+test_assert(__LINE__, (strpos($json, 'shown-text') !== FALSE) !== (strpos($json, 'hidden-md-text') !== FALSE), 'search: only the displayed source is indexed');
+test_assert(__LINE__, strpos($json, 'md-secret') === FALSE, 'search: markdown !!iflogin is not indexed');
+test_assert(__LINE__, is_file("$out/_kona3/tags/123/index.html"), 'tags: numeric tag is generated');
+
 // --- タグ一覧ページ ---
 $tl = (string)@file_get_contents("$out/_kona3/tags/index.html");
-test_assert(__LINE__, strpos($tl, 'href="/_kona3/tags/TagOne/"') !== FALSE, 'tags: list links to a tag');
+test_assert(__LINE__, strpos($tl, 'href="/_kona3/tags/tagone/"') !== FALSE, 'tags: list links to a tag');
 test_assert(__LINE__, strpos($tl, '(2)') !== FALSE, 'tags: page count');
-$tp = (string)@file_get_contents("$out/_kona3/tags/TagOne/index.html");
+$tp = (string)@file_get_contents("$out/_kona3/tags/tagone/index.html");
 test_assert(__LINE__, strpos($tp, 'href="/StaticP4/A/"') !== FALSE && strpos($tp, 'href="/StaticP4/B/"') !== FALSE, 'tag page: lists pages');
 test_assert(__LINE__, strpos($tp, 'StaticP4/C') === FALSE, 'tag page: untagged page is not listed');
 test_assert(__LINE__, is_file("$out/_kona3/tags/a_2Fb/index.html"), 'tag page: slash tag is generated');
-test_assert(__LINE__, count(array_filter($r['warnings'], function ($w) { return strpos($w, 'tagone') !== FALSE; })) === 1, 'tags: collision is a warning');
+test_eq(__LINE__, substr_count($tl, 'href="/_kona3/tags/tagone/"'), 1, 'tags: case-variant tags are merged into one entry');
+test_eq(__LINE__, kona3static_tagUrl('tagone'), kona3static_tagUrl('TagOne'), 'tags: case-variant tags share a URL');
 
 // --- ページ側のタグリンク ---
 $a = (string)@file_get_contents("$out/StaticP4/A/index.html");
-test_assert(__LINE__, strpos($a, "href='/_kona3/tags/TagOne/'") !== FALSE, 'show: tag links to the tag page');
+test_assert(__LINE__, strpos($a, "href='/_kona3/tags/tagone/'") !== FALSE, 'show: tag links to the tag page');
 test_assert(__LINE__, strpos($a, 'href="/_kona3/tags/"') !== FALSE, 'show: Tags links to the tag list');
 
 // --- 再生成で古いタグページが消える ---
@@ -99,6 +113,7 @@ test_assert(__LINE__, !file_exists("$out/_kona3/tags/a_2Fb/index.html"), 'rebuil
 // --- 後片付け ---
 @unlink($metaA);
 @unlink($metaB);
+@unlink($metaN);
 sp4_rmdir($dir);
 @unlink($manifest);
 @unlink(KONA3_DIR_CACHE . '/static_error.log');
