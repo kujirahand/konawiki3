@@ -183,9 +183,9 @@ function kona3conf_getFlatConfigItems()
 function kona3conf_loadConfigTexts()
 {
     $lang = kona3getLangCode();
-    $file = KONA3_DIR_ENGINE . "/lang/conf.$lang.inc.php";
+    $file = __DIR__ . "/lang/conf.$lang.inc.php";
     if (!file_exists($file)) {
-        $file = KONA3_DIR_ENGINE . '/lang/conf.en.inc.php';
+        $file = __DIR__ . '/lang/conf.en.inc.php';
     }
     $texts = include $file;
     return is_array($texts) ? $texts : ['categories' => [], 'items' => []];
