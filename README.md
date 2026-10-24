@@ -81,6 +81,21 @@ chmod 766 private
 
 For details, see the [installation guide](https://kujirahand.com/konawiki3/index.php?install).
 
+### Setting Up from the Command Line
+
+You can create a new wiki and its administrator user without a browser, which is also handy for preparing test wikis.
+
+```sh
+# Create a new wiki together with an admin user
+# (pass the password via an environment variable to keep it out of shell history)
+KONA3_ADMIN_PASSWORD='secret' php script/makewiki.php /path/to/wiki --admin=admin@example.com
+
+# Add an admin user to an existing wiki (overwrites only with --force)
+php script/create_admin.php --wiki=/path/to/wiki admin@example.com 'secret'
+# For this repository itself, --wiki can be omitted
+KONA3_ADMIN_USER=admin@example.com KONA3_ADMIN_PASSWORD='secret' php script/create_admin.php
+```
+
 ### Using Docker (Local Environment)
 
 Run the following command in your terminal to start Konawiki3. This runs Konawiki3 using PHP's built-in local server.

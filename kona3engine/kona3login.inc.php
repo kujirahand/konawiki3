@@ -302,10 +302,57 @@ function kona3isAdmin() {
 // --- 管理者ユーザーの一覧を取得 ---
 // 管理者情報は private/kona3adminuser.json.php にJSONで保存されている
 // 戻り値: [ユーザー名 => [hash, salt], ...]
+function kona3getAdminUserFile() {
+  return KONA3_DIR_PRIVATE.'/kona3adminuser.json.php';
+}
+
 function kona3getAdminUsers() {
-  $adminuser_json = KONA3_DIR_PRIVATE.'/kona3adminuser.json.php';
-  $users = jsonphp_load($adminuser_json, [], true);
+  $users = jsonphp_load(kona3getAdminUserFile(), [], true);
+  if (!is_array($users)) return [];
+  unset($users['enc:key']); // jsonphp内部の暗号鍵はユーザーではない
   return $users;
+}
+
+// --- 管理者ユーザーの一覧を保存する ---
+function kona3saveAdminUsers($users) {
+  jsonphp_save(kona3getAdminUserFile(), $users);
+}
+
+// --- 管理者用のソルトを生成する (暗号学的に安全な乱数を使う) ---
+function kona3admin_genSalt() {
+  return bin2hex(random_bytes(32));
+}
+
+// --- 管理者ユーザーを作成/更新する (#295) ---
+// ブラウザの初期設定画面だけでなく、CLIスクリプトやテストからも
+// 同じ手順で管理者を作れるようにするための共通関数。
+// 既存の管理者は保持し、$userid のエントリだけを追加/更新する。
+// $userid    : 管理者ID (通常はメールアドレス)
+// $password  : 平文パスワード (空文字は不可)
+// $overwrite : FALSE のとき、既存ユーザーがいれば RuntimeException を投げる
+// 戻り値: TRUE (成功時)。検証エラーは InvalidArgumentException を投げる。
+function kona3createAdminUser($userid, $password, $overwrite = FALSE) {
+  $userid = is_string($userid) ? trim($userid) : '';
+  if ($userid === '') {
+    throw new InvalidArgumentException('Admin user id must not be empty.');
+  }
+  if (preg_match('/[\s\x00-\x1f\x7f]/', $userid)) {
+    throw new InvalidArgumentException('Admin user id must not contain whitespace or control characters.');
+  }
+  if (!is_string($password) || $password === '') {
+    throw new InvalidArgumentException('Admin password must not be empty.');
+  }
+  $users = kona3getAdminUsers();
+  if (isset($users[$userid]) && !$overwrite) {
+    throw new RuntimeException("Admin user already exists: {$userid}");
+  }
+  $salt = kona3admin_genSalt();
+  $users[$userid] = [
+    'hash' => kona3getHash($password, $salt),
+    'salt' => $salt,
+  ];
+  kona3saveAdminUsers($users);
+  return TRUE;
 }
 
 // --- ログイン認証処理（管理者・一般ユーザー両対応） ---

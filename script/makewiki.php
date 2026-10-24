@@ -1,11 +1,41 @@
 <?php
-if (count($argv) < 2) {
-  echo "[USAGE] makewiki.php (dir)";
+// 新規Wikiを作成する。--admin を付けると管理者も同時に作成する (#295)
+//   php script/makewiki.php <dir>
+//   php script/makewiki.php <dir> --admin=<user_id> --password=<password>
+//   KONA3_ADMIN_PASSWORD=... php script/makewiki.php <dir> --admin=<user_id>
+if (php_sapi_name() !== 'cli') {
   exit;
 }
-$dir = $argv[1];
+$args = array_slice($argv, 1);
+$dir = null;
+$adminUser = getenv('KONA3_ADMIN_USER') ?: null;
+$adminPassword = getenv('KONA3_ADMIN_PASSWORD') ?: null;
+$adminForce = false;
+foreach ($args as $arg) {
+  if ($arg === '--force') {
+    $adminForce = true;
+  } elseif (strpos($arg, '--admin=') === 0) {
+    $adminUser = substr($arg, strlen('--admin='));
+  } elseif (strpos($arg, '--user=') === 0) {
+    $adminUser = substr($arg, strlen('--user='));
+  } elseif (strpos($arg, '--password=') === 0) {
+    $adminPassword = substr($arg, strlen('--password='));
+  } elseif (strpos($arg, '--') === 0) {
+    fwrite(STDERR, "Unknown option: $arg\n");
+    exit(2);
+  } elseif ($dir === null) {
+    $dir = $arg;
+  } else {
+    fwrite(STDERR, "Unknown argument: $arg\n");
+    exit(2);
+  }
+}
+if ($dir === null) {
+  echo "[USAGE] makewiki.php <dir> [--admin=<user_id>] [--password=<password>] [--force]\n";
+  exit(2);
+}
 if (!file_exists($dir)) {
-  mkdir($dir);
+  mkdir($dir, 0777, true);
 }
 $dir = realpath($dir);
 $root = dirname(__DIR__);
@@ -29,13 +59,31 @@ kona_mkdir("$dir/private");
 kona_mkdir("$dir/cache");
 echo "ok\n";
 
+// 管理者も作成する (ブラウザでの初回セットアップを省略できる)
+if ($adminUser !== null && $adminUser !== '') {
+  if ($adminPassword === null || $adminPassword === '') {
+    fwrite(STDERR, "ERROR: --admin requires a password (--password=... or env KONA3_ADMIN_PASSWORD).\n");
+    exit(2);
+  }
+  if (!defined('KONA3_DIR_PRIVATE')) {
+    define('KONA3_DIR_ENGINE', $root.'/kona3engine');
+    define('KONA3_DIR_PRIVATE', $dir.'/private');
+  }
+  global $kona3conf;
+  $kona3conf = [];
+  require_once $root.'/kona3engine/jsonphp.lib.php';
+  require_once $root.'/kona3engine/kona3login.inc.php';
+  try {
+    kona3createAdminUser($adminUser, $adminPassword, $adminForce);
+  } catch (Exception $e) {
+    fwrite(STDERR, 'ERROR: '.$e->getMessage()."\n");
+    exit(1);
+  }
+  echo "Created admin user: $adminUser\n";
+}
+
 function kona_mkdir($dir) {
   if (!file_exists($dir)) {
     mkdir($dir);
   }
 }
-
-
-
-
-
