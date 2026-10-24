@@ -40,6 +40,7 @@ return [
         'path_max_mkdir' => ['desc' => 'Maximum depth of folders created automatically when saving a page like a/b/c.'],
         'chmod_mkdir' => ['desc' => 'Permission of automatically created folders. Leave it if unsure.'],
         'max_edit_size' => ['desc' => 'Maximum size of the body of one page.'],
+        'page_name_max_length' => ['desc' => 'Maximum number of characters in a whole page name (title). Each part of the name also has a fixed limit of 245 bytes, because a page name becomes a file name.'],
         'max_search' => ['desc' => 'Maximum number of pages shown per search.'],
         'max_search_level' => ['desc' => 'How many levels of subfolders a search looks into.'],
         'newline_code' => ['desc' => 'Newline code used when saving. "original" keeps the existing file as it is.'],

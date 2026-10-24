@@ -11,6 +11,12 @@ function kona3_action_new() {
 
   $res = "";
   if ($am == "new") {
+    // ページ名の文字数制限を確認する (issue #133)
+    $page_name_error = kona3validatePageName($key);
+    if ($page_name_error !== '') {
+      kona3error($key, kona3text2html($page_name_error));
+      exit;
+    }
     $url = kona3getPageURL($key, "edit");
     header("Location: $url");
     exit;
@@ -53,6 +59,8 @@ function kona3_action_new() {
   // show form
   $m_edit = lang('Edit');
   $page_name = lang('Page name');
+  $page_name_max = kona3getPageNameMaxLength();
+  $maxlength_attr = $page_name_max > 0 ? " maxlength=\"$page_name_max\"" : "";
   $special_page = lang('Special Page');
   $pageNameSuggestions = lang('Page Name Suggestions');
   $form = <<<EOS
@@ -62,7 +70,7 @@ function kona3_action_new() {
     class="pure-form" 
     method="post" action="$action">
     <input type="hidden" name="a_mode" value="new">
-    <input type="text" id="new_key" name="a_key" value="$key_" size="40">
+    <input type="text" id="new_key" name="a_key" value="$key_" size="40"$maxlength_attr>
     <input class="pure-button" type="submit" value="$m_edit">
   </form>
 </div>

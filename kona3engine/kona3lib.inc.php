@@ -8,6 +8,19 @@ require_once __DIR__ . '/konawiki_version.inc.php';
 global $kona3conf;
 $kona3conf['KONAWIKI_VERSION'] = KONAWIKI_VERSION;
 // --------------------------------------------------------------
+// Page name limits (issue #133)
+// ページ名はそのまま data/ 以下のファイル名になるため、次の2つを上限とする。
+// - ページ名全体の文字数 (設定 page_name_max_length で変更可能、0で無制限)
+// - 1階層分 (「/」で区切った各部分) のファイル名としてのバイト数。
+//   多くのファイルシステムでファイル名は255バイトが上限のため、
+//   拡張子 (.txt/.md/.json/.html など) の分を差し引いて245バイトとする。
+if (!defined('KONA3_PAGE_NAME_MAX_LENGTH')) {
+    define('KONA3_PAGE_NAME_MAX_LENGTH', 200);
+}
+if (!defined('KONA3_PAGE_NAME_MAX_SEGMENT_BYTES')) {
+    define('KONA3_PAGE_NAME_MAX_SEGMENT_BYTES', 245);
+}
+// --------------------------------------------------------------
 require_once __DIR__ . '/kona3login.inc.php';
 // --------------------------------------------------------------
 // param
@@ -458,6 +471,62 @@ function kona3getPage()
     global $kona3conf;
     $page = $kona3conf["page"];
     return $page;
+}
+
+// ページ名全体の文字数上限を返す (設定 page_name_max_length、0で無制限)
+// kona3getConf() は 0 を「未設定」とみなしてしまうため、設定値を直接見る
+function kona3getPageNameMaxLength()
+{
+    global $kona3conf;
+    if (!isset($kona3conf['page_name_max_length'])) {
+        return KONA3_PAGE_NAME_MAX_LENGTH;
+    }
+    $max = $kona3conf['page_name_max_length'];
+    if (!is_numeric($max)) {
+        return KONA3_PAGE_NAME_MAX_LENGTH;
+    }
+    $max = intval($max);
+    return $max < 0 ? 0 : $max;
+}
+
+// ページ名が上限以内かどうかを確認する
+// 問題なければ ''、問題があれば理由 (表示用メッセージ) を返す。
+// 表示・既存ページの読み込みには使わず、新規作成・保存のときだけ使うこと
+// (上限を超えた既存ページも表示・編集はできるようにするため)。
+function kona3validatePageName($page)
+{
+    if (!is_string($page) || $page === '') {
+        return lang('Page name is empty.');
+    }
+    // (1) 全体の文字数 (バイト数ではなく mb_strlen で数える)
+    $max = kona3getPageNameMaxLength();
+    if ($max > 0 && mb_strlen($page, 'UTF-8') > $max) {
+        return sprintf(
+            lang('Invalid Wiki Name: page name is too long (max %s characters)'),
+            $max
+        );
+    }
+    // (2) 階層ごとのバイト数 (ファイル名として保存できる長さ)
+    // enc_pagename が有効なときは、実際に保存されるエンコード後の名前で数える
+    $encode = !empty($GLOBALS['kona3conf']['enc_pagename']);
+    foreach (explode('/', $page) as $segment) {
+        if ($segment === '') {
+            continue;
+        }
+        $stored = $encode ? urlencode($segment) : $segment;
+        if (strlen($stored) > KONA3_PAGE_NAME_MAX_SEGMENT_BYTES) {
+            return sprintf(
+                lang('Invalid Wiki Name: each part of page name must be %s bytes or less'),
+                KONA3_PAGE_NAME_MAX_SEGMENT_BYTES
+            );
+        }
+    }
+    return '';
+}
+
+function kona3isValidPageName($page)
+{
+    return kona3validatePageName($page) === '';
 }
 
 function kona3getURLParams($params)

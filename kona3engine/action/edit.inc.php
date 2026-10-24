@@ -377,6 +377,16 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
     $fname = kona3getEditFile("{$page}.{$edit_ext}", $ext);
     $user_id = kona3getUserId();
 
+    // ページ名の文字数制限を確認する (issue #133)
+    // 既存ページは上限を超えていても編集できるよう、新規作成のときだけ確認する
+    if (!$has_existing_file && !file_exists($fname)) {
+        $page_name_error = kona3validatePageName($page);
+        if ($page_name_error !== '') {
+            kona3_edit_err($page_name_error, $i_mode, $postId);
+            return "";
+        }
+    }
+
     // 改行コードを設定に基づいて正規化 (issue #251)
     // (ブラウザのtextareaは送信時にLFをCRLFに変えてしまうため)
     $edit_txt = kona3_normalizeNewlineCode($edit_txt, $fname);
