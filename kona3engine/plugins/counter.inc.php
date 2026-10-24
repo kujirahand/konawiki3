@@ -9,7 +9,7 @@ function kona3plugins_counter_execute($args)
 {
     global $kona3conf;
     $page = $kona3conf['page'];
-    $file = kona3getWikiFile($page);
+    $file = koan3getWikiFileText($page);
     if (file_exists($file)) {
         $page_id = kona3db_getPageId($page, TRUE);
     } else {

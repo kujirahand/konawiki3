@@ -16,9 +16,18 @@ function kona3plugins_chapter_execute($args) {
     $basedir = dirname($fname);
     $ext = '.'.kona3getConf('def_text_ext', 'md');
 
-    // get files
-    $pattern = $basedir.'/'.$chapter.'/*'.$ext;
-    $files = glob($pattern);
+    // get files (.txt と .md の両方を対象にする。同名ページは def_text_ext 側を優先)
+    $exts = ($ext === '.md') ? ['.md', '.txt'] : ['.txt', '.md'];
+    $by_name = [];
+    foreach ($exts as $e) {
+        $found = glob($basedir.'/'.$chapter.'/*'.$e);
+        if ($found === false) { continue; }
+        foreach ($found as $f) {
+            $name = kona3getWikiName($f);
+            if (!isset($by_name[$name])) { $by_name[$name] = $f; }
+        }
+    }
+    $files = array_values($by_name);
     sort($files);
 
     $code = "<ul>";
