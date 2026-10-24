@@ -66,6 +66,7 @@ function kona3markdown_parser_parse($text)
     $tokens = array();
     $oldtext = '';
     $in_comment = FALSE; // inside a multi-line HTML comment started in a plain line
+    $checked_tokens = 0; // tokens already checked for an unterminated comment
     while ( $text != "") {
         // check parse error
         if ($text == $oldtext) {
@@ -76,6 +77,26 @@ function kona3markdown_parser_parse($text)
             break;
         }
         $oldtext = $text;
+        // A multi-line comment may also start at the end of a heading,
+        // list, quote or table line. Those tokens were created on the
+        // previous iteration, so check them here once and switch to
+        // comment mode; the rest of such a token is hidden by the
+        // inline converter. This check must not use "continue" on its
+        // own: it consumes no text, so the parse-error guard above
+        // would fire on the next iteration. Instead it falls through
+        // to the comment handling right below in the same iteration.
+        if (count($tokens) > $checked_tokens) {
+            $new_tokens = array_slice($tokens, $checked_tokens);
+            $checked_tokens = count($tokens);
+            foreach ($new_tokens as $tok) {
+                if (isset($tok['text'])
+                    && in_array($tok['cmd'], array('*', '-', '+', 'resmark', '|'), TRUE)
+                    && kona3markdown_parser_unterminatedCommentPos($tok['text']) !== FALSE) {
+                    $in_comment = TRUE;
+                    break;
+                }
+            }
+        }
         // HTML comment (<!-- ... -->) continued from a previous line:
         // discard everything up to and including "-->"
         if ($in_comment) {
@@ -242,23 +263,36 @@ function kona3markdown_parser_parse($text)
  * Byte offset of an HTML comment opener (<!--) in $line that is not
  * closed on the same line, or FALSE if there is none.
  * Inline code spans and an escaped "\<!--" are not comments.
+ * A code span opened by a run of backticks is closed only by a run of
+ * the same length, and a "\" inside a code span is a literal character.
+ * The abrupt closings "<!-->" and "<!--->" count as closed comments,
+ * as they do in kona3markdown_parser_parse() and the inline converter.
  */
 function kona3markdown_parser_unterminatedCommentPos($line)
 {
     $len = strlen($line);
-    $in_code = FALSE;
+    $code_len = 0; // backtick run length of the current code span (0 = outside code)
     for ($i = 0; $i < $len; $i++) {
         $ch = $line[$i];
-        if ($ch === '\\') {
+        if ($ch === '\\' && $code_len == 0) {
             $i++; // escaped character is literal
             continue;
         }
         if ($ch === '`') {
-            $in_code = !$in_code;
+            $run = 0;
+            while ($i + $run < $len && $line[$i + $run] === '`') {
+                $run++;
+            }
+            if ($code_len == 0) {
+                $code_len = $run;
+            } else if ($run == $code_len) {
+                $code_len = 0;
+            }
+            $i += $run - 1; // loop increment moves past the run
             continue;
         }
-        if (!$in_code && substr($line, $i, 4) === '<!--') {
-            $end = strpos($line, '-->', $i + 4);
+        if ($code_len == 0 && substr($line, $i, 4) === '<!--') {
+            $end = strpos($line, '-->', $i + 2);
             if ($end === FALSE) {
                 return $i;
             }
@@ -808,10 +842,28 @@ function __kona3markdown_parser_tohtml(&$text, $level)
             $text = substr($text, $end + 3);
             continue;
         }
-        // inline code
+        // inline code (a run of backticks is closed by a run of the same length,
+        // so ``code`` and `` ` `` / ``<!--`` `` can be written as code spans)
         if ($c1 == '`') {
-            $text = mb_substr($text, 1);
-            $s = kona3markdown_parser_token($text, "`");
+            $run = 0;
+            $tlen = strlen($text);
+            while ($run < $tlen && $text[$run] === '`') {
+                $run++;
+            }
+            $rest = substr($text, $run);
+            $end = strpos($rest, str_repeat('`', $run));
+            if ($end === FALSE) {
+                // no closing run: the rest of the text is the code, as before
+                $s = $rest;
+                $text = "";
+            } else {
+                $s = substr($rest, 0, $end);
+                $text = substr($rest, $end + $run);
+                // `` code ``: one pair of surrounding spaces is not content
+                if ($run > 1 && strlen($s) > 1 && $s[0] === ' ' && substr($s, -1) === ' ' && trim($s) !== '') {
+                    $s = substr($s, 1, -1);
+                }
+            }
             $str = kona3htmlspecialchars($s);
             $result .= "<span class='code'><code>$str</code></span>";
             continue;
