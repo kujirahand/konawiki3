@@ -5,12 +5,22 @@
 // const
 const LS_KEY_AUTOSAVE = 'kona3:edit:autosave'
 const TIMER_INTERVAL = 1000 * 60 // 1min
+// session keepalive (issue #64): while the edit page is open, contact the
+// server periodically so the login session and the edit token stay alive.
+// When the session is lost, poll faster so a re-login in another tab is
+// picked up quickly and the pending text can be saved again.
+const KEEPALIVE_INTERVAL = 1000 * 60 * 5 // 5min
+const KEEPALIVE_TICK = 1000 * 15 // 15sec
+const KEEPALIVE_RETRY_INTERVAL = 1000 * 20 // 20sec while session is lost
 
 // var
 var outline_mode = false
 var outline_lines = []
 var isChanged = false
 var timerIdAutosave = 0
+var timerIdKeepalive = 0
+var lastKeepaliveTime = 0
+var isSessionLost = false // セッション切れを検知したかどうか (issue #64)
 var isProcessingAjax = false // Ajaxの待ち合わせ中
 var isDebug = false // このファイルのJSをデバッグする時はtrueにする
 var postId = 1
@@ -64,6 +74,15 @@ function edit_init() {
     loadAITemplate()
   }
   loadAutoSave()
+  startKeepalive()
+
+  // フォーム送信時にも本文を localStorage へ退避する (issue #64)。
+  // サーバー側の退避 (セッション) と合わせて、送信に失敗しても
+  // 「一時保存を読込」から本文を取り戻せるようにする。
+  const editForm = qs('#wikiedit form')
+  if (editForm) {
+    editForm.addEventListener('submit', () => { saveTextToLS() })
+  }
 
   // shortcut
   qq(window).keydown(function (e) {
@@ -245,6 +264,88 @@ function timerAutoSaveOnTime() {
   }
 }
 
+// -----------------------------------------------
+// session keepalive (issue #64, 案3)
+// -----------------------------------------------
+function startKeepalive() {
+  if (!qs('#edit_token')) return
+  lastKeepaliveTime = Date.now()
+  if (timerIdKeepalive > 0) { clearInterval(timerIdKeepalive) }
+  timerIdKeepalive = setInterval(keepaliveTick, KEEPALIVE_TICK)
+}
+
+function keepaliveTick() {
+  const interval = isSessionLost ? KEEPALIVE_RETRY_INTERVAL : KEEPALIVE_INTERVAL
+  if (Date.now() - lastKeepaliveTime < interval) return
+  lastKeepaliveTime = Date.now()
+  keepalive()
+}
+
+// Contact the server to keep the session alive and to exchange the
+// edit token. When the server answers with a (possibly renewed) token,
+// replace the form's token so the open form never expires.
+// This request itself re-logs in automatically when a "remember me"
+// cookie is still valid (server side), and it also succeeds again
+// after the user logs in again in another tab.
+function keepalive() {
+  const actionUrl = qq('#wikiedit form').attr('action')
+  const params = new FormData()
+  params.append('i_mode', 'ajax')
+  params.append('q', 'keepalive')
+  params.append('edit_token', qq('#edit_token').val())
+  qq().post(actionUrl, params)
+    .done(msg => {
+      if (!msg || msg['result'] != 'ok') {
+        handleSessionLost(msg && msg['reason'] ? msg['reason'] : '')
+        return
+      }
+      // exchange the edit token
+      const token = msg['edit_token']
+      if (token && qq('#edit_token').val() !== token) {
+        qq('#edit_token').val(token)
+        elog('keepalive: edit token exchanged')
+      }
+      if (isSessionLost) {
+        isSessionLost = false
+        qq('#edit_info').html('[session restored]')
+        qq('#edit_info').css('color', 'green')
+        // save the pending text now that the session is back
+        if (isChanged && !isProcessingAjax) {
+          ajaxSave('keepalive-restored')
+        }
+      }
+    })
+    .fail(function (error) {
+      elog('keepalive failed: ' + error)
+    })
+}
+
+// The session expired (or the edit token no longer matches).
+// Keep the text in localStorage and tell the user how to recover:
+// log in again (a link that opens in a new tab, so this page and its
+// text stay open), then keepalive picks the new session up and the
+// pending text can be saved again.
+function handleSessionLost(reason) {
+  saveTextToLS()
+  const wasLost = isSessionLost
+  isSessionLost = true
+  if (wasLost) return
+  const loginUrl = getLoginUrl()
+  let html = '[error] Session expired. Your text is kept in this page and in the temporary save.'
+  if (reason) { html += ' (' + reason + ')' }
+  if (loginUrl) {
+    html += ' <a href="' + loginUrl + '" target="_blank" rel="noopener">Login again</a>, then press "Save temp" here.'
+  }
+  qq('#edit_info').html(html)
+  qq('#edit_info').css('color', 'red')
+  setButtonsDisabled(false)
+}
+
+function getLoginUrl() {
+  const el = qs('#login_url')
+  return el ? el.value : ''
+}
+
 // Ajax procedure for save
 function ajaxProc(a_mode, source) {
   if (isProcessingAjax) {
@@ -273,6 +374,8 @@ function ajaxProc(a_mode, source) {
     params.append('page_mode', page_mode_sel.value)
   }
   params.append('postId', pid)
+  // save a local backup too, so the text survives even if this save fails
+  saveTextToLS()
   // post
   elog(`@@ajaxProc::${pid}::${a_mode}::${source}`)
   qq().post(actionUrl, params)
@@ -282,21 +385,24 @@ function ajaxProc(a_mode, source) {
       const result = msg["result"]
       if (result != 'ok') {
         console.error(`ajaxProc::error::${pid}`, msg)
+        // 失敗したら Ajax 待ち合わせを解除する。これをしないと
+        // 以後の自動保存が全て止まってしまう。
+        isProcessingAjax = false
         const code = msg['code']
-        if (code == 'nologin') {
-          console.log('try to login!!')
-          // auto login?
-          kona3tryAutologin(false)
-          setTimeout(() => {
-            ajaxSave('auto login and save')
-          }, 1000)
+        const reason = msg['reason'] || ''
+        if (code == 'nologin' || code == 'invalid_token' || reason.indexOf('Invalid edit token') >= 0) {
+          // セッション切れ (issue #64)。本文を退避し、再ログイン後に
+          // 保存し直せるようにする。復旧は keepalive が担う。
+          handleSessionLost(reason)
+          return
         }
-        qq('#edit_info').html("[error] " + msg['reason'])
+        qq('#edit_info').html("[error] " + reason)
         qq('#edit_info').css("color", "red")
         setButtonsDisabled(false)
         return
       }
       // ok
+      isSessionLost = false
       handleChange(false, `ajaxProc::done::${pid}`)
       isProcessingAjax = false
       // count

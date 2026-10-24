@@ -44,6 +44,9 @@ function kona3_action_edit()
         return kona3edit_ai_ajax($page);
     } else if ($q == 'ai_edit_template') {
         return kona3ai_edit_template();
+    } else if ($q == 'keepalive') {
+        // 編集中のセッション維持 (issue #64, 案3)
+        return kona3edit_keepalive($page);
     }
 
     // generate edit_token
@@ -144,6 +147,31 @@ function kona3_action_edit()
         $page_mode = ($ext == 'md') ? 'Markdown' : 'KonaNotation';
     }
 
+    // セッション切れで保存できなかった本文の復旧 (issue #64, 案2)
+    // 保存に失敗したときに退避した本文があれば、ファイルの内容ではなく
+    // 退避した本文を編集画面に表示する。$a_hash はファイルの内容から
+    // 計算したもののままにするので、復旧後の保存で競合判定が正しく働く。
+    if ($a_mode === '' && $q !== 'history') {
+        $recovery = kona3edit_getRecovery($page);
+        if ($recovery !== null) {
+            $txt = $recovery['txt'];
+            if (isset($recovery['tags']) && $recovery['tags'] !== '') {
+                $tags = $recovery['tags'];
+            }
+            if (isset($recovery['page_mode']) && $recovery['page_mode'] !== '') {
+                $page_mode = $recovery['page_mode'];
+            }
+            if (isset($recovery['edit_ext']) && $recovery['edit_ext'] !== '') {
+                $ext = $recovery['edit_ext'];
+            }
+            $recovery_msg = "<div class='error'>" .
+                kona3text2html(lang('Recovered unsaved text that could not be saved because the session expired. Please check and save again.')) .
+                "</div>";
+            $msg = $recovery_msg . $msg;
+            kona3edit_clearRecovery($page);
+        }
+    }
+
     // show
     kona3template('edit.html', array(
         "action" => $action,
@@ -167,6 +195,7 @@ function kona3_action_edit()
         "ai_shortcut_user_prompt2" => kona3getConf('ai_shortcut_user_prompt2', 'Ctrl+Alt+2'),
         "edit_ext" => $ext,
         "page_mode" => $page_mode,
+        "login_url" => kona3getPageURL($page, "login"),
     ));
 }
 
@@ -174,9 +203,16 @@ function kona3edit_checkPermission($page, $i_mode)
 {
     // check permission
     if (!kona3isLogin()) {
+        // セッション切れで未ログインになっている場合は、送信された本文を
+        // 退避してからエラーにする (issue #64, 案2)。
+        // 再ログイン後に編集画面を開くと、退避した本文が復旧される。
+        $stashed = kona3edit_stashRecovery($page);
         $please_login = lang("Please login.");
         $url = kona3getPageURL($page, 'login');
         $msg = "<a href=\"$url\">{$please_login}</a>";
+        if ($stashed) {
+            $msg .= "<br>" . kona3text2html(lang('Your unsaved text was kept. It will be restored when you open the edit page after logging in again.'));
+        }
         if ($i_mode == 'ajax') {
             $msg = $please_login;
         }
@@ -190,12 +226,18 @@ function kona3edit_checkEditToken($page, $i_mode)
 {
     // check edit_token
     if (!kona3_checkEditToken("edit_token")) {
+        // セッション切れでトークンが失われた場合も、送信された本文を
+        // 退避してからエラーにする (issue #64, 案2)。
+        $stashed = kona3edit_stashRecovery($page);
         $label = lang('Edit');
         $edit_token = kona3_getEditToken("edit_token", TRUE);
         $url = kona3getPageURL($page, 'edit', '');
         $page_html = htmlspecialchars($page, ENT_QUOTES);
         $label_page = "$label &gt; $page_html";
         $msg = lang('Invalid edit token.');
+        if ($stashed) {
+            $msg .= "<br>" . kona3text2html(lang('Your unsaved text was kept. It will be restored when you open the edit page after logging in again.'));
+        }
         // form or ajax
         if ($i_mode == 'form') {
             $form = kona3_getEditTokenForm($page, 'edit', $label_page);
@@ -204,15 +246,118 @@ function kona3edit_checkEditToken($page, $i_mode)
                 "$msg<br>$form"
             );
         } else { // ajax
-            $postId = intval(kona3param('postId', 0));
-            $edit_token = '';
-            kona3_edit_err(lang('Invalid edit token.') . "token=$edit_token", $i_mode, $postId);
+            // JS がセッション切れとして扱えるよう、専用のコードを返す (issue #64)
+            kona3_edit_err(lang('Invalid edit token.'), $i_mode, 'invalid_token');
         }
         exit;
     }
     return true;
 }
 
+
+// -----------------------------------------------
+// セッション切れ対策 (issue #64)
+// -----------------------------------------------
+// (案2) 保存に失敗した本文をセッションへ退避し、再ログイン後の
+//       編集画面で復旧できるようにする。
+// (案3) 編集画面を開いている間、定期的にサーバーと交信して
+//       セッションを維持し、編集トークンを交換する (keepalive)。
+
+// 退避した本文をセッションに保持するキー名
+define('KONA3_EDIT_RECOVERY_KEY', 'kona3_edit_recovery');
+// 退避した本文の有効期間 (編集トークンの有効期間に合わせる)
+define('KONA3_EDIT_RECOVERY_TTL', 60 * 60 * 24);
+
+// 保存しようとした本文をセッションへ退避する。
+// 保存系の送信 (a_mode=trywrite/trygit) で本文が送られている場合だけ退避し、
+// 退避できたら TRUE を返す。本文にはページを空にする (削除する) ための
+// 空文字列も含むので、パラメータの有無で判定する。
+function kona3edit_stashRecovery($page)
+{
+    $a_mode = kona3param('a_mode', '');
+    if ($a_mode !== 'trywrite' && $a_mode !== 'trygit') {
+        return FALSE;
+    }
+    if (!isset($_REQUEST['edit_txt']) || !is_string($_REQUEST['edit_txt'])) {
+        return FALSE;
+    }
+    if (!isset($_SESSION) || !is_array($_SESSION)) {
+        $_SESSION = [];
+    }
+    if (!isset($_SESSION[KONA3_EDIT_RECOVERY_KEY]) || !is_array($_SESSION[KONA3_EDIT_RECOVERY_KEY])) {
+        $_SESSION[KONA3_EDIT_RECOVERY_KEY] = [];
+    }
+    $tags = kona3param('tags', '');
+    $edit_ext = kona3param('edit_ext', '');
+    $page_mode = kona3param('page_mode', '');
+    $_SESSION[KONA3_EDIT_RECOVERY_KEY][$page] = [
+        'txt' => $_REQUEST['edit_txt'],
+        'tags' => is_string($tags) ? $tags : '',
+        'edit_ext' => is_string($edit_ext) ? $edit_ext : '',
+        'page_mode' => is_string($page_mode) ? $page_mode : '',
+        'time' => time(),
+    ];
+    return TRUE;
+}
+
+// 退避した本文を取得する。なければ (または期限切れなら) null を返す。
+function kona3edit_getRecovery($page)
+{
+    if (empty($_SESSION[KONA3_EDIT_RECOVERY_KEY][$page]) ||
+        !is_array($_SESSION[KONA3_EDIT_RECOVERY_KEY][$page])) {
+        return null;
+    }
+    $recovery = $_SESSION[KONA3_EDIT_RECOVERY_KEY][$page];
+    $time = isset($recovery['time']) ? intval($recovery['time']) : 0;
+    if ($time <= 0 || (time() - $time) > KONA3_EDIT_RECOVERY_TTL) {
+        kona3edit_clearRecovery($page);
+        return null;
+    }
+    if (!isset($recovery['txt']) || !is_string($recovery['txt'])) {
+        return null;
+    }
+    return $recovery;
+}
+
+// 退避した本文を破棄する。
+function kona3edit_clearRecovery($page)
+{
+    if (isset($_SESSION[KONA3_EDIT_RECOVERY_KEY][$page])) {
+        unset($_SESSION[KONA3_EDIT_RECOVERY_KEY][$page]);
+    }
+}
+
+// keepalive の応答データを組み立てる。
+// ログイン中であることだけを条件に、現在の (期限切れなら再発行した)
+// 編集トークンを返す。編集画面の JavaScript がトークンを受け取って
+// フォームの値を差し替えることで、開いたままのフォームが
+// トークンの期限切れで保存できなくなることを防ぐ。
+// あわせてセッションの最終アクセス時刻を更新し、サーバー側の
+// セッションが GC で消えるのを防ぐ。
+function kona3edit_keepaliveData($page)
+{
+    if (!kona3isLogin()) {
+        return [
+            'result' => 'ng',
+            'code' => 'nologin',
+            'reason' => lang('Please login.'),
+        ];
+    }
+    $_SESSION['kona3_last_activity'] = time();
+    return [
+        'result' => 'ok',
+        'edit_token' => kona3_getEditToken('edit_token'),
+        'user' => kona3getUserName(),
+        'time' => time(),
+    ];
+}
+
+function kona3edit_keepalive($page)
+{
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(kona3edit_keepaliveData($page));
+    return TRUE;
+}
 
 // edit command execute
 function edit_command($cmd)
@@ -510,6 +655,9 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
     }
 
     $result = TRUE;
+
+    // 保存できたので、退避していた本文は不要 (issue #64)
+    kona3edit_clearRecovery($page);
 
     // 静的ページの生成 (失敗しても保存は成功扱い)
     $static_warning = kona3static_onPageSaved($page);
