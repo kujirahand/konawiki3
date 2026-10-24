@@ -88,27 +88,28 @@ strong.strong2 {
 
 /* ==========================================
    Dark mode
-   def の body.dark-theme ... の上書き(!important)より後に、同じセレクタで重ねる
+   darkmode.css・def とも変数化されたため(#294)、同じセレクタで
+   後から読み込むだけで上書きできる(!important は不要)
    ========================================== */
 body.dark-theme #kona3_layout_header {
-  background-color: var(--nako3-header-bg) !important;
+  background-color: var(--nako3-header-bg);
 }
 body.dark-theme #kona3_main h1 {
-  background-color: var(--nako3-h1-bg) !important;
+  background-color: var(--nako3-h1-bg);
 }
 body.dark-theme #kona3_main h2 {
-  border-left: 5px solid var(--nako3-h2-bar) !important;
+  border-left: 5px solid var(--nako3-h2-bar);
 }
 body.dark-theme #kona3_main h3 {
-  border-bottom: 1px dotted var(--k3-color-border-strong) !important;
+  border-bottom: 1px dotted var(--k3-color-border-strong);
 }
 body.dark-theme strong.strong1 {
-  background: linear-gradient(transparent 60%, var(--nako3-mark1) 60%) !important;
-  color: inherit !important;
+  background: linear-gradient(transparent 60%, var(--nako3-mark1) 60%);
+  color: inherit;
 }
 body.dark-theme strong.strong2 {
-  background: linear-gradient(transparent 60%, var(--nako3-mark2) 60%) !important;
-  color: inherit !important;
+  background: linear-gradient(transparent 60%, var(--nako3-mark2) 60%);
+  color: inherit;
 }
 
 /* ==========================================
@@ -119,9 +120,9 @@ body.dark-theme strong.strong2 {
   #kona3_main h1 {
     background-color: transparent;
   }
-  /* ダーク用の !important に負けないよう、同じ形で書く */
+  /* ダーク用のルール(画面用)が印刷にも効くため、同じセレクタで後から戻す */
   body.dark-theme #kona3_layout_header,
   body.dark-theme #kona3_main h1 {
-    background-color: transparent !important;
+    background-color: transparent;
   }
 }

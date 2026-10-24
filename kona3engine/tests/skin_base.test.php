@@ -55,7 +55,7 @@ foreach (['aqua', 'nako3', 'single'] as $skin) {
 //    - 波括弧の対応
 //    - 参照している変数が、def か自スキンの :root で定義されていること
 //    - :root で上書きした色の変数は、ダーク用にも定義していること
-//    - body.dark-theme の子孫セレクタには !important を付けること(def / darkmode.css の !important を上書きするため)
+//    - body.dark-theme の子孫セレクタでも !important を付けないこと(darkmode.css が変数化されたため #294)
 function skin_base_rootVars($css)
 {
     if (!preg_match('#:root\s*\{([^}]*)\}#', $css, $m)) {
@@ -99,7 +99,7 @@ foreach (['aqua', 'nako3', 'single'] as $skin) {
             continue;
         }
         foreach (array_filter(array_map('trim', explode(';', $rule[2]))) as $decl) {
-            test_assert(__LINE__, strpos($decl, '!important') !== false, "$skin: dark override has !important: $selector { $decl }");
+            test_assert(__LINE__, strpos($decl, '!important') === false, "$skin: dark override must not need !important: $selector { $decl }");
         }
     }
 }

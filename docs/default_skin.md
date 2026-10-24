@@ -177,15 +177,19 @@ body.dark-theme {
 ```
 
 - 個々のセレクタに `body.dark-theme` 用のルールを書き足すのではなく、変数の再定義で対応します。こうすると、新しく追加したプロパティもダーク時に自動で追従します。
-- ただし `darkmode.css` には `body.dark-theme #kona3_main h2` のような、詳細度の高い固定色のルールがあります。これらは `skin/def/kona3.css` の `#kona3_main h2` より優先されるため、変数を切り替えるだけでは効きません。`darkmode.css` は文字色・背景色・罫線などを `!important` で固定しています。そこで、`skin/def/kona3.css` の末尾に、同じセレクタ(`body.dark-theme ...`)と `!important` で変数を参照するルールを書き、**`darkmode.css` が `!important` で固定しているプロパティだけ**を上書きします。後から読み込まれる同じ詳細度の `!important` が優先されます。`darkmode.css` 側のセレクタの詳細度が高い場合(例: `body.dark-theme input[type="submit"]:hover`)は、スキン側のセレクタの詳細度をそれ以上にします。
+- `darkmode.css`(全スキン共通のダークモード)も、配色を CSS 変数(`--k3d-*`)で定義しています(#294)。`--k3d-*` の多くは `def` の `--k3-*` トークンを参照しているため、`--k3-*` を切り替えるだけで `darkmode.css` 側の見出し・表・フォームなども追従します。`def` のデザインに合わないもの(見出しに背景を付けない、など)だけ、変数ブロックの中で `--k3d-*` を再定義します。
 
 ```css
-body.dark-theme #kona3_main h2 {
-  border-left: 3px solid var(--k3-color-accent) !important;
+body.dark-theme {
+  --k3-color-text: #e4e7eb;
+  /* ... */
+  --k3d-h1-bg: transparent;
+  --k3d-h2-bar: 3px solid var(--k3-color-accent);
 }
 ```
 
-- この上書きに `!important` が付いていることは、テスト(`kona3engine/tests/skin_def.test.php`)で確認しています。
+- 例外は見出しのアンカー(`a.anchor_super`)だけです。`darkmode.css` の汎用リンク色(`body.dark-theme #kona3_main a:link`)より詳細度が低いため、`body.dark-theme` から始まるセレクタで詳細度を上げて指定します。`!important` は不要です。
+- ダーク用の上書きに `!important` を付けていないことは、テスト(`kona3engine/tests/skin_def.test.php`)で確認しています。
 
 ---
 
@@ -195,7 +199,7 @@ body.dark-theme #kona3_main h2 {
 - スマホ幅では左右の余白を `--k3-space-3` 程度に詰め、本文の幅を確保します。
 - 列の多い表は、セルに最小幅(`5em`)を取り、収まらない分は表だけを横スクロールさせます。
 - 印刷時(`@media print`)は背景色を使わず、罫線と文字だけで構造が分かるようにします。横スクロールは紙では見えないため、表は全列を印刷します。
-- 印刷モード(`?print`)ではダークモードが適用されません。ダークモードのままブラウザから印刷した場合もライトの配色で出力されるよう、ダーク用の変数の再定義は `@media screen` の中に置きます。`darkmode.css` が固定色で指定していて変数では戻らないもの(強調の文字色、todo、filecode の構文の色)は、`@media print` で個別に戻します。そのため、ダークモードで印刷すると filecode の構文の色は付きません。
+- 印刷モード(`?print`)ではダークモードが適用されません。ダークモードのままブラウザから印刷した場合もライトの配色で出力されるよう、ダーク用の変数の再定義は `@media screen` の中に置きます。`darkmode.css` も全体が `@media screen` 限定のため、印刷時にダークの配色が残ることはありません。
 
 ---
 

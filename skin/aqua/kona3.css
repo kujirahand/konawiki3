@@ -120,36 +120,37 @@ strong.strong2 {
 
 /* ==========================================
    Dark mode
-   def の body.dark-theme ... の上書き(!important)より後に、同じセレクタで重ねる
+   darkmode.css・def とも変数化されたため(#294)、同じセレクタで
+   後から読み込むだけで上書きできる(!important は不要)
    ========================================== */
 body.dark-theme #kona3_header_title a {
-  color: var(--aqua-header-fg) !important;
+  color: var(--aqua-header-fg);
 }
 body.dark-theme #kona3_header_title .pagename {
-  color: var(--aqua-header-fg-muted) !important;
+  color: var(--aqua-header-fg-muted);
 }
 body.dark-theme #kona3_layout_header {
-  border-bottom: none !important;
+  border-bottom: none;
 }
 body.dark-theme #kona3_main h1 {
-  background: var(--aqua-h1-bg) !important;
-  border-bottom: 2px solid var(--k3-color-border-strong) !important;
-  border-left: 6px solid var(--aqua-h1-bar) !important;
+  background: var(--aqua-h1-bg);
+  border-bottom: 2px solid var(--k3-color-border-strong);
+  border-left: 6px solid var(--aqua-h1-bar);
 }
 body.dark-theme #kona3_main h2 {
-  background: var(--aqua-h2-bg) !important;
-  border-left: 5px solid var(--aqua-h2-bar) !important;
+  background: var(--aqua-h2-bg);
+  border-left: 5px solid var(--aqua-h2-bar);
 }
 body.dark-theme #kona3_main h3 {
-  border-bottom: 2px dashed var(--aqua-h3-line) !important;
+  border-bottom: 2px dashed var(--aqua-h3-line);
 }
 body.dark-theme strong.strong1 {
-  background: linear-gradient(transparent 60%, var(--aqua-mark1) 60%) !important;
-  color: inherit !important;
+  background: linear-gradient(transparent 60%, var(--aqua-mark1) 60%);
+  color: inherit;
 }
 body.dark-theme strong.strong2 {
-  background: linear-gradient(transparent 60%, var(--aqua-mark2) 60%) !important;
-  color: inherit !important;
+  background: linear-gradient(transparent 60%, var(--aqua-mark2) 60%);
+  color: inherit;
 }
 
 /* ==========================================
@@ -166,12 +167,12 @@ body.dark-theme strong.strong2 {
   #kona3_header_title .pagename {
     color: var(--k3-color-heading);
   }
+  /* ダーク用のルール(画面用)が印刷にも効くため、同じセレクタで後から戻す */
   body.dark-theme #kona3_header_title a,
   body.dark-theme #kona3_header_title .pagename {
-    color: var(--k3-color-heading) !important;
+    color: var(--k3-color-heading);
   }
-  /* ダーク用の !important に負けないよう、同じ形で書く */
   body.dark-theme #kona3_layout_header {
-    background: none !important;
+    background: none;
   }
 }

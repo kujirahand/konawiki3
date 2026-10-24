@@ -162,21 +162,19 @@ KonaWiki3 は標準でダークモード切替機能を備えています。
 
 `def` は、ダークモードで使う色をすべて変数で指定しています。そのため、上の「3. ダークテーマの値は `@media screen` の中で差し替える」のように、スキン側で `body.dark-theme` の変数を差し替えるだけで、本文・表・コード・メニュー・フッターなどがダークの配色に切り替わります。
 
-### `!important` が必要な部分
+### ダークモード用の上書き
 
-`darkmode.css` には `body.dark-theme #kona3_main h2` のような詳細度の高いルールが含まれており、`def` もそれを `!important` 付きで上書きしています。そのため、スキン側で見出しの装飾(背景や罫線)などを変えた場合は、ダークモード用にも `body.dark-theme` から始まるセレクタと `!important` で指定する必要があります(`!important` が付いていないプロパティには不要です)。
+`darkmode.css` の配色は CSS 変数(`--k3d-*`)で定義されているため(#294)、スキン側の通常のルールや変数の再定義がそのまま効きます。見出しの装飾(背景や罫線)など、要素ごとに変えたい場合は、`body.dark-theme` から始まるセレクタで指定します。`darkmode.css` より後に読み込まれるため、同じ詳細度で上書きでき、`!important` は不要です。
 
 ```css
 /* ライト */
 #kona3_main h1 {
   background: var(--aqua-h1-bg);
 }
-/* ダーク: def の body.dark-theme #kona3_main h1 { background: none !important } を上書きする */
+/* ダーク */
 body.dark-theme #kona3_main h1 {
-  background: var(--aqua-h1-bg) !important;
+  background: var(--aqua-h1-bg);
 }
 ```
 
 値を変数にしておけば、ライト用とダーク用で同じ変数を参照するだけなので、配色を変えるときに直す場所は変数の定義だけで済みます。
-
-この `!important` の上書きは、`darkmode.css` を変数化すれば不要にできる見込みです(#294)。

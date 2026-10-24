@@ -50,6 +50,34 @@ body.dark-theme {
   --k3-color-accent-hover: #a8ccff;
   --k3-color-on-accent: #15191e;
   --k3-color-summary: #34d399;
+  /* darkmode.css(#294) の変数のうち、def のデザインに合わせるもの。
+     見出しに背景を付けない、罫線は通常の太さにする、など */
+  --k3d-h1-bg: transparent;
+  --k3d-h2-bg: transparent;
+  --k3d-h2-bar: 3px solid var(--k3-color-accent);
+  --k3d-h3-border: 1px solid var(--k3-color-border);
+  --k3d-h4-border: none;
+  --k3d-link-hover-bg: transparent;
+  --k3d-tbody-border: none;
+  --k3d-cell-border-right: none;
+  --k3d-th-color: var(--k3-color-text);
+  --k3d-td-bg: transparent;
+  --k3d-msg-bg: transparent;
+  --k3d-msg-h3-border-bottom: 1px solid var(--k3-color-border);
+  --k3d-menubar-h-border: 1px solid var(--k3-color-border);
+  --k3d-menubar-link: var(--k3-color-text);
+  --k3d-menubar-hover-bg: var(--k3-color-bg-subtle);
+  --k3d-loginbar-bg: transparent;
+  --k3d-column-bar: 3px solid var(--k3-color-accent);
+  --k3d-column-summary-bg: var(--k3-color-bg-subtle);
+  --k3d-column-summary-border: var(--k3-color-border);
+  --k3d-column-h-border: none;
+  --k3d-column-h2-border: none;
+  --k3d-resmark-bar: 3px solid var(--k3-color-border-strong);
+  --k3d-resmark-bg: transparent;
+  --k3d-footer-span-bg: transparent;
+  --k3d-footer-link: var(--k3-color-text-muted);
+  --k3d-tag-hover-bg: transparent;
 }
 }
 
@@ -544,266 +572,12 @@ body #ai_output_area {
 
 /* ==========================================
    Dark mode
-   darkmode.css は body.dark-theme ... の色・背景・罫線を !important で固定している。
-   それらのプロパティだけを、同じセレクタ(必要なら詳細度を上げて) + !important で
-   変数を参照する指定に戻す。
+   darkmode.css は変数(--k3d-*)で配色を切り替えるため(#294)、
+   def のダーク配色は冒頭の変数ブロックの再定義だけで完結する。
+   ここに残すのは、darkmode.css の汎用リンク色より詳細度で勝てない
+   見出しアンカー(*)だけ。!important は不要で、詳細度で上書きする。
    ========================================== */
-body.dark-theme {
-  background-color: var(--k3-color-bg) !important;
-  color: var(--k3-color-text) !important;
-}
-body.dark-theme #kona3_layout_header {
-  background-color: var(--k3-color-bg) !important;
-  border-bottom: 1px solid var(--k3-color-border) !important;
-}
-body.dark-theme #kona3_header_title a {
-  color: var(--k3-color-heading) !important;
-}
-body.dark-theme #kona3_header_title .pagename {
-  color: var(--k3-color-text-muted) !important;
-}
-body.dark-theme #kona3_main h1,
-body.dark-theme #kona3_main h2,
-body.dark-theme #kona3_main h3,
-body.dark-theme #kona3_main h4,
-body.dark-theme #kona3_main h5,
-body.dark-theme #kona3_main h6 {
-  background: none !important;
-  border: none !important;
-  color: var(--k3-color-heading) !important;
-}
-body.dark-theme #kona3_main h1 {
-  border-bottom: 1px solid var(--k3-color-border-strong) !important;
-}
-body.dark-theme #kona3_main h2 {
-  border-left: 3px solid var(--k3-color-accent) !important;
-}
-body.dark-theme #kona3_main h3 {
-  border-bottom: 1px solid var(--k3-color-border) !important;
-}
-body.dark-theme #kona3_main .column h2,
-body.dark-theme #kona3_main .column h3 {
-  border: none !important;
-}
-body.dark-theme #kona3_main a:link,
-body.dark-theme #kona3_main a:visited,
-body.dark-theme #kona3_main a:active {
-  color: var(--k3-color-accent) !important;
-}
-body.dark-theme #kona3_main a:hover {
-  background-color: transparent !important;
-  color: var(--k3-color-accent-hover) !important;
-}
 body.dark-theme #kona3_main a.anchor_super:link,
 body.dark-theme #kona3_main a.anchor_super:visited {
-  color: var(--k3-color-border-strong) !important;
-}
-body.dark-theme #kona3_main table {
-  color: var(--k3-color-text) !important;
-}
-body.dark-theme #kona3_main table tbody {
-  border: none !important;
-}
-body.dark-theme #kona3_main table th,
-body.dark-theme #kona3_main table td {
-  border: none !important;
-  border-bottom: 1px solid var(--k3-color-border) !important;
-  color: var(--k3-color-text) !important;
-}
-body.dark-theme #kona3_main table th {
-  background-color: var(--k3-color-bg-subtle) !important;
-}
-body.dark-theme #kona3_main table td {
-  background-color: transparent !important;
-}
-/* 上の border: none で消える、表の上端の罫線を戻す(ライトと同じ) */
-body.dark-theme #kona3_main table tr:first-child > th,
-body.dark-theme #kona3_main table tr:first-child > td {
-  border-top: 1px solid var(--k3-color-border-strong) !important;
-}
-body.dark-theme #kona3_main table thead + tbody tr:first-child > td {
-  border-top: none !important;
-}
-body.dark-theme pre,
-body.dark-theme span.code,
-body.dark-theme .mathjax {
-  background-color: var(--k3-color-bg-subtle) !important;
-  border: 1px solid var(--k3-color-border) !important;
-  color: var(--k3-color-text) !important;
-}
-body.dark-theme span.code code,
-body.dark-theme pre code {
-  background: none !important;
-  border: none !important;
-  color: var(--k3-color-text) !important;
-}
-body.dark-theme #kona3_main .resmark {
-  background-color: transparent !important;
-  border-left: 3px solid var(--k3-color-border-strong) !important;
-  color: var(--k3-color-text-muted) !important;
-}
-body.dark-theme .column {
-  background-color: var(--k3-color-bg-subtle) !important;
-  border: 1px solid var(--k3-color-border) !important;
-  border-left: 3px solid var(--k3-color-accent) !important;
-}
-body.dark-theme .column.summary {
-  background-color: var(--k3-color-bg-subtle) !important;
-  border-color: var(--k3-color-border) !important;
-  border-left-color: var(--k3-color-summary) !important;
-}
-body.dark-theme .plugin_comment .plugin_title {
-  background-color: var(--k3-color-bg-subtle) !important;
-  color: var(--k3-color-text) !important;
-}
-body.dark-theme #kona3_menubar {
-  border-top: 1px solid var(--k3-color-border) !important;
-}
-body.dark-theme #kona3_menubar h1,
-body.dark-theme #kona3_menubar h2,
-body.dark-theme #kona3_menubar h3 {
-  border-bottom: 1px solid var(--k3-color-border) !important;
-}
-body.dark-theme #kona3_menubar ul li a {
-  color: var(--k3-color-text) !important;
-}
-body.dark-theme #kona3_menubar ul li a:hover {
-  background-color: var(--k3-color-bg-subtle) !important;
-  color: var(--k3-color-accent) !important;
-}
-@media screen and (min-width: 48em) {
-  body.dark-theme #kona3_menubar {
-    border-top: none !important;
-    border-left: 1px solid var(--k3-color-border) !important;
-  }
-}
-body.dark-theme .kona3_login_bar {
-  background-color: transparent !important;
-  color: var(--k3-color-text) !important;
-}
-body.dark-theme .kona3_login_bar a {
-  color: var(--k3-color-accent) !important;
-}
-body.dark-theme #wikifooter {
-  border-top: 1px solid var(--k3-color-border) !important;
-}
-body.dark-theme #wikifooter .footer_menu > span {
-  background-color: transparent !important;
-}
-body.dark-theme #wikimessage a:link,
-body.dark-theme #wikimessage a:visited,
-body.dark-theme #wikimessage a:active {
-  color: var(--k3-color-accent) !important;
-}
-/* 編集画面などではフッターが #wikimessage の中にあるため、
-   上の #wikimessage a:link と同じ詳細度にして、後に書く */
-body.dark-theme #wikifooter a,
-body.dark-theme #wikifooter a:link,
-body.dark-theme #wikifooter a:visited {
-  color: var(--k3-color-text-muted) !important;
-}
-body.dark-theme #wikifooter a:hover {
-  color: var(--k3-color-accent) !important;
-}
-body.dark-theme .date,
-body.dark-theme .memo,
-body.dark-theme #kona3_main a .date,
-body.dark-theme #kona3_menubar a .date {
-  color: var(--k3-color-text-muted) !important;
-}
-/* 本文中の通常ボタン(コメント投稿など): Pure.css の明るい灰色のままだと文字が読みにくい */
-body.dark-theme #kona3_main .pure-button {
-  background-color: var(--k3-color-bg-subtle) !important;
-  border: 1px solid var(--k3-color-border) !important;
-  color: var(--k3-color-text) !important;
-}
-/* 主ボタン: darkmode.css の input[type="submit"](:hover) より詳細度を上げる */
-body.dark-theme .pure-button.pure-button-primary,
-body.dark-theme .pure-button.pure-button-primary:hover,
-body.dark-theme #kona3_main .pure-button.pure-button-primary {
-  background-color: var(--k3-color-accent) !important;
-  border: 1px solid var(--k3-color-accent) !important;
-  color: var(--k3-color-on-accent) !important;
-}
-body.dark-theme #wikimessage .box {
-  background-color: var(--k3-color-bg-subtle) !important;
-  border: 1px solid var(--k3-color-border) !important;
-}
-body.dark-theme #wikimessage .bodypad {
-  background-color: transparent !important;
-}
-body.dark-theme #wikimessage .box_border {
-  border: 1px solid var(--k3-color-border) !important;
-}
-body.dark-theme .kona3-tag a,
-body.dark-theme .kona3-taglist a,
-body.dark-theme .kona3-tags-list a {
-  color: var(--k3-color-accent) !important;
-}
-body.dark-theme .kona3-tag a:hover,
-body.dark-theme .kona3-taglist a:hover,
-body.dark-theme .kona3-tags-list a:hover {
-  background-color: transparent !important;
-  color: var(--k3-color-accent-hover) !important;
-}
-body.dark-theme #wikimessage h2,
-body.dark-theme #wikimessage h3 {
-  background-color: var(--k3-color-bg-subtle) !important;
-  border-top: 1px solid var(--k3-color-border) !important;
-  border-bottom: 1px solid var(--k3-color-border) !important;
-  color: var(--k3-color-heading) !important;
-}
-body.dark-theme #wikimessage h2 {
-  border-left-color: var(--k3-color-border-strong) !important;
-}
-body.dark-theme #wikiedit,
-body.dark-theme #wikiedit #edit_counter,
-body.dark-theme #wikiedit #edit_info,
-body.dark-theme #ai_output_area {
-  background-color: var(--k3-color-bg-subtle) !important;
-}
-
-/* ==========================================
-   Dark mode + print
-   ダークモードのままブラウザから印刷したとき、darkmode.css が固定した
-   明るい文字色や暗い背景が紙に残らないよう、印刷に出る要素だけを戻す
-   ========================================== */
-@media print {
-  /* 上の Print と同じく背景を消す。ダーク用の !important に負けないよう、同じ形で書く */
-  body.dark-theme #kona3_main table th,
-  body.dark-theme pre,
-  body.dark-theme span.code,
-  body.dark-theme .mathjax,
-  body.dark-theme .column,
-  body.dark-theme .column.summary {
-    background-color: transparent !important;
-  }
-  body.dark-theme strong.strong1,
-  body.dark-theme strong.strong2 {
-    color: inherit !important;
-  }
-  body.dark-theme #kona3_main .todo {
-    background-color: transparent !important;
-    color: inherit !important;
-  }
-  /* filecode: 変数をライトの配色に戻す。構文の色は印刷では本文の色にする */
-  body.dark-theme .filecode {
-    --fc-border: var(--k3-color-border) !important;
-    --fc-head-bg: var(--k3-color-bg-subtle) !important;
-    --fc-head-fg: var(--k3-color-text-muted) !important;
-    --fc-gutter-bg: var(--k3-color-bg-subtle) !important;
-    --fc-gutter-fg: var(--k3-color-text-muted) !important;
-    --fc-code-bg: var(--k3-color-bg) !important;
-    --fc-code-fg: var(--k3-color-text) !important;
-    --tok-c: var(--k3-color-text-muted) !important;
-    --tok-s: var(--k3-color-text) !important;
-    --tok-n: var(--k3-color-text) !important;
-    --tok-k: var(--k3-color-text) !important;
-    --tok-f: var(--k3-color-text) !important;
-    --tok-b: var(--k3-color-text) !important;
-    --tok-d: var(--k3-color-text) !important;
-  }
-  body.dark-theme .filecode .code span[style] {
-    color: inherit !important;
-  }
+  color: var(--k3-color-border-strong);
 }
