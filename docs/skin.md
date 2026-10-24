@@ -351,4 +351,4 @@ body.dark-theme {
 
 このアプローチにより、一つの `kona3.css` ファイル内でライトモードとダークモードの双方に美しく対応したスキンを作成できます。
 
-なお、`darkmode.css` には `body.dark-theme #kona3_main h2` のような詳細度の高いルールが含まれています。スキン側で `#kona3_main h2` などに色を指定しても、ダークモード時は `darkmode.css` の指定が優先されます。ダークモードの見た目を変えたい場合は、スキン側でも `body.dark-theme` から始まるセレクタで指定してください。
+なお、`darkmode.css` には `body.dark-theme #kona3_main h2` のような詳細度の高いルールが含まれています。スキン側で `#kona3_main h2` などに色を指定しても、ダークモード時は `darkmode.css` の指定が優先されます。ダークモードの見た目を変えたい場合は、スキン側でも `body.dark-theme` から始まるセレクタで指定してください。`darkmode.css` の指定には `!important` が付いているため、同じプロパティを上書きするときはスキン側にも `!important` が必要です。

@@ -1,5 +1,625 @@
 /**
   * kona3.css
   * default skin
+  * デザイン方針: docs/default_skin.md
   */
 
+/* ==========================================
+   Design tokens
+   ========================================== */
+:root {
+  /* color */
+  --k3-color-text: #1f2933;
+  --k3-color-text-muted: #616e7c;
+  --k3-color-heading: #102a43;
+  --k3-color-bg: #ffffff;
+  --k3-color-bg-subtle: #f5f7fa;
+  --k3-color-border: #e4e7eb;
+  --k3-color-border-strong: #cbd2d9;
+  --k3-color-accent: #1f5fbf;
+  --k3-color-accent-hover: #174a96;
+  /* space */
+  --k3-space-1: 0.25em;
+  --k3-space-2: 0.5em;
+  --k3-space-3: 1em;
+  --k3-space-4: 1.5em;
+  --k3-space-5: 2em;
+  --k3-space-6: 3em;
+  /* size */
+  --k3-width-layout: 64rem;
+  --k3-radius: 4px;
+  /* font */
+  --k3-font-sans: system-ui, -apple-system, "Segoe UI", "Hiragino Sans",
+    "Hiragino Kaku Gothic ProN", "Noto Sans JP", Meiryo, sans-serif;
+  --k3-font-mono: ui-monospace, Menlo, Consolas, "Noto Sans Mono", monospace;
+}
+
+body.dark-theme {
+  --k3-color-text: #e4e7eb;
+  --k3-color-text-muted: #9aa5b1;
+  --k3-color-heading: #f0f4f8;
+  --k3-color-bg: #15191e;
+  --k3-color-bg-subtle: #1f252c;
+  --k3-color-border: #323a44;
+  --k3-color-border-strong: #52606d;
+  --k3-color-accent: #7cb4ff;
+  --k3-color-accent-hover: #a8ccff;
+}
+
+/* ==========================================
+   Base
+   ========================================== */
+body {
+  background-color: var(--k3-color-bg);
+  color: var(--k3-color-text);
+  font-family: var(--k3-font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================
+   Layout
+   ========================================== */
+#kona3_layout_header {
+  background-color: var(--k3-color-bg);
+  border-bottom: 1px solid var(--k3-color-border);
+}
+#kona3_layout_title,
+#kona3_layout_show,
+#wikifooter,
+.ctrl_menu {
+  max-width: var(--k3-width-layout);
+}
+#kona3_layout_show {
+  line-height: 1.75;
+}
+
+/** header */
+.kona3_header_pad {
+  /* 右側はハンバーガーメニューの領域を空ける */
+  padding: var(--k3-space-3) 4em var(--k3-space-3) var(--k3-space-3);
+}
+#kona3_header_title {
+  font-size: 1.25em;
+  font-weight: 700;
+  line-height: 1.4;
+}
+#kona3_header_title a {
+  color: var(--k3-color-heading);
+}
+#kona3_header_title .pagename {
+  color: var(--k3-color-text-muted);
+  font-size: 0.8em;
+  font-weight: 400;
+  margin-left: var(--k3-space-1);
+}
+
+/* ==========================================
+   Main
+   ========================================== */
+#kona3_main {
+  margin: 0;
+  padding: var(--k3-space-4) var(--k3-space-3) var(--k3-space-6);
+}
+
+#kona3_main p {
+  margin: 0 0 var(--k3-space-3);
+}
+
+/** headings */
+#kona3_main h1,
+#kona3_main h2,
+#kona3_main h3,
+#kona3_main h4,
+#kona3_main h5,
+#kona3_main h6 {
+  background: none;
+  border: none;
+  border-radius: 0;
+  color: var(--k3-color-heading);
+  font-weight: 700;
+  line-height: 1.4;
+}
+#kona3_main h1 {
+  border-bottom: 1px solid var(--k3-color-border-strong);
+  font-size: 1.5em;
+  margin: var(--k3-space-5) 0 var(--k3-space-3);
+  padding: 0 0 var(--k3-space-2);
+}
+#kona3_main h2 {
+  border-left: 3px solid var(--k3-color-accent);
+  font-size: 1.3em;
+  margin: var(--k3-space-5) 0 var(--k3-space-3);
+  padding: var(--k3-space-1) 0 var(--k3-space-1) var(--k3-space-2);
+}
+#kona3_main h3 {
+  border-bottom: 1px solid var(--k3-color-border);
+  font-size: 1.15em;
+  margin: var(--k3-space-5) 0 var(--k3-space-3);
+  padding: 0 0 var(--k3-space-2);
+}
+#kona3_main h4,
+#kona3_main h5,
+#kona3_main h6 {
+  font-size: 1em;
+  margin: var(--k3-space-5) 0 var(--k3-space-2);
+  padding: 0;
+}
+#kona3_main .contents > h1:first-child,
+#kona3_main .kona3_login_bar + h1 {
+  margin-top: 0;
+}
+
+/* 見出しのアンカー(*)は控えめに */
+#kona3_main a.anchor_super:link,
+#kona3_main a.anchor_super:visited,
+#kona3_menubar a.anchor_super:link,
+#kona3_menubar a.anchor_super:visited {
+  color: var(--k3-color-border-strong);
+  font-weight: 400;
+}
+#kona3_main a.anchor_super:hover,
+#kona3_menubar a.anchor_super:hover {
+  color: var(--k3-color-accent);
+  text-decoration: none;
+}
+
+/** links */
+#kona3_main a:link,
+#kona3_main a:visited,
+#kona3_main a:active {
+  color: var(--k3-color-accent);
+  text-decoration: none;
+}
+#kona3_main a:hover {
+  background-color: transparent;
+  color: var(--k3-color-accent-hover);
+  text-decoration: underline;
+}
+
+/** lists */
+#kona3_main ul,
+#kona3_main ol {
+  margin: 0 0 var(--k3-space-3);
+  padding-left: var(--k3-space-4);
+}
+#kona3_main ul li,
+#kona3_main ol li {
+  margin: var(--k3-space-1) 0;
+}
+#kona3_main li > ul,
+#kona3_main li > ol {
+  margin: 0;
+}
+
+/** tables */
+#kona3_main table {
+  border: none;
+  border-collapse: collapse;
+  color: var(--k3-color-text);
+  display: block;
+  font-size: 0.95em;
+  margin: var(--k3-space-4) 0;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 0;
+}
+#kona3_main table tbody {
+  border: none;
+}
+#kona3_main table th,
+#kona3_main table td {
+  border: none;
+  border-bottom: 1px solid var(--k3-color-border);
+  color: var(--k3-color-text);
+  padding: var(--k3-space-2) var(--k3-space-3);
+  vertical-align: top;
+}
+#kona3_main table tr:first-child > th,
+#kona3_main table tr:first-child > td {
+  border-top: 1px solid var(--k3-color-border-strong);
+}
+/* thead がある表(Markdown)では、tbody の先頭行に上罫線を付けない */
+#kona3_main table thead + tbody tr:first-child > td {
+  border-top: none;
+}
+#kona3_main table th {
+  background-color: var(--k3-color-bg-subtle);
+  font-weight: 700;
+  text-align: left;
+}
+#kona3_main table td {
+  background-color: transparent;
+}
+
+/** quote */
+#kona3_main .resmark,
+#kona3_main blockquote {
+  background-color: transparent;
+  border: none;
+  border-left: 3px solid var(--k3-color-border-strong);
+  border-radius: 0;
+  color: var(--k3-color-text-muted);
+  margin: var(--k3-space-4) 0;
+  padding: 0 0 0 var(--k3-space-3);
+}
+#kona3_main .resmark p {
+  margin: 0;
+}
+
+/** code */
+pre,
+pre.code {
+  background-color: var(--k3-color-bg-subtle);
+  border: 1px solid var(--k3-color-border);
+  border-radius: var(--k3-radius);
+  color: var(--k3-color-text);
+  font-family: var(--k3-font-mono);
+  font-size: 0.875em;
+  line-height: 1.6;
+  margin: var(--k3-space-4) 0;
+  padding: var(--k3-space-3);
+}
+span.code {
+  background-color: var(--k3-color-bg-subtle);
+  border: 1px solid var(--k3-color-border);
+  border-radius: var(--k3-radius);
+  font-family: var(--k3-font-mono);
+  font-size: 0.875em;
+  padding: 0.1em 0.35em;
+}
+span.code code,
+pre code {
+  background: none;
+  border: none;
+  font-family: inherit;
+  padding: 0;
+}
+
+/** misc */
+#kona3_main hr,
+hr {
+  border: none;
+  border-top: 1px solid var(--k3-color-border);
+  margin: var(--k3-space-5) 0;
+}
+#kona3_main img {
+  border: 1px solid var(--k3-color-border);
+  max-width: 100%;
+}
+#kona3_main .date,
+#kona3_main div.date,
+.memo {
+  color: var(--k3-color-text-muted);
+}
+.column {
+  background-color: var(--k3-color-bg-subtle);
+  border: 1px solid var(--k3-color-border);
+  border-left: 3px solid var(--k3-color-accent);
+  border-radius: var(--k3-radius);
+  box-shadow: none;
+  margin: var(--k3-space-4) 0;
+  padding: var(--k3-space-3) var(--k3-space-4);
+}
+.column.summary {
+  border-left-color: #10b981;
+}
+#kona3_main .column h2,
+#kona3_main .column h3 {
+  border: none;
+  margin-top: 0;
+  padding: 0;
+}
+
+/** login bar */
+.kona3_login_bar {
+  background-color: transparent;
+}
+.kona3_login_bar a {
+  color: var(--k3-color-accent);
+}
+.login_bar1 {
+  border-bottom: 1px solid var(--k3-color-border);
+  padding: var(--k3-space-2) 0;
+}
+.mojisu {
+  color: var(--k3-color-text-muted);
+}
+
+/* ==========================================
+   Menu bar
+   ========================================== */
+#kona3_menubar {
+  border-top: 1px solid var(--k3-color-border);
+  font-size: 0.95em;
+  margin: 0 var(--k3-space-3);
+  padding: var(--k3-space-4) 0 var(--k3-space-5);
+}
+#kona3_menubar h1,
+#kona3_menubar h2,
+#kona3_menubar h3 {
+  border: none;
+  border-bottom: 1px solid var(--k3-color-border);
+  color: var(--k3-color-text-muted);
+  font-size: 0.85em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin: var(--k3-space-4) 0 var(--k3-space-2);
+  padding: 0 0 var(--k3-space-1);
+}
+#kona3_menubar h1:first-child,
+#kona3_menubar h2:first-child,
+#kona3_menubar h3:first-child {
+  margin-top: 0;
+}
+#kona3_menubar ul li a {
+  color: var(--k3-color-text);
+  font-size: 1em;
+  /* 文字の左端を見出しに揃え、ホバー時の背景だけをはみ出させる */
+  margin: 0 calc(-1 * var(--k3-space-2));
+  padding: var(--k3-space-1) var(--k3-space-2);
+}
+#kona3_menubar ul li a:hover {
+  background-color: var(--k3-color-bg-subtle);
+  color: var(--k3-color-accent);
+}
+#kona3_menubar .date {
+  color: var(--k3-color-text-muted);
+}
+
+@media screen and (min-width: 48em) {
+  #kona3_main {
+    padding: var(--k3-space-5) var(--k3-space-5) var(--k3-space-6) var(--k3-space-3);
+  }
+  #kona3_menubar {
+    border-top: none;
+    border-left: 1px solid var(--k3-color-border);
+    height: auto;
+    margin: var(--k3-space-5) 0;
+    padding: 0 var(--k3-space-3) 0 var(--k3-space-4);
+  }
+}
+
+/* ==========================================
+   Footer
+   ========================================== */
+#wikifooter {
+  border-top: 1px solid var(--k3-color-border);
+  color: var(--k3-color-text-muted);
+  padding: var(--k3-space-4) var(--k3-space-3);
+}
+#wikifooter .footer_menu {
+  font-size: 0.8em;
+  padding: var(--k3-space-1) 0;
+}
+#wikifooter .footer_menu > span {
+  background-color: transparent;
+  padding: 0;
+}
+#wikifooter a {
+  color: var(--k3-color-text-muted);
+}
+#wikifooter a:hover {
+  color: var(--k3-color-accent);
+}
+#wikifooter > div.info {
+  margin-top: var(--k3-space-3);
+  padding: 0;
+}
+
+/* ==========================================
+   Buttons / forms
+   ========================================== */
+.pure-button {
+  border-radius: var(--k3-radius);
+}
+.pure-button-primary {
+  background-color: var(--k3-color-accent);
+}
+#wikifooter .pure-button {
+  background-color: transparent;
+  border: 1px solid var(--k3-color-border);
+  color: var(--k3-color-text-muted);
+  font-size: 1em;
+  padding: var(--k3-space-1) var(--k3-space-3);
+}
+#wikifooter .pure-button:hover {
+  background-image: none;
+  border-color: var(--k3-color-border-strong);
+  color: var(--k3-color-accent);
+}
+
+/* ==========================================
+   Message pages (login, settings, etc.)
+   ========================================== */
+#wikimessage .bodypad {
+  background-color: transparent;
+  padding: var(--k3-space-4) var(--k3-space-3);
+}
+#wikimessage .box {
+  background-color: var(--k3-color-bg-subtle);
+  border: 1px solid var(--k3-color-border);
+  border-radius: var(--k3-radius);
+  margin: var(--k3-space-3) 0;
+}
+#wikimessage h3 {
+  border-bottom: 1px solid var(--k3-color-border);
+  color: var(--k3-color-heading);
+  padding: 0 0 var(--k3-space-2);
+}
+
+/* ==========================================
+   Responsive
+   ========================================== */
+@media screen and (max-width: 480px) {
+  .kona3_header_pad {
+    padding: var(--k3-space-2) 3.5em var(--k3-space-2) var(--k3-space-3);
+  }
+  #kona3_header_title {
+    font-size: 1.1em;
+  }
+  #kona3_main h1 {
+    font-size: 1.35em;
+  }
+  #kona3_main h2 {
+    font-size: 1.2em;
+  }
+  #kona3_main table th,
+  #kona3_main table td {
+    padding: var(--k3-space-2);
+  }
+}
+
+/* ==========================================
+   Print
+   ========================================== */
+@media print {
+  #kona3_main table th,
+  pre,
+  pre.code,
+  span.code,
+  .column {
+    background-color: transparent;
+  }
+}
+
+/* ==========================================
+   Dark mode
+   darkmode.css は body.dark-theme ... に !important で固定色を指定している。
+   同じセレクタ + !important で、変数を参照する指定に戻す。
+   ========================================== */
+body.dark-theme {
+  background-color: var(--k3-color-bg) !important;
+  color: var(--k3-color-text) !important;
+}
+body.dark-theme #kona3_layout_header {
+  background-color: var(--k3-color-bg) !important;
+  border-bottom: 1px solid var(--k3-color-border) !important;
+}
+body.dark-theme #kona3_header_title a {
+  color: var(--k3-color-heading) !important;
+}
+body.dark-theme #kona3_header_title .pagename {
+  color: var(--k3-color-text-muted) !important;
+}
+body.dark-theme #kona3_main h1,
+body.dark-theme #kona3_main h2,
+body.dark-theme #kona3_main h3,
+body.dark-theme #kona3_main h4,
+body.dark-theme #kona3_main h5,
+body.dark-theme #kona3_main h6 {
+  background: none !important;
+  border: none !important;
+  color: var(--k3-color-heading) !important;
+}
+body.dark-theme #kona3_main h1 {
+  border-bottom: 1px solid var(--k3-color-border-strong) !important;
+}
+body.dark-theme #kona3_main h2 {
+  border-left: 3px solid var(--k3-color-accent) !important;
+}
+body.dark-theme #kona3_main h3 {
+  border-bottom: 1px solid var(--k3-color-border) !important;
+}
+body.dark-theme #kona3_main .column h2,
+body.dark-theme #kona3_main .column h3 {
+  border: none !important;
+}
+body.dark-theme #kona3_main a:link,
+body.dark-theme #kona3_main a:visited,
+body.dark-theme #kona3_main a:active {
+  color: var(--k3-color-accent) !important;
+}
+body.dark-theme #kona3_main a:hover {
+  background-color: transparent !important;
+  color: var(--k3-color-accent-hover) !important;
+}
+body.dark-theme #kona3_main a.anchor_super:link,
+body.dark-theme #kona3_main a.anchor_super:visited {
+  color: var(--k3-color-border-strong) !important;
+}
+body.dark-theme #kona3_main table {
+  color: var(--k3-color-text) !important;
+}
+body.dark-theme #kona3_main table tbody {
+  border: none !important;
+}
+body.dark-theme #kona3_main table th,
+body.dark-theme #kona3_main table td {
+  border: none !important;
+  border-bottom: 1px solid var(--k3-color-border) !important;
+  color: var(--k3-color-text) !important;
+}
+body.dark-theme #kona3_main table th {
+  background-color: var(--k3-color-bg-subtle) !important;
+}
+body.dark-theme #kona3_main table td {
+  background-color: transparent !important;
+}
+body.dark-theme pre,
+body.dark-theme span.code {
+  background-color: var(--k3-color-bg-subtle) !important;
+  border: 1px solid var(--k3-color-border) !important;
+  color: var(--k3-color-text) !important;
+}
+body.dark-theme span.code code,
+body.dark-theme pre code {
+  background: none !important;
+  border: none !important;
+}
+body.dark-theme #kona3_main .resmark {
+  background-color: transparent !important;
+  border-left: 3px solid var(--k3-color-border-strong) !important;
+  color: var(--k3-color-text-muted) !important;
+}
+body.dark-theme .column {
+  background-color: var(--k3-color-bg-subtle) !important;
+  border: 1px solid var(--k3-color-border) !important;
+  border-left: 3px solid var(--k3-color-accent) !important;
+}
+body.dark-theme .column.summary {
+  border-left-color: #10b981 !important;
+}
+body.dark-theme #kona3_menubar {
+  border-top: 1px solid var(--k3-color-border) !important;
+}
+body.dark-theme #kona3_menubar h1,
+body.dark-theme #kona3_menubar h2,
+body.dark-theme #kona3_menubar h3 {
+  border-bottom: 1px solid var(--k3-color-border) !important;
+}
+body.dark-theme #kona3_menubar ul li a {
+  color: var(--k3-color-text) !important;
+}
+body.dark-theme #kona3_menubar ul li a:hover {
+  background-color: var(--k3-color-bg-subtle) !important;
+  color: var(--k3-color-accent) !important;
+}
+@media screen and (min-width: 48em) {
+  body.dark-theme #kona3_menubar {
+    border-top: none !important;
+    border-left: 1px solid var(--k3-color-border) !important;
+  }
+}
+body.dark-theme .kona3_login_bar {
+  background-color: transparent !important;
+  color: var(--k3-color-text) !important;
+}
+body.dark-theme .kona3_login_bar a {
+  color: var(--k3-color-accent) !important;
+}
+body.dark-theme #wikifooter {
+  border-top: 1px solid var(--k3-color-border) !important;
+}
+body.dark-theme #wikifooter .footer_menu > span {
+  background-color: transparent !important;
+}
+body.dark-theme #wikifooter a {
+  color: var(--k3-color-text-muted) !important;
+}
+body.dark-theme #wikifooter a:hover {
+  color: var(--k3-color-accent) !important;
+}
+body.dark-theme .date,
+body.dark-theme .memo {
+  color: var(--k3-color-text-muted) !important;
+}

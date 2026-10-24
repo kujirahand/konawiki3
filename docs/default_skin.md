@@ -81,14 +81,16 @@ KonaWiki3 のデフォルトスキン `def` のデザイン方針をまとめた
 | `--k3-space-2` | `0.5em` | セル内の上下余白、リスト項目の間 |
 | `--k3-space-3` | `1em` | 段落の間、セル内の左右余白 |
 | `--k3-space-4` | `1.5em` | ブロック要素(表・コード・引用)の上下 |
-| `--k3-space-5` | `2em` | h3 以下の見出しの上 |
-| `--k3-space-6` | `3em` | h1・h2 の見出しの上、セクションの区切り |
+| `--k3-space-5` | `2em` | 見出しの上、水平線の上下 |
+| `--k3-space-6` | `3em` | 本文の末尾など、大きな区切り |
+
+`em` は指定した要素の文字サイズが基準になります。そのため、見出しの上に同じ `--k3-space-5` を使っても、文字の大きい h1・h2 ほど余白が広くなり、自然に階層が付きます。
 
 ### 幅
 
 | 変数 | 値 | 用途 |
 |------|----|------|
-| `--k3-width-content` | `48rem`(768px 相当) | 本文カラムの最大幅 |
+| `--k3-width-layout` | `64rem`(1024px 相当) | ヘッダー・本文・フッターの最大幅。PC 幅では本文が約 19/24、メニューが約 5/24 を使い、本文は 1 行 45 文字前後になります |
 | `--k3-radius` | `4px` | コード・ボタンの角丸(これ以上丸くしない) |
 
 ---
@@ -171,7 +173,15 @@ body.dark-theme {
 ```
 
 - 個々のセレクタに `body.dark-theme` 用のルールを書き足すのではなく、変数の再定義で対応します。こうすると、新しく追加したプロパティもダーク時に自動で追従します。
-- ただし `darkmode.css` には `body.dark-theme #kona3_main h2` のような、詳細度の高い固定色のルールがあります。これらは `skin/def/kona3.css` の `#kona3_main h2` より優先されるため、変数を切り替えるだけでは効きません。`darkmode.css` が色を指定している要素には、同じ詳細度のセレクタ(`body.dark-theme ...`)で変数を参照するルールを `skin/def/kona3.css` に書き、上書きします。
+- ただし `darkmode.css` には `body.dark-theme #kona3_main h2` のような、詳細度の高い固定色のルールがあります。これらは `skin/def/kona3.css` の `#kona3_main h2` より優先されるため、変数を切り替えるだけでは効きません。`darkmode.css` の指定にはすべて `!important` が付いているため、`skin/def/kona3.css` の末尾に、同じセレクタ(`body.dark-theme ...`)と `!important` で変数を参照するルールを書いて上書きします。後から読み込まれる同じ詳細度の `!important` が優先されます。
+
+```css
+body.dark-theme #kona3_main h2 {
+  border-left: 3px solid var(--k3-color-accent) !important;
+}
+```
+
+- この上書きに `!important` が付いていることは、テスト(`kona3engine/tests/skin_def.test.php`)で確認しています。
 
 ---
 
