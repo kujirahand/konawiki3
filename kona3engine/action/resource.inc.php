@@ -34,6 +34,7 @@ function kona3_action_resource() {
   else if ($ext == ".jpg" || $ext == ".jpeg") $ctype = "image/jpeg";
   // header
   header("Content-Type: ".$ctype);
+  header("X-Content-Type-Options: nosniff");
   header('Content-Length: '.filesize($file));
   readfile($file);
 }

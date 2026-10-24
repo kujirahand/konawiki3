@@ -53,6 +53,17 @@ function kona3plugins_filecode_execute($args) {
         "</div>";
     }
   }
+  // シンボリックリンク経由で data の外のファイルを読まない (#324)
+  $real = realpath($fname);
+  $data_real = realpath(KONA3_DIR_DATA);
+  if ($real === false || $data_real === false ||
+      !($real === rtrim($data_real, '/\\') ||
+        strpos($real, rtrim($data_real, '/\\') . DIRECTORY_SEPARATOR) === 0)) {
+    return "<div class='error'>Not Exists:".
+      kona3text2html($name).
+      "</div>";
+  }
+  $fname = $real;
   $url = kona3getWikiUrl($name);
   $txt = @file_get_contents($fname);
   $omit_head = false;

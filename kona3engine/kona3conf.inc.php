@@ -75,7 +75,10 @@ function kona3conf_getConfigItems()
             'skin' => ['label' => 'Skin name', 'default' => 'def', 'type' => 'select', 'items' => kona3conf_getSkinItems()],
             'allow_add_user' => ['label' => 'Allow Add User', 'default' => FALSE, 'type' => 'bool'],
             'def_text_ext' => ['label' => 'Default Text Ext', 'default' => 'md', 'type' => 'select', 'items' => ['txt', 'md']],
-            'bbs_admin_password' => ['label' => 'BBS Admin Password', 'default' => 'BBS#admin!PassWord!!', 'type' => 'string'],
+            // 既定値は空 (管理パスワードによる削除は無効)。
+            // 固定の既定値を置くと公開ソースから誰でも知ることができ、
+            // 未認証でコメントを削除できてしまうため (#324)。
+            'bbs_admin_password' => ['label' => 'BBS Admin Password', 'default' => '', 'type' => 'string'],
         ],
         'Header/Footer' => [
             'allpage_header' => ['label' => 'All Page Header', 'default' => '', 'type' => 'string', 'note' => 'wiki text'],

@@ -9,13 +9,18 @@ function kona3_action_emailLogs() {
   $q = kona3param('q');
   if ($q == 'deleteall') {
     $tm = time();
+    // 確認リンクにCSRFトークンを付ける (時刻は推測可能なため根拠にしない, #324)
+    $token = kona3_getEditToken('edit_token');
     $del = kona3getPageURL('delete', 'emailLogs', '',
-      "q=deleteall-go&time=$tm");
+      "q=deleteall-go&time=$tm&edit_token=".urlencode($token));
     return kona3showMessage(
-      lang('Delete All'), 
+      lang('Delete All'),
       lang('Really?')."--- <a href='$del'>".lang('Yes')."</a>");
   }
   if ($q == 'deleteall-go') {
+    if (!kona3_checkEditToken('edit_token')) {
+      return kona3error(lang('Invalid Token'), lang('Invalid edit token.'));
+    }
     $time = intval(kona3param('time'));
     if ((time() - $time) > 30) { // 有効期間30秒
       return kona3error('Time over', 'Please retry.');

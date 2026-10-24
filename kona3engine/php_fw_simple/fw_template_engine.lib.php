@@ -48,19 +48,22 @@ function template_render($tpl_filename, $tpl_params)
         if (file_exists($file_cache) && TEMPLATE_USE_CACHE) {
             // extract variable
             if ($FW_TEMPLATE_PARAMS) {
-                extract($FW_TEMPLATE_PARAMS);
+                extract($FW_TEMPLATE_PARAMS, EXTR_SKIP);
             }
             if ($tpl_params) {
-                extract($tpl_params);
+                extract($tpl_params, EXTR_SKIP);
             }
+            // extract で $file_cache 自身が上書きされても、確定済みの
+            // キャッシュファイル以外を実行しないよう退避してから include する (#324)
+            $__file_cache = $file_cache;
             // include
             // 壊れたキャッシュ(書き込み途中のファイルなど)を掴んだ場合は、
             // 削除して下のコンパイル処理で作り直す。
             try {
-                include($file_cache);
+                include($__file_cache);
                 return;
             } catch (ParseError $e) {
-                @unlink($file_cache);
+                @unlink($__file_cache);
             }
         }
     } else /* if (TEMPLATE_CACHE_TYPE == 'SAMEFILE') */ {
@@ -69,19 +72,22 @@ function template_render($tpl_filename, $tpl_params)
         if ($mtime_tpl < $mtime_cache && TEMPLATE_USE_CACHE) {
             // extract variable
             if ($FW_TEMPLATE_PARAMS) {
-                extract($FW_TEMPLATE_PARAMS);
+                extract($FW_TEMPLATE_PARAMS, EXTR_SKIP);
             }
             if ($tpl_params) {
-                extract($tpl_params);
+                extract($tpl_params, EXTR_SKIP);
             }
+            // extract で $file_cache 自身が上書きされても、確定済みの
+            // キャッシュファイル以外を実行しないよう退避してから include する (#324)
+            $__file_cache = $file_cache;
             // include
             // 壊れたキャッシュ(書き込み途中のファイルなど)を掴んだ場合は、
             // 削除して下のコンパイル処理で作り直す。
             try {
-                include($file_cache);
+                include($__file_cache);
                 return;
             } catch (ParseError $e) {
-                @unlink($file_cache);
+                @unlink($__file_cache);
             }
         }
     }
@@ -161,14 +167,16 @@ function template_render($tpl_filename, $tpl_params)
         },
     ], $fw_contents);
     // save cache
+    // 退避用変数は extract より前に確定させ、extract は EXTR_SKIP で
+    // 既存変数を上書きしない (パラメータ経由の任意ファイル実行を防ぐ, #324)
     $__file_cache = $file_cache;
     $__fw_contents = $fw_contents;
     // extract variable
     if ($FW_TEMPLATE_PARAMS) {
-        extract($FW_TEMPLATE_PARAMS);
+        extract($FW_TEMPLATE_PARAMS, EXTR_SKIP);
     }
     if ($tpl_params) {
-        extract($tpl_params);
+        extract($tpl_params, EXTR_SKIP);
     }
     // 同時アクセスでの書き込み競合によるキャッシュ破損(不完全なファイルのinclude)を防ぐため、
     // 一時ファイルに書いてから rename() でアトミックに置き換える。

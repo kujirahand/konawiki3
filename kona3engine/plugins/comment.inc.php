@@ -425,6 +425,18 @@ function kona3plugins_comment_action_write($page) {
   }
 }
 
+/**
+ * 掲示板管理パスワードを返す。未設定なら空文字。
+ * 旧バージョンの既定値 (公開ソースに載っていた固定値) が設定ファイルに
+ * 残っている場合は、誰でも知り得る値なので未設定として扱う (#324)。
+ */
+function kona3plugins_comment_getBbsAdminPassword() {
+  $pw = kona3getConf('bbs_admin_password', '');
+  if (!is_string($pw)) return '';
+  if ($pw === 'BBS#admin!PassWord!!') return '';
+  return $pw;
+}
+
 function kona3plugins_comment_getHash($pw, $salt) {
   return hash('sha256', $salt.'::'.$pw);
 }
@@ -531,9 +543,9 @@ function kona3plugins_comment_checkDeletePassword($row, $pw) {
       kona3plugins_comment_getHash($pw, $salt),
       $hash);
     if (!$can_delete) {
-      $bbs_admin_password = kona3getConf('bbs_admin_password', '');
-      if ($bbs_admin_password != '') {
-        if ($pw == $bbs_admin_password) { $can_delete = TRUE; }
+      $bbs_admin_password = kona3plugins_comment_getBbsAdminPassword();
+      if ($bbs_admin_password !== '') {
+        if (hash_equals($bbs_admin_password, (string)$pw)) { $can_delete = TRUE; }
       }
     }
   }
