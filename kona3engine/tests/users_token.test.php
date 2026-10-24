@@ -12,6 +12,9 @@ test_eq(__LINE__, users_checkEditToken(), TRUE, 'GETで渡した正しいトー�
 $_REQUEST['edit_token'] = 'wrong';
 test_eq(__LINE__, users_checkEditToken(), FALSE, '誤ったトークンは拒否');
 
+$_REQUEST['edit_token'] = ['x'];
+test_eq(__LINE__, users_checkEditToken(), FALSE, '配列パラメータは警告なしで拒否');
+
 unset($_REQUEST['edit_token']);
 test_eq(__LINE__, users_checkEditToken(), FALSE, 'トークン未指定は拒否');
 

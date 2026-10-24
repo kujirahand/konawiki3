@@ -98,7 +98,11 @@ function users_checkEditToken()
     if ($sessionValue === '') {
         return FALSE;
     }
-    $paramValue = trim(strval(kona3param('edit_token', '')));
+    $param = kona3param('edit_token', '');
+    if (!is_string($param)) {
+        return FALSE;
+    }
+    $paramValue = trim($param);
     return hash_equals($sessionValue, $paramValue);
 }
 
