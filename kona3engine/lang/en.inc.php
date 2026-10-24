@@ -23,6 +23,7 @@ $lang_data = [
     'Static Purge' => 'Delete static output',
     'Static Purge Confirm' => 'Delete the generated static output?',
     'Static Output' => 'Static output',
+    'Open Static Site' => 'Open generated static site',
     '%d files removed.' => '%d files removed.',
     'Generated: %d, Skipped: %d, Removed: %d, Errors: %d' => 'Generated: %d, Skipped: %d, Removed: %d, Errors: %d',
     'Warnings' => 'Warnings',

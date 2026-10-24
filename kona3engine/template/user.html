@@ -24,6 +24,11 @@
     <button class="pure-button" type="submit" name="mode" value="purge" onclick="return confirm('{{'Static Purge Confirm'|lang}}');">{{'Static Purge'|lang}}</button>
     {{endif}}
   </form>
+  {{if $static_top_url }}
+  <div style="padding:0 8px 8px;">
+    <a href="{{$static_top_url}}" target="_blank" rel="noopener">{{'Open Static Site'|lang}}</a>
+  </div>
+  {{endif}}
   {{endif}}
 </div>
 {{endif}}

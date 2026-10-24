@@ -276,6 +276,45 @@ function kona3getStaticURL($wikiName)
 }
 
 /**
+ * 生成済みの静的サイトを、このサーバー上で開くためのトップURL (#290)
+ *
+ * マイページの管理者メニューから、生成した静的サイトを素早く確認するために使う。
+ * 出力先 (`static_outdir`) が index ディレクトリからの相対パスなら、その実物は
+ * この Wiki の公開ディレクトリの下にあるので、`baseurl` + 出力先 の URL を返す。
+ * 絶対パスや `..` を含む場合はこのサーバーの URL にできないので、
+ * 公開URL (`kona3getStaticURL()` のトップ) を返す。
+ *
+ * @return string
+ */
+function kona3static_outputTopUrl()
+{
+    global $kona3conf;
+    $outdir = isset($kona3conf['static_outdir']) ? trim((string)$kona3conf['static_outdir']) : '';
+    if ($outdir === '') {
+        $outdir = 'dist';
+    }
+    $outdir = str_replace('\\', '/', $outdir);
+    $isAbsolute = ($outdir[0] === '/' || preg_match('/^[A-Za-z]:\//', $outdir) === 1);
+    $segments = [];
+    foreach (explode('/', $outdir) as $seg) {
+        if ($seg === '' || $seg === '.') {
+            continue;
+        }
+        if ($seg === '..') {
+            $segments = [];
+            break;
+        }
+        $segments[] = rawurlencode($seg);
+    }
+    if (!$isAbsolute && $segments && !empty($kona3conf['baseurl'])) {
+        return rtrim($kona3conf['baseurl'], '/') . '/' . implode('/', $segments) . '/';
+    }
+    $front = isset($kona3conf['FrontPage']) && $kona3conf['FrontPage'] !== ''
+        ? $kona3conf['FrontPage'] : 'FrontPage';
+    return kona3getStaticURL($front);
+}
+
+/**
  * アセット(スキン, resource, 添付)の公開URL (`_kona3/` 以下)
  * @param string $kind skin|resource|files
  * @param string $path 種別ごとの相対パス (`/` 区切り)

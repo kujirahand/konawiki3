@@ -20,6 +20,7 @@ function kona3_action_user() {
     return kona3error('NG', 'Sorry, unknown user');
   }
   $user_id = $u['user_id'];
+  $static_has_output = kona3static_hasOutput();
   $pages = kona3db_getPageHistoryByUserId($user_id);
   $edit_token = kona3_getEditToken('edit_token');
   // 自分自身のページかどうか (一覧から他人のページを開く場合もある)
@@ -35,7 +36,9 @@ function kona3_action_user() {
     "editConf_link" => kona3getPageURL($name, 'editConf'),
     "static_link" => kona3getPageURL($name, 'static'),
     "static_enable" => !empty($kona3conf['static_enable']),
-    "static_has_output" => kona3static_hasOutput(),
+    "static_has_output" => $static_has_output,
+    // 生成済みの静的サイトへのリンク (#290)。出力が無ければ空文字にして表示しない
+    "static_top_url" => $static_has_output ? kona3static_outputTopUrl() : '',
     "static_edit_token" => kona3_getEditToken('edit_token'),
   ]);
 }

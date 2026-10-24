@@ -294,6 +294,7 @@ CLI（`php script/build_static.php [--full]`、`just build`）も同じ処理を
 | 「すべて再生成」 | `static_enable` が有効 |
 | 「静的出力を削除」（12.8） | マニフェストに出力が記録されている（`static_enable` の値に関わらない） |
 
+- 生成済みの出力があるときは、ボタンの下に「生成した静的サイトを開く」リンクも表示する（#290。生成した静的サイトを素早く確認するため。別タブで開く）。リンク先は `kona3static_outputTopUrl()` で決める。出力先（`static_outdir`）が index ディレクトリからの相対パスなら、その実物はこの Wiki の公開ディレクトリの下にあるので「Wiki のベースURL ＋ 出力先」の URL とし、絶対パスや `..` を含む場合はこのサーバーの URL にできないので公開URL（`kona3getStaticURL()` のトップ）とする。
 - 管理者でなければ、どのボタンも表示せず、`static` アクションの呼び出しも拒否する。
 - 生成系のボタンは、`static_enable` が無効な状態で `static` アクションが呼ばれても実行しない。削除は、マニフェストに出力が記録されていれば `static_enable` が無効でも実行できる。
 - 押すと、新規アクション `static` を POST で呼び出す。CSRF トークン（`edit_token`）を必須にする。GET では実行しない。
