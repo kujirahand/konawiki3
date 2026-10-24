@@ -1,7 +1,7 @@
 <?php
 
 require_once dirname(__DIR__) . '/kona3lib.inc.php';
-header('X-Frame-Options: SAMEORIGIN');
+if (!headers_sent()) header('X-Frame-Options: SAMEORIGIN');
 
 function kona3_action_users()
 {
@@ -13,8 +13,8 @@ function kona3_action_users()
         exit;
     }
     // check edit_token
-    if (!kona3_checkEditToken()) {
-        $edit_token = kona3_getEditToken();
+    if (!users_checkEditToken()) {
+        $edit_token = kona3_getEditToken('edit_token');
         $url = kona3getPageURL('all', 'users', '', "edit_token=$edit_token");
         kona3error(lang('Invalid Token'), "<a href='$url'>Try again.</a>");
         exit;
@@ -34,7 +34,7 @@ function kona3_action_users()
         return users_updateParam("admin");
     }
 
-    $edit_token = kona3_getEditToken();
+    $edit_token = kona3_getEditToken('edit_token');
     $users = db_get(
         "SELECT * FROM users " .
             "ORDER BY user_id DESC"
@@ -90,6 +90,18 @@ function kona3_action_users()
     ]);
 }
 
+// 一覧のリンクはGETでedit_tokenを渡すので、kona3param(GET/POST両対応)で照合する
+function users_checkEditToken()
+{
+    $sname = kona3_getEditTokenKeyName('edit_token');
+    $sessionValue = isset($_SESSION[$sname]) ? trim($_SESSION[$sname]) : '';
+    if ($sessionValue === '') {
+        return FALSE;
+    }
+    $paramValue = trim(strval(kona3param('edit_token', '')));
+    return hash_equals($sessionValue, $paramValue);
+}
+
 function users_updateParam($value)
 {
     $user_id = intval(kona3param('user_id', 0));
@@ -129,6 +141,6 @@ function users_updateParam($value)
             [$user_id]
         );
     }
-    $edit_token = kona3_getEditToken();
+    $edit_token = kona3_getEditToken('edit_token');
     redirect(kona3getPageURL('ok', 'users', '', "edit_token=$edit_token"));
 }
