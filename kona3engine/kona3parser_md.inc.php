@@ -959,14 +959,16 @@ function __kona3markdown_parser_tohtml(&$text, $level)
         }
         // url
         if (preg_match('@^(http|https)\://[\w\d\.\#\$\%\&\(\)\-\=\_\~\^\|\,\.\/\?\+\!\[\]\@]+@', $text, $m) > 0) {
-            $result .= kona3markdown_parser_makeUriLink($m[0]);
-            $text = substr($text, strlen($m[0]));
+            $url = kona3markdown_parser_autolinkUrl($text, $m[0]);
+            $result .= kona3markdown_parser_makeUriLink($url);
+            $text = substr($text, strlen($url));
             continue;
         }
         // mailto
         if (preg_match('/^(mailto)\:[\w\d\.\#\$\%\&\-\=\_\~\^\.\/\?\+\@]+/', $text, $m) > 0) {
-            $result .= kona3markdown_parser_makeUriLink($m[0]);
-            $text = substr($text, strlen($m[0]));
+            $url = kona3markdown_parser_autolinkUrl($text, $m[0]);
+            $result .= kona3markdown_parser_makeUriLink($url);
+            $text = substr($text, strlen($url));
             continue;
         }
         // ruby {base|ruby}
@@ -1061,6 +1063,30 @@ function kona3markdown_parser_tosource_block($src, $params = [])
     $begin = "<div>$fname<pre class='code'>";
     $end   = "</pre></div>" . $eol;
     return $begin.$src.$end;
+}
+
+// #51: A '~' at the very end of an auto-linked URL, just before a newline
+// (or at the end of the text), is the line-break marker ("~\n" => <br/>),
+// not part of the URL. It would otherwise be absorbed into the URL and
+// point to a non-existent address (…~).
+// Returns the URL with such a trailing '~' removed; the caller leaves the
+// '~' in the remaining text, so it is still rendered as a line break.
+// A '~' inside a URL (e.g. /~user/) or one followed by other characters
+// on the same line is part of the URL and is kept.
+function kona3markdown_parser_autolinkUrl($text, $url)
+{
+    if (substr($url, -1) !== '~') {
+        return $url;
+    }
+    $rest = substr($text, strlen($url));
+    if ($rest !== '' && $rest[0] !== "\n" && $rest[0] !== "\r") {
+        return $url;
+    }
+    $trimmed = substr($url, 0, -1);
+    if ($trimmed === 'mailto:' || substr($trimmed, -3) === '://') {
+        return $url;
+    }
+    return $trimmed;
 }
 
 function kona3markdown_parser_makeUriLink($url)

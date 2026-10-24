@@ -110,6 +110,55 @@ $html = konawiki_parser_tohtml("http://example.com");
 test_assert(__LINE__, strpos($html, '<a') !== FALSE, "URLは自動リンク");
 test_assert(__LINE__, strpos($html, 'http://example.com') !== FALSE, "URLが含まれる");
 
+// --- 自動リンク末尾の '~' のテスト (#51) ---
+// 段落内では行末に改行マーカー '~' が自動で付くため、行末のURLに '~' が
+// 付いてリンク切れになっていた。'~' はURLに含めず、改行として処理する。
+$html = konawiki_parser_convert("詳しくは https://example.com/page\n次の行です", false);
+test_assert(__LINE__, strpos($html, "href='https://example.com/page'") !== false, "#51: 行末URLのhrefに '~' が付かない");
+test_assert(__LINE__, strpos($html, "https://example.com/page~") === false, "#51: 行末URLの表示にも '~' が付かない");
+test_assert(__LINE__, strpos($html, "https://example.com/page</a><br/>") !== false, "#51: 行末URLの後の改行が <br/> になる");
+
+// 利用者が明示的に書いた行末の '~' も同様に改行マーカーとして扱う
+$html = konawiki_parser_convert("https://example.com/page~\n次の行", false);
+test_assert(__LINE__, strpos($html, "href='https://example.com/page'") !== false, "#51: 明示した '~' もURLに含めない");
+test_assert(__LINE__, strpos($html, "https://example.com/page</a><br/>") !== false, "#51: 明示した '~' は <br/> になる");
+
+// URLの途中の '~' (/~user/ など) はURLの一部として保持する
+$html = konawiki_parser_convert("プロフィール https://example.com/~user/profile\n次の行", false);
+test_assert(__LINE__, strpos($html, "href='https://example.com/~user/profile'") !== false, "#51: URL途中の '~' は保持される");
+
+// 行の途中にある '~' で終わるURL (後に空白と本文が続く) はそのまま保持する
+$html = konawiki_parser_convert("backup https://example.com/file.html~ を見て\n次の行", false);
+test_assert(__LINE__, strpos($html, "href='https://example.com/file.html~'") !== false, "#51: 行途中で '~' 終わりのURLは保持される");
+
+// 文末 (後続行なし) のURLは従来どおり
+$html = konawiki_parser_convert("https://example.com/page", false);
+test_assert(__LINE__, strpos($html, "href='https://example.com/page'") !== false, "#51: 文末のURLはそのままリンクになる");
+
+// mailto も行末では同じ問題が起きるため同様に扱う
+$html = konawiki_parser_convert("連絡は mailto:foo@example.com\n次の行です", false);
+test_assert(__LINE__, strpos($html, "href='mailto:foo@example.com'") !== false, "#51: 行末mailtoのhrefに '~' が付かない");
+test_assert(__LINE__, strpos($html, "mailto:foo@example.com~") === false, "#51: 行末mailtoの表示にも '~' が付かない");
+
+// 退化ケース: スキーム直後の '~' は外さない (空スキームに縮退させない)
+$html = konawiki_parser_convert("https://~\n次の行", false);
+test_assert(__LINE__, strpos($html, "href='https://~'") !== false, "#51: スキーム直後の '~' は外さない");
+$html = konawiki_parser_convert("連絡 mailto:~\n次の行", false);
+test_assert(__LINE__, strpos($html, "href='mailto:~'") !== false, "#51: mailto直後の '~' は外さない");
+
+// 文末 (後続行なし) で末尾に '~' があるURLも、末尾の '~' は外れる
+$html = konawiki_parser_convert("https://example.com/page~", false);
+test_assert(__LINE__, strpos($html, "href='https://example.com/page'") !== false, "#51: 文末URLの末尾 '~' も外れる");
+
+// Windows改行 (CRLF) でも同様に '~' が外れて <br/> になる
+$html = konawiki_parser_convert("詳しくは https://example.com/page\r\n次の行です", false);
+test_assert(__LINE__, strpos($html, "https://example.com/page</a><br/>") !== false, "#51: CRLFでも末尾 '~' が外れて <br/> になる");
+
+// 末尾に '~~' がある場合は1つだけ外し、残りはURLの一部として保持する
+$html = konawiki_parser_convert("https://example.com/page~~\n次の行", false);
+test_assert(__LINE__, strpos($html, "href='https://example.com/page~'") !== false, "#51: 末尾 '~~' は1つだけ外れる");
+test_assert(__LINE__, strpos($html, "https://example.com/page~</a><br/>") !== false, "#51: 末尾 '~~' の外れた1つは <br/> になる");
+
 // --- エスケープのテスト ---
 $html = konawiki_parser_tohtml("<script>alert('xss')</script>");
 test_assert(__LINE__, strpos($html, '&lt;script&gt;') !== FALSE, "HTMLタグはエスケープされる");
