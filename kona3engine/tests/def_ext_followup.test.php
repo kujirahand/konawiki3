@@ -296,7 +296,23 @@ test_assert(__LINE__, isset($kona3conf['data_filename']) && substr($kona3conf['d
 if ($orig_data_filename === null) { unset($kona3conf['data_filename']); } else { $kona3conf['data_filename'] = $orig_data_filename; }
 def_ext_cleanup();
 
-// 21. Git フック: edit_ext フォールバックが実ファイル解決を使う (静的チェック)
+// 21. countpages: ignore の照合は厳密比較 (数値文字列のページ名を誤って除外しない)
+$cp5_dir_name = 'CountIgnoreNum_' . $uniq;
+$cp5_dir = $data_dir . '/' . $cp5_dir_name;
+mkdir($cp5_dir);
+$cleanup_dirs[] = $cp5_dir;
+$mk($cp5_dir_name . '/0.txt', 'ab');    // 2 chars (page "0")
+$mk($cp5_dir_name . '/00.md', 'xyz');   // 3 chars (page "00")
+kona3setConf('def_text_ext', 'md');
+// ignore=00 → ページ "00" だけが除外され、ページ "0" は数えられる
+$html = kona3plugins_countpages_execute([$cp5_dir_name, 'ignore=00']);
+test_assert(__LINE__, strpos($html, 'Total 2ch') !== false, 'countpages ignore: numeric page "0" should not match ignore=00');
+// ignore=0 → ページ "0" だけが除外され、ページ "00" は数えられる
+$html = kona3plugins_countpages_execute([$cp5_dir_name, 'ignore=0']);
+test_assert(__LINE__, strpos($html, 'Total 3ch') !== false, 'countpages ignore: numeric page "00" should not match ignore=0');
+def_ext_cleanup();
+
+// 22. Git フック: edit_ext フォールバックが実ファイル解決を使う (静的チェック)
 $hook_src = file_get_contents(dirname(__DIR__) . '/kona3page_updated.inc.php');
 test_assert(__LINE__, strpos($hook_src, 'koan3getWikiFileText($page)') !== false, 'git hook fallback should resolve the actual file via koan3getWikiFileText');
 

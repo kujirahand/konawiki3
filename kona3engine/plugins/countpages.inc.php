@@ -102,7 +102,7 @@ function glob_files($dir, $pat = "", $ignore = []) {
     $name = basename($file);
     if ($ignore) {
       $name_noext = preg_replace('/\.(txt|md)$/', '', $name);
-      if (array_search($name, $ignore) !== false || array_search($name_noext, $ignore_pages) !== false) {
+      if (array_search($name, $ignore, true) !== false || array_search($name_noext, $ignore_pages, true) !== false) {
         continue;
       }
     }
