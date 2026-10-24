@@ -81,6 +81,38 @@ chmod 766 private
 
 詳しくは、[インストール手順](https://kujirahand.com/konawiki3/index.php?install)も参照してください。
 
+### スクリプトでセットアップする場合
+
+ブラウザを使わず、コマンドラインだけで新規Wikiと管理者ユーザーを作成できます。テスト用のWikiを手軽に用意する際にも使えます。
+
+#### 手順1: 新規Wikiと管理者を同時に作成する
+
+```sh
+# パスワードはシェル履歴に残らないよう環境変数で渡すのがおすすめ
+KONA3_ADMIN_PASSWORD='secret' php script/makewiki.php /path/to/wiki --admin=admin@example.com
+```
+
+- 管理者が作成されるのは `--admin` を付けたときだけです。環境変数 `KONA3_ADMIN_USER` を設定しただけでは作成されません。
+- 管理者のIDが不正な場合やパスワードが不足している場合は、Wikiを作成する前にエラー(終了コード2)で終了します。
+
+#### 手順2: 既存のWikiに管理者を追加する
+
+```sh
+php script/create_admin.php --wiki=/path/to/wiki admin@example.com 'secret'
+# このリポジトリ自体に作る場合は --wiki を省略できる
+KONA3_ADMIN_USER=admin@example.com KONA3_ADMIN_PASSWORD='secret' php script/create_admin.php
+# 既存ユーザーの上書きは --force を付けたときだけ
+```
+
+#### 注意: 実行するOSユーザーについて
+
+スクリプトで作成したファイル(`private/kona3adminuser.json.php` や `private/kona3json_iv.bin` など)は、実行したOSユーザーの所有になります。Webサーバーと違うユーザー(たとえば root での `sudo`)で実行すると、後からWeb側でそのファイルを書き換えるときに失敗する場合があります。Webサーバーと同じユーザーで実行するか、実行後に所有者を合わせてください。
+
+```sh
+# 例: Webサーバーが www-data の場合
+chown -R www-data:www-data /path/to/wiki
+```
+
 ### Dockerを使用する場合 (ローカル環境)
 
 ターミナルから以下のコマンドを実行すると起動します。PHPのローカルサーバー機能を利用してKonawiki3を実行します。

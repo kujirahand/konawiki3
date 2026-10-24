@@ -9,7 +9,7 @@ require_once __DIR__ . '/editConf.inc.php';
 // get admin user file
 function kona3getFile_kona3adminuser_json_php()
 {
-    return KONA3_DIR_PRIVATE . '/kona3adminuser.json.php';
+    return kona3getAdminUserFile();
 }
 
 // default admin action
@@ -191,10 +191,11 @@ function kona3setup_showMessage($msg)
 
 function kona3sestup_admin_write_pw($userid, $pw)
 {
-    $file_kona3users_json = kona3getFile_kona3adminuser_json_php();
-    $salt = konawiki3_gen_pw(255);
+    // 管理画面からの保存は従来どおり管理者を1人に置き換える。
+    // 追加だけを行いたい場合は kona3createAdminUser() (#295) を使う。
+    $salt = kona3admin_genSalt();
     $hash = kona3getHash($pw, $salt); // convert to hash
-    jsonphp_save($file_kona3users_json, [
+    kona3saveAdminUsers([
         $userid => [
             'hash' => $hash,
             'salt' => $salt,
@@ -242,7 +243,7 @@ function konawiki3_gen_pw($no)
     $ch = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_#=|!%&+*@~.";
     $pw = "";
     for ($i = 0; $i < $no; $i++) {
-        $pw .= substr($ch, rand(0, strlen($ch) - 1), 1);
+        $pw .= substr($ch, random_int(0, strlen($ch) - 1), 1);
     }
     return $pw;
 }
