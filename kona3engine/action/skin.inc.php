@@ -18,6 +18,10 @@ function kona3_action_skin() {
     $ext = $m[1];
   }
   $skin = $kona3conf['skin'];
+  // 設定中以外のスキンのファイル (派生スキンが土台にする def のCSSなど)
+  if (isset($_GET['s']) && is_string($_GET['s'])) {
+    $skin = $_GET['s'];
+  }
   // check skin name
   if (!preg_match('#^[a-zA-Z0-9\_\-]+$#', $skin)) {
     header('HTTP/1.0 404 Not Found');

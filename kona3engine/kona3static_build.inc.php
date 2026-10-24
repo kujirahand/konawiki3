@@ -443,6 +443,10 @@ function kona3static_scanAssets()
         }
     };
     $sys = KONA3_STATIC_SYSTEM_DIR;
+    // def 以外のスキンは def のCSSを土台に使うため、def も出力する
+    if ($skin !== 'def') {
+        $collect(KONA3_DIR_SKIN . '/def', "$sys/skin/def/");
+    }
     $collect(KONA3_DIR_SKIN . '/' . $skin, "$sys/skin/$skin/");
     $resDir = isset($kona3conf['path_resource']) ? $kona3conf['path_resource'] : KONA3_DIR_ENGINE . '/resource';
     $collect($resDir, "$sys/resource/");

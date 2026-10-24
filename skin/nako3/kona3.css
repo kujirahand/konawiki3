@@ -1,180 +1,122 @@
 /**
- * nako3 skin
+ * KonaWiki3 Skin: nako3
+ * なでしこ3風の、淡い桜色と焦げ茶を基調にしたデザイン
+ *
+ * def スキン(skin/def/kona3.css)を土台に読み込み、その上に重ねる。
+ * 余白・表・印刷・ダークモードの仕組みは def に任せ、ここでは
+ * 変数(--k3-*)の上書きと、nako3 固有の装飾だけを書く。
  */
 
-/** kona3_header */
-#kona3_header_title a {
-	text-decoration: none;
-	color: #503020;
+/* ==========================================
+   Design tokens
+   ========================================== */
+:root {
+  --k3-color-text: #2b2220;
+  --k3-color-text-muted: #7a6058;
+  --k3-color-heading: #503020;
+  --k3-color-bg: #ffffff;
+  --k3-color-bg-subtle: #fff8f6;
+  --k3-color-border: #f3e0dc;
+  --k3-color-border-strong: #e3bdb5;
+  --k3-color-accent: #b4483f;
+  --k3-color-accent-hover: #8c3028;
+  --k3-color-on-accent: #ffffff;
+  --k3-color-summary: #10b981;
+  /* nako3 固有 */
+  --nako3-header-bg: #fff0f0;
+  --nako3-h1-bg: #fff0f0;
+  --nako3-h2-bar: #ff8080;
+  --nako3-mark1: rgba(255, 213, 79, 0.45);
+  --nako3-mark2: rgba(77, 208, 225, 0.35);
 }
+
+/* ダークテーマ。印刷時はライトに戻すため @media screen に限定 */
+@media screen {
+body.dark-theme {
+  --k3-color-text: #f0e0e0;
+  --k3-color-text-muted: #b9a3a0;
+  --k3-color-heading: #ffd9d2;
+  --k3-color-bg: #181212;
+  --k3-color-bg-subtle: #241a1a;
+  --k3-color-border: #3a2828;
+  --k3-color-border-strong: #8c5858;
+  --k3-color-accent: #ff9e94;
+  --k3-color-accent-hover: #ffc2bb;
+  --k3-color-on-accent: #181212;
+  --k3-color-summary: #34d399;
+  --nako3-header-bg: #241818;
+  --nako3-h1-bg: #2c1a1a;
+  --nako3-h2-bar: #ff8080;
+  --nako3-mark1: rgba(255, 213, 79, 0.25);
+  --nako3-mark2: rgba(77, 208, 225, 0.25);
+}
+}
+
+/* ==========================================
+   Header
+   ========================================== */
 #kona3_layout_header {
-	background-color: #fff0f0;
-	font-size: 1em;
+  background-color: var(--nako3-header-bg);
+}
+#kona3_header_title {
+  font-weight: 400;
 }
 
-/** kona3_main */
-#kona3_main h1
-{
-	background-color: #fff0f0;
+/* ==========================================
+   Headings
+   ========================================== */
+#kona3_main h1 {
+  background-color: var(--nako3-h1-bg);
+  padding: var(--k3-space-2) var(--k3-space-3);
+}
+#kona3_main h2 {
+  border-left: 5px solid var(--nako3-h2-bar);
+}
+#kona3_main h3 {
+  border-bottom: 1px dotted var(--k3-color-border-strong);
 }
 
-#kona3_main h2
-{
-	border: none;
-	border-left: 5px solid #ff8080;
-	background-color: #fffcfc;
-	color: #503020;
-	font-size: 1.2em;
-	font-weight: 700;
-	margin: 1.8em 0 1em;
-	padding: 0.5em 0.8em;
+/* ==========================================
+   Inline
+   ========================================== */
+strong.strong1 {
+  background: linear-gradient(transparent 60%, var(--nako3-mark1) 60%);
+}
+strong.strong2 {
+  background: linear-gradient(transparent 60%, var(--nako3-mark2) 60%);
 }
 
-#kona3_main h3
-{
-	border-bottom: dotted 1px silver;
-}
-
-#kona3_main h4,#kona3_main h5
-{
-	border-bottom:solid 1px #F0F0F0;
-}
-
-#kona3_main h6
-{
-	border-bottom:solid 1px #F0F0F0;
-}
-
-#kona3_main .contents .blognavi
-{
-	background-color:#FFFFC9;
-	color:#fc7819;
-}
-
-#kona3_main a:hover
-{
-	background-color:#ffa;
-	color:#00f;
-}
-
-#kona3_main a:link,#kona3_main a:active,pre.code span.tag,pre.code span.keyword
-{
-	color:#00f;
-}
-
-#kona3_main a:visited
-{
-	color:#006;
-}
-
-#kona3_main div.date
-{
-	color:#666;
-}
-
-#kona3_main img
-{
-	border:solid 1px gray;
-}
-
-#wikinavi h1,#wikinavi h2,#wikinavi h3,#wikinavi h4,#wikinavi h5,#wikinavi h6
-{
-	background-color:#E0e0FF;
-	color:#000;
-	font-size:1em;
-	font-weight:400;
-	margin:12px 0 4px;
-	padding:6px;
-}
-
-/* dark theme overrides for nako3 skin */
-body.dark-theme #kona3_header_title a {
-	color: #ffb3a7;
-}
+/* ==========================================
+   Dark mode
+   def の body.dark-theme ... の上書き(!important)より後に、同じセレクタで重ねる
+   ========================================== */
 body.dark-theme #kona3_layout_header {
-	background-color: #241818;
-	border-bottom: 1px solid #452828;
+  background-color: var(--nako3-header-bg) !important;
 }
-
 body.dark-theme #kona3_main h1 {
-	background-color: #2c1a1a;
-	border-bottom: solid 1px #452828;
+  background-color: var(--nako3-h1-bg) !important;
 }
-
 body.dark-theme #kona3_main h2 {
-	border: none !important;
-	border-left: 5px solid #ff8080 !important;
-	background-color: transparent !important;
-	color: #f1f5f9 !important;
-	padding: 0.2em 0 0.2em 0.8em !important;
+  border-left: 5px solid var(--nako3-h2-bar) !important;
 }
-
 body.dark-theme #kona3_main h3 {
-	border: none !important;
-	border-bottom: 2px solid #8c5858 !important;
-	color: #f0e0e0 !important;
+  border-bottom: 1px dotted var(--k3-color-border-strong) !important;
 }
-
-body.dark-theme #kona3_main h4,
-body.dark-theme #kona3_main h5,
-body.dark-theme #kona3_main h6 {
-	border-bottom: solid 1px #452828;
-}
-
-body.dark-theme #kona3_main .contents .blognavi {
-	background-color: #2e2e1a;
-	color: #ff9e40;
-}
-
-body.dark-theme #kona3_main a:hover {
-	background-color: #22272e;
-	color: #79c0ff;
-}
-
-body.dark-theme #kona3_main a:link,
-body.dark-theme #kona3_main a:active,
-body.dark-theme pre.code span.tag,
-body.dark-theme pre.code span.keyword {
-	color: #58a6ff;
-}
-
-body.dark-theme #kona3_main a:visited {
-	color: #a2c4ff;
-}
-
-body.dark-theme #kona3_main div.date {
-	color: #aaa;
-}
-
-body.dark-theme #wikinavi h1,
-body.dark-theme #wikinavi h2,
-body.dark-theme #wikinavi h3,
-body.dark-theme #wikinavi h4,
-body.dark-theme #wikinavi h5,
-body.dark-theme #wikinavi h6 {
-	background-color: #241c1c;
-	color: #f0e0e0;
-}
-
-body.dark-theme #kona3_menubar ul li a {
-	color: #cdd9e5 !important;
-}
-
-body.dark-theme #kona3_menubar ul li a:hover {
-	background-color: #2d2222 !important;
-	color: #ffb3a7 !important;
-}
-
 body.dark-theme strong.strong1 {
-	background: linear-gradient(transparent 60%, rgba(255, 213, 79, 0.25) 60%) !important;
-	color: inherit !important;
-	font-weight: 700 !important;
-	text-decoration: none !important;
+  background: linear-gradient(transparent 60%, var(--nako3-mark1) 60%) !important;
+  color: inherit !important;
+}
+body.dark-theme strong.strong2 {
+  background: linear-gradient(transparent 60%, var(--nako3-mark2) 60%) !important;
+  color: inherit !important;
 }
 
-body.dark-theme strong.strong2 {
-	background: linear-gradient(transparent 60%, rgba(77, 208, 225, 0.25) 60%) !important;
-	color: inherit !important;
-	font-weight: 700 !important;
-	text-decoration: none !important;
+/* ==========================================
+   Print
+   ========================================== */
+@media print {
+  #kona3_layout_header,
+  #kona3_main h1 {
+    background-color: transparent;
+  }
 }

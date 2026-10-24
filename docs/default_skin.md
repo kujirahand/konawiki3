@@ -34,14 +34,16 @@ KonaWiki3 のデフォルトスキン `def` のデザイン方針をまとめた
 2. kona3engine/resource/grids-responsive-min.css
 3. kona3engine/resource/kona3def.css            # 全スキン共通の基本スタイル
 4. kona3engine/resource/darkmode.css            # 全スキン共通のダークモード
-5. skin/def/kona3.css                           # def スキン固有のスタイル ← ここに書く
-6. drawer.css                                   # ドロワーメニュー
+5. skin/def/kona3.css                           # def のスタイル ← ここに書く(全スキンの土台)
+6. skin/{スキン名}/kona3.css                    # 派生スキンのスタイル(def 以外のとき)
+7. drawer.css                                   # ドロワーメニュー
 ```
 
 ### 方針
 
 - **デザインの変更は `skin/def/kona3.css` に書きます。**
-- `kona3engine/resource/kona3def.css` は aqua・nako3・single など **全スキンの土台** です。各スキンは一部だけを上書きし、残りは `kona3def.css` に頼っています。そのため、`def` の見た目を変える目的で `kona3def.css` を編集してはいけません。全スキンに共通するバグ修正だけを `kona3def.css` で行います。
+- `skin/def/kona3.css` は、aqua・nako3・single など **派生スキンの土台** でもあります。派生スキンは `def` の変数(`--k3-*`)を上書きし、そのスキン固有の装飾だけを足しています。そのため、`def` の変更は派生スキンにも反映されます。`def` を変えたら、派生スキンの表示も確認してください。
+- `kona3engine/resource/kona3def.css` は全スキン共通の、さらに下の土台です。`def` の見た目を変える目的で `kona3def.css` を編集してはいけません。全スキンに共通するバグ修正だけを `kona3def.css` で行います。
 - `darkmode.css` には手を入れず、`def` 固有のダーク配色は `skin/def/kona3.css` の中で定義します(「5. ダークモード」を参照)。
 
 ---
@@ -206,5 +208,5 @@ body.dark-theme #kona3_main h2 {
 - [ ] 主なプラグインの出力(コメント、タグ、filecode、目次など)
 - [ ] 印刷プレビュー
 - [ ] 静的出力(`just build`)したページ
-- [ ] スキンを aqua・nako3・single に切り替えても見た目が変わっていないこと
+- [ ] スキンを aqua・nako3・single に切り替えても崩れないこと(ライト・ダーク)
 - [ ] `just test` が全件パスすること

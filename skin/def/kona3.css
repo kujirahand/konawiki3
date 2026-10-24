@@ -433,9 +433,21 @@ hr {
 .pure-button {
   border-radius: var(--k3-radius);
 }
-.pure-button-primary {
+.pure-button-primary,
+#kona3_main .pure-button.pure-button-primary {
   background-color: var(--k3-color-accent);
+  border: 1px solid var(--k3-color-accent);
   color: var(--k3-color-on-accent);
+}
+/* 本文中の通常ボタン(コメント投稿など)は、Pure.css の灰色ではなく配色に合わせる */
+#kona3_main .pure-button {
+  background-color: var(--k3-color-bg-subtle);
+  border: 1px solid var(--k3-color-border);
+  color: var(--k3-color-text);
+}
+#kona3_main .pure-button:hover {
+  background-image: none;
+  border-color: var(--k3-color-border-strong);
 }
 #wikifooter .pure-button {
   background-color: transparent;
