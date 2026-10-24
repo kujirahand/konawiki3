@@ -71,13 +71,19 @@ function kona3plugins_ref_render($args, $force_image = FALSE, $plugin_name = 're
         $url_path = $rawurl;
     }
     $ext = strtolower(pathinfo($url_path, PATHINFO_EXTENSION));
+    // Is image? (パス側の拡張子か、クエリの f= の拡張子のどちらかで判定する)
+    $image_type = kona3getConf("image_pattern", "(jpg|jpeg|png|gif|ico|svg|webp)");
+    $pattern = "#^($image_type)$#";
     // image.php?f=xxx.png のように、クエリの f= に画像ファイル名がある場合も拡張子として扱う
+    // ただし f= の拡張子が画像の場合だけ差し替える。無条件に上書きすると、
+    // photo.jpg?f=doc.pdf のようにパス側が画像のURLまでリンク化されてしまうため、
+    // 「パスとクエリのいずれかが画像なら画像とする」判定にする。
     $query = parse_url($rawurl, PHP_URL_QUERY);
     if ($query) {
         parse_str($query, $qs);
         if (isset($qs['f']) && is_string($qs['f'])) {
             $qext = strtolower(pathinfo($qs['f'], PATHINFO_EXTENSION));
-            if ($qext !== '') {
+            if ($qext !== '' && preg_match($pattern, $qext)) {
                 $ext = $qext;
             }
         }
@@ -93,8 +99,6 @@ function kona3plugins_ref_render($args, $force_image = FALSE, $plugin_name = 're
         $url = kona3htmlspecialchars($url2);
     }
     // Is image?
-    $image_type = kona3getConf("image_pattern", "(jpg|jpeg|png|gif|ico|svg|webp)");
-    $pattern = "#^($image_type)$#";
     if ($force_image || preg_match($pattern, $ext)) {
         // image
         $use_zoom = $zoom && ($link == '');

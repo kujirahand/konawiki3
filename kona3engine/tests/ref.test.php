@@ -40,4 +40,17 @@ test_assert(__LINE__, strpos($html, '<img src=') !== false, '#ref: image.php?t=.
 $html = kona3plugins_ref_execute(['https://n3s.nadesi.com/image.php?f=48.png']);
 test_assert(__LINE__, strpos($html, '<img src=') !== false, '#ref: image.php?f=xxx.png is an image');
 $html = kona3plugins_ref_execute(['https://example.com/download.php?f=doc.pdf']);
-test_assert(__LINE__, strpos($html, '<img') === false, '#ref: image.php?f=xxx.pdf is not an image');
+test_assert(__LINE__, strpos($html, '<img') === false, '#ref: download.php?f=xxx.pdf is not an image');
+// 大文字の拡張子も画像として扱う
+$html = kona3plugins_ref_execute(['https://n3s.nadesi.com/image.php?f=48.PNG']);
+test_assert(__LINE__, strpos($html, '<img src=') !== false, '#ref: image.php?f=xxx.PNG (uppercase) is an image');
+// パス側が画像なら、クエリの f= が非画像でも画像のままにする (f= で無条件に上書きしない)
+$html = kona3plugins_ref_execute(['https://example.com/photo.jpg?f=doc.pdf']);
+test_assert(__LINE__, strpos($html, '<img src=') !== false, '#ref: photo.jpg?f=doc.pdf stays an image');
+// 拡張子なし・空値・配列指定の f= では画像にせず、警告も出さない
+$html = kona3plugins_ref_execute(['https://example.com/image.php?f=123']);
+test_assert(__LINE__, strpos($html, '<img') === false, '#ref: image.php?f=123 (no extension) is not an image');
+$html = kona3plugins_ref_execute(['https://example.com/image.php?f=']);
+test_assert(__LINE__, strpos($html, '<img') === false, '#ref: image.php?f= (empty) is not an image');
+$html = kona3plugins_ref_execute(['https://example.com/image.php?f[]=48.png']);
+test_assert(__LINE__, strpos($html, '<img') === false, '#ref: image.php?f[]=xxx.png (array) is not an image');
