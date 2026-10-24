@@ -50,7 +50,12 @@ function kona3setup_config()
     }
     $editTokenKey = 'edit_token';
     $file_conf = KONA3_DIR_PRIVATE . '/kona3conf.json.php';
-    $conf = jsonphp_load($file_conf, []);
+    try {
+        $conf = jsonphp_load($file_conf, [], false, true);
+    } catch (JsonphpLoadException $e) {
+        kona3setup_error('Config file is corrupted: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8'));
+        exit;
+    }
     kona3conf_setWikiConf($conf);
     // check arguments
     $q = empty($_REQUEST['q']) ? '' : $_REQUEST['q'];

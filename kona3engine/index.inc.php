@@ -76,6 +76,9 @@ function kona3index_loadConf()
     $file_kona3conf_json = KONA3_DIR_PRIVATE . '/kona3conf.json.php';
     if (file_exists($file_kona3conf_json)) {
         // load config file
+        // ファイルが壊れている場合は jsonphp_load() が error_log に残す (#297)。
+        // ここではサイト全体を落とさないよう strict にはせず既定値で継続する。
+        // 設定の表示・保存を行う管理画面側では strict で読み、破損時は中断する。
         include_once KONA3_DIR_ENGINE . '/jsonphp.lib.php';
         $conf = jsonphp_load($file_kona3conf_json, []);
         foreach ($conf as $k => $v) { // overwrite config
