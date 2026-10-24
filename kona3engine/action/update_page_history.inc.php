@@ -78,40 +78,46 @@ function kona3_action_update_page_history()
 }
 
 // data以下の履歴登録対象 (.txt/.md) を再帰的に列挙する
+// ディレクトリツリーの走査は1回だけ行う
+// (拡張子ごとに走査するとサブディレクトリ探索が重複するため)
 function kona3_update_page_history_files($data_dir)
 {
-    $files = array_merge(
-        kona3_update_page_history_glob($data_dir . '/*.txt'),
-        kona3_update_page_history_glob($data_dir . '/*.md')
-    );
-    sort($files);
+    $files = [];
+    kona3_update_page_history_collect($data_dir, $files);
+    sort($files, SORT_STRING);
     return $files;
 }
 
-function kona3_update_page_history_glob($pattern) {
-    $files = glob($pattern);
-    if ($files === false) {
-        $files = [];
+function kona3_update_page_history_collect($dir, &$files)
+{
+    $entries = @scandir($dir);
+    if ($entries === false) {
+        return;
     }
-    $dirs = glob(dirname($pattern) . '/*', GLOB_ONLYDIR);
-    if ($dirs === false) {
-        $dirs = [];
-    }
-
-    foreach ($dirs as $dir) {
-        // 隠しディレクトリ (.meta など) の中身はページファイルではない
-        if (strpos(basename($dir), '.') === 0) {
+    foreach ($entries as $name) {
+        // 隠しファイル/隠しディレクトリ (.meta など) は
+        // ページファイルではないので対象にしない
+        if ($name === '.' || $name === '..' || $name[0] === '.') {
             continue;
         }
-        $files = array_merge($files, kona3_update_page_history_glob($dir . '/' . basename($pattern)));
+        $path = $dir . '/' . $name;
+        if (is_dir($path)) {
+            kona3_update_page_history_collect($path, $files);
+        } else if (is_file($path) && preg_match('/\.(txt|md)$/', $name)) {
+            $files[] = $path;
+        }
     }
-
-    return $files;
 }
 
 function kona3_update_page_history_process_file($file_path, $data_dir) {
     // ファイル名からページ名を取得（拡張子を除去）
-    $relative_path = str_replace($data_dir . '/', '', $file_path);
+    // パス区切りは環境によらず '/' にそろえてから接頭辞を取り除く
+    $path_norm = str_replace('\\', '/', $file_path);
+    $prefix = rtrim(str_replace('\\', '/', $data_dir), '/') . '/';
+    $relative_path = $path_norm;
+    if (strpos($path_norm, $prefix) === 0) {
+        $relative_path = substr($path_norm, strlen($prefix));
+    }
     $page_name = preg_replace('/\.(txt|md)$/', '', $relative_path);
 
     // README.mdなどのシステムファイルはスキップ

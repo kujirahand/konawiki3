@@ -118,13 +118,16 @@ test_assert(__LINE__, !file_exists($legacyFile) || $legacyBackup !== null, 'upda
 // 対象ファイルの列挙は .txt と .md の両方を含む
 $upDir = KONA3_DIR_DATA . '/HistoryFiles_' . time();
 @mkdir($upDir . '/sub', 0777, TRUE);
+@mkdir($upDir . '/.secret', 0777, TRUE);
 file_put_contents($upDir . '/A.txt', 'a');
 file_put_contents($upDir . '/B.md', 'b');
 file_put_contents($upDir . '/C.json', 'c');
 file_put_contents($upDir . '/sub/D.md', 'd');
+file_put_contents($upDir . '/.hidden.txt', 'hidden file');
+file_put_contents($upDir . '/.secret/Hidden.txt', 'hidden dir');
 $found = array_map('basename', kona3_update_page_history_files($upDir));
 sort($found);
-test_eq(__LINE__, $found, ['A.txt', 'B.md', 'D.md'], 'update_page_history: .txt/.md を再帰的に列挙する');
+test_eq(__LINE__, $found, ['A.txt', 'B.md', 'D.md'], 'update_page_history: .txt/.md を再帰的に列挙し、隠しファイル/隠しフォルダは除く');
 // 登録処理 (.md も登録でき、編集画面の履歴に出る)
 ob_start();
 $registered = kona3_update_page_history_process_file($upDir . '/B.md', KONA3_DIR_DATA);
@@ -138,5 +141,8 @@ test_eq(__LINE__, $upHistory[0]['body'], 'b', 'update_page_history: 登録した
 @unlink($upDir . '/B.md');
 @unlink($upDir . '/C.json');
 @unlink($upDir . '/sub/D.md');
+@unlink($upDir . '/.hidden.txt');
+@unlink($upDir . '/.secret/Hidden.txt');
 @rmdir($upDir . '/sub');
+@rmdir($upDir . '/.secret');
 @rmdir($upDir);
