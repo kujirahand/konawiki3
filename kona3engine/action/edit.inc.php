@@ -402,7 +402,10 @@ function edit_command($cmd)
             [$history_id, $hash]
         );
         if ($r) {
-            $edit_token = kona3_getEditToken($page, FALSE);
+            // 編集トークンは "edit_token" キーで発行したものを使う (#46)。
+            // ページ名をキーにすると、照合側 (kona3_checkEditToken
+            // ("edit_token")) とは別のトークンになってしまう。
+            $edit_token = kona3_getEditToken("edit_token", FALSE);
             $url = kona3getPageURL($page, "edit", "", "edit_token=$edit_token");
             return kona3showMessage(
                 'DELETE History',

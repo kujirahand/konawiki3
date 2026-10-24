@@ -214,13 +214,53 @@ function kona3db_getUserNameById($user_id)
 }
 
 
+// ページの履歴を探すための page_id 候補を返す (#46)
+// 履歴 (page_history) は page_id でしか引けないため、pages テーブル
+// 上の ID と食い違う ID で登録された履歴は、DB に残っていても
+// 編集画面の履歴一覧に出てこなかった。食い違いが起きる主な経路:
+// - 旧方式の .kona3_page_id.json (レガシーID) で登録された履歴
+// - update_page_history アクションが独自に割り振った ID の履歴
+// そのため、現在の ID に加えて、このページ名に対するレガシーIDも
+// 候補にする。ただしレガシーIDが pages 上で別ページに割り当て
+// 済みの場合は、その履歴は別ページのものなので候補にしない。
+function kona3db_getPageIdsForHistory($page)
+{
+    $ids = [];
+    $page_id = intval(kona3db_getPageId($page));
+    if ($page_id > 0) {
+        $ids[] = $page_id;
+    }
+    $legacy_ids = kona3db_loadLegacyPageIds();
+    if (isset($legacy_ids[$page])) {
+        $raw = $legacy_ids[$page];
+        $legacy_id = 0;
+        if (is_int($raw) || (is_string($raw) && ctype_digit(trim($raw)))) {
+            $legacy_id = intval($raw);
+        }
+        if ($legacy_id > 0 && !in_array($legacy_id, $ids, TRUE)) {
+            $owner = db_get1(
+                "SELECT name FROM pages WHERE page_id=?",
+                [$legacy_id]
+            );
+            if (!$owner || (isset($owner['name']) && $owner['name'] === $page)) {
+                $ids[] = $legacy_id;
+            }
+        }
+    }
+    return $ids;
+}
+
 function kona3db_getPageHistory($page, $edit_token)
 {
-    $page_id = kona3db_getPageId($page);
+    $page_ids = kona3db_getPageIdsForHistory($page);
+    if (count($page_ids) === 0) {
+        return [];
+    }
+    $placeholders = implode(',', array_fill(0, count($page_ids), '?'));
     $r = db_get(
         "SELECT * FROM page_history " .
-            "WHERE page_id=? ORDER BY history_id DESC",
-        [$page_id]
+            "WHERE page_id IN ($placeholders) ORDER BY history_id DESC",
+        $page_ids
     );
     if ($r) {
         foreach ($r as &$v) {

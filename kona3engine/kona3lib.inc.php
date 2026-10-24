@@ -1208,8 +1208,8 @@ function kona3_getEditToken($key = 'default', $update = FALSE)
 // 戻り値: 'ok' | 'no_session_token' | 'no_post_token' | 'mismatch'
 // - no_session_token: セッション側にトークンがない (セッション切れ等で、
 //   フォームを開いたときのセッションが失われている)
-// - no_post_token: 送信データにトークンが含まれていない
-//   (古いフォームやトークンなしの送信)
+// - no_post_token: 送信データ (POST、なければ GET) にトークンが
+//   含まれていない (古いフォームやトークンなしの送信)
 // - mismatch: トークンが一致しない (別のタブでフォームを開き直して
 //   トークンが更新された、期限切れで再発行された等)
 function kona3_checkEditTokenReason($key = 'default')
@@ -1222,6 +1222,16 @@ function kona3_checkEditTokenReason($key = 'default')
     }
     $postRaw = kona3post($key, '');
     $postValue = is_string($postRaw) ? trim($postRaw) : '';
+    if ($postValue === '') {
+        // GETリンクでトークンを渡す画面もあるため、POSTになければGETも見る (#46)。
+        // 履歴の表示/削除リンク (kona3db_getPageHistory が生成) や
+        // ユーザー一覧のリンクは GET で edit_token を渡す設計で、
+        // #126 では GET も照合していたが、#132 の理由付き化で
+        // POST のみに後退し、履歴削除リンクが常に Invalid Token に
+        // なっていた。POST を優先し、値が送られた場合だけ GET を使う。
+        $getRaw = isset($_GET[$key]) ? $_GET[$key] : '';
+        $postValue = is_string($getRaw) ? trim($getRaw) : '';
+    }
     if ($postValue === '') {
         return 'no_post_token';
     }
