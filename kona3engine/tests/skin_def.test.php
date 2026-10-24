@@ -51,10 +51,10 @@ foreach ($used_vars as $name) {
     test_assert(__LINE__, in_array($name, $root_vars), "used variable $name is defined in :root");
 }
 
-// 5. darkmode.css の上書き(body.dark-theme の子孫セレクタ)は !important を付けていること
-//    darkmode.css が !important で指定しているため、付けないと効かない
+// 5. darkmode.css が変数化されたため(#294)、ダーク用の上書きに !important は不要なこと
+//    def のダーク配色は、冒頭の変数ブロックで --k3-* と --k3d-* を再定義して完結する。
+//    子孫セレクタのルールが残る場合(見出しアンカーなど)も、詳細度で上書きし !important は付けない
 preg_match_all('#([^{}]+)\{([^{}]*)\}#', $css_nc, $rules, PREG_SET_ORDER);
-$dark_rule_count = 0;
 foreach ($rules as $rule) {
     $selector = trim($rule[1]);
     // セレクタリストのどれか1つでも body.dark-theme の子孫セレクタなら対象にする
@@ -67,13 +67,11 @@ foreach ($rules as $rule) {
     if (!$is_dark_override) {
         continue;
     }
-    $dark_rule_count++;
     $decls = array_filter(array_map('trim', explode(';', $rule[2])));
     foreach ($decls as $decl) {
-        test_assert(__LINE__, strpos($decl, '!important') !== false, "dark override has !important: $selector { $decl }");
+        test_assert(__LINE__, strpos($decl, '!important') === false, "dark override must not need !important: $selector { $decl }");
     }
 }
-test_assert(__LINE__, $dark_rule_count > 0, "dark override rules exist");
 
 // 6. 色コードは変数の定義(:root と body.dark-theme)にだけ書き、個々のルールでは変数を参照すること
 foreach ($rules as $rule) {

@@ -67,5 +67,8 @@ foreach (['def', 'aqua', 'nako3', 'single'] as $skin) {
 }
 
 // ダークモードでも、表の上端の罫線を表示すること
+// darkmode.css の変数化(#294)で、ダーク用に表の罫線を消す指定はなくなった。
+// そのため、通常の(ライト用の)ルールの border-top がダークでもそのまま効く
 $css = file_get_contents(KONA3_DIR_SKIN . '/def/kona3.css');
-test_assert(__LINE__, preg_match('#body\.dark-theme \#kona3_main table tr:first-child > th,\s*body\.dark-theme \#kona3_main table tr:first-child > td\s*\{\s*border-top:[^;]*!important#', $css) === 1, "def: dark table keeps the top border");
+test_assert(__LINE__, preg_match('#\#kona3_main table tr:first-child > th,\s*\#kona3_main table tr:first-child > td\s*\{\s*border-top:#', $css) === 1, "def: table keeps the top border rule");
+test_assert(__LINE__, strpos($css, 'body.dark-theme #kona3_main table') === false, "def: no dark table override (darkmode.css is variable-based)");

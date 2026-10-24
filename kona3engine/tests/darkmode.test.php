@@ -19,6 +19,42 @@ test_assert(__LINE__, strpos($css_content, 'body.dark-theme #wikifooter a') !== 
 test_assert(__LINE__, strpos($css_content, 'body.dark-theme .memo') !== false, "darkmode.css defines .memo dark mode overrides");
 
 
+// 1b. darkmode.css は CSS 変数(--k3d-*)で配色を切り替える (#294)
+test_assert(__LINE__, strpos($css_content, '--k3d-bg') !== false, "darkmode.css defines --k3d-* variables");
+test_assert(__LINE__, strpos($css_content, 'var(--k3d-') !== false, "darkmode.css rules use var(--k3d-*)");
+test_assert(__LINE__, strpos($css_content, '@media screen') !== false, "darkmode.css applies dark colors only on screen (not in print)");
+// !important は、インラインスタイルのハイライト色を上書きする箇所だけに残す
+$css_nc = preg_replace('#/\*.*?\*/#s', '', $css_content);
+test_assert(__LINE__, substr_count($css_nc, '!important') <= 5, "darkmode.css uses !important only for PHP highlight overrides");
+foreach (explode("\n", $css_nc) as $line) {
+    if (strpos($line, '!important') !== false) {
+        test_assert(__LINE__, strpos($line, 'span[style') !== false, "darkmode.css !important only on highlight span rules: $line");
+    }
+}
+
+// 1c. --k3d-* 変数の定義と参照に誤記がないこと (#294)
+//     darkmode.css で定義した変数だけが、darkmode.css と各スキンで参照・再定義されること
+preg_match_all('#(--k3d-[a-z0-9\-]+)\s*:#', $css_nc, $m);
+$k3d_defined = array_unique($m[1]);
+test_assert(__LINE__, count($k3d_defined) > 30, "darkmode.css defines many --k3d-* variables");
+preg_match_all('#var\(\s*(--k3d-[a-z0-9\-]+)#', $css_nc, $m);
+foreach (array_unique($m[1]) as $name) {
+    test_assert(__LINE__, in_array($name, $k3d_defined), "darkmode.css: used variable $name is defined");
+}
+foreach (['def', 'aqua', 'nako3', 'single'] as $skin) {
+    $skin_css = preg_replace('#/\*.*?\*/#s', '', file_get_contents(KONA3_DIR_SKIN . "/$skin/kona3.css"));
+    // スキンが再定義する --k3d-* は、darkmode.css に実在する変数であること(タイポ検出)
+    preg_match_all('#(--k3d-[a-z0-9\-]+)\s*:#', $skin_css, $m);
+    foreach (array_unique($m[1]) as $name) {
+        test_assert(__LINE__, in_array($name, $k3d_defined), "$skin: redefined variable $name exists in darkmode.css");
+    }
+    // スキンが参照する --k3d-* も、darkmode.css で定義済みであること
+    preg_match_all('#var\(\s*(--k3d-[a-z0-9\-]+)#', $skin_css, $m);
+    foreach (array_unique($m[1]) as $name) {
+        test_assert(__LINE__, in_array($name, $k3d_defined), "$skin: used variable $name is defined in darkmode.css");
+    }
+}
+
 // 2. Check if parts_header.html contains toggle button and inline JS to restore preference
 $parts_header = dirname(__DIR__) . '/template/parts_header.html';
 test_assert(__LINE__, file_exists($parts_header), "parts_header.html exists");

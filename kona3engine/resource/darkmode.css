@@ -1,85 +1,219 @@
-/* Dark Mode Override for KonaWiki3 */
+/* Dark Mode for KonaWiki3
+ *
+ * ダークモードの配色は、すべて CSS 変数(--k3d-*)で定義する。
+ * body.dark-theme では変数の値だけを切り替え、各ルールは変数を参照する。
+ * スキンは --k3d-* を上書きするだけでダークモードの配色を変えられる。
+ * (def 系スキンの --k3-* トークンが定義されていれば、そちらも参照する。)
+ *
+ * !important は使わない。ただし、PHP のハイライト表示(highlight_string)が
+ * インラインスタイルで付ける色を上書きする箇所だけは、仕様上必要なので残す。
+ *
+ * 印刷時はダークの配色を使わないため、全体を @media screen に限定する。
+ */
+@media screen {
+
+/* ==========================================
+   Dark palette (CSS variables)
+   ========================================== */
+body.dark-theme {
+  --k3d-bg: var(--k3-color-bg, #121212);
+  --k3d-text: var(--k3-color-text, #e0e0e0);
+  --k3d-heading: var(--k3-color-heading, #e0e0ff);
+  --k3d-link: var(--k3-color-accent, #58a6ff);
+  --k3d-link-hover: var(--k3-color-accent-hover, #fff);
+  --k3d-link-hover-bg: #333;
+  /* header */
+  --k3d-header-bg: var(--k3-color-bg, #1e1e1e);
+  --k3d-header-border: var(--k3-color-border, #333);
+  --k3d-header-title: var(--k3-color-heading, #58a6ff);
+  --k3d-pagename: var(--k3-color-text-muted, #aaa);
+  /* headings */
+  --k3d-h1-bg: #1a1a2e;
+  --k3d-h1-border: var(--k3-color-border-strong, #444);
+  --k3d-h2-bg: #1e293b;
+  --k3d-h2-bar: 5px solid var(--k3-color-accent, #3b82f6);
+  --k3d-h2-color: var(--k3-color-heading, #f1f5f9);
+  --k3d-h3-border: 2px solid var(--k3-color-border, #334155);
+  --k3d-h3-color: var(--k3-color-heading, #cbd5e1);
+  --k3d-h4-border: 1px solid #333;
+  --k3d-h4-color: var(--k3-color-heading, #b0b0b0);
+  /* tables */
+  --k3d-tbody-border: 1px solid #444;
+  --k3d-th-bg: var(--k3-color-bg-subtle, #2a2a2a);
+  --k3d-th-color: #d0d0ff;
+  --k3d-cell-border-bottom: 1px solid var(--k3-color-border, #444);
+  --k3d-cell-border-right: 1px solid #444;
+  --k3d-td-bg: #1a1a1a;
+  /* forms */
+  --k3d-field-bg: #222;
+  --k3d-field-fg: #e0e0e0;
+  --k3d-field-border: #555;
+  --k3d-button-bg: #333;
+  --k3d-button-hover-bg: #444;
+  --k3d-button-hover-fg: #fff;
+  --k3d-disabled-fg: #666;
+  --k3d-disabled-border: #333;
+  /* wikimessage */
+  --k3d-msg-bg: #1e1e1e;
+  --k3d-msg-box-bg: var(--k3-color-bg-subtle, #1a1a2e);
+  --k3d-msg-border: var(--k3-color-border, #444);
+  --k3d-msg-h-bg: var(--k3-color-bg-subtle, #1e1e3f);
+  --k3d-msg-h-color: var(--k3-color-heading, #d0d0ff);
+  --k3d-msg-h2-border: var(--k3-color-border, #555);
+  --k3d-msg-h2-left: var(--k3-color-border-strong, #555);
+  --k3d-msg-h3-color: var(--k3-color-heading, #c0c0ff);
+  --k3d-msg-h3-border-bottom: 1px dotted #555;
+  /* drawer menu */
+  --k3d-drawer-bg: #222;
+  --k3d-drawer-border: #333;
+  --k3d-drawer-link: #bbb;
+  --k3d-drawer-hover: #fff;
+  /* code */
+  --k3d-code-bg: var(--k3-color-bg-subtle, #1a1a1a);
+  --k3d-code-fg: var(--k3-color-text, #e0e0e0);
+  --k3d-code-border: var(--k3-color-border, #333);
+  /* 素の code 要素は、従来スキン側の上書き対象ではなく汎用色のままだったため、
+     専用トークンで従来の値を維持する */
+  --k3d-inline-code-bg: #1a1a1a;
+  --k3d-inline-code-fg: #e0e0e0;
+  --k3d-inline-code-border: #333;
+  /* comment plugin */
+  --k3d-comment-title-bg: var(--k3-color-bg-subtle, #1a1a2e);
+  --k3d-comment-title-fg: var(--k3-color-text, #e0e0ff);
+  --k3d-comment-border: #444;
+  --k3d-comment-border-left: #555;
+  --k3d-comment-faint: #888;
+  /* todo plugin */
+  --k3d-todo-bg: #1b3d1b;
+  --k3d-todo-fg: #8ce68c;
+  /* navi / sidebar */
+  --k3d-navi-bg: #1a1a2e;
+  --k3d-navi-h-bg: #1e1e3f;
+  /* menubar */
+  --k3d-menubar-h-border: 1px dotted #444;
+  --k3d-menubar-border: var(--k3-color-border, #334155);
+  --k3d-menubar-link: var(--k3-color-accent, #58a6ff);
+  --k3d-menubar-hover-bg: #21262d;
+  --k3d-menubar-hover-fg: var(--k3-color-accent, #79c0ff);
+  /* edit */
+  --k3d-edit-bg: var(--k3-color-bg-subtle, #1a1a2e);
+  --k3d-sub-fg: #aaa;
+  /* login bar */
+  --k3d-loginbar-bg: var(--k3-color-bg, #121212);
+  /* strong (highlight) */
+  --k3d-strong1-bg: #f5c21155;
+  --k3d-strong1-fg: #f7d060;
+  --k3d-strong2-bg: #00b4d855;
+  --k3d-strong2-fg: #90e0ef;
+  /* column / resmark */
+  --k3d-column-bg: var(--k3-color-bg-subtle, #1e293b);
+  --k3d-column-border: var(--k3-color-border, #334155);
+  --k3d-column-bar: 4px solid var(--k3-color-accent, #3b82f6);
+  --k3d-column-summary-bg: #0f172a;
+  --k3d-column-summary-border: #1e293b;
+  --k3d-column-summary-bar: var(--k3-color-summary, #10b981);
+  --k3d-column-h-border: 1px solid var(--k3-color-border, #334155);
+  --k3d-column-h2-border: 2px solid #334155;
+  --k3d-column-h2-fg: #cbd5e1;
+  --k3d-resmark-bar: 4px solid var(--k3-color-border-strong, #475569);
+  --k3d-resmark-bg: #1e293b;
+  --k3d-resmark-fg: var(--k3-color-text-muted, #94a3b8);
+  /* footer */
+  --k3d-footer-border: var(--k3-color-border, #333);
+  --k3d-footer-span-bg: #1e1e1e;
+  --k3d-footer-link: var(--k3-color-accent, #58a6ff);
+  --k3d-footer-hover: var(--k3-color-accent, #fff);
+  /* misc */
+  --k3d-ai-ng: #ff6b6b;
+  --k3d-ai-ok: #4dadff;
+  --k3d-tag-link: var(--k3-color-accent, #79c0ff);
+  --k3d-tag-hover-fg: var(--k3-color-accent-hover, #fff);
+  --k3d-tag-hover-bg: #31363d;
+  --k3d-memo: var(--k3-color-text-muted, #aaa);
+  --k3d-date-link: var(--k3-color-text-muted, #79c0ff);
+  --k3d-date-hover: #fff;
+}
 
 body.dark-theme {
-  background-color: #121212 !important;
-  color: #e0e0e0 !important;
+  background-color: var(--k3d-bg);
+  color: var(--k3d-text);
 }
 
 /* layout & header */
 body.dark-theme #kona3_layout_header {
-  background-color: #1e1e1e !important;
-  border-bottom: 1px solid #333 !important;
+  background-color: var(--k3d-header-bg);
+  border-bottom: 1px solid var(--k3d-header-border);
 }
 
 body.dark-theme #kona3_header_title a {
-  color: #58a6ff !important;
+  color: var(--k3d-header-title);
 }
 
 body.dark-theme #kona3_header_title .pagename {
-  color: #aaa !important;
+  color: var(--k3d-pagename);
 }
 
 /* main content headings */
 body.dark-theme #kona3_main h1 {
-  background-color: #1a1a2e !important;
-  border-bottom: solid 1px #444 !important;
-  color: #e0e0ff !important;
+  background-color: var(--k3d-h1-bg);
+  border-bottom: 1px solid var(--k3d-h1-border);
+  color: var(--k3d-heading);
 }
 
 body.dark-theme #kona3_main h2 {
-  border: none !important;
-  border-left: 5px solid #3b82f6 !important;
-  background-color: #1e293b !important;
-  color: #f1f5f9 !important;
+  border: none;
+  border-left: var(--k3d-h2-bar);
+  background-color: var(--k3d-h2-bg);
+  color: var(--k3d-h2-color);
 }
 
 body.dark-theme #kona3_main h3 {
-  border: none !important;
-  border-bottom: 2px solid #334155 !important;
-  color: #cbd5e1 !important;
+  border: none;
+  border-bottom: var(--k3d-h3-border);
+  color: var(--k3d-h3-color);
 }
 
 body.dark-theme #kona3_main h4,
 body.dark-theme #kona3_main h5,
 body.dark-theme #kona3_main h6 {
-  border-bottom: solid 1px #333 !important;
-  color: #b0b0b0 !important;
+  border-bottom: var(--k3d-h4-border);
+  color: var(--k3d-h4-color);
 }
 
 /* links */
 body.dark-theme #kona3_main a:link,
 body.dark-theme #kona3_main a:active,
 body.dark-theme #kona3_main a:visited {
-  color: #58a6ff !important;
+  color: var(--k3d-link);
 }
 
 body.dark-theme #kona3_main a:hover {
-  background-color: #333 !important;
-  color: #fff !important;
+  background-color: var(--k3d-link-hover-bg);
+  color: var(--k3d-link-hover);
 }
 
 /* tables */
 body.dark-theme #kona3_main table {
-  color: #e0e0e0 !important;
+  color: var(--k3d-text);
 }
 
 body.dark-theme #kona3_main table tbody {
-  border-left: 1px solid #444 !important;
-  border-top: 1px solid #444 !important;
+  border-left: var(--k3d-tbody-border);
+  border-top: var(--k3d-tbody-border);
 }
 
 body.dark-theme #kona3_main table th {
-  background-color: #2a2a2a !important;
-  border-bottom: 1px solid #444 !important;
-  border-right: 1px solid #444 !important;
-  color: #d0d0ff !important;
+  background-color: var(--k3d-th-bg);
+  border-bottom: var(--k3d-cell-border-bottom);
+  border-right: var(--k3d-cell-border-right);
+  color: var(--k3d-th-color);
 }
 
 body.dark-theme #kona3_main table td {
-  background-color: #1a1a1a !important;
-  border-bottom: 1px solid #444 !important;
-  border-right: 1px solid #444 !important;
-  color: #e0e0e0 !important;
+  background-color: var(--k3d-td-bg);
+  border-bottom: var(--k3d-cell-border-bottom);
+  border-right: var(--k3d-cell-border-right);
+  color: var(--k3d-text);
 }
 
 /* forms and inputs */
@@ -87,82 +221,101 @@ body.dark-theme input,
 body.dark-theme textarea,
 body.dark-theme select,
 body.dark-theme button {
-  background-color: #222 !important;
-  color: #e0e0e0 !important;
-  border: 1px solid #555 !important;
+  background-color: var(--k3d-field-bg);
+  color: var(--k3d-field-fg);
+  border: 1px solid var(--k3d-field-border);
 }
 
 body.dark-theme input[type="submit"],
 body.dark-theme button {
-  background-color: #333 !important;
+  background-color: var(--k3d-button-bg);
   cursor: pointer;
 }
 
 body.dark-theme input[type="submit"]:hover,
 body.dark-theme button:hover {
-  background-color: #444 !important;
+  background-color: var(--k3d-button-hover-bg);
 }
 
 /* wikimessage & panels */
 body.dark-theme #wikimessage .bodypad {
-  background-color: #1e1e1e !important;
+  background-color: var(--k3d-msg-bg);
 }
 
 body.dark-theme #wikimessage .box {
-  background-color: #1a1a2e !important;
+  background-color: var(--k3d-msg-box-bg);
 }
 
 body.dark-theme #wikimessage .box_border {
-  border: 1px solid #444 !important;
+  border: 1px solid var(--k3d-msg-border);
 }
 
 body.dark-theme #wikimessage h2 {
-  background-color: #1e1e3f !important;
-  border-top: 1px solid #555 !important;
-  border-bottom: 1px solid #444 !important;
-  border-left-color: #555 !important;
-  color: #d0d0ff !important;
+  background-color: var(--k3d-msg-h-bg);
+  border-top: 1px solid var(--k3d-msg-h2-border);
+  border-bottom: 1px solid var(--k3d-msg-border);
+  border-left-color: var(--k3d-msg-h2-left);
+  color: var(--k3d-msg-h-color);
 }
 
 body.dark-theme #wikimessage h3 {
-  background-color: #1e1e3f !important;
-  border-top: 1px solid #444 !important;
-  border-bottom: 1px dotted #555 !important;
-  color: #c0c0ff !important;
+  background-color: var(--k3d-msg-h-bg);
+  border-top: 1px solid var(--k3d-msg-border);
+  border-bottom: var(--k3d-msg-h3-border-bottom);
+  color: var(--k3d-msg-h3-color);
 }
 
 body.dark-theme #wikimessage a:link,
 body.dark-theme #wikimessage a:active,
 body.dark-theme #wikimessage a:visited {
-  color: #58a6ff !important;
+  color: var(--k3d-link);
 }
 
 body.dark-theme #wikimessage a:hover {
-  background-color: #333 !important;
-  color: #fff !important;
+  background-color: var(--k3d-link-hover-bg);
+  color: var(--k3d-link-hover);
 }
 
 /* drawer/hamburger list menu in dark mode */
 body.dark-theme #drawer_wrapper nav.menuitems ul li {
-  background-color: #222 !important;
-  border-bottom: 1px dotted #333 !important;
+  background-color: var(--k3d-drawer-bg);
+  border-bottom: 1px dotted var(--k3d-drawer-border);
 }
 
 body.dark-theme #drawer_wrapper nav.menuitems ul li a {
-  color: #bbb !important;
+  color: var(--k3d-drawer-link);
 }
 
 body.dark-theme #drawer_wrapper nav.menuitems ul li a:hover {
-  color: #fff !important;
+  color: var(--k3d-drawer-hover);
 }
 
 /* pre / code / syntax highlighting */
 body.dark-theme pre,
-body.dark-theme code,
 body.dark-theme .mathjax {
-  background-color: #1a1a1a !important;
-  color: #e0e0e0 !important;
-  border: 1px solid #333 !important;
+  background-color: var(--k3d-code-bg);
+  color: var(--k3d-code-fg);
+  border: 1px solid var(--k3d-code-border);
+}
+
+body.dark-theme code {
+  background-color: var(--k3d-inline-code-bg);
+  color: var(--k3d-inline-code-fg);
+  border: 1px solid var(--k3d-inline-code-border);
+}
+
+/* <pre><code> の内側の code には、インラインコード用の背景・枠線を付けない */
+body.dark-theme pre code {
+  background: none;
+  border: none;
+  color: var(--k3d-code-fg);
+}
+
+/* インラインコードの外側(span.code)は code 要素ではないため、
+   kona3def.css の .code の文字色(黒)が残らないよう、ここで文字色を指定する */
+body.dark-theme span.code,
+body.dark-theme span.code code {
+  color: var(--k3d-code-fg);
 }
 
 /* filecode plugin */
@@ -184,29 +337,29 @@ body.dark-theme .filecode {
   background-color: var(--fc-code-bg);
   border: 1px solid var(--fc-border);
 }
-/* 上の汎用 pre ルールが !important のため、ここだけ !important が必要 */
 body.dark-theme .filecode .filecode-body > .code {
-  border: 0 !important;
-  background-color: var(--fc-code-bg) !important;
-  color: var(--fc-code-fg) !important;
+  border: 0;
+  background-color: var(--fc-code-bg);
+  color: var(--fc-code-fg);
 }
-/* PHPのハイライト色(highlight_string)を暗い背景向けに置き換え */
-body.dark-theme .filecode .code span[style*="#0000BB"] { color: #79c0ff !important; }
-body.dark-theme .filecode .code span[style*="#007700"] { color: #ff7b72 !important; }
-body.dark-theme .filecode .code span[style*="#DD0000"] { color: #a5d6ff !important; }
-body.dark-theme .filecode .code span[style*="#FF8000"] { color: #8b949e !important; }
+/* PHPのハイライト色(highlight_string)がインラインスタイルで付くため、
+   それを暗い背景向けに置き換えるには !important が必要 */
+body.dark-theme .filecode .code span[style*="#0000BB"] { color: var(--tok-n) !important; }
+body.dark-theme .filecode .code span[style*="#007700"] { color: var(--tok-k) !important; }
+body.dark-theme .filecode .code span[style*="#DD0000"] { color: var(--tok-s) !important; }
+body.dark-theme .filecode .code span[style*="#FF8000"] { color: var(--tok-c) !important; }
 body.dark-theme .filecode .code span[style*="#000000"] { color: var(--fc-code-fg) !important; }
 
 /* plugins comment */
 body.dark-theme .plugin_comment .plugin_title {
-  background-color: #1a1a2e !important;
-  color: #e0e0ff !important;
+  background-color: var(--k3d-comment-title-bg);
+  color: var(--k3d-comment-title-fg);
 }
 
 body.dark-theme .plugin_comment .comment_log {
-  border-top: 1px dotted #444 !important;
-  border-left: 4px solid #555 !important;
-  border-bottom: 1px solid #444 !important;
+  border-top: 1px dotted var(--k3d-comment-border);
+  border-left: 4px solid var(--k3d-comment-border-left);
+  border-bottom: 1px solid var(--k3d-comment-border);
 }
 
 body.dark-theme .plugin_comment .comment_log .comment_body {
@@ -215,24 +368,24 @@ body.dark-theme .plugin_comment .comment_log .comment_body {
 }
 
 body.dark-theme .plugin_comment .comment_log .comment_title {
-  border-bottom: 1px dotted #444 !important;
-  color: #888 !important;
+  border-bottom: 1px dotted var(--k3d-comment-border);
+  color: var(--k3d-comment-faint);
 }
 
 body.dark-theme .plugin_comment form {
-  border-bottom: 1px solid #444 !important;
-  border-left: 1px solid #444 !important;
+  border-bottom: 1px solid var(--k3d-comment-border);
+  border-left: 1px solid var(--k3d-comment-border);
 }
 
 /* todo plugin */
 body.dark-theme #kona3_main .todo {
-  background-color: #1b3d1b !important;
-  color: #8ce68c !important;
+  background-color: var(--k3d-todo-bg);
+  color: var(--k3d-todo-fg);
 }
 
 /* side bar & navi */
 body.dark-theme #wikinavi .navipad {
-  background-color: #1a1a2e !important;
+  background-color: var(--k3d-navi-bg);
 }
 
 body.dark-theme #wikinavi h1,
@@ -247,25 +400,25 @@ body.dark-theme #wikisidebar h3,
 body.dark-theme #wikisidebar h4,
 body.dark-theme #wikisidebar h5,
 body.dark-theme #wikisidebar h6 {
-  background-color: #1e1e3f !important;
-  color: #e0e0ff !important;
+  background-color: var(--k3d-navi-h-bg);
+  color: var(--k3d-heading);
 }
 
 body.dark-theme #kona3_menubar h1,
 body.dark-theme #kona3_menubar h2,
 body.dark-theme #kona3_menubar h3 {
-  border-bottom: dotted 1px #444 !important;
+  border-bottom: var(--k3d-menubar-h-border);
 }
 
 /* edit mode specific dark mode overrides */
 body.dark-theme #wikiedit {
-  background-color: #1a1a2e !important;
+  background-color: var(--k3d-edit-bg);
 }
 
 body.dark-theme textarea#edit_txt {
-  background-color: #222 !important;
-  color: #e0e0e0 !important;
-  border: 1px solid #555 !important;
+  background-color: var(--k3d-field-bg);
+  color: var(--k3d-field-fg);
+  border: 1px solid var(--k3d-field-border);
 }
 
 body.dark-theme #wikiedit input[type="submit"],
@@ -273,9 +426,9 @@ body.dark-theme #wikiedit input[type="button"],
 body.dark-theme #wikiedit button,
 body.dark-theme #recover_div a,
 body.dark-theme #wikiedit input#outline_btn {
-  background-color: #333 !important;
-  color: #e0e0e0 !important;
-  border: 1px solid #555 !important;
+  background-color: var(--k3d-button-bg);
+  color: var(--k3d-field-fg);
+  border: 1px solid var(--k3d-field-border);
 }
 
 body.dark-theme #wikiedit input[type="submit"]:hover,
@@ -283,174 +436,172 @@ body.dark-theme #wikiedit input[type="button"]:hover,
 body.dark-theme #wikiedit button:hover,
 body.dark-theme #recover_div a:hover,
 body.dark-theme #wikiedit input#outline_btn:hover {
-  background-color: #444 !important;
-  color: #fff !important;
+  background-color: var(--k3d-button-hover-bg);
+  color: var(--k3d-button-hover-fg);
 }
 
 body.dark-theme #wikiedit input[disabled="true"],
 body.dark-theme #wikiedit button:disabled {
-  background-color: #222 !important;
-  color: #666 !important;
-  border: 1px solid #333 !important;
+  background-color: var(--k3d-field-bg);
+  color: var(--k3d-disabled-fg);
+  border: 1px solid var(--k3d-disabled-border);
   cursor: not-allowed;
 }
 
 body.dark-theme #wikiedit #edit_counter,
 body.dark-theme #wikiedit #edit_info {
-  background-color: #1a1a2e !important;
-  color: #aaa !important;
+  background-color: var(--k3d-edit-bg);
+  color: var(--k3d-sub-fg);
 }
 
 body.dark-theme #ai_output_area {
-  background-color: #1a1a2e !important;
+  background-color: var(--k3d-edit-bg);
 }
 
 body.dark-theme #ai_output_area .ai_block {
-  background-color: #222 !important;
-  color: #e0e0e0 !important;
-  border: 1px solid #555 !important;
+  background-color: var(--k3d-field-bg);
+  color: var(--k3d-field-fg);
+  border: 1px solid var(--k3d-field-border);
 }
 
 body.dark-theme #wikiedit .block2 {
-  background-color: #222 !important;
-  border: 1px solid #555 !important;
-  color: #e0e0e0 !important;
+  background-color: var(--k3d-field-bg);
+  border: 1px solid var(--k3d-field-border);
+  color: var(--k3d-field-fg);
 }
 
 body.dark-theme #wikiedit .block2 a {
-  color: #58a6ff !important;
+  color: var(--k3d-link);
 }
 
 body.dark-theme #wikiedit .desc {
-  color: #aaa !important;
+  color: var(--k3d-sub-fg);
 }
 
 /* login bar in dark mode */
 body.dark-theme .kona3_login_bar {
-  background-color: #121212 !important;
-  color: #e0e0e0 !important;
+  background-color: var(--k3d-loginbar-bg);
+  color: var(--k3d-text);
 }
 
 body.dark-theme .kona3_login_bar a {
-  color: #58a6ff !important;
+  color: var(--k3d-link);
 }
 
 /* additional dark theme overrides */
 body.dark-theme #kona3_menubar {
-  border-top: 1px solid #334155 !important;
+  border-top: 1px solid var(--k3d-menubar-border);
 }
 
 @media screen and (min-width: 48em) {
   body.dark-theme #kona3_menubar {
-    border-top: none !important;
-    border-left: 1px solid #334155 !important;
+    border-top: none;
+    border-left: 1px solid var(--k3d-menubar-border);
   }
 }
 
 body.dark-theme #kona3_menubar ul li a {
-  color: #58a6ff !important;
+  color: var(--k3d-menubar-link);
 }
 
 body.dark-theme #kona3_menubar ul li a:hover {
-  background-color: #21262d !important;
-  color: #79c0ff !important;
+  background-color: var(--k3d-menubar-hover-bg);
+  color: var(--k3d-menubar-hover-fg);
 }
 
 body.dark-theme strong.strong1 {
-  background: linear-gradient(transparent 60%, #f5c21155 60%) !important;
-  color: #f7d060 !important;
-  text-decoration: none !important;
+  background: linear-gradient(transparent 60%, var(--k3d-strong1-bg) 60%);
+  color: var(--k3d-strong1-fg);
+  text-decoration: none;
 }
 
 body.dark-theme strong.strong2 {
-  background: linear-gradient(transparent 60%, #00b4d855 60%) !important;
-  color: #90e0ef !important;
-  text-decoration: none !important;
+  background: linear-gradient(transparent 60%, var(--k3d-strong2-bg) 60%);
+  color: var(--k3d-strong2-fg);
+  text-decoration: none;
 }
 
 body.dark-theme .column {
-  background-color: #1e293b !important;
-  border: 1px solid #334155 !important;
-  border-left: 4px solid #3b82f6 !important;
+  background-color: var(--k3d-column-bg);
+  border: 1px solid var(--k3d-column-border);
+  border-left: var(--k3d-column-bar);
 }
 
 body.dark-theme .column.summary {
-  background-color: #0f172a !important;
-  border-color: #1e293b !important;
-  border-left-color: #10b981 !important;
+  background-color: var(--k3d-column-summary-bg);
+  border-color: var(--k3d-column-summary-border);
+  border-left-color: var(--k3d-column-summary-bar);
 }
 
 body.dark-theme #kona3_main .column h3 {
-  border-bottom: 1px solid #334155 !important;
+  border-bottom: var(--k3d-column-h-border);
 }
 
 body.dark-theme #kona3_main .resmark {
-  border-left: 4px solid #475569 !important;
-  background-color: #1e293b !important;
-  color: #94a3b8 !important;
+  border-left: var(--k3d-resmark-bar);
+  background-color: var(--k3d-resmark-bg);
+  color: var(--k3d-resmark-fg);
 }
 
 body.dark-theme #kona3_main .resmark p {
-  border: none !important;
-  background-color: transparent !important;
+  border: none;
+  background-color: transparent;
 }
 
 body.dark-theme #kona3_main .column h2 {
-  border-bottom: 2px solid #334155 !important;
-  background-color: transparent !important;
-  color: #cbd5e1 !important;
+  border-bottom: var(--k3d-column-h2-border);
+  background-color: transparent;
+  color: var(--k3d-column-h2-fg);
 }
 
 /* footer styles in dark mode */
 body.dark-theme #wikifooter {
-  border-top: solid 1px #333 !important;
+  border-top: solid 1px var(--k3d-footer-border);
 }
 body.dark-theme #wikifooter .footer_menu > span {
-  background-color: #1e1e1e !important;
+  background-color: var(--k3d-footer-span-bg);
 }
 body.dark-theme #wikifooter a {
-  color: #58a6ff !important;
+  color: var(--k3d-footer-link);
 }
 body.dark-theme #wikifooter a:hover {
-  color: #fff !important;
+  color: var(--k3d-footer-hover);
 }
 
 body.dark-theme .ai-ng {
-  color: #ff6b6b !important;
+  color: var(--k3d-ai-ng);
 }
 body.dark-theme .ai-ok {
-  color: #4dadff !important;
+  color: var(--k3d-ai-ok);
 }
 
 /* tag plugin links in dark mode */
 body.dark-theme .kona3-tag a,
 body.dark-theme .kona3-taglist a,
 body.dark-theme .kona3-tags-list a {
-  color: #79c0ff !important;
+  color: var(--k3d-tag-link);
 }
 
 body.dark-theme .kona3-tag a:hover,
 body.dark-theme .kona3-taglist a:hover,
 body.dark-theme .kona3-tags-list a:hover {
-  color: #fff !important;
-  background-color: #31363d !important;
+  color: var(--k3d-tag-hover-fg);
+  background-color: var(--k3d-tag-hover-bg);
 }
 
 body.dark-theme .memo {
-  color: #aaa !important;
+  color: var(--k3d-memo);
 }
 
 /* date styles in dark mode (#197) */
 body.dark-theme .date {
-  color: #aaa !important;
+  color: var(--k3d-memo);
 }
 body.dark-theme a .date {
-  color: #79c0ff !important;
+  color: var(--k3d-date-link);
 }
 body.dark-theme a:hover .date {
-  color: #fff !important;
+  color: var(--k3d-date-hover);
 }
 
-
-
-
+}

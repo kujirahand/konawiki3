@@ -63,8 +63,8 @@ body.dark-theme {
     padding: var(--k3-space-4) 0 var(--k3-space-5);
   }
   body.dark-theme #kona3_menubar {
-    border-left: none !important;
-    border-top: 1px solid var(--k3-color-border) !important;
+    border-left: none;
+    border-top: 1px solid var(--k3-color-border);
   }
 }
 
@@ -81,7 +81,7 @@ body.dark-theme {
 body.dark-theme #kona3_menubar h1,
 body.dark-theme #kona3_menubar h2,
 body.dark-theme #kona3_menubar h3 {
-  border-bottom: none !important;
+  border-bottom: none;
 }
 
 /* ==========================================
