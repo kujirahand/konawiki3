@@ -9,6 +9,19 @@ KonaWiki3 では、CSS を中心としたシンプルな仕組みで Wiki の見
 
 KonaWiki3 のデザインは、基本となるスタイルシートが読み込まれた後、選択されたスキンのスタイルシート（`kona3.css`）が読み込まれ、上書き（オーバーライド）されることで決定します。
 
+### CSS の読み込み順
+
+```text
+1. kona3engine/resource/pure-min.css
+2. kona3engine/resource/grids-responsive-min.css
+3. kona3engine/resource/kona3def.css   # 全スキン共通の基本スタイル
+4. kona3engine/resource/darkmode.css   # 全スキン共通のダークモード
+5. skin/{スキン名}/kona3.css           # スキン固有のスタイル
+6. drawer.css                          # ドロワーメニュー
+```
+
+`kona3def.css` と `darkmode.css` は全スキンの土台です。特定のスキンの見た目を変えるために、これらを編集しないでください。デフォルトスキン `def` も、固有のスタイルは `skin/def/kona3.css` に書きます（デザイン方針は [default_skin.md](default_skin.md) を参照）。
+
 ### スキンのディレクトリ構造
 
 スキンは、プロジェクトの `skin` ディレクトリ以下に任意のフォルダ名で作成します。
@@ -28,10 +41,11 @@ konawiki3/
 CSS や JavaScript などのリソースが読み込まれる際、システムは以下の優先順位でファイルを探索します。
 
 1. `skin/{現在設定されているスキン名}/{ファイル名}`
-2. `skin/def/{ファイル名}`（フォールバック）
-3. `kona3engine/resource/{ファイル名}`（コアのデフォルトリソース）
+2. `kona3engine/resource/{ファイル名}`（コアのデフォルトリソース）
 
-そのため、新しくスキンを作成する際は、デフォルトの CSS をすべてコピーする必要はなく、**変更したい部分のみを `kona3.css` に記述する**だけで動作します。
+`skin/def/` へのフォールバックはありません。そのため、`skin/def/kona3.css` に書いたスタイルは、他のスキンには適用されません。
+
+新しくスキンを作成する際は、デフォルトの CSS をすべてコピーする必要はありません。基本スタイルは `kona3def.css` から読み込まれるので、**変更したい部分のみを `kona3.css` に記述する**だけで動作します。
 
 ---
 
@@ -319,7 +333,7 @@ body.dark-theme strong.strong2 {
 ## 4. ダークモードへの対応
 
 KonaWiki3 は標準でダークモード切替機能を備えています。
-ブラウザや OS のダークモード設定、またはメニューから「Dark Mode」を選択した際、`<body>` タグに `dark-theme` クラスが追加されます。
+メニューから「Dark Mode」を選択すると、`<body>` タグに `dark-theme` クラスが追加されます。選択内容はブラウザの `localStorage`（`kona3_theme`）に保存され、次回以降も適用されます。ブラウザや OS のダークモード設定には連動しません。また、印刷モードではダークモードは適用されません。
 
 ```html
 <body class="dark-theme">
@@ -336,3 +350,5 @@ body.dark-theme {
 ```
 
 このアプローチにより、一つの `kona3.css` ファイル内でライトモードとダークモードの双方に美しく対応したスキンを作成できます。
+
+なお、`darkmode.css` には `body.dark-theme #kona3_main h2` のような詳細度の高いルールが含まれています。スキン側で `#kona3_main h2` などに色を指定しても、ダークモード時は `darkmode.css` の指定が優先されます。ダークモードの見た目を変えたい場合は、スキン側でも `body.dark-theme` から始まるセレクタで指定してください。
