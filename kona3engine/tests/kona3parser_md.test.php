@@ -222,6 +222,21 @@ $text = "連絡は mailto:foo@example.com~\n次の行";
 $html = kona3markdown_parser_convert($text, false);
 test_assert(__LINE__, strpos($html, "href='mailto:foo@example.com'") !== false, "#51: trailing '~' is not part of a mailto href");
 
+// Degenerate case: a '~' right after the scheme is not stripped.
+$text = "https://~\n次の行";
+$html = kona3markdown_parser_convert($text, false);
+test_assert(__LINE__, strpos($html, "href='https://~'") !== false, "#51: '~' right after the scheme is kept");
+
+// A trailing '~' at the very end of the text (no following line) is stripped too.
+$text = "https://example.com/page~";
+$html = kona3markdown_parser_convert($text, false);
+test_assert(__LINE__, strpos($html, "href='https://example.com/page'") !== false, "#51: trailing '~' at end of text is stripped");
+
+// With '~~' at the end, only one '~' is treated as the line-break marker.
+$text = "https://example.com/page~~\n次の行";
+$html = kona3markdown_parser_convert($text, false);
+test_assert(__LINE__, strpos($html, "href='https://example.com/page~'") !== false, "#51: only one of trailing '~~' is stripped");
+
 $text = "[safe](HTTPS://example.com/?a=1&b=2)";
 $html = kona3markdown_parser_convert($text, false);
 test_assert(__LINE__, strpos($html, "href='HTTPS://example.com/?a=1&amp;b=2'") !== false, "URL scheme checks are case-insensitive for HTTPS");
