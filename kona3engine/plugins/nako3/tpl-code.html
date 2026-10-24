@@ -71,7 +71,7 @@
         autoRunCount++
         // 読み込みに失敗した場合は、無限に待ち続けずエラーを表示する (#44)
         // (上限は 20回 x 500ms = 10秒で、NAKO3_LOAD_TIMEOUT_MS と揃える)
-        const failed = (typeof(nako3_is_load_failed) === 'function') && nako3_is_load_failed()
+        const failed = (typeof(nako3_is_load_failed) === 'function') && nako3_is_load_failed(use_textarea)
         if (failed || autoRunCount > 20) {
           if (typeof(nako3_show_load_error) === 'function') { nako3_show_load_error(pid) }
           return

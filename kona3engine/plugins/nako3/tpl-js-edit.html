@@ -23,35 +23,48 @@ const NAKO3_LOAD_RETRY_MS = 200
 const nako3_load_started = Date.now()
 let nako3_load_failed = false
 const nako3_load_pids = [] // 初期化対象の pid 一覧 (エラー表示先)
-// 読み込みに失敗すると、なでしこ3そのものが使えなくなるファイル
-const NAKO3_FATAL_SCRIPTS = ['wnako3.js', 'ace.js']
+const nako3_editor_failed_pids = {} // pid => ace エディタの初期化に失敗した
 
 function nako3_queued_load_errors() {
     return (window.__nako3_load_errors && window.__nako3_load_errors.length)
         ? window.__nako3_load_errors : []
 }
 
+// そのファイルが読み込めないと、対象の pid が使えなくなるか。
+// ace.js は ace エディタを使う pid でのみ致命的で、use_textarea の pid には不要。
+function nako3_is_fatal_for(name, use_textarea) {
+    if (name === 'wnako3.js') { return true }
+    if (name === 'ace.js') { return !use_textarea }
+    return false
+}
+
 // onerror で確定した致命的な読み込み失敗があるか
-function nako3_has_fatal_error() {
-    if (nako3_load_failed) { return true }
+function nako3_has_fatal_error(use_textarea) {
+    if (nako3_load_failed) { return true } // wnako3.js の失敗 (全 pid 共通)
     const errors = nako3_queued_load_errors()
     for (const name of errors) {
-        if (NAKO3_FATAL_SCRIPTS.indexOf(name) >= 0) { return true }
+        if (nako3_is_fatal_for(name, use_textarea)) { return true }
     }
     return false
 }
 
-function nako3_is_load_failed() {
-    if (nako3_has_fatal_error()) { return true }
+function nako3_is_load_failed(use_textarea) {
+    if (nako3_has_fatal_error(use_textarea)) { return true }
     // onerror が発火しないまま (接続がハングする等) 制限時間を超えた場合も失敗とする
-    if (typeof(navigator.nako3) === 'undefined' &&
-        (Date.now() - nako3_load_started) > NAKO3_LOAD_TIMEOUT_MS) { return true }
+    const elapsed = (Date.now() - nako3_load_started) > NAKO3_LOAD_TIMEOUT_MS
+    if (!elapsed) { return false }
+    if (typeof(navigator.nako3) === 'undefined') { return true }
+    // ランタイムは読めたのに ace だけがハングしている場合 (ace を使う pid のみ)
+    if (!use_textarea && typeof(window.ace) === 'undefined') { return true }
     return false
 }
 
 function nako3_load_error_message() {
     let msg = 'ランタイムの取得に失敗しました。ネットワーク接続を確認して、ページを再読み込みしてください。'
-    const errors = nako3_queued_load_errors()
+    const errors = []
+    for (const name of nako3_queued_load_errors()) {
+        if (errors.indexOf(name) < 0) { errors.push(name) } // 重複を除く
+    }
     if (errors.length > 0) {
         msg += '(読み込めなかったファイル: ' + errors.join(', ') + ')'
     }
@@ -80,16 +93,24 @@ function nako3_hide_load_error(pid) {
 
 // 外部スクリプトの onerror から呼ばれる (lib.inc.php の nako3_script_onerror_attr 参照)
 function nako3_report_load_error(src) {
-    if (NAKO3_FATAL_SCRIPTS.indexOf(src) < 0) {
-        // 本体の実行に必須ではないファイルは、記録 (キュー) のみでエラー表示はしない
-        if (window.console && console.warn) {
-            console.warn('[#nako3 plugin] failed to load: ' + src)
+    if (src === 'wnako3.js') {
+        // ランタイム本体は全 pid に必須
+        nako3_load_failed = true
+        for (const pid of nako3_load_pids) {
+            nako3_show_load_error(pid)
         }
         return
     }
-    nako3_load_failed = true
-    for (const pid of nako3_load_pids) {
-        nako3_show_load_error(pid)
+    if (src === 'ace.js') {
+        // ace は ace エディタを使う pid でのみ致命的 (use_textarea の pid には不要)
+        for (const pid of nako3_load_pids) {
+            if (!use_textarea_b[pid]) { nako3_show_load_error(pid) }
+        }
+        return
+    }
+    // 本体の実行に必須ではないファイルは、記録 (キュー) のみでエラー表示はしない
+    if (window.console && console.warn) {
+        console.warn('[#nako3 plugin] failed to load: ' + src)
     }
 }
 window.nako3_report_load_error = nako3_report_load_error
@@ -99,13 +120,13 @@ function ace_editor_init(pid, use_textarea) {
     use_textarea_b[pid] = use_textarea
     if (nako3_load_pids.indexOf(pid) < 0) { nako3_load_pids.push(pid) }
     if (typeof(navigator.nako3) === 'undefined') {
-        if (nako3_is_load_failed()) {
+        if (nako3_is_load_failed(use_textarea)) {
             nako3_show_load_error(pid)
             // タイムアウトだけが理由の場合は確定ではないので、遅れて読み込めたら
             // 復帰できるよう低頻度で再確認する (最大30回 x 2秒)。onerror で
             // 確定した失敗では再確認しない。
             const count = nako3_load_recovery[pid] || 0
-            if (!nako3_has_fatal_error() && count < 30) {
+            if (!nako3_has_fatal_error(use_textarea) && count < 30) {
                 nako3_load_recovery[pid] = count + 1
                 setTimeout(function() { ace_editor_init(pid, use_textarea) }, 2000)
             }
@@ -135,7 +156,7 @@ function ace_editor_init(pid, use_textarea) {
         } catch (e) {
             // ace 本体が読み込めていない場合など、エディタを初期化できないとき
             if (window.console && console.error) { console.error(e) }
-            nako3_load_failed = true
+            nako3_editor_failed_pids[pid] = true
             nako3_show_load_error(pid)
         }
     }

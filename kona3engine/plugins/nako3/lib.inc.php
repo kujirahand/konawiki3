@@ -101,7 +101,8 @@ function nako3_script_onerror_attr($name)
 {
     // ファイル名は英数字と ._- のみで構成される前提だが、属性値を壊さないよう正規化する
     $name = preg_replace('/[^a-zA-Z0-9\._\-]/', '_', (string)$name);
-    return " onerror=\"(window.__nako3_load_errors=window.__nako3_load_errors||[]).push('{$name}');" .
+    return " onerror=\"(window.__nako3_load_errors=window.__nako3_load_errors||[]);" .
+        "if(window.__nako3_load_errors.indexOf('{$name}')<0){window.__nako3_load_errors.push('{$name}');}" .
         "if(window.nako3_report_load_error){window.nako3_report_load_error('{$name}');}\"";
 }
 
