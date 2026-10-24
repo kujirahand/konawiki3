@@ -217,15 +217,19 @@ function kona3getFileExt($path)
 // ページ名の末尾がこのリストの拡張子の場合だけ、そのファイルを直接編集する。
 // それ以外の拡張子 (php, html, json など) はページ名の一部として扱い、
 // ファイル名には別途 .txt / .md を付与する (例: xxxx.php → xxxx.php.txt)。
+// 判定は小文字の 'txt' / 'md' との完全一致のみとする。大文字の .TXT / .MD は
+// 直接編集の対象ではなくページ名の一部として扱う (kona3getWikiName() や
+// ページ一覧・静的出力の \.(txt|md)$ 判定も大文字小文字を区別するため、
+// ここだけ区別しないと保存先・メタ・一覧で扱いが食い違う。agy レビュー指摘)
 function kona3getEditableExtList()
 {
     return ['txt', 'md'];
 }
 
-// $ext が直接編集できる拡張子かどうか (先頭の '.' と大文字小文字は問わない)
+// $ext が直接編集できる拡張子かどうか (先頭の '.' は除いて判定する)
 function kona3isEditableExt($ext)
 {
-    $ext = strtolower(ltrim((string)$ext, '.'));
+    $ext = ltrim((string)$ext, '.');
     return in_array($ext, kona3getEditableExtList(), TRUE);
 }
 
@@ -1618,6 +1622,21 @@ function kona3git_commit_and_push($page, $edit_ext, $old_ext = '') {
         require_once $autoload_file;
     } else {
         throw new Exception('vendor/autoload.php not found. Please run composer install.');
+    }
+
+    // edit_ext / old_ext の検証 (#53 agy レビュー指摘):
+    // 直接編集できる拡張子以外が渡された場合は、実際のファイルから解決する。
+    // (改ざんされた edit_ext='php' 等で data/xxxx.php を対象にしてしまわないため)
+    if (!kona3isEditableExt($edit_ext)) {
+        $resolved_ext = kona3getFileExt(koan3getWikiFileText($page));
+        $edit_ext = kona3isEditableExt($resolved_ext)
+            ? $resolved_ext : kona3getConf('def_text_ext', 'md');
+        if (!kona3isEditableExt($edit_ext)) {
+            $edit_ext = 'md';
+        }
+    }
+    if (!kona3isEditableExt($old_ext)) {
+        $old_ext = '';
     }
 
     // Get absolute path of wiki file

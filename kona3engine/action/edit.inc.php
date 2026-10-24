@@ -315,7 +315,7 @@ function kona3edit_applyRecovery($recovery, $txt, $tags, $page_mode, $ext)
     if (isset($recovery['page_mode']) && $recovery['page_mode'] !== '') {
         $page_mode = $recovery['page_mode'];
     }
-    if (isset($recovery['edit_ext']) && $recovery['edit_ext'] !== '') {
+    if (isset($recovery['edit_ext']) && kona3isEditableExt($recovery['edit_ext'])) {
         $ext = $recovery['edit_ext'];
     }
     return [$txt, $tags, $page_mode, $ext];
@@ -488,7 +488,7 @@ function kona3getEditFile($page, &$ext)
     $test_ext = kona3getFileExt($page);
     if ($test_ext !== '' && kona3isEditableExt($test_ext)) {
         // ページ名の末尾が .txt / .md の場合は、そのままがファイル名である
-        $ext = strtolower($test_ext);
+        $ext = $test_ext;
         $fname = kona3getWikiFile($page, FALSE, '');
     } else {
         // 拡張子がない場合、および、それ以外の拡張子 (php, html, json など) の場合:
@@ -504,6 +504,28 @@ function kona3getEditFile($page, &$ext)
     return $fname;
 }
 
+// 保存時の edit_ext を検証して正規化する (issue #53 agy レビュー指摘)
+// - ページ名自体が .txt / .md で終わる場合は、その拡張子が正である
+//   (フォームの値や記法モードで変わることはない)
+// - edit_ext が .txt / .md の場合はそのまま使う
+// - それ以外 (改ざんされた 'php'、欠落した空文字など) は、ページの実際の
+//   ファイル (既存ファイル → mode → def_text_ext) から解決した拡張子を使う。
+//   これにより、意図しないファイル名 (xxxx.php.md など) への保存や、
+//   Git フックとの食い違いを防ぐ (生の xxxx.php が作られることは元々ない)
+function kona3edit_normalizeEditExt($page, $edit_ext)
+{
+    $page_ext = kona3getFileExt($page);
+    if ($page_ext !== '' && kona3isEditableExt($page_ext)) {
+        return $page_ext;
+    }
+    if (kona3isEditableExt($edit_ext)) {
+        return $edit_ext;
+    }
+    $resolved = '';
+    kona3getEditFile($page, $resolved);
+    return kona3isEditableExt($resolved) ? $resolved : 'md';
+}
+
 
 function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
 {
@@ -517,14 +539,29 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
     $a_mode = kona3param('a_mode', '');
     $postId = intval(kona3param('postId', 0)); // option
 
+    // edit_ext を検証する (ページ名が .txt/.md で終わる場合はその拡張子、
+    // 不正・欠落した値は実際のファイルから解決した拡張子にする) (#53)
+    $edit_ext = kona3edit_normalizeEditExt($page, $edit_ext);
+    // ページ名自体が直接編集できる拡張子で終わっているか
+    // (その場合はファイル名が明示されているので、拡張子は固定される)
+    $page_ext = kona3getFileExt($page);
+    $has_explicit_ext = ($page_ext !== '' && kona3isEditableExt($page_ext));
+
     // 既存ファイルの存在確認
-    $original_fname = kona3getEditFile("{$page}.{$edit_ext}", $dummy_ext);
+    // ページ名に拡張子が明示されている場合は、そのファイル自体を確認する
+    // ("{$page}.{$edit_ext}" とすると memo.txt → memo.txt.txt になってしまう)
+    if ($has_explicit_ext) {
+        $original_fname = kona3getEditFile($page, $dummy_ext);
+    } else {
+        $original_fname = kona3getEditFile("{$page}.{$edit_ext}", $dummy_ext);
+    }
     $has_existing_file = file_exists($original_fname);
 
     // page_mode に基づいて拡張子を同期
     $new_ext = $edit_ext;
-    if ($has_existing_file) {
-        // 既存ファイルがある場合は拡張子を変更しない
+    if ($has_existing_file || $has_explicit_ext) {
+        // 既存ファイルがある場合、および、ページ名に拡張子が明示されている
+        // 場合は拡張子を変更しない (記法モードはメタ情報で管理される)
         $new_ext = $edit_ext;
     } else {
         // 新規ファイル作成時のみ、page_mode に応じて拡張子を変更可能
@@ -657,8 +694,9 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
     }
 
     // === hook ===
+    // 元の edit_ext が直接編集できる拡張子の場合だけ、旧拡張子として扱う (#53)
     $orig_edit_ext = kona3param('edit_ext', '');
-    $old_ext = ($orig_edit_ext !== '' && $orig_edit_ext !== $edit_ext) ? $orig_edit_ext : '';
+    $old_ext = ($orig_edit_ext !== '' && kona3isEditableExt($orig_edit_ext) && $orig_edit_ext !== $edit_ext) ? $orig_edit_ext : '';
     try {
         kona3triggerHook('write', $page, $edit_txt, [
             'i_mode' => $i_mode,
@@ -712,6 +750,7 @@ function kona3_trygit(&$txt, &$a_hash, $i_mode)
     global $kona3conf, $page;
     $edit_txt = kona3param('edit_txt', '');
     $edit_ext = kona3param('edit_ext', '');
+    $edit_ext = kona3edit_normalizeEditExt($page, $edit_ext);
     $page_mode = kona3param('page_mode', '');
 
     // 先に保存
