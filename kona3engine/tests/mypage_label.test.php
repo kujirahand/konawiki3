@@ -28,5 +28,6 @@ foreach (['normal', 'admin'] as $perm) {
 $tpl = file_get_contents(KONA3_DIR_ENGINE . '/template/user.html');
 test_eq(__LINE__, strpos($tpl, '{{if $is_me }}') !== FALSE, TRUE, 'user.html: is_me で見出しを切り替える');
 $act = file_get_contents(KONA3_DIR_ENGINE . '/action/user.inc.php');
-test_eq(__LINE__, strpos($act, '"is_me" => $is_me') !== FALSE, TRUE, 'user action: is_me をテンプレートに渡す');
+test_eq(__LINE__, substr_count($act, '"is_me" => $is_me'), 1, 'user action: is_me をテンプレートに1回だけ渡す');
+test_eq(__LINE__, strpos($act, '"is_me" =>') > strpos($act, '$is_me ='), TRUE, 'user action: is_me は定義後に使う');
 kona3logout();

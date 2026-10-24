@@ -13,7 +13,6 @@ function kona3_action_user() {
         "user_id" => 0,
         "user" => $name,
         "name" => $name,
-    "is_me" => $is_me,
       ];
     }
   }
