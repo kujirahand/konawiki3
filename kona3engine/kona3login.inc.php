@@ -415,13 +415,20 @@ function kona3tryLoginResult($user, $pw) {
   if ($userRes['ok']) {
     return ['ok' => TRUE, 'reason' => KONA3_LOGIN_REASON_OK];
   }
-  if ($userRes['reason'] === KONA3_LOGIN_REASON_DISABLED) {
-    return ['ok' => FALSE, 'reason' => KONA3_LOGIN_REASON_DISABLED];
+  // DBにユーザーが存在する場合は、その照合結果が正である (#306)。
+  // 管理者ファイルが壊れていても、DB照合済みのユーザーに
+  // 「パスワードは確認されていません」と誤案内しない。
+  if (!empty($userRes['found'])) {
+    return ['ok' => FALSE, 'reason' => $userRes['reason']];
   }
-  // 管理者ファイルが壊れていて管理者認証を確認できなかった場合は、
-  // 「ユーザー名かパスワードの間違い」と誤案内しない (#297 と同じ考え方)
+  // DBに該当ユーザーがおらず、管理者ファイルが壊れていて管理者認証を
+  // 確認できなかった場合は、「ユーザー名かパスワードの間違い」と
+  // 誤案内しない (#297 と同じ考え方)
   if ($admin['reason'] === KONA3_LOGIN_REASON_SYSTEM) {
-    error_log("KonaWiki3 Error: login failed because admin user file could not be loaded (user={$user})");
+    // ログ注入を防ぐため、制御文字を除去してから出力する (#306)
+    $safeUser = preg_replace('/[\x00-\x1F\x7F]/', ' ', $user);
+    $safeUser = mb_substr($safeUser, 0, 100);
+    error_log("KonaWiki3 Error: login failed because admin user file could not be loaded (user={$safeUser})");
     return ['ok' => FALSE, 'reason' => KONA3_LOGIN_REASON_SYSTEM];
   }
   return ['ok' => FALSE, 'reason' => KONA3_LOGIN_REASON_INVALID];
@@ -466,25 +473,30 @@ function kona3_user_auth($email, $pw) {
 // 'user_disabled' として区別する。パスワードが違う場合は、無効化されて
 // いるかどうかを明かさず 'invalid_credentials' とする。
 function kona3_user_auth_result($email, $pw) {
+  // 同一メールアドレスの行が複数ある場合 (users.email に UNIQUE 制約は
+  // ない) は、有効 (enabled=1) な行を優先して取得する (#306)。
+  // #132 以前の SQL は `enabled=1` の行だけを対象にしていたので、
+  // 無効な行を先に拾ってログインできなくなる回帰を防ぐ。
   $r = db_get1(
     "SELECT * FROM users ".
-    "WHERE (email=?)",
+    "WHERE (email=?) ORDER BY (enabled=1) DESC, user_id ASC",
     [$email]);
 
   if ($r == null) {
-    return ['ok' => FALSE, 'reason' => KONA3_LOGIN_REASON_INVALID];
+    return ['ok' => FALSE, 'reason' => KONA3_LOGIN_REASON_INVALID, 'found' => FALSE];
   }
   $stored_password = isset($r['password']) ? $r['password'] : '';
   // パスワード検証
   if (!kona3_verify_user_password($pw, $stored_password)) {
-    return ['ok' => FALSE, 'reason' => KONA3_LOGIN_REASON_INVALID];
+    return ['ok' => FALSE, 'reason' => KONA3_LOGIN_REASON_INVALID, 'found' => TRUE];
   }
-  if (empty($r['enabled'])) {
-    return ['ok' => FALSE, 'reason' => KONA3_LOGIN_REASON_DISABLED];
+  // 有効なのは enabled=1 のみ。それ以外 (0 や 2 など) は無効化扱い (#306)
+  if (intval(isset($r['enabled']) ? $r['enabled'] : 0) !== 1) {
+    return ['ok' => FALSE, 'reason' => KONA3_LOGIN_REASON_DISABLED, 'found' => TRUE];
   }
   // 認証成功時はセッションに情報を保存
   kona3login($r['name'], $r['email'], $r['perm'], $r['user_id']);
-  return ['ok' => TRUE, 'reason' => KONA3_LOGIN_REASON_OK];
+  return ['ok' => TRUE, 'reason' => KONA3_LOGIN_REASON_OK, 'found' => TRUE];
 }
 
 // --- 一般ユーザーのパスワード検証（複数方式対応） ---

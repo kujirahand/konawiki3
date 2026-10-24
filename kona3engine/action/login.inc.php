@@ -76,6 +76,8 @@ function login_token_error_message($tokenReason)
 // --- 認証成功時の処理 ---
 function login_handle_success($page, $user, $ip, $remember = FALSE) {
     session_regenerate_id(true);
+    // 認証前後でログイントークンを分離する (#306)
+    kona3_getEditTokenForceUpdate(KONA3_LOGIN_CSRF_KEY);
     if ($remember) {
         kona3remember_issue();
     } else {
