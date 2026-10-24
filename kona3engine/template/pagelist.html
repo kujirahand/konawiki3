@@ -1,0 +1,79 @@
+{{ include parts_header.html }}
+
+<style>
+.kona3-pagelist-tools { margin: 0.5em 0; display: flex; flex-wrap: wrap; gap: 0.5em; align-items: center; }
+.kona3-pagelist-tools input[type="text"] { flex: 1 1 12em; padding: 0.4em; }
+.kona3-pagetree ul { list-style: none; margin: 0; padding-left: 1.4em; }
+.kona3-pagetree > ul { padding-left: 0.2em; }
+.kona3-pagetree li { margin: 0.15em 0; }
+.kona3-pagetree summary { cursor: pointer; padding: 0.2em 0.1em; }
+.kona3-pagetree .pt-page { padding: 0.2em 0.1em 0.2em 1.1em; }
+.kona3-pagetree a { text-decoration: none; }
+.kona3-pagetree a:hover { text-decoration: underline; }
+</style>
+
+<div id="wikimessage">
+  <div class="box">
+    <h2>{{$title}}</h2>
+    {{ if $page_count == 0 }}
+    <p>{{'No pages.' | lang}}</p>
+    {{ else }}
+    <div class="kona3-pagelist-tools">
+      <input type="text" id="pagelist_filter" placeholder="{{'Filter Pages' | lang}}" aria-label="{{'Filter Pages' | lang}}">
+      <button type="button" class="pure-button" id="pagelist_expand">{{'Expand All' | lang}}</button>
+      <button type="button" class="pure-button" id="pagelist_collapse">{{'Collapse All' | lang}}</button>
+      <span class="pagelist_count">{{$page_count}}</span>
+    </div>
+    {{$tree_html | safe}}
+    {{ endif }}
+  </div>
+</div>
+<div style="clear:both;"></div>
+
+<script>
+(function() {
+  var root = document.querySelector('.kona3-pagetree');
+  if (!root) return;
+  function setAll(open) {
+    var list = root.querySelectorAll('details');
+    for (var i = 0; i < list.length; i++) { list[i].open = open; }
+  }
+  var btnExpand = document.getElementById('pagelist_expand');
+  var btnCollapse = document.getElementById('pagelist_collapse');
+  if (btnExpand) btnExpand.addEventListener('click', function() { setAll(true); });
+  if (btnCollapse) btnCollapse.addEventListener('click', function() { setAll(false); });
+  var filter = document.getElementById('pagelist_filter');
+  if (filter) {
+    filter.addEventListener('input', function() {
+      var q = filter.value.trim().toLowerCase();
+      var nodes = root.querySelectorAll('li.pt-node');
+      var i, li, match;
+      if (q === '') {
+        for (i = 0; i < nodes.length; i++) { nodes[i].style.display = ''; }
+        return;
+      }
+      // 一致したノードと、その祖先フォルダを表示する
+      var visible = [];
+      for (i = 0; i < nodes.length; i++) {
+        li = nodes[i];
+        match = (li.getAttribute('data-path') || '').toLowerCase().indexOf(q) !== -1;
+        li.style.display = 'none';
+        if (match) {
+          var cur = li;
+          while (cur && cur !== root) {
+            if (cur.classList && cur.classList.contains('pt-node')) { visible.push(cur); }
+            cur = cur.parentElement ? cur.parentElement.closest('li.pt-node') : null;
+          }
+        }
+      }
+      for (i = 0; i < visible.length; i++) {
+        visible[i].style.display = '';
+        var det = visible[i].querySelector(':scope > details');
+        if (det) det.open = true;
+      }
+    });
+  }
+})();
+</script>
+
+{{ include parts_footer.html }}
