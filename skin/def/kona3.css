@@ -605,7 +605,8 @@ body.dark-theme #kona3_main table td {
   background-color: transparent !important;
 }
 body.dark-theme pre,
-body.dark-theme span.code {
+body.dark-theme span.code,
+body.dark-theme .mathjax {
   background-color: var(--k3-color-bg-subtle) !important;
   border: 1px solid var(--k3-color-border) !important;
   color: var(--k3-color-text) !important;
@@ -708,6 +709,23 @@ body.dark-theme #wikimessage .box {
   background-color: var(--k3-color-bg-subtle) !important;
   border: 1px solid var(--k3-color-border) !important;
 }
+body.dark-theme #wikimessage .bodypad {
+  background-color: transparent !important;
+}
+body.dark-theme #wikimessage .box_border {
+  border: 1px solid var(--k3-color-border) !important;
+}
+body.dark-theme .kona3-tag a,
+body.dark-theme .kona3-taglist a,
+body.dark-theme .kona3-tags-list a {
+  color: var(--k3-color-accent) !important;
+}
+body.dark-theme .kona3-tag a:hover,
+body.dark-theme .kona3-taglist a:hover,
+body.dark-theme .kona3-tags-list a:hover {
+  background-color: transparent !important;
+  color: var(--k3-color-accent-hover) !important;
+}
 body.dark-theme #wikimessage h2,
 body.dark-theme #wikimessage h3 {
   background-color: var(--k3-color-bg-subtle) !important;
@@ -723,4 +741,40 @@ body.dark-theme #wikiedit #edit_counter,
 body.dark-theme #wikiedit #edit_info,
 body.dark-theme #ai_output_area {
   background-color: var(--k3-color-bg-subtle) !important;
+}
+
+/* ==========================================
+   Dark mode + print
+   ダークモードのままブラウザから印刷したとき、darkmode.css が固定した
+   明るい文字色や暗い背景が紙に残らないよう、印刷に出る要素だけを戻す
+   ========================================== */
+@media print {
+  body.dark-theme strong.strong1,
+  body.dark-theme strong.strong2 {
+    color: inherit !important;
+  }
+  body.dark-theme #kona3_main .todo {
+    background-color: transparent !important;
+    color: inherit !important;
+  }
+  /* filecode: 変数をライトの配色に戻す。構文の色は印刷では本文の色にする */
+  body.dark-theme .filecode {
+    --fc-border: var(--k3-color-border) !important;
+    --fc-head-bg: var(--k3-color-bg-subtle) !important;
+    --fc-head-fg: var(--k3-color-text-muted) !important;
+    --fc-gutter-bg: var(--k3-color-bg-subtle) !important;
+    --fc-gutter-fg: var(--k3-color-text-muted) !important;
+    --fc-code-bg: var(--k3-color-bg) !important;
+    --fc-code-fg: var(--k3-color-text) !important;
+    --tok-c: var(--k3-color-text-muted) !important;
+    --tok-s: var(--k3-color-text) !important;
+    --tok-n: var(--k3-color-text) !important;
+    --tok-k: var(--k3-color-text) !important;
+    --tok-f: var(--k3-color-text) !important;
+    --tok-b: var(--k3-color-text) !important;
+    --tok-d: var(--k3-color-text) !important;
+  }
+  body.dark-theme .filecode .code span[style] {
+    color: inherit !important;
+  }
 }
