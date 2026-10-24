@@ -110,15 +110,21 @@ test_eq(__LINE__, kona3static_assetUrl('files', 'a b/c.png'), '/_kona3/files/a%2
 // --- 生成した静的サイトを開くURL (#290) ---
 $kona3conf['baseurl'] = 'http://localhost/wiki';
 $kona3conf['static_outdir'] = 'dist';
-test_eq(__LINE__, kona3static_outputTopUrl(), 'http://localhost/wiki/dist/', 'output top url: relative outdir');
-$kona3conf['static_outdir'] = 'sub/dir';
-test_eq(__LINE__, kona3static_outputTopUrl(), 'http://localhost/wiki/sub/dir/', 'output top url: nested outdir');
-$kona3conf['static_outdir'] = '';
-test_eq(__LINE__, kona3static_outputTopUrl(), 'http://localhost/wiki/dist/', 'output top url: default outdir is dist');
-$kona3conf['static_outdir'] = '/var/www/dist';
-test_eq(__LINE__, kona3static_outputTopUrl(), '/', 'output top url: absolute outdir falls back to public url');
-$kona3conf['static_outdir'] = '../dist';
-test_eq(__LINE__, kona3static_outputTopUrl(), '/', 'output top url: dotdot outdir falls back to public url');
+test_eq(__LINE__, kona3static_outputTopUrl('dist'), 'http://localhost/wiki/dist/', 'output top url: relative outdir');
+test_eq(__LINE__, kona3static_outputTopUrl('dist/'), 'http://localhost/wiki/dist/', 'output top url: trailing slash');
+test_eq(__LINE__, kona3static_outputTopUrl('./dist'), 'http://localhost/wiki/dist/', 'output top url: ./ prefix');
+test_eq(__LINE__, kona3static_outputTopUrl('sub//dir'), 'http://localhost/wiki/sub/dir/', 'output top url: nested outdir with double slash');
+test_eq(__LINE__, kona3static_outputTopUrl('sub\\dir'), 'http://localhost/wiki/sub/dir/', 'output top url: backslash separator');
+test_eq(__LINE__, kona3static_outputTopUrl(''), 'http://localhost/wiki/dist/', 'output top url: default outdir is dist');
+test_eq(__LINE__, kona3static_outputTopUrl('/var/www/dist'), '/', 'output top url: absolute outdir falls back to public url');
+test_eq(__LINE__, kona3static_outputTopUrl('C:/www/dist'), '/', 'output top url: windows absolute outdir falls back');
+test_eq(__LINE__, kona3static_outputTopUrl('../dist'), '/', 'output top url: dotdot outdir falls back to public url');
+// 記録済みの出力先は絶対パス。index ディレクトリの下なら URL にできる
+$idx = rtrim(str_replace('\\', '/', realpath(kona3static_indexDir())), '/');
+test_eq(__LINE__, kona3static_outputTopUrl("$idx/dist"), 'http://localhost/wiki/dist/', 'output top url: absolute path under the index dir');
+test_eq(__LINE__, kona3static_outputTopUrl($idx), '/', 'output top url: the index dir itself falls back');
+$kona3conf['baseurl'] = '';
+test_eq(__LINE__, kona3static_outputTopUrl('dist'), '/', 'output top url: empty baseurl falls back to public url');
 unset($kona3conf['baseurl'], $kona3conf['static_outdir']);
 
 // --- 静的モードでの kona3getPageURL ---

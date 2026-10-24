@@ -279,22 +279,39 @@ function kona3getStaticURL($wikiName)
  * 生成済みの静的サイトを、このサーバー上で開くためのトップURL (#290)
  *
  * マイページの管理者メニューから、生成した静的サイトを素早く確認するために使う。
- * 出力先 (`static_outdir`) が index ディレクトリからの相対パスなら、その実物は
- * この Wiki の公開ディレクトリの下にあるので、`baseurl` + 出力先 の URL を返す。
- * 絶対パスや `..` を含む場合はこのサーバーの URL にできないので、
+ * 出力先がこの Wiki の index ディレクトリの下にあるなら、その実物は公開ディレクトリの
+ * 下にあるので、`baseurl` + 出力先 の URL を返す。
+ * index ディレクトリの外 (絶対パスや `..`) の場合はこのサーバーの URL にできないので、
  * 公開URL (`kona3getStaticURL()` のトップ) を返す。
  *
+ * @param string|null $outdir 出力先。省略時はマニフェストが記録している出力先を優先し、
+ *                            なければ設定 `static_outdir` (生成後に設定を変えても、実際の出力を指すため)
  * @return string
  */
-function kona3static_outputTopUrl()
+function kona3static_outputTopUrl($outdir = null)
 {
     global $kona3conf;
-    $outdir = isset($kona3conf['static_outdir']) ? trim((string)$kona3conf['static_outdir']) : '';
+    if ($outdir === null && function_exists('kona3static_recordedOutdir')) {
+        $outdir = kona3static_recordedOutdir();
+    }
+    if ($outdir === null) {
+        $outdir = isset($kona3conf['static_outdir']) ? trim((string)$kona3conf['static_outdir']) : '';
+    }
     if ($outdir === '') {
         $outdir = 'dist';
     }
     $outdir = str_replace('\\', '/', $outdir);
     $isAbsolute = ($outdir[0] === '/' || preg_match('/^[A-Za-z]:\//', $outdir) === 1);
+    if ($isAbsolute) {
+        // 記録済みの出力先は絶対パスなので、index ディレクトリの下なら相対パスに直す
+        $index = rtrim(str_replace('\\', '/', realpath(kona3static_indexDir()) ?: kona3static_indexDir()), '/');
+        $lower = mb_strtolower($outdir, 'UTF-8');
+        $lowerIndex = mb_strtolower($index, 'UTF-8');
+        if ($lowerIndex !== '' && strpos($lower, $lowerIndex . '/') === 0) {
+            $outdir = substr($outdir, strlen($index) + 1);
+            $isAbsolute = false;
+        }
+    }
     $segments = [];
     foreach (explode('/', $outdir) as $seg) {
         if ($seg === '' || $seg === '.') {
