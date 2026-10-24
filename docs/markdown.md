@@ -70,3 +70,9 @@ comment runs to the end of the page. Inside fenced code blocks and inline
 code spans, `<!-- ... -->` is treated as literal code and stays visible.
 Writing `\<!--` also shows the marker as literal text instead of starting
 a comment.
+
+A multi-line comment can also start at the end of a heading, list item,
+quote or table row; the following lines are then hidden until `-->`.
+Inline code spans may use multiple backticks (for example ``code`` or
+`` ` ``), which makes it possible to write the comment syntax itself as
+code: ``<!--``.

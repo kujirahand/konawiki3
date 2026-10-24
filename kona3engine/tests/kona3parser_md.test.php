@@ -439,3 +439,45 @@ test_assert(__LINE__, strpos($html, '<p>text</p>') !== false && strpos($html, 'd
 $html = kona3markdown_parser_convert("- one\n<!-- comment -->\n- two", false);
 test_eq(__LINE__, substr_count($html, '<ul>'), 1, "Markdown comment: リスト項目間のコメントはリストを分けない");
 test_assert(__LINE__, strpos($html, '<li>one</li>') !== false && strpos($html, '<li>two</li>') !== false, "Markdown comment: コメント前後のリスト項目を表示");
+
+// --- #311: follow-up fixes for the comment handling of #307 ---
+
+// 16. Code spans with multiple backticks: the opener inside is literal,
+// and the rest of the line / document must not disappear
+$html = kona3markdown_parser_convert("``code`` test", false);
+test_assert(__LINE__, strpos($html, '<code>code</code>') !== false, "Markdown comment(#311): 複数バッククォートのコードスパンを表示");
+$html = kona3markdown_parser_convert("コード ``<!--`` の使い方です。\nこの行も表示されるべきテキストです。", false);
+test_assert(__LINE__, strpos($html, '<code>&lt;!--</code>') !== false, "Markdown comment(#311): ``<!--`` をコードとして表示");
+test_assert(__LINE__, strpos($html, 'の使い方です') !== false && strpos($html, 'この行も表示されるべきテキストです') !== false, "Markdown comment(#311): ``<!--`` の後続テキストと次の行が消失しない");
+$html = kona3markdown_parser_convert("``code <!-- x`` after\nnext line", false);
+test_assert(__LINE__, strpos($html, '<code>code &lt;!-- x</code>') !== false && strpos($html, 'after') !== false && strpos($html, 'next line') !== false, "Markdown comment(#311): 複数バッククォートのコードスパンの内容と後続を表示");
+
+// 17. The abrupt closings <!--> and <!---> are closed comments everywhere,
+// also in the middle of a paragraph
+$html = kona3markdown_parser_convert("段落の途中 <!--> ここからテキスト\n次の行", false);
+test_assert(__LINE__, strpos($html, 'ここからテキスト') !== false && strpos($html, '次の行') !== false, "Markdown comment(#311): 段落途中の <!--> で後続が消失しない");
+$html = kona3markdown_parser_convert("段落の途中 <!---> ここからテキスト\n次の行", false);
+test_assert(__LINE__, strpos($html, 'ここからテキスト') !== false && strpos($html, '次の行') !== false, "Markdown comment(#311): 段落途中の <!---> で後続が消失しない");
+
+// 18. A multi-line comment can start at the end of a heading, list,
+// quote or table line; continuation lines are hidden until -->
+$html = kona3markdown_parser_convert("# 見出し <!-- コメント開始\n非表示にしたい行\n-->\n本文", false);
+test_assert(__LINE__, strpos($html, '<h1>見出し ') !== false, "Markdown comment(#311): 見出しを表示");
+test_assert(__LINE__, strpos($html, '非表示にしたい行') === false && strpos($html, '-&gt;') === false, "Markdown comment(#311): 見出しから始まる複数行コメントの後続行を表示しない");
+test_assert(__LINE__, strpos($html, '<p>本文</p>') !== false, "Markdown comment(#311): コメント後の本文を表示");
+$html = kona3markdown_parser_convert("- Item <!-- start\ncontinuation\n--> end", false);
+test_assert(__LINE__, strpos($html, '<li>Item </li>') !== false && strpos($html, 'continuation') === false && strpos($html, 'end') !== false, "Markdown comment(#311): リストから始まる複数行コメントの後続行を表示しない");
+$html = kona3markdown_parser_convert("> quoted <!-- start\ncontinuation\n--> end", false);
+test_assert(__LINE__, strpos($html, 'quoted') !== false && strpos($html, 'continuation') === false && strpos($html, 'end') !== false, "Markdown comment(#311): 引用から始まる複数行コメントの後続行を表示しない");
+$html = kona3markdown_parser_convert("| A |\n| --- |\n| x <!-- start |\ncontinuation\n--> end", false);
+test_assert(__LINE__, strpos($html, "<td style='text-align:left;'>x </td>") !== false && strpos($html, 'continuation') === false && strpos($html, '<p>end</p>') !== false, "Markdown comment(#311): 表行から始まる複数行コメントの後続行を表示しない");
+// A closed comment at the end of such a line does not start comment mode
+$html = kona3markdown_parser_convert("- Item <!-- x --> more\n- second", false);
+test_assert(__LINE__, strpos($html, '<li>Item  more</li>') !== false && strpos($html, '<li>second</li>') !== false, "Markdown comment(#311): 同行で閉じるコメントは複数行モードにしない");
+
+// 19. A backslash at the end of an inline code span is a literal, so a
+// following multi-line comment is detected correctly
+$html = kona3markdown_parser_convert("`C:\\` <!-- start\ncontinuation\n--> end", false);
+test_assert(__LINE__, strpos($html, '<code>C:\\</code>') !== false, "Markdown comment(#311): 末尾バックスラッシュのコードスパンを表示");
+test_assert(__LINE__, strpos($html, 'continuation') === false && strpos($html, '-&gt;') === false, "Markdown comment(#311): コードスパン直後の複数行コメントの後続行を表示しない");
+test_assert(__LINE__, strpos($html, 'end') !== false, "Markdown comment(#311): コメント後のテキストを表示");
