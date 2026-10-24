@@ -61,7 +61,8 @@ function test_str($v)
     if (is_scalar($v) || $v === null) {
         return (string)$v;
     }
-    return json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $json = json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR);
+    return ($json === false) ? '[' . gettype($v) . ']' : $json;
 }
 
 function test_eq($line, $a, $b, $desc = 'eq')

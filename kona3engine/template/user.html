@@ -29,8 +29,12 @@
 {{endif}}
 
 <div class="box_border">
+  {{if $is_me }}
   <h3>{{'My Page' | lang}}</h3>
   <p>{{'Login Name' | lang}}: <strong>{{ $name }}</strong></p>
+  {{else}}
+  <h3>{{ $user_id }}. {{ $name }}</h3>
+  {{endif}}
   <div>
     <p>{{'History' | lang}}</p>
     <ul>
