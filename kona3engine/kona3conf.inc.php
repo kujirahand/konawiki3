@@ -101,6 +101,7 @@ function kona3conf_getConfigItems()
             'path_max_mkdir' => ['label' => 'Path Max Mkdir', 'default' => 3, 'type' => 'number', 'note' => '0:off, 1,2,3...:on'],
             'chmod_mkdir' => ['label' => 'Chmod Mkdir', 'default' => '0777', 'type' => 'string'],
             'max_edit_size' => ['label' => 'Max Edit Size', 'default' => 3, 'type' => 'number', 'note' => '0:no limit, unit=MB'],
+            'page_name_max_length' => ['label' => 'Page Name Max Length', 'default' => 200, 'type' => 'number', 'note' => '0:no limit, unit=characters'],
             'max_search' => ['label' => 'Max Search', 'default' => 10, 'type' => 'number'],
             'max_search_level' => ['label' => 'Max Search Level', 'default' => 2, 'type' => 'number'],
             'newline_code' => [
