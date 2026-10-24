@@ -40,6 +40,12 @@ test_eq(__LINE__, kona3sanitizeForLog('abcdef', 3), 'abc', '309 sanitize: custom
 $bad = kona3sanitizeForLog("\xFF\xFEab\r\ncd");
 test_assert(__LINE__, is_string($bad), '309 sanitize: invalid UTF-8 returns a string');
 test_eq(__LINE__, $bad, "\xFF\xFEab  cd", '309 sanitize: invalid UTF-8 bytes are kept, controls removed');
+// 非文字列と $maxLen<=0 のエッジケース (agy レビューの低2で追加)
+test_eq(__LINE__, kona3sanitizeForLog(12345), '12345', '309 sanitize: int input is stringified');
+test_eq(__LINE__, kona3sanitizeForLog(null), '', '309 sanitize: null becomes empty string');
+test_eq(__LINE__, kona3sanitizeForLog(['x']), '', '309 sanitize: array becomes empty string');
+test_eq(__LINE__, kona3sanitizeForLog('abc', 0), 'abc', '309 sanitize: maxLen 0 means no truncation');
+test_eq(__LINE__, kona3sanitizeForLog('abc', -1), 'abc', '309 sanitize: negative maxLen means no truncation');
 
 // --- 低1: 管理者ファイル破損時の error_log は DB 経路でも残る ---
 $adminFile = kona3getAdminUserFile();
