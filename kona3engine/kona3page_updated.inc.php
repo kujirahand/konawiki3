@@ -69,7 +69,15 @@ kona3addHook('write', function($page, $body, $options = []) {
     }
     $i_mode = isset($options['i_mode']) ? $options['i_mode'] : 'form';
     $a_mode = isset($options['a_mode']) ? $options['a_mode'] : '';
-    $edit_ext = isset($options['edit_ext']) ? $options['edit_ext'] : kona3getConf('def_text_ext', 'md');
+    if (isset($options['edit_ext'])) {
+        $edit_ext = $options['edit_ext'];
+    } else {
+        // edit_ext が渡されない場合は、実際にあるファイルの拡張子を使う
+        // (def_text_ext だけでは既存ページの実拡張子と食い違い、
+        //  kona3git_commit_and_push() が対象ファイルを見つけられず静かに終わるため)
+        $resolved_ext = kona3getFileExt(koan3getWikiFileText($page));
+        $edit_ext = ($resolved_ext !== '') ? $resolved_ext : kona3getConf('def_text_ext', 'md');
+    }
     $old_ext = isset($options['old_ext']) ? $options['old_ext'] : '';
 
     $shouldGit = ($i_mode == 'git') || ($a_mode == 'trygit') || ($a_mode == 'trywrite' && $i_mode == 'form');

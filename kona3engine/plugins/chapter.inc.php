@@ -23,8 +23,11 @@ function kona3plugins_chapter_execute($args) {
         $found = glob($basedir.'/'.$chapter.'/*'.$e);
         if ($found === false) { continue; }
         foreach ($found as $f) {
-            $name = kona3getWikiName($f);
-            if (!isset($by_name[$name])) { $by_name[$name] = $f; }
+            // 重複排除キーは実ファイル名から拡張子を除いたものを使う
+            // (kona3getWikiName() の urldecode 済みの名前をキーにすると、
+            //  エンコード表記が異なる別ファイルが同じキーに潰れるおそれがあるため)
+            $key = substr($f, 0, strlen($f) - strlen($e));
+            if (!isset($by_name[$key])) { $by_name[$key] = $f; }
         }
     }
     $files = array_values($by_name);
