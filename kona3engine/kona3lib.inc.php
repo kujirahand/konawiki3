@@ -1042,7 +1042,7 @@ function kona3_checkEditTokenReason($key = 'default')
     if ($postValue === '') {
         return 'no_post_token';
     }
-    return ($sessionValue === $postValue) ? 'ok' : 'mismatch';
+    return hash_equals($sessionValue, $postValue) ? 'ok' : 'mismatch';
 }
 
 function kona3_checkEditToken($key = 'default')

@@ -135,4 +135,4 @@ $loginAct = file_get_contents(KONA3_DIR_ENGINE . '/action/login.inc.php');
 test_assert(__LINE__, strpos($loginAct, 'kona3tryLoginResult') !== FALSE, 'login form: action uses the reason-aware login');
 test_assert(__LINE__, strpos($loginAct, 'kona3_checkEditTokenReason') !== FALSE, 'login form: action checks the token reason');
 test_assert(__LINE__, strpos($loginAct, "kona3error('Login failed.'") === FALSE, 'login form: credential failure no longer goes to the generic error page');
-test_assert(__LINE__, strpos($loginAct, 'kona3_getEditTokenForceUpdate(KONA3_LOGIN_CSRF_KEY)') === FALSE, 'login form: token is no longer force-updated on every display');
+test_assert(__LINE__, strpos($loginAct, '$loginToken = kona3_getEditToken(KONA3_LOGIN_CSRF_KEY);') !== FALSE, 'login form: token is reused on display (not force-updated)');
