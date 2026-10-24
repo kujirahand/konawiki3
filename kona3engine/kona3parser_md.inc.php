@@ -63,6 +63,7 @@ function kona3markdown_parser_parse($text)
     $level = 0;
 
     // main loop
+    $original_text = $text; // document start (for the first-line #freeze check, issue #16)
     $tokens = array();
     $oldtext = '';
     $in_comment = FALSE; // inside a multi-line HTML comment started in a plain line
@@ -127,9 +128,11 @@ function kona3markdown_parser_parse($text)
             kona3markdown_parser_skipCommentLineEnd($text);
             continue;
         }
-        // #freeze at the line head is the freeze plugin, not a heading (issue #16).
-        // (Without a space after '#', CommonMark does not treat it as a heading either.)
-        if (preg_match('/^#freeze(?=[\s\(\);]|$)/', $text)) {
+        // #freeze on the first line of the document is the freeze plugin,
+        // not a heading (issue #16). On later lines it stays a heading, so
+        // it can be quoted as text. (Without a space after '#', CommonMark
+        // does not treat it as a heading either.)
+        if ($text === $original_text && preg_match('/^#freeze(?=[\s\(\);]|$)/', $text)) {
             kona3markdown_parser_getStr($text, 1); // skip '#'
             $tokens[] = kona3markdown_parser_plugins($text, '#');
             continue;

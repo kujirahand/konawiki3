@@ -51,6 +51,7 @@ Markdown のページでは、先頭行に `#freeze` または `!!freeze` と書
 - `#freeze` プラグイン (`kona3engine/plugins/freeze.inc.php`) は表示上は
   何も出力しない (HTML コメント `<!-- #freeze -->` だけを残す)。
   凍結の効力は表示ではなく編集時のチェックで発揮される。
-- Markdown パーサーでは、行頭の `#freeze` は見出しではなくプラグイン
+- Markdown パーサーでは、先頭行の `#freeze` は見出しではなくプラグイン
   として解釈する (空白なしの `#freeze` は CommonMark でも見出しには
-  ならない)。
+  ならない)。2行目以降の `#freeze` は通常の見出しとして表示されるので、
+  解説文の中でそのまま言及できる。

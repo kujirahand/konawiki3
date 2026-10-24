@@ -584,7 +584,9 @@ function kona3pageIsFrozen($page)
     }
     $txt = @file_get_contents($fname);
     if ($txt === FALSE) {
-        return FALSE;
+        // ファイルがあるのに読めない場合は、安全側に倒して凍結として扱う
+        // (読み込み失敗を「凍結ではない」とすると保護がすり抜けるため)
+        return TRUE;
     }
     return kona3isFrozenPageText($txt);
 }

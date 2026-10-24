@@ -79,6 +79,56 @@ test_eq(__LINE__, kona3edit_frozenError($frozen_page, "凍結を解除した本�
 test_eq(__LINE__, kona3edit_frozenError($normal_page, "#freeze\n新たに凍結"), '', 'freeze: 管理者は新たに凍結できる');
 $_SESSION = [];
 
+// -----------------------------------------------
+// kona3_trywrite を通した保存チェック (結合レベル)
+// -----------------------------------------------
+echo "Test 4b: trywrite blocks non-admin saves (ajax)\n";
+// 凍結ページへの保存: 一般ユーザーは弾かれ、ファイルが変わらない
+$_SESSION = [];
+kona3login('freeze-tester', 'freeze@example.com', 'normal', 0);
+$GLOBALS['page'] = $frozen_page;
+$kona3conf['page'] = $frozen_page;
+$cur_txt = file_get_contents(KONA3_DIR_DATA . "/{$frozen_page}.txt");
+$cur_hash = kona3getPageHash($cur_txt);
+$_REQUEST = $_POST = [
+    'edit_txt' => "#freeze\n書き換えた本文",
+    'a_hash' => $cur_hash,
+    'tags' => '',
+    'edit_ext' => 'txt',
+    'page_mode' => 'KonaNotation',
+];
+$tmp_txt = $cur_txt;
+$tmp_hash = $cur_hash;
+ob_start();
+kona3_trywrite($tmp_txt, $tmp_hash, 'ajax', $tmp_result);
+$out = ob_get_clean();
+$json = json_decode($out, TRUE);
+test_eq(__LINE__, isset($json['result']) ? $json['result'] : '', 'ng', 'trywrite: 凍結ページへの保存は ng');
+test_eq(__LINE__, isset($json['code']) ? $json['code'] : '', 'frozen', 'trywrite: エラーコードは frozen');
+test_eq(__LINE__, file_get_contents(KONA3_DIR_DATA . "/{$frozen_page}.txt"), $cur_txt, 'trywrite: 凍結ページのファイルは変わらない');
+// 新規凍結の試み: 一般ユーザーは弾かれ、ファイルが変わらない
+$GLOBALS['page'] = $normal_page;
+$kona3conf['page'] = $normal_page;
+$cur_txt2 = file_get_contents(KONA3_DIR_DATA . "/{$normal_page}.md");
+$cur_hash2 = kona3getPageHash($cur_txt2);
+$_REQUEST = $_POST = [
+    'edit_txt' => "#freeze\n新たに凍結する本文",
+    'a_hash' => $cur_hash2,
+    'tags' => '',
+    'edit_ext' => 'md',
+    'page_mode' => 'Markdown',
+];
+$tmp_txt = $cur_txt2;
+$tmp_hash = $cur_hash2;
+ob_start();
+kona3_trywrite($tmp_txt, $tmp_hash, 'ajax', $tmp_result);
+$out = ob_get_clean();
+$json = json_decode($out, TRUE);
+test_eq(__LINE__, isset($json['code']) ? $json['code'] : '', 'frozen', 'trywrite: 新規凍結の試みもコード frozen で弾かれる');
+test_eq(__LINE__, file_get_contents(KONA3_DIR_DATA . "/{$normal_page}.md"), $cur_txt2, 'trywrite: 新規凍結を試みてもファイルは変わらない');
+$_SESSION = [];
+$_REQUEST = $_POST = [];
+
 // 後片付け
 @unlink(KONA3_DIR_DATA . "/{$frozen_page}.txt");
 @unlink(KONA3_DIR_DATA . "/{$normal_page}.md");
@@ -105,3 +155,11 @@ test_assert(__LINE__, strpos($html_md2, '<!-- #freeze -->') !== FALSE, 'freeze: 
 
 $html_h = kona3markdown_parser_convert("# Title\n\nhello");
 test_assert(__LINE__, strpos($html_h, '<h1') !== FALSE, 'freeze: Markdownの通常の見出しは今までどおり見出しになる');
+
+// Markdown では #freeze のプラグイン解釈は先頭行だけ (agyレビュー指摘で修正)。
+// 2行目以降の #freeze は見出しとして残り、引用・言及できる。
+$html_mid = kona3markdown_parser_convert("# Title\n\n#freeze\n\nhello");
+test_assert(__LINE__, strpos($html_mid, '<!-- #freeze -->') === FALSE, 'freeze: Markdownの途中行の #freeze はプラグインにならない');
+test_assert(__LINE__, strpos($html_mid, '>freeze') !== FALSE, 'freeze: Markdownの途中行の #freeze は見出しとして表示される');
+$html_blank = kona3markdown_parser_convert("\n#freeze\n\nhello");
+test_assert(__LINE__, strpos($html_blank, '<!-- #freeze -->') === FALSE, 'freeze: Markdownで先頭が空行なら #freeze はプラグインにならない');
