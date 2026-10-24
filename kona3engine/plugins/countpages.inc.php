@@ -9,7 +9,7 @@
 
 function kona3plugins_countpages_execute($args) {
   global $kona3conf;
-  $ext = '.'.kona3getConf('def_text_ext', 'txt');
+  $ext = '.'.kona3getConf('def_text_ext', 'md');
   $pattern = "";
   $ignore = [];
   $perpage = 1000;
