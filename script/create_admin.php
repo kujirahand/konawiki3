@@ -49,12 +49,12 @@ foreach (array_slice($argv, 1) as $arg) {
 // オプション形式と位置引数が競合したら、無警告で上書きせずエラーにする。
 // (環境変数はデフォルト値なので、引数での上書きは従来どおり許可する)
 if ($userFromOption !== null && isset($positional[0]) && $positional[0] !== $userFromOption) {
-    fwrite(STDERR, "ERROR: user_id was given both as --user and as a positional argument with different values.\n");
+    fwrite(STDERR, "ERROR: unexpected argument '{$positional[0]}': user_id is already specified by --user. Do not use both.\n");
     create_admin_usage();
     exit(2);
 }
 if ($passwordFromOption !== null && isset($positional[1]) && $positional[1] !== $passwordFromOption) {
-    fwrite(STDERR, "ERROR: password was given both as --password and as a positional argument with different values.\n");
+    fwrite(STDERR, "ERROR: unexpected argument '{$positional[1]}': password is already specified by --password. Do not use both.\n");
     create_admin_usage();
     exit(2);
 }
@@ -62,7 +62,12 @@ if ($userFromOption !== null) $user = $userFromOption;
 if ($passwordFromOption !== null) $password = $passwordFromOption;
 if (isset($positional[0])) $user = $positional[0];
 if (isset($positional[1])) $password = $positional[1];
-if (count($positional) > 2 || $user === null || $user === '' || $password === null || $password === '') {
+if (count($positional) > 2) {
+    fwrite(STDERR, "ERROR: too many arguments: unexpected '{$positional[2]}'.\n");
+    create_admin_usage();
+    exit(2);
+}
+if ($user === null || $user === '' || $password === null || $password === '') {
     fwrite(STDERR, "ERROR: user_id and password are required.\n");
     create_admin_usage();
     exit(2);

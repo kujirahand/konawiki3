@@ -85,15 +85,32 @@ For details, see the [installation guide](https://kujirahand.com/konawiki3/index
 
 You can create a new wiki and its administrator user without a browser, which is also handy for preparing test wikis.
 
-```sh
-# Create a new wiki together with an admin user
-# (pass the password via an environment variable to keep it out of shell history)
-KONA3_ADMIN_PASSWORD='secret' php script/makewiki.php /path/to/wiki --admin=admin@example.com
+#### Step 1: Create a new wiki together with an admin user
 
-# Add an admin user to an existing wiki (overwrites only with --force)
+```sh
+# Pass the password via an environment variable to keep it out of shell history
+KONA3_ADMIN_PASSWORD='secret' php script/makewiki.php /path/to/wiki --admin=admin@example.com
+```
+
+- The admin user is created only when `--admin` is given. Setting the `KONA3_ADMIN_USER` environment variable alone does not create one.
+- If the admin user ID is invalid or the password is missing, the script exits with an error (exit code 2) before creating the wiki.
+
+#### Step 2: Add an admin user to an existing wiki
+
+```sh
 php script/create_admin.php --wiki=/path/to/wiki admin@example.com 'secret'
 # For this repository itself, --wiki can be omitted
 KONA3_ADMIN_USER=admin@example.com KONA3_ADMIN_PASSWORD='secret' php script/create_admin.php
+# Overwriting an existing user requires --force
+```
+
+#### Note: Which OS user runs the script
+
+Files created by the scripts (such as `private/kona3adminuser.json.php` and `private/kona3json_iv.bin`) are owned by the OS user who ran them. If you run them as a different user than the web server (for example with `sudo` as root), the web server may later fail to rewrite those files. Run the scripts as the same user as the web server, or fix the ownership afterwards.
+
+```sh
+# Example: when the web server runs as www-data
+chown -R www-data:www-data /path/to/wiki
 ```
 
 ### Using Docker (Local Environment)

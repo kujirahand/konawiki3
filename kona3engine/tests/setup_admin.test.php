@@ -100,15 +100,39 @@ test_eq(__LINE__, $code, 2, "cli: missing password exits 2");
 // --user と位置引数が競合したら exit 2 (無警告で上書きしない)
 list($code, $out) = $runCli("$php " . escapeshellarg("$scriptDir/create_admin.php") . ' --wiki=' . escapeshellarg($cliWiki) . ' --user=foo@example.com bar@example.com secret');
 test_eq(__LINE__, $code, 2, "cli: conflicting --user and positional exits 2");
-// 環境変数だけでも作成できる
-list($code, $out) = $runCli('KONA3_ADMIN_USER=env-admin@example.com KONA3_ADMIN_PASSWORD=env-secret ' . "$php " . escapeshellarg("$scriptDir/create_admin.php") . ' --wiki=' . escapeshellarg($cliWiki));
+// 環境変数だけでも作成できる (putenv で設定するので POSIX シェル記法に依存しない)
+putenv('KONA3_ADMIN_USER=env-admin@example.com');
+putenv('KONA3_ADMIN_PASSWORD=env-secret');
+list($code, $out) = $runCli("$php " . escapeshellarg("$scriptDir/create_admin.php") . ' --wiki=' . escapeshellarg($cliWiki));
+putenv('KONA3_ADMIN_USER');
+putenv('KONA3_ADMIN_PASSWORD');
 test_eq(__LINE__, $code, 0, "cli: create via env vars exits 0");
 // makewiki --admin の入力値不正は exit 2 (create_admin.php と統一)
 $cliWiki2 = $cliWiki . '-bad';
 list($code, $out) = $runCli("$php " . escapeshellarg("$scriptDir/makewiki.php") . ' ' . escapeshellarg($cliWiki2) . ' --admin=' . escapeshellarg('a b@example.com') . ' --password=<redacted>');
 test_eq(__LINE__, $code, 2, "cli: makewiki with invalid admin id exits 2");
+test_assert(__LINE__, !file_exists($cliWiki2), "cli: makewiki with invalid admin id creates no wiki dir");
+// makewiki は環境変数 KONA3_ADMIN_USER だけでは管理者を作成しない (--admin の明示が必要)
+$cliWiki3 = $cliWiki . '-envonly';
+putenv('KONA3_ADMIN_USER=envonly@example.com');
+putenv('KONA3_ADMIN_PASSWORD=envonly-secret');
+list($code, $out) = $runCli("$php " . escapeshellarg("$scriptDir/makewiki.php") . ' ' . escapeshellarg($cliWiki3));
+putenv('KONA3_ADMIN_USER');
+putenv('KONA3_ADMIN_PASSWORD');
+test_eq(__LINE__, $code, 0, "cli: makewiki without --admin exits 0 even if env user is set");
+test_assert(__LINE__, !file_exists("$cliWiki3/private/kona3adminuser.json.php"), "cli: makewiki without --admin creates no admin user");
+// makewiki --admin でパスワード不足なら、Wikiを作らず exit 2
+$cliWiki4 = $cliWiki . '-nopw';
+putenv('KONA3_ADMIN_PASSWORD');
+list($code, $out) = $runCli("$php " . escapeshellarg("$scriptDir/makewiki.php") . ' ' . escapeshellarg($cliWiki4) . ' --admin=nopw@example.com');
+test_eq(__LINE__, $code, 2, "cli: makewiki --admin without password exits 2");
+test_assert(__LINE__, !file_exists($cliWiki4), "cli: makewiki --admin without password creates no wiki dir");
+// create_admin: オプション指定済みのときの余分な位置引数は、引数を名指しして exit 2
+list($code, $out) = $runCli("$php " . escapeshellarg("$scriptDir/create_admin.php") . ' --wiki=' . escapeshellarg($cliWiki) . ' --user=foo@example.com --password=cfg-secret extra');
+test_eq(__LINE__, $code, 2, "cli: extra positional argument exits 2");
+test_assert(__LINE__, strpos($out, 'extra') !== FALSE && strpos($out, 'unexpected') !== FALSE, "cli: extra positional argument is named in the error");
 // CLIテスト用Wikiを削除
-foreach ([$cliWiki, $cliWiki2] as $d) {
+foreach ([$cliWiki, $cliWiki2, $cliWiki3, $cliWiki4] as $d) {
     if (!file_exists($d)) continue;
     $it = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($d, FilesystemIterator::SKIP_DOTS),
