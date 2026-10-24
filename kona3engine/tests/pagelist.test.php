@@ -31,7 +31,7 @@ file_put_contents($base . '/MenuBar.txt', 'system page');
 file_put_contents($base . '/.hidden.txt', 'hidden');
 file_put_contents($base . '/image.png', 'not a page');
 
-$all = kona3getAllPages();
+$all = kona3getAllPages(FALSE, TRUE); // キャッシュに左右されず実走査する
 $mine = array_values(array_filter($all, function ($n) {
     return strpos($n, '__pagelist_test') === 0;
 }));
@@ -46,7 +46,7 @@ $expected = [
 test_eq(__LINE__, $mine, $expected, "pagelist: getAllPages は .txt/.md を再帰列挙し重複・システム・隠し・非ページを除く");
 test_eq(__LINE__, $all, array_values(array_unique($all)), "pagelist: getAllPages に重複がない");
 
-$with_system = kona3getAllPages(TRUE);
+$with_system = kona3getAllPages(TRUE, TRUE);
 test_assert(__LINE__, in_array('__pagelist_test/MenuBar', $with_system, TRUE), "pagelist: includeSystem=TRUE で MenuBar も含む");
 
 // 後片付け
@@ -59,6 +59,9 @@ foreach (['Top.txt', 'Dup.txt', 'Dup.md', 'MenuBar.txt', '.hidden.txt', 'image.p
 @rmdir($base . '/Guide/Sub');
 @rmdir($base . '/Guide');
 @rmdir($base);
+// 削除したページ名がキャッシュに残らないよう再走査してキャッシュを実状態に合わせる
+kona3getAllPages(FALSE, TRUE);
+kona3getAllPages(TRUE, TRUE);
 
 // --- kona3buildPageTree() ---
 $tree = kona3buildPageTree(['B/Page', 'A', 'B/Apple', 'Top', 'B']);
@@ -150,12 +153,16 @@ $kona3conf['show_page_list'] = FALSE;
 test_assert(__LINE__, $static_blocked, "pagelist: 静的モードではアクションが Kona3StaticException で拒否される");
 
 // --- kona3getAllPages() は同一リクエスト内でメモ化される ---
-$memo_first = kona3getAllPages();
+$memo_first = kona3getAllPages(FALSE, TRUE); // 基準は実走査で取得する
 $memo_file = KONA3_DIR_DATA . '/__pagelist_memo.txt';
 file_put_contents($memo_file, 'memo');
 $memo_second = kona3getAllPages();
-@unlink($memo_file);
 test_eq(__LINE__, $memo_second, $memo_first, "pagelist: getAllPages は同一リクエスト内で再走査しない");
 test_assert(__LINE__, !in_array('__pagelist_memo', $memo_second, TRUE), "pagelist: メモ化後に作ったページは結果に含まれない");
+// $forceReload を渡すと再走査され、新規ページも結果に含まれる
+$memo_reloaded = kona3getAllPages(FALSE, TRUE);
+test_assert(__LINE__, in_array('__pagelist_memo', $memo_reloaded, TRUE), "pagelist: forceReload で再走査される");
+@unlink($memo_file);
+kona3getAllPages(FALSE, TRUE); // 後続テストへ削除済みページ名を残さない
 
 echo "\npagelist tests completed.\n";

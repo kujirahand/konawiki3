@@ -703,13 +703,17 @@ function kona3getWikiName($filename)
  * - 結果は同一リクエスト内のみキャッシュする ($includeSystem の値ごと)。
  *   2回目以降の呼び出しでは再走査しない (リクエストをまたぐキャッシュはしない)
  * @param bool $includeSystem TRUE ならシステムページも含める
+ * @param bool $forceReload TRUE ならキャッシュを破棄して再走査する
  * @return string[] ソート済みのページ名一覧
  */
-function kona3getAllPages($includeSystem = FALSE)
+function kona3getAllPages($includeSystem = FALSE, $forceReload = FALSE)
 {
     static $cache = [];
+    if ($forceReload) {
+        $cache = [];
+    }
     $cacheKey = $includeSystem ? 'all' : 'normal';
-    if (isset($cache[$cacheKey])) {
+    if (!$forceReload && isset($cache[$cacheKey])) {
         return $cache[$cacheKey];
     }
     $dataDir = KONA3_DIR_DATA;
