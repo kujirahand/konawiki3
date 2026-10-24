@@ -466,6 +466,82 @@ function kona3static_findDynamicLinks($html)
     return $found;
 }
 
+/** ベースURLが絶対URL (`https://...`) か */
+function kona3static_baseIsAbsolute()
+{
+    return preg_match('#^https?://#i', kona3static_baseUrl()) === 1;
+}
+
+/**
+ * 出力ファイル (`Wiki名/index.html` など) から出力ルートへ戻る相対接頭辞
+ * 例: `index.html` => `./`, `a/index.html` => `../`, `a/b/index.html` => `../../`
+ */
+function kona3static_relativePrefix($relativeFilePath)
+{
+    $dir = str_replace('\\', '/', dirname($relativeFilePath));
+    if ($dir === '.' || $dir === '' || $dir === '/') {
+        return './';
+    }
+    return str_repeat('../', substr_count($dir, '/') + 1);
+}
+
+/**
+ * 書き出すHTMLのリンク・アセットURLを、そのファイルからの相対URLに書き換える (#287)
+ *
+ * 描画時のURLはベースURL (`/` など) から始まる絶対パスなので、出力先を
+ * サーバーのルート以外 (Wikiのサブディレクトリの `dist/` のまま等) に置くと
+ * CSS が読めず、リンクが 404 になる。相対URLにすれば、出力先ツリーを
+ * どのパスに置いても (移動しても) そのまま機能する。
+ * ベースURLが絶対URLのときは、公開先が確定しているので書き換えない。
+ * 公開URLそのもの (`kona3getStaticURL()`、sitemap.xml 用) は変更しない。
+ *
+ * @param string $html 描画済みHTML
+ * @param string $relativeFilePath 出力先からの相対パス (`Wiki名/index.html` など)
+ * @return string
+ */
+function kona3static_relativizeHtml($html, $relativeFilePath)
+{
+    if (kona3static_baseIsAbsolute()) {
+        return $html;
+    }
+    $base = kona3static_baseUrl();
+    $prefix = kona3static_relativePrefix($relativeFilePath);
+    $toRelative = function ($url) use ($base, $prefix) {
+        if ($url === '' || substr($url, 0, 2) === '//' || strpos($url, $base) !== 0) {
+            return $url;
+        }
+        return $prefix . substr($url, strlen($base));
+    };
+    // href / src / action 属性 (引用符あり・なし)
+    $html = preg_replace_callback(
+        '/\b(href|src|action)(\s*=\s*)("[^"]*"|\'[^\']*\'|[^\s"\'>]+)/i',
+        function ($m) use ($toRelative) {
+            $raw = $m[3];
+            $quote = '';
+            $val = $raw;
+            if ($raw !== '' && ($raw[0] === '"' || $raw[0] === "'")) {
+                $quote = $raw[0];
+                $val = substr($raw, 1, -1);
+            }
+            $new = $toRelative($val);
+            if ($new === $val) {
+                return $m[0];
+            }
+            return $m[1] . $m[2] . $quote . $new . $quote;
+        },
+        $html
+    );
+    // エイリアスの <meta http-equiv="refresh" content="0; url=...">
+    $html = preg_replace_callback(
+        '/(content\s*=\s*["\'][^"\']*?url=)([^"\';]+)/i',
+        function ($m) use ($toRelative) {
+            return $m[1] . $toRelative(trim($m[2]));
+        },
+        $html
+    );
+    return $html;
+}
+
 /**
  * 静的モードの既定の CSS/JS 一覧を (静的URLで) 設定し直す
  */
@@ -546,6 +622,7 @@ function kona3static_buildPage($wikiName, $outdir)
         );
     }
     $rel = kona3getStaticFile($wikiName);
+    $html = kona3static_relativizeHtml($html, $rel);
     kona3static_writeFile($outdir, $rel, $html);
     return $rel;
 }

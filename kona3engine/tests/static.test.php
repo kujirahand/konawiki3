@@ -125,6 +125,36 @@ test_eq(__LINE__, count(kona3static_findDynamicLinks('<a href="https://example.c
 unset($kona3conf['static_php_url']);
 test_eq(__LINE__, count(kona3static_findDynamicLinks('<a href="/a/index.html">x</a><a href="https://example.com/">y</a>')), 0, 'no dynamic links');
 
+// --- 相対URLへの書き換え (#287) ---
+$kona3conf['static_base_url'] = '/';
+test_eq(__LINE__, kona3static_relativePrefix('index.html'), './', 'relative prefix: root');
+test_eq(__LINE__, kona3static_relativePrefix('a/index.html'), '../', 'relative prefix: depth 1');
+test_eq(__LINE__, kona3static_relativePrefix('a/b/index.html'), '../../', 'relative prefix: depth 2');
+test_eq(__LINE__,
+    kona3static_relativizeHtml('<link href="/_kona3/resource/a.css"><a href="/B/">b</a>', 'index.html'),
+    '<link href="./_kona3/resource/a.css"><a href="./B/">b</a>', 'relativize: root page');
+test_eq(__LINE__,
+    kona3static_relativizeHtml('<link href="/_kona3/resource/a.css"><a href="/">home</a><a href="/a/#h1">self</a>', 'a/index.html'),
+    '<link href="../_kona3/resource/a.css"><a href="../">home</a><a href="../a/#h1">self</a>', 'relativize: depth 1');
+test_eq(__LINE__,
+    kona3static_relativizeHtml("<a href='/a/b/'>x</a><img src=/_kona3/files/a.png>", 'a/b/index.html'),
+    "<a href='../../a/b/'>x</a><img src=../../_kona3/files/a.png>", 'relativize: depth 2, quote styles');
+test_eq(__LINE__,
+    kona3static_relativizeHtml('<a href="https://example.com/x">e</a><a href="#frag">f</a><script src="//cdn.example.com/x.js"></script>', 'a/index.html'),
+    '<a href="https://example.com/x">e</a><a href="#frag">f</a><script src="//cdn.example.com/x.js"></script>', 'relativize: external, fragment and protocol-relative are untouched');
+test_eq(__LINE__,
+    kona3static_relativizeHtml('<meta http-equiv="refresh" content="0; url=/A/"><a href="/A/">/A/</a>', 'Old/index.html'),
+    '<meta http-equiv="refresh" content="0; url=../A/"><a href="../A/">/A/</a>', 'relativize: meta refresh (link text is untouched)');
+$kona3conf['static_base_url'] = '/wiki/';
+test_eq(__LINE__,
+    kona3static_relativizeHtml('<a href="/wiki/B/">b</a><a href="/other/">o</a>', 'a/index.html'),
+    '<a href="../B/">b</a><a href="/other/">o</a>', 'relativize: only URLs under the base');
+$kona3conf['static_base_url'] = 'https://example.com/wiki/';
+test_eq(__LINE__,
+    kona3static_relativizeHtml('<a href="https://example.com/wiki/B/">b</a>', 'a/index.html'),
+    '<a href="https://example.com/wiki/B/">b</a>', 'relativize: absolute base is untouched');
+$kona3conf['static_base_url'] = '/';
+
 // --- 書き込み ---
 $tmp = realpath(sys_get_temp_dir()) . '/kona3static_test_' . getmypid();
 static_test_rmdir($tmp);

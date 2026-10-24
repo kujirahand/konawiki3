@@ -44,6 +44,21 @@ function kona3static_searchUrl()
     return kona3static_baseUrl() . KONA3_STATIC_SYSTEM_DIR . '/search/';
 }
 
+/**
+ * 検索インデックスに載せるページURL (#287)
+ * 検索ページ (`_kona3/search/index.html`) から辿れるよう、ベースURLが
+ * パス形式のときは検索ページからの相対URLにする。絶対URLのときは公開URLのまま
+ */
+function kona3static_searchEntryUrl($wikiName)
+{
+    $url = kona3getStaticURL($wikiName);
+    if (kona3static_baseIsAbsolute()) {
+        return $url;
+    }
+    $prefix = kona3static_relativePrefix(KONA3_STATIC_SYSTEM_DIR . '/search/index.html');
+    return $prefix . substr($url, strlen(kona3static_baseUrl()));
+}
+
 /** ページのタグ (メタ情報から取得) */
 function kona3static_pageTags($wikiName)
 {
@@ -130,7 +145,7 @@ function kona3static_buildIndexFiles($plan, $scan)
         }
         $tags = kona3static_pageTags($name);
         $entries[] = [
-            'u' => kona3getStaticURL($name),
+            'u' => kona3static_searchEntryUrl($name),
             't' => $name,
             'b' => kona3static_searchBody(kona3static_displayedSource($name)),
             'g' => $tags,
@@ -184,7 +199,11 @@ function kona3static_buildIndexFiles($plan, $scan)
 /** 検索ページ。インデックス (index.json) を読み込み、ブラウザ上で絞り込む */
 function kona3static_searchPageHtml()
 {
-    $json = htmlspecialchars(kona3static_searchUrl() . 'index.json', ENT_QUOTES, 'UTF-8');
+    // index.json は検索ページと同じフォルダにあるので、ベースURLがパス形式の
+    // ときは相対指定にする (置き場所が変わっても読めるように。#287)
+    $jsonUrl = kona3static_baseIsAbsolute()
+        ? kona3static_searchUrl() . 'index.json' : 'index.json';
+    $json = htmlspecialchars($jsonUrl, ENT_QUOTES, 'UTF-8');
     $body = <<<HTML
 <form id="f" onsubmit="return false"><input type="search" id="q" placeholder="Search" autofocus aria-label="Search"></form>
 <p id="status" class="count"></p>
