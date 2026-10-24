@@ -69,7 +69,7 @@ kona3addHook('write', function($page, $body, $options = []) {
     }
     $i_mode = isset($options['i_mode']) ? $options['i_mode'] : 'form';
     $a_mode = isset($options['a_mode']) ? $options['a_mode'] : '';
-    $edit_ext = isset($options['edit_ext']) ? $options['edit_ext'] : 'txt';
+    $edit_ext = isset($options['edit_ext']) ? $options['edit_ext'] : kona3getConf('def_text_ext', 'md');
     $old_ext = isset($options['old_ext']) ? $options['old_ext'] : '';
 
     $shouldGit = ($i_mode == 'git') || ($a_mode == 'trygit') || ($a_mode == 'trywrite' && $i_mode == 'form');

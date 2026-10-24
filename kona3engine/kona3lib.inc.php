@@ -322,11 +322,12 @@ function kona3getWikiUrl($wikiname)
 // get wiki data
 function kona3getWikiPage($wikiname, $def = '')
 {
-    $ext = '.' . kona3getConf('def_text_ext', 'md');
-    $file = kona3getWikiFile($wikiname, TRUE, $ext);
+    // 実際に存在するファイルを解決する (メタデータのmode → def_text_ext の優先順)
+    // def_text_ext の拡張子だけで探すと、既存の MenuBar.txt 等が表示されなくなる (#302 フォローアップ)
+    $file = koan3getWikiFileText($wikiname);
     if (file_exists($file)) {
         $text = @file_get_contents($file);
-        if ($ext == '.txt') {
+        if (kona3getFileExt($file) === 'txt') {
             require_once __DIR__ . '/kona3parser.inc.php';
             $html = konawiki_parser_convert($text);
             return $html;
@@ -453,7 +454,7 @@ function kona3template_prepare($name, $params)
     }
     if (empty($kona3conf['data_filename'])) {
         $kona3conf['data_filename'] =
-            kona3getWikiFile($kona3conf['page']);
+            koan3getWikiFileText($kona3conf['page']);
     }
 }
 

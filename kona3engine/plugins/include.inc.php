@@ -33,8 +33,8 @@ function kona3plugins_include_execute($args) {
 }
 
 function kona3plugins_include_file($name, &$html) {
-  // auto detect
-  $fname = kona3getWikiFile($name, false);
+  // 実際に存在するファイルを解決する (メタデータのmode → def_text_ext の優先順)
+  $fname = koan3getWikiFileText($name);
   if (file_exists($fname)) {
     $txt = file_get_contents($fname);
     if (preg_match('/\.md$/', $fname)) {
@@ -42,20 +42,6 @@ function kona3plugins_include_file($name, &$html) {
     } else {
       $html = konawiki_parser_convert($txt);
     }
-    return true;
-  }
-  // text
-  $fname = kona3getWikiFile($name, true, '.txt');
-  if (file_exists($fname)) {
-    $txt = file_get_contents($fname);
-    $html = konawiki_parser_convert($txt);
-    return true;  
-  }
-  // md
-  $fname = kona3getWikiFile($name, true, '.md');
-  if (file_exists($fname)) {
-    $txt = file_get_contents($fname);
-    $html = kona3plugins_include_markdown_convert($txt);
     return true;
   }
   return false;

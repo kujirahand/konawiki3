@@ -43,7 +43,16 @@ function kona3plugins_countpages_execute($args) {
   $cnt_code = 0;
   //
   $pattern = str_replace('*', '', $pattern);
-  $files = glob_files("$path/$pattern", $ext, $ignore);
+  // .txt と .md の両方を対象にする (同名ページは def_text_ext 側を優先して二重に数えない)
+  $exts = ($ext === '.md') ? ['.md', '.txt'] : ['.txt', '.md'];
+  $by_base = [];
+  foreach ($exts as $e) {
+    foreach (glob_files("$path/$pattern", $e, $ignore) as $f) {
+      $base = substr($f, 0, strlen($f) - strlen($e));
+      if (!isset($by_base[$base])) { $by_base[$base] = $f; }
+    }
+  }
+  $files = array_values($by_base);
   //
   foreach($files as $f) {
     // check $pattern
