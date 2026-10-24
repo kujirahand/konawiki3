@@ -700,11 +700,18 @@ function kona3getWikiName($filename)
  * - ドットで始まるパス要素 (`.meta` など) とシンボリックリンクは対象外
  * - 既定ではシステムページ (MenuBar / GlobalBar / SideBar) を除く
  *   (#ls プラグインの `show_system` なしの挙動に合わせる)
+ * - 結果は同一リクエスト内のみキャッシュする ($includeSystem の値ごと)。
+ *   2回目以降の呼び出しでは再走査しない (リクエストをまたぐキャッシュはしない)
  * @param bool $includeSystem TRUE ならシステムページも含める
  * @return string[] ソート済みのページ名一覧
  */
 function kona3getAllPages($includeSystem = FALSE)
 {
+    static $cache = [];
+    $cacheKey = $includeSystem ? 'all' : 'normal';
+    if (isset($cache[$cacheKey])) {
+        return $cache[$cacheKey];
+    }
     $dataDir = KONA3_DIR_DATA;
     if (!is_dir($dataDir)) {
         return [];
@@ -746,6 +753,7 @@ function kona3getAllPages($includeSystem = FALSE)
     }
     $list = array_keys($pages);
     sort($list, SORT_STRING);
+    $cache[$cacheKey] = $list;
     return $list;
 }
 

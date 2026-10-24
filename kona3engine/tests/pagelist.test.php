@@ -135,4 +135,27 @@ $tpl_src = file_get_contents($tpl_file);
 test_assert(__LINE__, strpos($tpl_src, 'kona3-pagetree') !== FALSE, "pagelist: テンプレートにツリーがある");
 test_assert(__LINE__, strpos($tpl_src, 'pagelist_filter') !== FALSE, "pagelist: テンプレートに絞り込み入力がある");
 
+// --- 静的モードでは pagelist アクションへの直接アクセスを拒否する ---
+require_once $action_file;
+$kona3conf['static_mode'] = TRUE;
+$kona3conf['show_page_list'] = TRUE;
+$static_blocked = FALSE;
+try {
+    kona3_action_pagelist();
+} catch (Kona3StaticException $e) {
+    $static_blocked = TRUE;
+}
+$kona3conf['static_mode'] = FALSE;
+$kona3conf['show_page_list'] = FALSE;
+test_assert(__LINE__, $static_blocked, "pagelist: 静的モードではアクションが Kona3StaticException で拒否される");
+
+// --- kona3getAllPages() は同一リクエスト内でメモ化される ---
+$memo_first = kona3getAllPages();
+$memo_file = KONA3_DIR_DATA . '/__pagelist_memo.txt';
+file_put_contents($memo_file, 'memo');
+$memo_second = kona3getAllPages();
+@unlink($memo_file);
+test_eq(__LINE__, $memo_second, $memo_first, "pagelist: getAllPages は同一リクエスト内で再走査しない");
+test_assert(__LINE__, !in_array('__pagelist_memo', $memo_second, TRUE), "pagelist: メモ化後に作ったページは結果に含まれない");
+
 echo "\npagelist tests completed.\n";

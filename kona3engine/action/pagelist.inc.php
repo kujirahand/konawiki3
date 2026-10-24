@@ -12,6 +12,11 @@ function kona3_action_pagelist()
     global $kona3conf;
     $page = $kona3conf["page"];
 
+    // 静的HTML出力モードでは一覧を提供しない (直接アクセスも拒否)
+    if (!empty($kona3conf['static_mode'])) {
+        kona3error(lang('Page List'), lang('Page List is not available in static mode.'));
+        return;
+    }
     // 設定で許可されていない場合は表示しない
     if (!kona3getConf('show_page_list')) {
         kona3error(lang('Page List'), lang('Page List is disabled.'));
