@@ -97,6 +97,7 @@ $lang_data = [
     'Static Purge' => '静的出力を削除',
     'Static Purge Confirm' => '生成済みの静的出力を削除します。よろしいですか？',
     'Static Output' => '静的出力',
+    'Open Static Site' => '生成した静的サイトを開く',
     '%d files removed.' => '%d 個のファイルを削除しました。',
     'Generated: %d, Skipped: %d, Removed: %d, Errors: %d' => '生成: %d、スキップ: %d、削除: %d、エラー: %d',
     'Warnings' => '警告',
