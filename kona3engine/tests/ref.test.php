@@ -33,3 +33,11 @@ $html = kona3plugins_ref_execute([
 ]);
 test_assert(__LINE__, strpos($html, 'javascript:') === false, '#ref: unsafe image URL scheme is not output');
 test_assert(__LINE__, strpos($html, '#ref(javascript:alert') === false, '#ref: error output escapes unsafe URL');
+
+// image.php?f=xxx.png 形式(貯蔵庫など)も画像として扱う
+$html = kona3plugins_ref_execute(['https://n3s.nadesi.com/image.php?t=ad024c10940fa250&f=745.jpg']);
+test_assert(__LINE__, strpos($html, '<img src=') !== false, '#ref: image.php?t=..&f=xxx.jpg is an image');
+$html = kona3plugins_ref_execute(['https://n3s.nadesi.com/image.php?f=48.png']);
+test_assert(__LINE__, strpos($html, '<img src=') !== false, '#ref: image.php?f=xxx.png is an image');
+$html = kona3plugins_ref_execute(['https://example.com/download.php?f=doc.pdf']);
+test_assert(__LINE__, strpos($html, '<img') === false, '#ref: image.php?f=xxx.pdf is not an image');

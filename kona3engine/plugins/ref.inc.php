@@ -71,6 +71,17 @@ function kona3plugins_ref_render($args, $force_image = FALSE, $plugin_name = 're
         $url_path = $rawurl;
     }
     $ext = strtolower(pathinfo($url_path, PATHINFO_EXTENSION));
+    // image.php?f=xxx.png のように、クエリの f= に画像ファイル名がある場合も拡張子として扱う
+    $query = parse_url($rawurl, PHP_URL_QUERY);
+    if ($query) {
+        parse_str($query, $qs);
+        if (isset($qs['f']) && is_string($qs['f'])) {
+            $qext = strtolower(pathinfo($qs['f'], PATHINFO_EXTENSION));
+            if ($qext !== '') {
+                $ext = $qext;
+            }
+        }
+    }
     $url = kona3plugins_ref_external_url($rawurl);
     if ($url === '') {
         // file link
