@@ -119,4 +119,9 @@ body.dark-theme strong.strong2 {
   #kona3_main h1 {
     background-color: transparent;
   }
+  /* ダーク用の !important に負けないよう、同じ形で書く */
+  body.dark-theme #kona3_layout_header,
+  body.dark-theme #kona3_main h1 {
+    background-color: transparent !important;
+  }
 }

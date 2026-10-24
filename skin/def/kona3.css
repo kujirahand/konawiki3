@@ -616,6 +616,14 @@ body.dark-theme #kona3_main table th {
 body.dark-theme #kona3_main table td {
   background-color: transparent !important;
 }
+/* 上の border: none で消える、表の上端の罫線を戻す(ライトと同じ) */
+body.dark-theme #kona3_main table tr:first-child > th,
+body.dark-theme #kona3_main table tr:first-child > td {
+  border-top: 1px solid var(--k3-color-border-strong) !important;
+}
+body.dark-theme #kona3_main table thead + tbody tr:first-child > td {
+  border-top: none !important;
+}
 body.dark-theme pre,
 body.dark-theme span.code,
 body.dark-theme .mathjax {
@@ -761,6 +769,15 @@ body.dark-theme #ai_output_area {
    明るい文字色や暗い背景が紙に残らないよう、印刷に出る要素だけを戻す
    ========================================== */
 @media print {
+  /* 上の Print と同じく背景を消す。ダーク用の !important に負けないよう、同じ形で書く */
+  body.dark-theme #kona3_main table th,
+  body.dark-theme pre,
+  body.dark-theme span.code,
+  body.dark-theme .mathjax,
+  body.dark-theme .column,
+  body.dark-theme .column.summary {
+    background-color: transparent !important;
+  }
   body.dark-theme strong.strong1,
   body.dark-theme strong.strong2 {
     color: inherit !important;

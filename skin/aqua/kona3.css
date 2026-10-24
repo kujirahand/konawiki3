@@ -170,4 +170,8 @@ body.dark-theme strong.strong2 {
   body.dark-theme #kona3_header_title .pagename {
     color: var(--k3-color-heading) !important;
   }
+  /* ダーク用の !important に負けないよう、同じ形で書く */
+  body.dark-theme #kona3_layout_header {
+    background: none !important;
+  }
 }
