@@ -21,6 +21,8 @@ var timerIdAutosave = 0
 var timerIdKeepalive = 0
 var lastKeepaliveTime = 0
 var isSessionLost = false // セッション切れを検知したかどうか (issue #64)
+var sessionRetryCount = 0 // keepalive復旧時の自動再保存の試行回数
+const SESSION_RETRY_MAX = 3 // 自動再保存は最大3回まで (繰り返し失敗時のループ防止)
 var isProcessingAjax = false // Ajaxの待ち合わせ中
 var isDebug = false // このファイルのJSをデバッグする時はtrueにする
 var postId = 1
@@ -243,6 +245,7 @@ function loadTextFromLS() {
 
 function clickTempSaveButton() {
   elog('@clickTempSaveButton')
+  sessionRetryCount = 0 // 手動保存は自動再保存の試行回数をリセットする
   saveTextToLS()
   ajaxSave('clickTempSaveButton')
 }
@@ -310,8 +313,17 @@ function keepalive() {
         qq('#edit_info').html('[session restored]')
         qq('#edit_info').css('color', 'green')
         // save the pending text now that the session is back
+        // (自動再保存は最大 SESSION_RETRY_MAX 回まで。失敗が続く場合は
+        //  ループにせず、手動保存を促す)
         if (isChanged && !isProcessingAjax) {
-          ajaxSave('keepalive-restored')
+          if (sessionRetryCount < SESSION_RETRY_MAX) {
+            sessionRetryCount++
+            ajaxSave('keepalive-restored')
+          } else {
+            qq('#edit_info').html('[session restored] Automatic re-save was stopped after several failures. Please press "Save temp" to save manually.')
+            qq('#edit_info').css('color', 'red')
+            setButtonsDisabled(false)
+          }
         }
       }
     })
@@ -325,6 +337,15 @@ function keepalive() {
 // log in again (a link that opens in a new tab, so this page and its
 // text stay open), then keepalive picks the new session up and the
 // pending text can be saved again.
+// Escape a string before embedding it into HTML (for #edit_info messages)
+function escapeHtmlText(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
 function handleSessionLost(reason) {
   saveTextToLS()
   const wasLost = isSessionLost
@@ -332,9 +353,9 @@ function handleSessionLost(reason) {
   if (wasLost) return
   const loginUrl = getLoginUrl()
   let html = '[error] Session expired. Your text is kept in this page and in the temporary save.'
-  if (reason) { html += ' (' + reason + ')' }
+  if (reason) { html += ' (' + escapeHtmlText(reason) + ')' }
   if (loginUrl) {
-    html += ' <a href="' + loginUrl + '" target="_blank" rel="noopener">Login again</a>, then press "Save temp" here.'
+    html += ' <a href="' + escapeHtmlText(loginUrl) + '" target="_blank" rel="noopener">Login again</a>, then press "Save temp" here.'
   }
   qq('#edit_info').html(html)
   qq('#edit_info').css('color', 'red')
@@ -403,6 +424,7 @@ function ajaxProc(a_mode, source) {
       }
       // ok
       isSessionLost = false
+      sessionRetryCount = 0
       handleChange(false, `ajaxProc::done::${pid}`)
       isProcessingAjax = false
       // count

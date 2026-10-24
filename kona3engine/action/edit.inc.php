@@ -154,21 +154,15 @@ function kona3_action_edit()
     if ($a_mode === '' && $q !== 'history') {
         $recovery = kona3edit_getRecovery($page);
         if ($recovery !== null) {
-            $txt = $recovery['txt'];
-            if (isset($recovery['tags']) && $recovery['tags'] !== '') {
-                $tags = $recovery['tags'];
-            }
-            if (isset($recovery['page_mode']) && $recovery['page_mode'] !== '') {
-                $page_mode = $recovery['page_mode'];
-            }
-            if (isset($recovery['edit_ext']) && $recovery['edit_ext'] !== '') {
-                $ext = $recovery['edit_ext'];
-            }
+            list($txt, $tags, $page_mode, $ext) =
+                kona3edit_applyRecovery($recovery, $txt, $tags, $page_mode, $ext);
             $recovery_msg = "<div class='error'>" .
                 kona3text2html(lang('Recovered unsaved text that could not be saved because the session expired. Please check and save again.')) .
                 "</div>";
             $msg = $recovery_msg . $msg;
-            kona3edit_clearRecovery($page);
+            // 退避はここでは消さない。表示しただけで消すと、保存する前に
+            // 画面をリロードしたときに本文が失われてしまう。
+            // 保存が成功したとき (kona3_trywrite) に破棄される。
         }
     }
 
@@ -287,17 +281,44 @@ function kona3edit_stashRecovery($page)
     if (!isset($_SESSION[KONA3_EDIT_RECOVERY_KEY]) || !is_array($_SESSION[KONA3_EDIT_RECOVERY_KEY])) {
         $_SESSION[KONA3_EDIT_RECOVERY_KEY] = [];
     }
-    $tags = kona3param('tags', '');
-    $edit_ext = kona3param('edit_ext', '');
-    $page_mode = kona3param('page_mode', '');
-    $_SESSION[KONA3_EDIT_RECOVERY_KEY][$page] = [
+    // 付随する項目は、パラメータが送られた場合だけ退避する。
+    // 「送られなかった」と「空文字が送られた (例: タグを全て消した)」を
+    // 区別するためで、復旧側はキーの有無で復元するかどうかを決める。
+    $recovery = [
         'txt' => $_REQUEST['edit_txt'],
-        'tags' => is_string($tags) ? $tags : '',
-        'edit_ext' => is_string($edit_ext) ? $edit_ext : '',
-        'page_mode' => is_string($page_mode) ? $page_mode : '',
         'time' => time(),
     ];
+    foreach (['tags', 'edit_ext', 'page_mode'] as $k) {
+        if (isset($_REQUEST[$k]) && is_string($_REQUEST[$k])) {
+            $recovery[$k] = $_REQUEST[$k];
+        }
+    }
+    $_SESSION[KONA3_EDIT_RECOVERY_KEY][$page] = $recovery;
     return TRUE;
+}
+
+// 退避した内容を編集画面の表示値へ反映する。
+// 戻り値: [$txt, $tags, $page_mode, $ext]
+// - 本文は常に退避したものに置き換える
+// - タグはキーがあれば (空文字 = タグを全て消した場合も含めて) 復元する
+// - 記法モードと拡張子は、退避値が空でない場合だけ復元する
+//   (正規の値は空文字にならないため、空は「不明」として扱う)
+function kona3edit_applyRecovery($recovery, $txt, $tags, $page_mode, $ext)
+{
+    if (!is_array($recovery) || !isset($recovery['txt'])) {
+        return [$txt, $tags, $page_mode, $ext];
+    }
+    $txt = $recovery['txt'];
+    if (array_key_exists('tags', $recovery)) {
+        $tags = $recovery['tags'];
+    }
+    if (isset($recovery['page_mode']) && $recovery['page_mode'] !== '') {
+        $page_mode = $recovery['page_mode'];
+    }
+    if (isset($recovery['edit_ext']) && $recovery['edit_ext'] !== '') {
+        $ext = $recovery['edit_ext'];
+    }
+    return [$txt, $tags, $page_mode, $ext];
 }
 
 // 退避した本文を取得する。なければ (または期限切れなら) null を返す。

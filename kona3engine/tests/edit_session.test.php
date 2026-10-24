@@ -68,6 +68,30 @@ test_eq(__LINE__, kona3edit_getRecovery($pageA), null, 'stash: clearしたペー
 $recB = kona3edit_getRecovery($pageB);
 test_assert(__LINE__, $recB !== null && $recB['txt'] === 'Bの本文', 'stash: clearはページ単位で効く');
 
+echo "Test 4b: applyRecovery restores cleared tags but keeps fallbacks\n";
+// (PR #319 agyレビュー 中2) タグを全て消して保存に失敗した場合、
+// 空文字のタグも「編集内容」として復元しなければならない。
+$_SESSION = [];
+$_REQUEST = ['a_mode' => 'trywrite', 'edit_txt' => '本文', 'tags' => ''];
+kona3edit_stashRecovery($pageA);
+$rec = kona3edit_getRecovery($pageA);
+test_assert(__LINE__, $rec !== null && array_key_exists('tags', $rec), 'apply: 送られたタグは空文字でも退避される');
+list($rTxt, $rTags, $rMode, $rExt) = kona3edit_applyRecovery($rec, 'ファイル本文', 'old/tag', 'KonaNotation', 'txt');
+test_eq(__LINE__, $rTxt, '本文', 'apply: 本文は退避したものになる');
+test_eq(__LINE__, $rTags, '', 'apply: 空文字のタグ (全削除) も復元される');
+test_eq(__LINE__, $rMode, 'KonaNotation', 'apply: 記法モードが退避されていなければ既存値を保つ');
+test_eq(__LINE__, $rExt, 'txt', 'apply: 拡張子が退避されていなければ既存値を保つ');
+// パラメータ自体が送られていない場合は、退避にもキー自体が入らない
+$_SESSION = [];
+$_REQUEST = ['a_mode' => 'trywrite', 'edit_txt' => '本文のみ'];
+kona3edit_stashRecovery($pageA);
+$rec = kona3edit_getRecovery($pageA);
+test_assert(__LINE__, $rec !== null && !array_key_exists('tags', $rec), 'apply: 送られなかった項目は退避に入らない');
+list($rTxt, $rTags, $rMode, $rExt) = kona3edit_applyRecovery($rec, 'ファイル本文', 'keep/tag', 'Markdown', 'md');
+test_eq(__LINE__, $rTags, 'keep/tag', 'apply: 退避にないタグは既存値を保つ');
+list($rTxt, $rTags, $rMode, $rExt) = kona3edit_applyRecovery(null, 'a', 'b', 'c', 'd');
+test_eq(__LINE__, [$rTxt, $rTags, $rMode, $rExt], ['a', 'b', 'c', 'd'], 'apply: 退避がなければ何も変えない');
+
 // -----------------------------------------------
 // (案3) keepalive
 // -----------------------------------------------
@@ -111,9 +135,13 @@ test_assert(__LINE__, strpos($editJs, 'startKeepalive') !== FALSE, '配線: edit
 test_assert(__LINE__, strpos($editJs, 'handleSessionLost') !== FALSE, '配線: edit.js がセッション切れを処理する');
 test_assert(__LINE__, strpos($editJs, "'keepalive'") !== FALSE || strpos($editJs, '"keepalive"') !== FALSE, '配線: edit.js が keepalive を送信する');
 test_assert(__LINE__, strpos($editJs, 'kona3tryAutologin') === FALSE, '配線: 存在しない kona3tryAutologin への参照が残っていない');
+test_assert(__LINE__, strpos($editJs, 'escapeHtmlText') !== FALSE, '配線: edit.js がセッション喪失メッセージをエスケープする (PR #319 agyレビュー 中1)');
+test_assert(__LINE__, strpos($editJs, 'SESSION_RETRY_MAX') !== FALSE, '配線: edit.js の自動再保存に試行上限がある (PR #319 agyレビュー 低1)');
+test_assert(__LINE__, strpos($editJs, 'sessionRetryCount = 0') !== FALSE, '配線: 保存成功と手動保存で再試行回数がリセットされる');
 $editHtml = file_get_contents(__DIR__ . '/../template/edit.html');
 test_assert(__LINE__, strpos($editHtml, 'id="login_url"') !== FALSE, '配線: edit.html に再ログイン用URLが埋め込まれる');
 $editPhp = file_get_contents(__DIR__ . '/../action/edit.inc.php');
+test_assert(__LINE__, strpos($editPhp, 'kona3edit_applyRecovery') !== FALSE, '配線: 編集画面が applyRecovery で退避を復元する');
 test_assert(__LINE__, strpos($editPhp, "'keepalive'") !== FALSE, '配線: edit アクションが keepalive を処理する');
 test_assert(__LINE__, strpos($editPhp, "'invalid_token'") !== FALSE, '配線: トークンエラーが ajax 用コード invalid_token を返す');
 test_assert(__LINE__, strpos($editPhp, 'kona3edit_getRecovery') !== FALSE, '配線: 編集画面が退避した本文を復旧する');
