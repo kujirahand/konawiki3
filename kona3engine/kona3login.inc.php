@@ -395,6 +395,51 @@ function kona3tryLogin($user, $pw) {
   return $res['ok'];
 }
 
+// ログ出力用に文字列をサニタイズする (#309)
+// - ASCII 制御文字 (CR/LF 等) と DEL を空白に置換する (#306)
+// - Unicode の行区切りとして扱われうる文字 (U+0085 NEL /
+//   U+2028 / U+2029) と、その他の Unicode 制御・区切り文字
+//   (Cc/Zl/Zp) も空白に置換する
+// - $maxLen 文字で切り詰める (マルチバイト文字の途中では切らない)
+// 不正な UTF-8 が渡されても preg_replace が null を返して
+// 文字列が消えたり壊れたりしないよう、行区切りは UTF-8 の
+// バイト列で先に置換し、/u 付きの置換は有効な UTF-8 の場合だけ行う。
+function kona3sanitizeForLog($text, $maxLen = 100) {
+  if (!is_string($text)) {
+    $text = is_scalar($text) ? (string)$text : '';
+  }
+  // U+0085 / U+2028 / U+2029 を UTF-8 バイト列で置換する
+  // (バイト列の置換は不正な UTF-8 でも安全)
+  $text = str_replace(
+    ["\xC2\x85", "\xE2\x80\xA8", "\xE2\x80\xA9"],
+    ' ',
+    $text
+  );
+  // ASCII 制御文字と DEL (バイトモードなのでマルチバイトは壊れない)
+  $replaced = preg_replace('/[\x00-\x1F\x7F]/', ' ', $text);
+  if ($replaced !== null) {
+    $text = $replaced;
+  }
+  // 有効な UTF-8 の場合だけ、残りの Cc/Zl/Zp (C1 制御文字など) も除去する
+  $isUtf8 = !function_exists('mb_check_encoding')
+    || mb_check_encoding($text, 'UTF-8');
+  if ($isUtf8) {
+    $replaced = preg_replace('/[\p{Cc}\p{Zl}\p{Zp}]/u', ' ', $text);
+    if ($replaced !== null) {
+      $text = $replaced;
+    }
+  }
+  if ($maxLen > 0) {
+    if ($isUtf8 && function_exists('mb_substr')) {
+      $text = mb_substr($text, 0, $maxLen, 'UTF-8');
+    } else {
+      // 不正な UTF-8 では mb_substr が文字を壊すおそれがあるためバイト単位
+      $text = substr($text, 0, $maxLen);
+    }
+  }
+  return $text;
+}
+
 // 理由付きのログイン認証 (#132)
 // 戻り値: ['ok' => bool, 'reason' => KONA3_LOGIN_REASON_* のいずれか]
 function kona3tryLoginResult($user, $pw) {
@@ -415,6 +460,18 @@ function kona3tryLoginResult($user, $pw) {
   if ($userRes['ok']) {
     return ['ok' => TRUE, 'reason' => KONA3_LOGIN_REASON_OK];
   }
+  // 管理者ファイルの破損は、返却する理由の優先順位とは切り離して
+  // 常に記録する (#309)。以前は system_error を返す経路でしか記録
+  // されず、DBユーザーが存在する場合は早期リターンで記録が残らず、
+  // 管理者が破損に気づきにくかった。同じメールが DB 行と管理者の
+  // 両方に存在する重なりケースでも、返却理由は #306 のとおり
+  // DB側を優先しつつ、破損自体はこのログで気づけるようにする。
+  $adminBroken = ($admin['reason'] === KONA3_LOGIN_REASON_SYSTEM);
+  if ($adminBroken) {
+    // ログ注入を防ぐため、サニタイズしてから出力する (#306, #309)
+    $safeUser = kona3sanitizeForLog($user);
+    error_log("KonaWiki3 Error: login failed because admin user file could not be loaded (user={$safeUser})");
+  }
   // DBにユーザーが存在する場合は、その照合結果が正である (#306)。
   // 管理者ファイルが壊れていても、DB照合済みのユーザーに
   // 「パスワードは確認されていません」と誤案内しない。
@@ -424,11 +481,7 @@ function kona3tryLoginResult($user, $pw) {
   // DBに該当ユーザーがおらず、管理者ファイルが壊れていて管理者認証を
   // 確認できなかった場合は、「ユーザー名かパスワードの間違い」と
   // 誤案内しない (#297 と同じ考え方)
-  if ($admin['reason'] === KONA3_LOGIN_REASON_SYSTEM) {
-    // ログ注入を防ぐため、制御文字を除去してから出力する (#306)
-    $safeUser = preg_replace('/[\x00-\x1F\x7F]/', ' ', $user);
-    $safeUser = mb_substr($safeUser, 0, 100);
-    error_log("KonaWiki3 Error: login failed because admin user file could not be loaded (user={$safeUser})");
+  if ($adminBroken) {
     return ['ok' => FALSE, 'reason' => KONA3_LOGIN_REASON_SYSTEM];
   }
   return ['ok' => FALSE, 'reason' => KONA3_LOGIN_REASON_INVALID];
