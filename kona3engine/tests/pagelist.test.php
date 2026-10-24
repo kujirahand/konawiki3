@@ -80,6 +80,23 @@ $evil = kona3renderPageTree(kona3buildPageTree(['Evil/<b>Bold</b>']));
 test_assert(__LINE__, strpos($evil, '<b>Bold</b>') === FALSE, "pagelist: ページ名はエスケープされる (XSS)");
 test_assert(__LINE__, strpos($evil, '&lt;b&gt;') !== FALSE, "pagelist: エスケープ済みの名前が描画される");
 
+// フォルダ自体がページの場合、名前は開閉専用でリンクは分離される (agyレビュー指摘1)
+$folder_html = kona3renderPageTree(kona3buildPageTree(['Guide', 'Guide/Install']));
+test_assert(__LINE__, strpos($folder_html, 'class="pt-open"') !== FALSE, "pagelist: フォルダ=ページでは分離した開くリンクがある");
+test_assert(__LINE__, strpos($folder_html, '>Guide</a>') === FALSE, "pagelist: フォルダ名自体はリンクにしない (開閉と競合させない)");
+test_assert(__LINE__, strpos($folder_html, '>🔗</a>') !== FALSE, "pagelist: 開くリンクはアイコンで表示される");
+
+// 境界値: 空の一覧、日本語ページ名、数字だけのページ名 (agyレビュー指摘3)
+test_eq(__LINE__, kona3buildPageTree([]), [], "pagelist: 空の一覧からは空のツリー");
+$empty_html = kona3renderPageTree([]);
+test_assert(__LINE__, strpos($empty_html, '<li') === FALSE, "pagelist: 空のツリーは項目なしで描画される");
+$edge = kona3buildPageTree(['0', '日本語/ページ', '日本語']);
+test_assert(__LINE__, isset($edge['0']), "pagelist: 数字だけのページ名 '0' もツリーに入る");
+test_eq(__LINE__, $edge['日本語']['is_page'], TRUE, "pagelist: 日本語フォルダのページ判定");
+test_eq(__LINE__, $edge['日本語']['children']['ページ']['path'], '日本語/ページ', "pagelist: 日本語ページのパス");
+$edge_html = kona3renderPageTree($edge);
+test_assert(__LINE__, strpos($edge_html, '日本語') !== FALSE, "pagelist: 日本語ページ名が描画される");
+
 // --- ハンバーガーメニュー (kona3getCtrlMenuArray) ---
 @session_start();
 if (function_exists('kona3logout')) {

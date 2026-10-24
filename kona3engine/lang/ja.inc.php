@@ -13,6 +13,7 @@ $lang_data = [
     'Login Name' => 'ログイン名',
     'Search' => '🔍 検索',
     'Page List' => '📚 ページ一覧',
+    'Open Page' => 'ページを開く',
     'Page List is disabled.' => 'ページ一覧は設定で無効になっています。設定で「ページ一覧の表示を許可する」を有効にしてください。',
     'Expand All' => 'すべて展開',
     'Collapse All' => 'すべて折りたたむ',

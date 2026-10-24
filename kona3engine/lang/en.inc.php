@@ -14,6 +14,7 @@ $lang_data = [
     'Error' => 'Error',
     'Search' => 'Search',
     'Page List' => 'Page List',
+    'Open Page' => 'Open Page',
     'Page List is disabled.' => 'The page list is disabled. Enable "Show Page List" in the settings to use it.',
     'Expand All' => 'Expand All',
     'Collapse All' => 'Collapse All',

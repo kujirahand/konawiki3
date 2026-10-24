@@ -819,14 +819,20 @@ function kona3renderPageTree($tree)
             $nameH = kona3text2html($node['name']);
             $pathH = htmlspecialchars($node['path'], ENT_QUOTES, 'UTF-8');
             $label = $nameH;
+            $pageLink = '';
             if (!empty($node['is_page'])) {
                 $url = htmlspecialchars(kona3getPageURL($node['path']), ENT_QUOTES, 'UTF-8');
                 $label = "<a href=\"{$url}\">{$nameH}</a>";
+                $openLabel = htmlspecialchars(lang('Open Page'), ENT_QUOTES, 'UTF-8');
+                $pageLink = " <a class=\"pt-open\" href=\"{$url}\" title=\"{$openLabel}: {$pathH}\" aria-label=\"{$openLabel}: {$pathH}\">🔗</a>";
             }
             if (!empty($node['children'])) {
+                // フォルダ名は <summary> の開閉専用にし、フォルダ自体がページの
+                // 場合はページへのリンクを分離する (開閉と遷移の競合を避ける)
+                $dirLabel = $nameH . $pageLink;
                 $html .= "<li class=\"pt-node pt-dir\" data-path=\"{$pathH}\">"
                     . '<details><summary><span class="pt-icon" aria-hidden="true">📁</span> '
-                    . $label . '</summary>'
+                    . $dirLabel . '</summary>'
                     . $renderNodes($node['children'])
                     . '</details></li>';
             } else {
