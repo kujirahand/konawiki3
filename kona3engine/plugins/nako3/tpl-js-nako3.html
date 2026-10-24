@@ -46,11 +46,23 @@ function nako3_print_textarea (id, text) {
 function nako3_run(id, use_canvas, use_textarea, useDebug, editable) {
   // wait for wnako3.js
   if (typeof(navigator.nako3) === 'undefined') {
+    // 読み込み中ではなく、読み込みに失敗している場合は、ダイアログではなく
+    // コードエディタのエラー表示の場所にエラーを表示する (#44)
+    if (typeof(nako3_is_load_failed) === 'function' && nako3_is_load_failed(use_textarea)) {
+      if (typeof(nako3_show_load_error) === 'function') { nako3_show_load_error(id) }
+      return
+    }
     alert('現在「なでしこ3」を読み込み中です。しばらくお待ちください。')
     return
   }
   // wait for ace editor
   if (use_textarea === false  && ace_editors[id] === undefined) {
+    const editor_failed = (typeof(nako3_editor_failed_pids) !== 'undefined') && nako3_editor_failed_pids[id]
+    if (editor_failed ||
+        (typeof(nako3_is_load_failed) === 'function' && nako3_is_load_failed(use_textarea))) {
+      if (typeof(nako3_show_load_error) === 'function') { nako3_show_load_error(id) }
+      return
+    }
     alert('現在「ace editor」を読み込み中です。しばらくお待ちください。')
     return
   }

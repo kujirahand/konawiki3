@@ -14,21 +14,151 @@ function isIE() {
 const ace_editors = {}
 const use_textarea_b = {}
 
-function ace_editor_init(pid, use_textarea) {
-    use_textarea_b[pid] = use_textarea
-    if (navigator.nako3 === undefined) {
-        setTimeout(function() { ace_editor_init(pid, use_textarea) }, 200);
+// ---- なでしこ3の読み込み失敗の検出 (#44) ----
+// 外部スクリプト(wnako3.js や ace など)は CDN から読み込まれるため、
+// ネットに繋がっていないと読み込めない。その場合に無言で待たせ続けたり
+// エディタが表示されなかったりしないよう、失敗を検出してエラーを表示する。
+const NAKO3_LOAD_TIMEOUT_MS = 10000 // この時間を超えても読み込めなければ失敗とみなす
+const NAKO3_LOAD_RETRY_MS = 200
+const nako3_load_started = Date.now()
+let nako3_load_failed = false
+const nako3_load_pids = [] // 初期化対象の pid 一覧 (エラー表示先)
+const nako3_editor_failed_pids = {} // pid => ace エディタの初期化に失敗した
+
+function nako3_queued_load_errors() {
+    return (window.__nako3_load_errors && window.__nako3_load_errors.length)
+        ? window.__nako3_load_errors : []
+}
+
+// そのファイルが読み込めないと、対象の pid が使えなくなるか。
+// ace.js は ace エディタを使う pid でのみ致命的で、use_textarea の pid には不要。
+function nako3_is_fatal_for(name, use_textarea) {
+    if (name === 'wnako3.js') { return true }
+    if (name === 'ace.js') { return !use_textarea }
+    return false
+}
+
+// onerror で確定した致命的な読み込み失敗があるか
+function nako3_has_fatal_error(use_textarea) {
+    if (nako3_load_failed) { return true } // wnako3.js の失敗 (全 pid 共通)
+    const errors = nako3_queued_load_errors()
+    for (const name of errors) {
+        if (nako3_is_fatal_for(name, use_textarea)) { return true }
+    }
+    return false
+}
+
+function nako3_is_load_failed(use_textarea) {
+    if (nako3_has_fatal_error(use_textarea)) { return true }
+    // onerror が発火しないまま (接続がハングする等) 制限時間を超えた場合も失敗とする
+    const elapsed = (Date.now() - nako3_load_started) > NAKO3_LOAD_TIMEOUT_MS
+    if (!elapsed) { return false }
+    if (typeof(navigator.nako3) === 'undefined') { return true }
+    // ランタイムは読めたのに ace だけがハングしている場合 (ace を使う pid のみ)
+    if (!use_textarea && typeof(window.ace) === 'undefined') { return true }
+    return false
+}
+
+function nako3_load_error_message() {
+    let msg = 'ランタイムの取得に失敗しました。ネットワーク接続を確認して、ページを再読み込みしてください。'
+    const errors = []
+    for (const name of nako3_queued_load_errors()) {
+        if (errors.indexOf(name) < 0) { errors.push(name) } // 重複を除く
+    }
+    if (errors.length > 0) {
+        msg += '(読み込めなかったファイル: ' + errors.join(', ') + ')'
+    }
+    return msg
+}
+
+// 指定した pid の #nako3 にエラーを表示する。
+// あわせて、プログラムだけは素のテキストエリアで読める (コピーできる) ようにする。
+function nako3_show_load_error(pid) {
+    const div = document.getElementById('nako3error_div_' + pid)
+    if (div) {
+        div.textContent = nako3_load_error_message()
+        div.style.display = 'block'
+    }
+    const ace = document.getElementById('ace_editor' + pid)
+    if (ace) { ace.style.display = 'none' }
+    const edit = document.getElementById('nako3_code_' + pid)
+    if (edit) { edit.style.display = 'block' }
+}
+
+// タイムアウトで一時的に表示したエラーを、遅れて読み込めた場合に取り消す
+function nako3_hide_load_error(pid) {
+    const div = document.getElementById('nako3error_div_' + pid)
+    if (div) { div.style.display = 'none' }
+}
+
+// 外部スクリプトの onerror から呼ばれる (lib.inc.php の nako3_script_onerror_attr 参照)
+function nako3_report_load_error(src) {
+    if (src === 'wnako3.js') {
+        // ランタイム本体は全 pid に必須
+        nako3_load_failed = true
+        for (const pid of nako3_load_pids) {
+            nako3_show_load_error(pid)
+        }
         return
     }
+    if (src === 'ace.js') {
+        // ace は ace エディタを使う pid でのみ致命的 (use_textarea の pid には不要)
+        for (const pid of nako3_load_pids) {
+            if (!use_textarea_b[pid]) { nako3_show_load_error(pid) }
+        }
+        return
+    }
+    // 本体の実行に必須ではないファイルは、記録 (キュー) のみでエラー表示はしない
+    if (window.console && console.warn) {
+        console.warn('[#nako3 plugin] failed to load: ' + src)
+    }
+}
+window.nako3_report_load_error = nako3_report_load_error
+
+const nako3_load_recovery = {} // pid => タイムアウト後の再確認回数
+function ace_editor_init(pid, use_textarea) {
+    use_textarea_b[pid] = use_textarea
+    if (nako3_load_pids.indexOf(pid) < 0) { nako3_load_pids.push(pid) }
+    if (typeof(navigator.nako3) === 'undefined') {
+        if (nako3_is_load_failed(use_textarea)) {
+            nako3_show_load_error(pid)
+            // タイムアウトだけが理由の場合は確定ではないので、遅れて読み込めたら
+            // 復帰できるよう低頻度で再確認する (最大30回 x 2秒)。onerror で
+            // 確定した失敗では再確認しない。
+            const count = nako3_load_recovery[pid] || 0
+            if (!nako3_has_fatal_error(use_textarea) && count < 30) {
+                nako3_load_recovery[pid] = count + 1
+                setTimeout(function() { ace_editor_init(pid, use_textarea) }, 2000)
+            }
+            return
+        }
+        setTimeout(function() { ace_editor_init(pid, use_textarea) }, NAKO3_LOAD_RETRY_MS);
+        return
+    }
+    // 読み込めたので、タイムアウトで表示したエラーがあれば取り消す
+    nako3_hide_load_error(pid)
     if (use_textarea) {
         var edit = document.getElementById('nako3_code_' + pid)
         edit.style.display = 'block'
         console.log('[#nako3 plugin] textarea mode')
     } else {
-        const ace = document.getElementById('ace_editor' + pid)
-        ace.style.display = 'block'
-        ace_editors[pid] = navigator.nako3.setupEditor('ace_editor' + pid)
-        // console.log('[#nako3 plugin] ace_editor mode')
+        try {
+            if (typeof(window.ace) === 'undefined') {
+                throw new Error('ace editor is not loaded')
+            }
+            const ace = document.getElementById('ace_editor' + pid)
+            ace.style.display = 'block'
+            // エラー表示の際にフォールバックで出したテキストエリアを隠す
+            const edit = document.getElementById('nako3_code_' + pid)
+            if (edit) { edit.style.display = 'none' }
+            ace_editors[pid] = navigator.nako3.setupEditor('ace_editor' + pid)
+            // console.log('[#nako3 plugin] ace_editor mode')
+        } catch (e) {
+            // ace 本体が読み込めていない場合など、エディタを初期化できないとき
+            if (window.console && console.error) { console.error(e) }
+            nako3_editor_failed_pids[pid] = true
+            nako3_show_load_error(pid)
+        }
     }
 }
 
