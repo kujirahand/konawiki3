@@ -494,6 +494,9 @@ function kona3static_relativePrefix($relativeFilePath)
  * どのパスに置いても (移動しても) そのまま機能する。
  * ベースURLが絶対URLのときは、公開先が確定しているので書き換えない。
  * 公開URLそのもの (`kona3getStaticURL()`、sitemap.xml 用) は変更しない。
+ * 変換対象は href / src / action / srcset 属性と <meta http-equiv="refresh"> の
+ * url だけ。それ以外 (meta の content 属性、data-* 属性、<script> / <style> の
+ * 中身、本文テキスト) は変換しない (docs/static_wiki.md 5章)。
  *
  * @param string $html 描画済みHTML
  * @param string $relativeFilePath 出力先からの相対パス (`Wiki名/index.html` など)
@@ -512,34 +515,82 @@ function kona3static_relativizeHtml($html, $relativeFilePath)
         }
         return $prefix . substr($url, strlen($base));
     };
-    // href / src / action 属性 (引用符あり・なし)
-    $html = preg_replace_callback(
-        '/\b(href|src|action)(\s*=\s*)("[^"]*"|\'[^\']*\'|[^\s"\'>]+)/i',
-        function ($m) use ($toRelative) {
-            $raw = $m[3];
-            $quote = '';
-            $val = $raw;
-            if ($raw !== '' && ($raw[0] === '"' || $raw[0] === "'")) {
-                $quote = $raw[0];
-                $val = substr($raw, 1, -1);
-            }
-            $new = $toRelative($val);
-            if ($new === $val) {
-                return $m[0];
-            }
-            return $m[1] . $m[2] . $quote . $new . $quote;
-        },
-        $html
-    );
-    // エイリアスの <meta http-equiv="refresh" content="0; url=...">
-    $html = preg_replace_callback(
-        '/(content\s*=\s*["\'][^"\']*?url=)([^"\';]+)/i',
-        function ($m) use ($toRelative) {
-            return $m[1] . $toRelative(trim($m[2]));
-        },
-        $html
-    );
-    return $html;
+    // href / src / action / srcset 属性 (引用符あり・なし)
+    $rewriteAttrs = function ($text) use ($toRelative) {
+        return preg_replace_callback(
+            '/\b(href|src|action|srcset)(\s*=\s*)("[^"]*"|\'[^\']*\'|[^\s"\'>]+)/i',
+            function ($m) use ($toRelative) {
+                $raw = $m[3];
+                $quote = '';
+                $val = $raw;
+                if ($raw !== '' && ($raw[0] === '"' || $raw[0] === "'")) {
+                    $quote = $raw[0];
+                    $val = substr($raw, 1, -1);
+                }
+                if (strtolower($m[1]) === 'srcset') {
+                    // srcset は「URL ディスクリプタ, ...」の並び。各URLだけを書き換える
+                    $parts = [];
+                    foreach (explode(',', $val) as $entry) {
+                        $tokens = preg_split('/\s+/', trim($entry));
+                        if ($tokens === false || $tokens[0] === '') {
+                            continue;
+                        }
+                        $tokens[0] = $toRelative($tokens[0]);
+                        $parts[] = implode(' ', $tokens);
+                    }
+                    $new = implode(', ', $parts);
+                } else {
+                    $new = $toRelative($val);
+                }
+                if ($new === $val) {
+                    return $m[0];
+                }
+                return $m[1] . $m[2] . $quote . $new . $quote;
+            },
+            $text
+        );
+    };
+    // エイリアスのリダイレクトは、<meta http-equiv="refresh"> の中だけを書き換える
+    // (description など、他の content 属性に `url=` が含まれても誤変換しない)
+    $rewriteMetaRefresh = function ($text) use ($toRelative) {
+        return preg_replace_callback(
+            '/<meta\b[^>]*>/i',
+            function ($m) use ($toRelative) {
+                $tag = $m[0];
+                if (!preg_match('/http-equiv\s*=\s*["\']?refresh/i', $tag)) {
+                    return $tag;
+                }
+                return preg_replace_callback(
+                    '/(url\s*=\s*)([^"\';]+)/i',
+                    function ($mm) use ($toRelative) {
+                        return $mm[1] . $toRelative(trim($mm[2]));
+                    },
+                    $tag
+                );
+            },
+            $text
+        );
+    };
+    $rewrite = function ($text) use ($rewriteAttrs, $rewriteMetaRefresh) {
+        return $rewriteMetaRefresh($rewriteAttrs($text));
+    };
+    // <script> / <style> の中身 (JSの文字列リテラルや CSS の url()) は書き換えない。
+    // 開始タグの src など、タグ自体の属性は書き換える
+    $out = '';
+    $rest = $html;
+    while (preg_match('/<(script|style)\b[^>]*>.*?<\/\1\s*>/is', $rest, $m, PREG_OFFSET_CAPTURE)) {
+        $block = $m[0][0];
+        $pos = $m[0][1];
+        $out .= $rewrite(substr($rest, 0, $pos));
+        if (preg_match('/^(<[^>]*>)(.*)(<\/\w+\s*>)$/s', $block, $pm)) {
+            $out .= $rewrite($pm[1]) . $pm[2] . $pm[3];
+        } else {
+            $out .= $rewrite($block);
+        }
+        $rest = substr($rest, $pos + strlen($block));
+    }
+    $out .= $rewrite($rest);
+    return $out;
 }
 
 /**

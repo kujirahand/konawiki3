@@ -154,6 +154,22 @@ test_eq(__LINE__,
     kona3static_relativizeHtml('<a href="https://example.com/wiki/B/">b</a>', 'a/index.html'),
     '<a href="https://example.com/wiki/B/">b</a>', 'relativize: absolute base is untouched');
 $kona3conf['static_base_url'] = '/';
+// レビュー対応 (#289): srcset、script/style の中身、refresh 以外の meta
+test_eq(__LINE__,
+    kona3static_relativizeHtml('<img src="/a.png" srcset="/a.png 1x, /b.png 2x">', 'x/index.html'),
+    '<img src="../a.png" srcset="../a.png 1x, ../b.png 2x">', 'relativize: srcset urls');
+test_eq(__LINE__,
+    kona3static_relativizeHtml('<script src="/_kona3/resource/a.js">var s = "href=\"/B/\"";</script><a href="/B/">b</a>', 'index.html'),
+    '<script src="./_kona3/resource/a.js">var s = "href=\"/B/\"";</script><a href="./B/">b</a>', 'relativize: script body is untouched, src is rewritten');
+test_eq(__LINE__,
+    kona3static_relativizeHtml('<style>.x{background:url(/_kona3/a.png)}</style><a href="/B/">b</a>', 'index.html'),
+    '<style>.x{background:url(/_kona3/a.png)}</style><a href="./B/">b</a>', 'relativize: style body is untouched (known limitation)');
+test_eq(__LINE__,
+    kona3static_relativizeHtml('<meta name="description" content="see url=/B/"><a href="/B/">b</a>', 'index.html'),
+    '<meta name="description" content="see url=/B/"><a href="./B/">b</a>', 'relativize: non-refresh meta content is untouched');
+test_eq(__LINE__,
+    kona3static_relativizeHtml('<meta content="0; url=/B/" http-equiv="refresh">', 'a/index.html'),
+    '<meta content="0; url=../B/" http-equiv="refresh">', 'relativize: meta refresh regardless of attribute order');
 
 // --- 書き込み ---
 $tmp = realpath(sys_get_temp_dir()) . '/kona3static_test_' . getmypid();

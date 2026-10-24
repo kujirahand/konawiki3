@@ -55,8 +55,14 @@ function kona3static_searchEntryUrl($wikiName)
     if (kona3static_baseIsAbsolute()) {
         return $url;
     }
+    // kona3getStaticURL() は「ベースURL + 物理パス」で組み立てるので、通常は
+    // 必ずベースURLから始まる。前提が崩れた場合は、削らず公開URLのままにする
+    $base = kona3static_baseUrl();
+    if (strpos($url, $base) !== 0) {
+        return $url;
+    }
     $prefix = kona3static_relativePrefix(KONA3_STATIC_SYSTEM_DIR . '/search/index.html');
-    return $prefix . substr($url, strlen(kona3static_baseUrl()));
+    return $prefix . substr($url, strlen($base));
 }
 
 /** ページのタグ (メタ情報から取得) */
