@@ -66,6 +66,23 @@ $kona3conf['enc_pagename'] = TRUE;
 test_eq(__LINE__, kona3validatePageName(str_repeat('あ', 27)), '', "エンコード時: 日本語27文字 (243バイト) はOK");
 test_ne(__LINE__, kona3validatePageName(str_repeat('あ', 28)), '', "エンコード時: 日本語28文字 (252バイト) はNG");
 
+// 編集画面を開いたときの警告文 (kona3getPageNameTooLongMessage)
+unset($kona3conf['page_name_max_length']);
+$kona3conf['enc_pagename'] = FALSE;
+test_eq(__LINE__, kona3getPageNameTooLongMessage('FrontPage'), '', "警告文: 通常のページ名では空");
+test_eq(__LINE__, kona3getPageNameTooLongMessage('カテゴリ/子ページ'), '', "警告文: 階層ページ名でも空");
+$long_page = str_repeat('A', 201);
+$too_long_msg = kona3getPageNameTooLongMessage($long_page);
+test_ne(__LINE__, $too_long_msg, '', "警告文: 201文字では警告が出る");
+test_assert(__LINE__, strpos($too_long_msg, kona3validatePageName($long_page)) !== FALSE, "警告文: 理由 (上限文字数) を含む");
+test_assert(__LINE__, strlen($too_long_msg) > strlen(kona3validatePageName($long_page)), "警告文: 理由だけでなく「保存できません」相当の文を含む");
+$byte_long_msg = kona3getPageNameTooLongMessage(str_repeat('あ', 82));
+test_ne(__LINE__, $byte_long_msg, '', "警告文: 各階層246バイトでも警告が出る");
+
+// 編集アクションが、フォーム表示時と保存時の両方で警告文を使うこと (配線の確認)
+$edit_src = file_get_contents(__DIR__ . '/../action/edit.inc.php');
+test_assert(__LINE__, substr_count($edit_src, 'kona3getPageNameTooLongMessage') >= 2, "編集アクション: 表示時と保存時の両方で警告文を使う");
+
 // 後始末 (他のテストへ影響させない)
 $kona3conf['enc_pagename'] = $saved_enc;
 if ($saved_max_exists) {

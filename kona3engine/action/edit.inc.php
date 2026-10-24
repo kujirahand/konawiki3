@@ -106,6 +106,11 @@ function kona3_action_edit()
         $msg = kona3_trygit($txt, $a_hash, $i_mode);
     } else {
         $msg = "";
+        // ページ名が長すぎる場合は、編集画面を開いた時点で保存できないことを知らせる (issue #133)
+        $too_long_msg = kona3getPageNameTooLongMessage($page);
+        if ($too_long_msg !== '') {
+            $msg = "<div class='error'>" . kona3text2html($too_long_msg) . "</div>";
+        }
     }
     // Ajaxならテンプレート出力しない
     if ($i_mode == 'ajax') return;
@@ -378,9 +383,10 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
     $user_id = kona3getUserId();
 
     // ページ名の文字数制限を確認する (issue #133)
-    // 既存ページは上限を超えていても編集できるよう、新規作成のときだけ確認する
-    if (!$has_existing_file && !file_exists($fname)) {
-        $page_name_error = kona3validatePageName($page);
+    // 長すぎるページ名は既存ページでも保存できない (編集画面を開いた時点でも警告する)。
+    // ただし本文を空にしてページを削除する操作は、ファイルを作らないので許可する
+    if (trim($edit_txt) !== '') {
+        $page_name_error = kona3getPageNameTooLongMessage($page);
         if ($page_name_error !== '') {
             kona3_edit_err($page_name_error, $i_mode, $postId);
             return "";

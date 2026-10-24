@@ -107,6 +107,7 @@ $lang_data = [
     'Invalid Wiki Name: page name is too long (max %s characters)' => "不正なWIKI名: ページ名が長すぎます(%s文字以下にしてください)。",
     'Invalid Wiki Name: each part of page name must be %s bytes or less' => "不正なWIKI名: ページ名の各階層は%sバイト以下にしてください。",
     'Page name is empty.' => 'ページ名が空です。',
+    'Page name is too long and cannot be saved.' => 'ページ名が長すぎて保存できません。',
     'Keep me logged in on this browser' => 'このブラウザでログイン状態を保持する',
     'Page name' => 'ページ名',
     'Special Page' => '特別なページ',

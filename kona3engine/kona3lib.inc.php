@@ -491,8 +491,8 @@ function kona3getPageNameMaxLength()
 
 // ページ名が上限以内かどうかを確認する
 // 問題なければ ''、問題があれば理由 (表示用メッセージ) を返す。
-// 表示・既存ページの読み込みには使わず、新規作成・保存のときだけ使うこと
-// (上限を超えた既存ページも表示・編集はできるようにするため)。
+// ページの表示 (読み込み) には使わないこと (長すぎる名前の既存ページも表示はできる)。
+// 新規作成・保存の可否判定と、編集画面を開いたときの警告表示に使う。
 function kona3validatePageName($page)
 {
     if (!is_string($page) || $page === '') {
@@ -527,6 +527,17 @@ function kona3validatePageName($page)
 function kona3isValidPageName($page)
 {
     return kona3validatePageName($page) === '';
+}
+
+// ページ名が長すぎる場合に編集画面などへ表示する警告文を返す
+// 問題なければ ''、長すぎれば「ページ名が長すぎて保存できません。」+ 理由を返す
+function kona3getPageNameTooLongMessage($page)
+{
+    $reason = kona3validatePageName($page);
+    if ($reason === '') {
+        return '';
+    }
+    return lang('Page name is too long and cannot be saved.') . " ({$reason})";
 }
 
 function kona3getURLParams($params)
