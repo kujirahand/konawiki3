@@ -65,6 +65,7 @@ function kona3markdown_parser_parse($text)
     // main loop
     $tokens = array();
     $oldtext = '';
+    $in_comment = FALSE; // inside a multi-line HTML comment started in a plain line
     while ( $text != "") {
         // check parse error
         if ($text == $oldtext) {
@@ -75,9 +76,36 @@ function kona3markdown_parser_parse($text)
             break;
         }
         $oldtext = $text;
+        // HTML comment (<!-- ... -->) continued from a previous line:
+        // discard everything up to and including "-->"
+        if ($in_comment) {
+            $end = strpos($text, '-->');
+            if ($end === FALSE) {
+                $text = ""; // unterminated comment runs to the end of the document
+                break;
+            }
+            $text = substr($text, $end + 3);
+            kona3markdown_parser_skipCommentLineEnd($text);
+            $in_comment = FALSE;
+            continue;
+        }
         // check line head
         $c = mb_substr($text, 0, 1);
         $c2 = mb_substr($text, 0, 2);
+        // HTML comment block (<!-- ... -->) at line head - removed.
+        // The comment may span multiple lines; its content is never parsed,
+        // so markup inside it (headings, lists, fences, ...) has no effect.
+        // Text after "-->" on the same line is parsed as usual.
+        if (preg_match('#^[ \t]*<!--#', $text)) {
+            $end = strpos($text, '-->');
+            if ($end === FALSE) {
+                $text = ""; // unterminated comment runs to the end of the document
+                break;
+            }
+            $text = substr($text, $end + 3);
+            kona3markdown_parser_skipCommentLineEnd($text);
+            continue;
+        }
         // TITLE (Standard Markdown)
         if ($c == "#") {
             $level = kona3markdown_parser_count_level($text, $c);
@@ -193,10 +221,63 @@ function kona3markdown_parser_parse($text)
         }
         else { // plain block
             $line = kona3markdown_parser_token($text, $eol);
+            // A comment opened in this line and not closed on the same line
+            // continues on the following lines (see $in_comment above).
+            // Cut the token at the comment opener: the renderer joins
+            // consecutive plain lines before inline conversion, so the
+            // dangling opener must not reach it (the text after "-->"
+            // becomes a separate plain token and would be swallowed).
+            $pos = kona3markdown_parser_unterminatedCommentPos($line);
+            if ($pos !== FALSE) {
+                $line = substr($line, 0, $pos);
+                $in_comment = TRUE;
+            }
             $tokens[] = array("cmd"=>"plain","text"=>$line);
         }
     }
     return $tokens;
+}
+
+/**
+ * Byte offset of an HTML comment opener (<!--) in $line that is not
+ * closed on the same line, or FALSE if there is none.
+ * Inline code spans and an escaped "\<!--" are not comments.
+ */
+function kona3markdown_parser_unterminatedCommentPos($line)
+{
+    $len = strlen($line);
+    $in_code = FALSE;
+    for ($i = 0; $i < $len; $i++) {
+        $ch = $line[$i];
+        if ($ch === '\\') {
+            $i++; // escaped character is literal
+            continue;
+        }
+        if ($ch === '`') {
+            $in_code = !$in_code;
+            continue;
+        }
+        if (!$in_code && substr($line, $i, 4) === '<!--') {
+            $end = strpos($line, '-->', $i + 4);
+            if ($end === FALSE) {
+                return $i;
+            }
+            $i = $end + 2; // loop increment moves past "-->"
+        }
+    }
+    return FALSE;
+}
+
+/**
+ * After a block comment is discarded, if the rest of its line is empty,
+ * consume the line ending too, so the comment line does not act as a
+ * blank line (paragraph separator) or leave a stray empty line behind.
+ */
+function kona3markdown_parser_skipCommentLineEnd(&$text)
+{
+    if (preg_match('#^[ \t]*\n#', $text, $m)) {
+        $text = substr($text, strlen($m[0]));
+    }
 }
 
 /**
@@ -714,6 +795,17 @@ function __kona3markdown_parser_tohtml(&$text, $level)
         if ($c1 == '\\') {
             $result .= kona3htmlspecialchars(mb_substr($text, 1, 1));
             $text = mb_substr($text, 2);
+            continue;
+        }
+        // HTML comment (<!-- ... -->) - removed, not rendered.
+        // An unterminated comment runs to the end of the text.
+        if (substr($text, 0, 4) == '<!--') {
+            $end = strpos($text, '-->');
+            if ($end === FALSE) {
+                $text = "";
+                break;
+            }
+            $text = substr($text, $end + 3);
             continue;
         }
         // inline code

@@ -341,3 +341,101 @@ $kona3conf['enable_ruby'] = $orig_ruby;
 $html = kona3markdown_parser_convert("{<b>|<i>}", false);
 test_assert(__LINE__, strpos($html, "<ruby>&lt;b&gt;<rp>(</rp><rt>&lt;i&gt;</rt>") !== false, "Markdown: 親文字とルビの両方がエスケープされる");
 test_assert(__LINE__, strpos($html, "<b>") === false && strpos($html, "<i>") === false, "Markdown: ルビ内にタグが出力されない");
+
+// --- HTML Comment Tests (<!-- ... -->) #88 ---
+
+// 1. A comment-only page renders nothing (no visible text, no empty paragraph)
+$html = kona3markdown_parser_convert("<!-- comment -->", false);
+test_eq(__LINE__, $html, "", "Markdown comment: コメントのみのページは何も表示しない");
+test_assert(__LINE__, strpos($html, '&lt;!--') === false, "Markdown comment: コメントがエスケープされて表示されることはない");
+
+// 2. Block comment between paragraphs
+$html = kona3markdown_parser_convert("before\n\n<!-- comment -->\n\nafter", false);
+test_assert(__LINE__, strpos($html, '<p>before</p>') !== false, "Markdown comment: コメント前の段落を表示");
+test_assert(__LINE__, strpos($html, '<p>after</p>') !== false, "Markdown comment: コメント後の段落を表示");
+test_assert(__LINE__, strpos($html, 'comment') === false, "Markdown comment: ブロックコメントの内容を表示しない");
+test_eq(__LINE__, substr_count($html, '<p>'), 2, "Markdown comment: ブロックコメントが空の段落を作らない");
+
+// 3. A comment line without surrounding blank lines does not split the paragraph
+$html = kona3markdown_parser_convert("before\n<!-- comment -->\nafter", false);
+test_assert(__LINE__, strpos($html, '<p>before<br/>after</p>') !== false, "Markdown comment: 空行なしのコメント行は段落を分けない");
+
+// 4. Inline comment in a paragraph
+$html = kona3markdown_parser_convert("Hello <!-- hidden --> world", false);
+test_assert(__LINE__, strpos($html, '<p>Hello  world</p>') !== false, "Markdown comment: インラインコメントを除去して前後をつなぐ");
+test_assert(__LINE__, strpos($html, 'hidden') === false, "Markdown comment: インラインコメントの内容を表示しない");
+
+// 5. Two comments on one line
+$html = kona3markdown_parser_convert("a <!-- x --> b <!-- y --> c", false);
+test_assert(__LINE__, strpos($html, '<p>a  b  c</p>') !== false, "Markdown comment: 1行に2つのコメントをどちらも除去");
+
+// 6. Multi-line block comment; markup inside it must not be parsed
+$text = "before\n\n<!--\n# NotTitle\n- NotList\n```\ncode\n```\n-->\n\nafter";
+$tokens = kona3markdown_parser_parse($text);
+$html = kona3markdown_parser_convert($text, false);
+test_assert(__LINE__, strpos($html, 'NotTitle') === false && strpos($html, 'NotList') === false, "Markdown comment: 複数行コメントの内容を表示しない");
+test_assert(__LINE__, strpos($html, '<h1') === false && strpos($html, '<li>') === false, "Markdown comment: コメント内の見出し・リストは解析しない");
+foreach ($tokens as $tok) {
+    test_assert(__LINE__, strpos($tok['text'], 'NotTitle') === false, "Markdown comment: コメント内はトークン化しない");
+}
+
+// 7. Text after --> on the same line is parsed as usual
+$html = kona3markdown_parser_convert("<!-- comment --> trailing", false);
+test_assert(__LINE__, strpos($html, '<p>trailing</p>') !== false, "Markdown comment: --> の後ろの本文を表示");
+test_assert(__LINE__, strpos($html, 'comment') === false, "Markdown comment: 同一行のコメント内容を表示しない");
+
+// 8. Leading whitespace before a block comment
+$html = kona3markdown_parser_convert("  <!-- comment -->\ntext", false);
+test_assert(__LINE__, strpos($html, '<p>text</p>') !== false, "Markdown comment: 行頭に空白があるコメントも除去");
+test_assert(__LINE__, strpos($html, 'comment') === false, "Markdown comment: 空白付きコメントの内容を表示しない");
+
+// 9. Inline comments in headings, lists, quotes and table cells
+$html = kona3markdown_parser_convert("# Title <!-- hidden -->", false);
+test_assert(__LINE__, strpos($html, '<h1>Title ') !== false && strpos($html, 'hidden') === false, "Markdown comment: 見出し内のコメントを除去");
+$html = kona3markdown_parser_convert("- Item <!-- hidden -->", false);
+test_assert(__LINE__, strpos($html, '<li>Item </li>') !== false && strpos($html, 'hidden') === false, "Markdown comment: リスト内のコメントを除去");
+$html = kona3markdown_parser_convert("> quoted <!-- hidden -->", false);
+test_assert(__LINE__, strpos($html, 'quoted') !== false && strpos($html, 'hidden') === false, "Markdown comment: 引用内のコメントを除去");
+$html = kona3markdown_parser_convert("| A | B |\n| --- | --- |\n| x <!-- hidden --> | y |", false);
+test_assert(__LINE__, strpos($html, "<td style='text-align:left;'>x </td>") !== false && strpos($html, 'hidden') === false, "Markdown comment: 表セル内のコメントを除去");
+
+// 10. Multi-line comment opened in the middle of a paragraph:
+// following lines are comment until -->, even if they start with markup,
+// and the text after --> on the closing line remains visible.
+$html = kona3markdown_parser_convert("Hello <!-- start\n- not a list\n--> world", false);
+test_assert(__LINE__, strpos($html, 'not a list') === false, "Markdown comment: 段落途中で始まる複数行コメントの内容を表示しない");
+test_assert(__LINE__, strpos($html, '<li>') === false, "Markdown comment: コメント中の行頭記号を解析しない");
+test_assert(__LINE__, strpos($html, '<p>Hello <br/>world</p>') !== false, "Markdown comment: --> の後ろの本文を表示する");
+$html = kona3markdown_parser_convert("Hello <!-- start\ncontinuation\nend --> world", false);
+test_assert(__LINE__, strpos($html, 'continuation') === false && strpos($html, '<p>Hello <br/>world</p>') !== false, "Markdown comment: 段落途中の複数行コメントを除去");
+
+// 11. Comments inside code are literals, not comments
+$html = kona3markdown_parser_convert("```\n<!-- comment -->\n```", false);
+test_assert(__LINE__, strpos($html, '&lt;!-- comment --&gt;') !== false, "Markdown comment: コードブロック内のコメント記法はそのまま表示");
+$html = kona3markdown_parser_convert("`<!-- comment -->` test", false);
+test_assert(__LINE__, strpos($html, '<code>&lt;!-- comment --&gt;</code>') !== false, "Markdown comment: インラインコード内のコメント記法はそのまま表示");
+// An opener inside an inline code span does not start a multi-line comment
+$html = kona3markdown_parser_convert("`<!--` and\nvisible", false);
+test_assert(__LINE__, strpos($html, 'visible') !== false, "Markdown comment: コード内の <!-- でコメントを開始しない");
+
+// 12. Escaped comment opener is literal text
+$html = kona3markdown_parser_convert("\\<!-- not comment -->", false);
+test_assert(__LINE__, strpos($html, '&lt;!-- not comment --&gt;') !== false, "Markdown comment: エスケープした <!-- はコメントにしない");
+
+// 13. Unterminated comments run to the end of the document / text
+$html = kona3markdown_parser_convert("before\n\n<!-- unclosed\nrest of doc", false);
+test_assert(__LINE__, strpos($html, '<p>before</p>') !== false, "Markdown comment: 未終了コメント前の段落を表示");
+test_assert(__LINE__, strpos($html, 'unclosed') === false && strpos($html, 'rest of doc') === false, "Markdown comment: 未終了コメントは文書末尾まで除去");
+$html = kona3markdown_parser_convert("Hello <!-- unclosed", false);
+test_assert(__LINE__, strpos($html, '<p>Hello </p>') !== false, "Markdown comment: 未終了インラインコメントはテキスト末尾まで除去");
+
+// 14. Empty comment and comment with extra dashes
+$html = kona3markdown_parser_convert("a<!---->b", false);
+test_assert(__LINE__, strpos($html, '<p>ab</p>') !== false, "Markdown comment: 空コメント <!----> を除去");
+$html = kona3markdown_parser_convert("<!--- dashed --->\ntext", false);
+test_assert(__LINE__, strpos($html, '<p>text</p>') !== false && strpos($html, 'dashed') === false, "Markdown comment: ハイフン付きコメントを除去");
+
+// 15. A comment between list items does not split the list
+$html = kona3markdown_parser_convert("- one\n<!-- comment -->\n- two", false);
+test_eq(__LINE__, substr_count($html, '<ul>'), 1, "Markdown comment: リスト項目間のコメントはリストを分けない");
+test_assert(__LINE__, strpos($html, '<li>one</li>') !== false && strpos($html, '<li>two</li>') !== false, "Markdown comment: コメント前後のリスト項目を表示");
