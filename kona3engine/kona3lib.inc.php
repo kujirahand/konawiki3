@@ -643,10 +643,12 @@ function kona3getCtrlMenuArray($type)
         $user = $loginInfo['user'];
         $userpage_uri = kona3getPageURL($user, 'user');
         //
+        // ユーザー名(メールアドレス)は表示せず「マイページ」ボタンにする (issue #274)
+        $mypage_label = lang('My Page');
         if (kona3isAdmin()) {
-            $list[] = array("👑 $user", $userpage_uri);
+            $list[] = array("👑 $mypage_label", $userpage_uri);
         } else {
-            $list[] = array("🙋 $user", $userpage_uri);
+            $list[] = array("🙋 $mypage_label", $userpage_uri);
         }
         $list[] = array(lang('Edit'), $edit_uri);
         $list[] = array(lang('New'), $new_uri);
