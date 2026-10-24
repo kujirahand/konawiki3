@@ -62,10 +62,10 @@ function kona3_action_edit()
         $txt = isset($r['body']) ? $r['body'] : '(empty)';
     } else {
         // normal mode
+        // 編集対象は kona3getEditFile() が決める .txt / .md ファイルだけ (#53)。
+        // 同名の生ファイル (拡張子なしや .php など) が data/ にあっても読み込まない
+        // (読み込むと、保存先の .txt / .md ファイルと内容が食い違うため)
         $fname = kona3getEditFile($page, $ext);
-        if (!file_exists($fname)) {
-            $fname = kona3getWikiFile($page, FALSE, '');
-        }
         if (is_file($fname)) {
             // check filesize
             $sz = @filesize($fname);
@@ -483,19 +483,21 @@ function kona3_conflict($edit_txt, &$txt, $i_mode)
 
 function kona3getEditFile($page, &$ext)
 {
-    // has file ext?
+    // 編集できるファイル形式は .txt / .md だけ (issue #53、
+    // リストは kona3getEditableExtList() が唯一の定義)
     $test_ext = kona3getFileExt($page);
-    if ($test_ext != '') {
-        // ページ名に拡張子が含まれている場合は、そのままがファイル名である
-        // ただし、セキュリティ対策のため、指定の拡張子のみ許可する
-        $allow_ext_list = ['txt', 'md', 'html', 'htm', 'json', 'css', 'yaml', 'yml', 'xml', 'css', 'tsv'];
-        $ext = $test_ext;
-        if (!in_array($ext, $allow_ext_list)) {
-            kona3_edit_err(lang('Invalid file extension.'));
-            exit;
-        }
+    if ($test_ext !== '' && kona3isEditableExt($test_ext)) {
+        // ページ名の末尾が .txt / .md の場合は、そのままがファイル名である
+        $ext = strtolower($test_ext);
         $fname = kona3getWikiFile($page, FALSE, '');
     } else {
+        // 拡張子がない場合、および、それ以外の拡張子 (php, html, json など) の場合:
+        // 拡張子はページ名の一部として扱い、ファイル名には .txt / .md を付与する
+        // (例: "xxxx.php" → "xxxx.php.txt" または "xxxx.php.md")。
+        // どちらの拡張子になるかは koan3getWikiFileText() が決める:
+        // 既存ファイル → メタ情報の mode → 設定 def_text_ext の順。
+        // 従来はリスト外の拡張子をエラーにしていたため、"xxxx.php" のような
+        // ページが保存できなかった。
         $fname = koan3getWikiFileText($page);
         $ext = kona3getFileExt($fname);
     }

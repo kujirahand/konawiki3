@@ -213,6 +213,34 @@ function kona3getFileExt($path)
     return '';
 }
 
+// 編集できるファイル形式のリスト (issue #53)
+// ページ名の末尾がこのリストの拡張子の場合だけ、そのファイルを直接編集する。
+// それ以外の拡張子 (php, html, json など) はページ名の一部として扱い、
+// ファイル名には別途 .txt / .md を付与する (例: xxxx.php → xxxx.php.txt)。
+function kona3getEditableExtList()
+{
+    return ['txt', 'md'];
+}
+
+// $ext が直接編集できる拡張子かどうか (先頭の '.' と大文字小文字は問わない)
+function kona3isEditableExt($ext)
+{
+    $ext = strtolower(ltrim((string)$ext, '.'));
+    return in_array($ext, kona3getEditableExtList(), TRUE);
+}
+
+// ページ名の末尾にある直接編集できる拡張子 (.txt / .md) を取り除いた名前を返す
+// それ以外の拡張子はページ名の一部なので取り除かない
+// (例: "Page.txt" → "Page", "xxxx.php" → "xxxx.php", "dir/Page.md" → "dir/Page")
+function kona3stripEditableExt($wikiname)
+{
+    $ext = kona3getFileExt($wikiname);
+    if ($ext !== '' && kona3isEditableExt($ext)) {
+        return substr($wikiname, 0, strlen($wikiname) - strlen($ext) - 1);
+    }
+    return $wikiname;
+}
+
 // wikiname to filename (for text)
 function koan3getWikiFileText($wikiname)
 {
@@ -1593,10 +1621,12 @@ function kona3git_commit_and_push($page, $edit_ext, $old_ext = '') {
     }
 
     // Get absolute path of wiki file
+    // 直接編集できる拡張子 (.txt / .md) の場合だけ、それがファイルの拡張子である。
+    // それ以外の拡張子 (php など) はページ名の一部なので、edit_ext を付与する (#53)
     $test_ext = kona3getFileExt($page);
-    if ($test_ext != '') {
+    if ($test_ext != '' && kona3isEditableExt($test_ext)) {
         $fname = kona3getWikiFile($page, FALSE, '');
-        $page_no_ext = substr($page, 0, strlen($page) - strlen(".{$test_ext}"));
+        $page_no_ext = kona3stripEditableExt($page);
     } else {
         $fname = kona3getWikiFile($page . '.' . $edit_ext, FALSE, '');
         $page_no_ext = $page;

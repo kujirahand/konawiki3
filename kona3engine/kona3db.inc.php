@@ -452,12 +452,13 @@ function kona3db_getPageMetaFile($page)
 {
     global $kona3conf;
     
-    // ページ名から拡張子を除去
-    $pageName = $page;
-    $ext = kona3getFileExt($page);
-    if ($ext != '') {
-        $pageName = substr($page, 0, -(strlen($ext) + 1));
-    }
+    // ページ名から拡張子を除去する
+    // 除去するのは直接編集できる拡張子 (.txt / .md) だけ (#53)。
+    // それ以外の拡張子 (php, html など) はページ名の一部なので残す。
+    // (例: "Page.txt" → "Page", "xxxx.php" → "xxxx.php" のまま。
+    //  従来は任意の拡張子を除去していたため、"xxxx.php" と "xxxx" の
+    //  メタファイルが衝突していた)
+    $pageName = kona3stripEditableExt($page);
     
     // kona3getWikiFileを使用してパスを生成（パストラバーサル対策が含まれる）
     // data/.meta/{タイトル}.json の形式で保存
