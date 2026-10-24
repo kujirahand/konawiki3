@@ -6,20 +6,52 @@ define('JSONPHP_FOOT', "\n_____END_OF_JSONPHP__;exit;\n");
 define('JSONPHP_ALGO', 'aes-256-ctr');
 define('JSONPHP_ENC_HEAD', '::aes256::');
 
-function jsonphp_load($file, $def = null, $autoUpdate = false) {
+if (!class_exists('JsonphpLoadException')) {
+  class JsonphpLoadException extends RuntimeException {}
+}
+
+function jsonphp_load($file, $def = null, $autoUpdate = false, $strict = false) {
   if (!file_exists($file)) {
     return $def;
   }
-  $txt = trim(file_get_contents($file));
-  // chomp head
-  $head = substr($txt, 0, strlen(JSONPHP_HEAD));
-  if ($head != JSONPHP_HEAD) { return $def; }
-  $txt = substr($txt, strlen(JSONPHP_HEAD));
-  $txt = substr($txt, 0, strlen($txt) - strlen(JSONPHP_FOOT) + 1);
-  $obj = json_decode($txt, TRUE);
-  if ($obj === NULL) {
+
+  $fail = function ($reason) use ($file, $def, $strict) {
+    $msg = "jsonphp_load failed: {$file} ({$reason})";
+    if ($strict) {
+      throw new JsonphpLoadException($msg);
+    }
+    error_log("KonaWiki3 Error: {$msg}");
     return $def;
+  };
+
+  $raw = @file_get_contents($file);
+  if ($raw === false) {
+    return $fail('Failed to read file');
   }
+
+  $txt = trim($raw);
+  // chomp head
+  $headLen = strlen(JSONPHP_HEAD);
+  $head = substr($txt, 0, $headLen);
+  if ($head !== JSONPHP_HEAD) {
+    return $fail('Invalid header');
+  }
+
+  // check foot
+  $footExpected = rtrim(JSONPHP_FOOT);
+  $footLen = strlen($footExpected);
+  if ($footLen === 0 || substr($txt, -$footLen) !== $footExpected) {
+    return $fail('Invalid footer');
+  }
+
+  // extract json
+  $jsonTxt = substr($txt, $headLen, strlen($txt) - $headLen - $footLen);
+  $obj = json_decode($jsonTxt, TRUE);
+  if (json_last_error() !== JSON_ERROR_NONE || !is_array($obj)) {
+    $err = json_last_error_msg();
+    return $fail('JSON decode error: ' . $err);
+  }
+
   $iv = jsonphp_getIV();
   $enc_key = base64_decode(isset($obj['enc:key']) ? $obj['enc:key'] : '');
   foreach ($obj as $_key => &$val) {

@@ -306,11 +306,16 @@ function kona3getAdminUserFile() {
   return KONA3_DIR_PRIVATE.'/kona3adminuser.json.php';
 }
 
-function kona3getAdminUsers() {
-  $users = jsonphp_load(kona3getAdminUserFile(), [], true);
+function kona3getAdminUsers($strict = false) {
+  $users = jsonphp_load(kona3getAdminUserFile(), [], true, $strict);
   if (!is_array($users)) return [];
   unset($users['enc:key']); // jsonphp内部の暗号鍵はユーザーではない
   return $users;
+}
+
+// 内部用: 破損を検知して例外を投げる strict 版管理者ユーザー取得
+function kona3getAdminUsersStrict() {
+  return kona3getAdminUsers(true);
 }
 
 // --- 管理者ユーザーの一覧を保存する ---
@@ -323,14 +328,16 @@ function kona3admin_genSalt() {
   return bin2hex(random_bytes(32));
 }
 
-// --- 管理者ユーザーを作成/更新する (#295) ---
+// --- 管理者ユーザーを作成/更新する (#295, #297) ---
 // ブラウザの初期設定画面だけでなく、CLIスクリプトやテストからも
 // 同じ手順で管理者を作れるようにするための共通関数。
 // 既存の管理者は保持し、$userid のエントリだけを追加/更新する。
+// 既存の管理者ファイルが破損している場合は JsonphpLoadException を投げて
+// 保存処理を行わない（既存データを破損から保護する）。
 // $userid    : 管理者ID (通常はメールアドレス)
 // $password  : 平文パスワード (空文字は不可)
 // $overwrite : FALSE のとき、既存ユーザーがいれば RuntimeException を投げる
-// 戻り値: TRUE (成功時)。検証エラーは InvalidArgumentException を投げる。
+// 戻り値: TRUE (成功時)。検証エラーは InvalidArgumentException、ファイル破損時は JsonphpLoadException を投げる。
 function kona3createAdminUser($userid, $password, $overwrite = FALSE) {
   $userid = is_string($userid) ? trim($userid) : '';
   if ($userid === '') {
@@ -342,7 +349,7 @@ function kona3createAdminUser($userid, $password, $overwrite = FALSE) {
   if (!is_string($password) || $password === '') {
     throw new InvalidArgumentException('Admin password must not be empty.');
   }
-  $users = kona3getAdminUsers();
+  $users = kona3getAdminUsersStrict();
   if (isset($users[$userid]) && !$overwrite) {
     throw new RuntimeException("Admin user already exists: {$userid}");
   }
