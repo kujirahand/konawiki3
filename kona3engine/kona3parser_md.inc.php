@@ -307,6 +307,33 @@ function kona3markdown_parser_unterminatedCommentPos($line)
  * consume the line ending too, so the comment line does not act as a
  * blank line (paragraph separator) or leave a stray empty line behind.
  */
+/**
+ * Byte offset of the first backtick run in $text whose length is exactly
+ * $run (a code span is closed only by a run of the same length as its
+ * opener, as in kona3markdown_parser_unterminatedCommentPos()),
+ * or FALSE if there is no such run.
+ */
+function kona3markdown_parser_codeSpanClosePos($text, $run)
+{
+    $len = strlen($text);
+    $i = 0;
+    while ($i < $len) {
+        if ($text[$i] === '`') {
+            $n = 0;
+            while ($i + $n < $len && $text[$i + $n] === '`') {
+                $n++;
+            }
+            if ($n === $run) {
+                return $i;
+            }
+            $i += $n; // a run of another length is literal content
+            continue;
+        }
+        $i++;
+    }
+    return FALSE;
+}
+
 function kona3markdown_parser_skipCommentLineEnd(&$text)
 {
     if (preg_match('#^[ \t]*\n#', $text, $m)) {
@@ -851,7 +878,9 @@ function __kona3markdown_parser_tohtml(&$text, $level)
                 $run++;
             }
             $rest = substr($text, $run);
-            $end = strpos($rest, str_repeat('`', $run));
+            // the closing run must have exactly the same length as the opener;
+            // a longer or shorter run inside is literal content
+            $end = kona3markdown_parser_codeSpanClosePos($rest, $run);
             if ($end === FALSE) {
                 // no closing run: the rest of the text is the code, as before
                 $s = $rest;
