@@ -13,38 +13,64 @@ function kona3_action_login()
     $user = kona3post('a_email', '');
     $pw   = kona3post('a_pw',   '');
     $remember = kona3post('a_remember', '') === 'yes';
+    if (!is_string($user)) $user = '';
+    if (!is_string($pw)) $pw = '';
     $msg = '';
     $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
 
     if ($am == "trylogin") {
-        if (!kona3_checkEditToken(KONA3_LOGIN_CSRF_KEY)) {
-            $url = kona3getPageURL($page, 'login');
-            kona3showMessage(
-                lang('Invalid Token'),
-                "<a href='$url'>" . lang('Login') . "</a>"
-            );
-            return;
-        }
-        if (kona3tryLogin($user, $pw)) {
-            login_handle_success($page, $user, $ip, $remember);
-            return;
+        // CSRFトークンのエラーは、パスワード以前の問題であることを
+        // ログインフォーム上に明示する (#132)。
+        // 以前は専用のメッセージ画面に飛ばしていたため、利用者には
+        // パスワードを疑うしかなかった。
+        $tokenReason = kona3_checkEditTokenReason(KONA3_LOGIN_CSRF_KEY);
+        if ($tokenReason !== 'ok') {
+            error_log("KonaWiki3 Login: token check failed (reason={$tokenReason})");
+            $msg = login_token_error_message($tokenReason);
         } else {
-            $msg = lang('Invalid User or Password.');
-            kona3error('Login failed.', "<a href='$action'>Please try again.</a>");
-            return;
+            $res = kona3tryLoginResult($user, $pw);
+            if ($res['ok']) {
+                login_handle_success($page, $user, $ip, $remember);
+                return;
+            }
+            // ユーザー名かパスワードが違う場合はその旨を、それ以外の
+            // 理由 (未入力・無効化されたアカウント・システムエラー) は
+            // 本当の理由を、ログインフォームに表示する (#132)
+            $msg = lang(kona3loginReasonLangKey($res['reason']));
         }
-    } else {
-        $loginToken = kona3_getEditTokenForceUpdate(KONA3_LOGIN_CSRF_KEY);
     }
-    // --- ログインフォームの表示 ---
+    // --- ログインフォームの表示 (失敗時もフォームに理由を表示する) ---
+    // トークンは毎回作り直さない (#132 の根本対策)。
+    // 以前は表示のたびに強制更新していたため、ログインフォームを
+    // 別のタブで開いたり開き直したりすると、先に開いていたフォームの
+    // トークンが無効になり、正しいパスワードでもログインできなかった。
+    // 有効期間内 (kona3_getEditToken の既定は1日) は同じトークンを使い回す。
+    $loginToken = kona3_getEditToken(KONA3_LOGIN_CSRF_KEY);
     $kona3conf["robots"] = "noindex";
     kona3template('login.html', [
         "login_token" => $loginToken,
         "page_title" => $page,
         "msg" => $msg,
         "action" => $action,
+        "a_email" => $user,
         "signup_link" => kona3getPageURL($page, 'signup'),
     ]);
+}
+
+// --- CSRFトークンエラーの理由から表示文言を引く (#132) ---
+// どの理由でも「パスワードは確認されていない」ことを明示し、
+// 利用者がパスワードを疑わなくて済むようにする。
+function login_token_error_message($tokenReason)
+{
+    switch ($tokenReason) {
+        case 'no_session_token':
+            return lang('Login session expired.');
+        case 'no_post_token':
+            return lang('Login token missing.');
+        case 'mismatch':
+        default:
+            return lang('Login token mismatch.');
+    }
 }
 
 // --- 認証成功時の処理 ---

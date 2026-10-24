@@ -1010,16 +1010,33 @@ function kona3_getEditToken($key = 'default', $update = FALSE)
     return $_SESSION[$snameKey];
 }
 
-function kona3_checkEditToken($key = 'default')
+// トークン検証の結果を理由付きで返す (#132)
+// 戻り値: 'ok' | 'no_session_token' | 'no_post_token' | 'mismatch'
+// - no_session_token: セッション側にトークンがない (セッション切れ等で、
+//   フォームを開いたときのセッションが失われている)
+// - no_post_token: 送信データにトークンが含まれていない
+//   (古いフォームやトークンなしの送信)
+// - mismatch: トークンが一致しない (別のタブでフォームを開き直して
+//   トークンが更新された、期限切れで再発行された等)
+function kona3_checkEditTokenReason($key = 'default')
 {
     $sname = kona3_getEditTokenKeyName($key);
-    $sessionValue = isset($_SESSION[$sname]) ? trim($_SESSION[$sname]) : '';
-    if ($sessionValue == '') {
-        return FALSE;
+    $sessionValue = isset($_SESSION[$sname]) && is_string($_SESSION[$sname])
+        ? trim($_SESSION[$sname]) : '';
+    if ($sessionValue === '') {
+        return 'no_session_token';
     }
-    // Check token
-    $postValue = trim(kona3post($key, ''));
-    return ($sessionValue === $postValue);
+    $postRaw = kona3post($key, '');
+    $postValue = is_string($postRaw) ? trim($postRaw) : '';
+    if ($postValue === '') {
+        return 'no_post_token';
+    }
+    return ($sessionValue === $postValue) ? 'ok' : 'mismatch';
+}
+
+function kona3_checkEditToken($key = 'default')
+{
+    return kona3_checkEditTokenReason($key) === 'ok';
 }
 
 function kona3_getEditTokenForm($page = 'default', $action = 'edit', $label = 'Edit', $style = '')

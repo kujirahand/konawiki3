@@ -12,7 +12,7 @@
     <input type="hidden" name="a_mode" value="trylogin">
     <input type="hidden" name="login_token" value="{{ $login_token }}" autocomplete="off">
     <label for="email">{{'Email' | lang}}:
-      <input id="email" type="text" name="a_email" autocomplete="username">
+      <input id="email" type="text" name="a_email" value="{{ $a_email }}" autocomplete="username">
     </label>
     <label for="pass">{{'Password' | lang}}:
       <input id="pass" type="password" name="a_pw" autocomplete="current-password">
