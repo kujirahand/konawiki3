@@ -23,6 +23,8 @@ $wikiDir = null;
 $force = false;
 $user = getenv('KONA3_ADMIN_USER') ?: null;
 $password = getenv('KONA3_ADMIN_PASSWORD') ?: null;
+$userFromOption = null;
+$passwordFromOption = null;
 $positional = [];
 foreach (array_slice($argv, 1) as $arg) {
     if ($arg === '--help' || $arg === '-h') {
@@ -33,9 +35,9 @@ foreach (array_slice($argv, 1) as $arg) {
     } elseif (strpos($arg, '--wiki=') === 0) {
         $wikiDir = substr($arg, strlen('--wiki='));
     } elseif (strpos($arg, '--user=') === 0) {
-        $user = substr($arg, strlen('--user='));
+        $userFromOption = substr($arg, strlen('--user='));
     } elseif (strpos($arg, '--password=') === 0) {
-        $password = substr($arg, strlen('--password='));
+        $passwordFromOption = substr($arg, strlen('--password='));
     } elseif (strpos($arg, '--') === 0) {
         fwrite(STDERR, "Unknown option: $arg\n");
         create_admin_usage();
@@ -44,6 +46,20 @@ foreach (array_slice($argv, 1) as $arg) {
         $positional[] = $arg;
     }
 }
+// オプション形式と位置引数が競合したら、無警告で上書きせずエラーにする。
+// (環境変数はデフォルト値なので、引数での上書きは従来どおり許可する)
+if ($userFromOption !== null && isset($positional[0]) && $positional[0] !== $userFromOption) {
+    fwrite(STDERR, "ERROR: user_id was given both as --user and as a positional argument with different values.\n");
+    create_admin_usage();
+    exit(2);
+}
+if ($passwordFromOption !== null && isset($positional[1]) && $positional[1] !== $passwordFromOption) {
+    fwrite(STDERR, "ERROR: password was given both as --password and as a positional argument with different values.\n");
+    create_admin_usage();
+    exit(2);
+}
+if ($userFromOption !== null) $user = $userFromOption;
+if ($passwordFromOption !== null) $password = $passwordFromOption;
 if (isset($positional[0])) $user = $positional[0];
 if (isset($positional[1])) $password = $positional[1];
 if (count($positional) > 2 || $user === null || $user === '' || $password === null || $password === '') {

@@ -75,7 +75,12 @@ if ($adminUser !== null && $adminUser !== '') {
   require_once $root.'/kona3engine/kona3login.inc.php';
   try {
     kona3createAdminUser($adminUser, $adminPassword, $adminForce);
+  } catch (InvalidArgumentException $e) {
+    // 入力値不正は create_admin.php と同じ exit 2
+    fwrite(STDERR, 'ERROR: '.$e->getMessage()."\n");
+    exit(2);
   } catch (Exception $e) {
+    // 既存ユーザーの重複など実行時エラーは exit 1
     fwrite(STDERR, 'ERROR: '.$e->getMessage()."\n");
     exit(1);
   }
