@@ -481,3 +481,26 @@ $html = kona3markdown_parser_convert("`C:\\` <!-- start\ncontinuation\n--> end",
 test_assert(__LINE__, strpos($html, '<code>C:\\</code>') !== false, "Markdown comment(#311): 末尾バックスラッシュのコードスパンを表示");
 test_assert(__LINE__, strpos($html, 'continuation') === false && strpos($html, '-&gt;') === false, "Markdown comment(#311): コードスパン直後の複数行コメントの後続行を表示しない");
 test_assert(__LINE__, strpos($html, 'end') !== false, "Markdown comment(#311): コメント後のテキストを表示");
+
+// --- PR #312 review: the renderer must close a code span only at a run of
+// exactly the same length as its opener, like the comment scanner does ---
+
+// 20. A longer backtick run inside a code span is literal content
+$html = kona3markdown_parser_convert("``foo ``` bar``", false);
+test_assert(__LINE__, strpos($html, '<code>foo ``` bar</code>') !== false, "Markdown comment(#312): 長いランを含むコードスパンを1つに表示");
+test_eq(__LINE__, substr_count($html, "<span class='code'>"), 1, "Markdown comment(#312): コードスパンが断片化しない");
+// Even with a single backtick and a comment opener after the longer run,
+// nothing may be treated as a comment or disappear
+$html = kona3markdown_parser_convert("``a ``` b` <!-- x`` c\nd", false);
+test_assert(__LINE__, strpos($html, '<code>a ``` b` &lt;!-- x</code>') !== false, "Markdown comment(#312): コードスパン内の <!-- をリテラル表示");
+test_assert(__LINE__, strpos($html, 'c<br/>d') !== false, "Markdown comment(#312): コードスパン後のテキストと次の行が消失しない");
+test_eq(__LINE__, substr_count($html, "<span class='code'>"), 1, "Markdown comment(#312): コードスパンは1つだけになる");
+// A shorter run inside a single-backtick span does not close it either
+$html = kona3markdown_parser_convert("`a `` b`", false);
+test_assert(__LINE__, strpos($html, '<code>a `` b</code>') !== false, "Markdown comment(#312): 単一バッククォート内の二連バッククォートはリテラル");
+// Boundary cases: a blank-only span keeps its spaces, and a span may
+// contain single backticks when opened by a longer run
+$html = kona3markdown_parser_convert("``   `` end", false);
+test_assert(__LINE__, strpos($html, '<code>   </code>') !== false, "Markdown comment(#312): 空白のみのコードスパンは空白を保持");
+$html = kona3markdown_parser_convert("``foo ` bar`` end", false);
+test_assert(__LINE__, strpos($html, '<code>foo ` bar</code>') !== false, "Markdown comment(#312): 二連バッククォートで単一バッククォートを含むコードを表示");
