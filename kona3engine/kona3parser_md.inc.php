@@ -127,6 +127,13 @@ function kona3markdown_parser_parse($text)
             kona3markdown_parser_skipCommentLineEnd($text);
             continue;
         }
+        // #freeze at the line head is the freeze plugin, not a heading (issue #16).
+        // (Without a space after '#', CommonMark does not treat it as a heading either.)
+        if (preg_match('/^#freeze(?=[\s\(\);]|$)/', $text)) {
+            kona3markdown_parser_getStr($text, 1); // skip '#'
+            $tokens[] = kona3markdown_parser_plugins($text, '#');
+            continue;
+        }
         // TITLE (Standard Markdown)
         if ($c == "#") {
             $level = kona3markdown_parser_count_level($text, $c);

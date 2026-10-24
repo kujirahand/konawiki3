@@ -114,6 +114,13 @@ function kona3_action_edit()
         if ($too_long_msg !== '') {
             $msg = "<div class='error'>" . kona3text2html($too_long_msg) . "</div>";
         }
+        // 凍結されたページでは、編集画面を開いた時点でその旨を知らせる (issue #16)
+        if (kona3pageIsFrozen($page)) {
+            $frozen_msg = kona3isAdmin()
+                ? lang('This page is frozen. You are an administrator, so you can edit it.')
+                : lang('This page is frozen. Only administrators can edit it.');
+            $msg .= "<div class='error'>" . kona3text2html($frozen_msg) . "</div>";
+        }
     }
     // Ajaxならテンプレート出力しない
     if ($i_mode == 'ajax') return;
@@ -214,6 +221,24 @@ function kona3edit_checkPermission($page, $i_mode)
         exit;
     }
     return true;
+}
+
+// 凍結ページの保存可否を判定する (issue #16)
+// - 凍結されたページの書き換え (削除のための空保存も含む) は管理者だけが行える
+// - 凍結されていないページを新たに凍結する操作も管理者だけが行える
+// 戻り値: 保存できる場合は ''、できない場合は理由 (表示用文言)
+function kona3edit_frozenError($page, $edit_txt)
+{
+    if (kona3isAdmin()) {
+        return '';
+    }
+    if (kona3pageIsFrozen($page)) {
+        return lang('This page is frozen. Only administrators can edit it.');
+    }
+    if (kona3isFrozenPageText($edit_txt)) {
+        return lang('Only administrators can freeze a page. Please remove #freeze from the first line.');
+    }
+    return '';
 }
 
 function kona3edit_checkEditToken($page, $i_mode)
@@ -547,6 +572,14 @@ function kona3_trywrite(&$txt, &$a_hash, $i_mode, &$result)
     $edit_ext = $new_ext;
     $fname = kona3getEditFile("{$page}.{$edit_ext}", $ext);
     $user_id = kona3getUserId();
+
+    // 凍結ページの確認 (issue #16)
+    // 保存経路 (form / ajax / git) はすべてこの関数を通るので、ここで一括して弾く。
+    $frozen_error = kona3edit_frozenError($page, $edit_txt);
+    if ($frozen_error !== '') {
+        kona3_edit_err($frozen_error, $i_mode, 'frozen');
+        return "";
+    }
 
     // ページ名の文字数制限を確認する (issue #133)
     // 長すぎるページ名は既存ページでも保存できない (編集画面を開いた時点でも警告する)。

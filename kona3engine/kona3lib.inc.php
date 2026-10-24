@@ -541,6 +541,54 @@ function kona3getPageNameTooLongMessage($page)
     return lang('Page name is too long and cannot be saved.') . " ({$reason})";
 }
 
+// -----------------------------------------------
+// ページの凍結 (#freeze, issue #16)
+// -----------------------------------------------
+// ページ本文の先頭行に「#freeze」と書くと、そのページは凍結され、
+// 書き換え (保存・削除) には管理者権限が必要になる。
+// 凍結の指定は KonaWiki 記法の「#freeze」のほか、Markdown 記法の
+// プラグイン呼び出し「!!freeze」でもよい (どちらも先頭行だけが有効で、
+// 本文の途中に書いても凍結にはならない)。
+// 判定は表示用パーサーを介さず本文テキストに対して直接行うので、
+// 記法モード (.txt/.md) によらず同じように働く。
+
+// 本文テキストが凍結指定で始まっているかどうかを返す
+function kona3isFrozenPageText($txt)
+{
+    if (!is_string($txt) || $txt === '') {
+        return FALSE;
+    }
+    // BOMを取り除き、改行コードを LF にそろえる
+    if (substr($txt, 0, 3) === "\xEF\xBB\xBF") {
+        $txt = substr($txt, 3);
+    }
+    $txt = str_replace(["\r\n", "\r"], "\n", $txt);
+    // 先頭行だけを見る
+    $eol = strpos($txt, "\n");
+    $first_line = ($eol === FALSE) ? trim($txt) : trim(substr($txt, 0, $eol));
+    if ($first_line === '') {
+        return FALSE;
+    }
+    // #freeze / #freeze(...) / !!freeze / !!freeze(...) / ♪freeze ...
+    // 「freeze」の直後は、行末・空白・「(」・「;」のいずれかでなければならない
+    // (#freezeXXX のような別プラグイン名や見出しと取り違えないため)
+    return preg_match('/^(?:#|!!|♪)freeze(?:\s*\(.*\))?\s*;?$/u', $first_line) === 1;
+}
+
+// ページ (保存済みファイル) が凍結されているかどうかを返す
+function kona3pageIsFrozen($page)
+{
+    $fname = koan3getWikiFileText($page);
+    if (!is_file($fname)) {
+        return FALSE;
+    }
+    $txt = @file_get_contents($fname);
+    if ($txt === FALSE) {
+        return FALSE;
+    }
+    return kona3isFrozenPageText($txt);
+}
+
 function kona3getURLParams($params)
 {
     $a = [];
