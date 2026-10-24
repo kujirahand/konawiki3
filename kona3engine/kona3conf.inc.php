@@ -74,7 +74,7 @@ function kona3conf_getConfigItems()
             'lang' => ['label' => 'Language', 'default' => 'ja', 'type' => 'select', 'items' => ['ja', 'en']],
             'skin' => ['label' => 'Skin name', 'default' => 'def', 'type' => 'select', 'items' => kona3conf_getSkinItems()],
             'allow_add_user' => ['label' => 'Allow Add User', 'default' => FALSE, 'type' => 'bool'],
-            'def_text_ext' => ['label' => 'Default Text Ext', 'default' => 'txt', 'type' => 'select', 'items' => ['txt', 'md']],
+            'def_text_ext' => ['label' => 'Default Text Ext', 'default' => 'md', 'type' => 'select', 'items' => ['txt', 'md']],
             'bbs_admin_password' => ['label' => 'BBS Admin Password', 'default' => 'BBS#admin!PassWord!!', 'type' => 'string'],
         ],
         'Header/Footer' => [

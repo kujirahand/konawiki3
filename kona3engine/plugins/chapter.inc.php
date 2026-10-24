@@ -14,7 +14,7 @@ function kona3plugins_chapter_execute($args) {
     $page = $kona3conf['page'];
     $fname = kona3getWikiFile($page, false);
     $basedir = dirname($fname);
-    $ext = '.'.kona3getConf('def_text_ext', 'txt');
+    $ext = '.'.kona3getConf('def_text_ext', 'md');
 
     // get files
     $pattern = $basedir.'/'.$chapter.'/*'.$ext;

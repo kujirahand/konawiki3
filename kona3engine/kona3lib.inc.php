@@ -235,7 +235,7 @@ function koan3getWikiFileText($wikiname)
     // 2. メタデータにmodeがない場合
     // 両方ある場合は、設定のデフォルトを確認
     if ($exists_txt && $exists_md) {
-        $default_ext = kona3getConf('def_text_ext', 'txt');
+        $default_ext = kona3getConf('def_text_ext', 'md');
         if ($default_ext == 'md') {
             return $path_md;
         } else {
@@ -252,7 +252,7 @@ function koan3getWikiFileText($wikiname)
     }
 
     // どちらもない場合はデフォルト
-    $default_ext = kona3getConf('def_text_ext', 'txt');
+    $default_ext = kona3getConf('def_text_ext', 'md');
     return ($default_ext == 'md') ? $path_md : $path_txt;
 }
 
@@ -309,7 +309,7 @@ function kona3getWikiUrl($wikiname)
 // get wiki data
 function kona3getWikiPage($wikiname, $def = '')
 {
-    $ext = '.' . kona3getConf('def_text_ext', 'txt');
+    $ext = '.' . kona3getConf('def_text_ext', 'md');
     $file = kona3getWikiFile($wikiname, TRUE, $ext);
     if (file_exists($file)) {
         $text = @file_get_contents($file);

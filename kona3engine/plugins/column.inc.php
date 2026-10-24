@@ -18,7 +18,7 @@ function kona3plugins_column_execute($args) {
       $class = "column";
   }
   // check ext
-  $ext = kona3getConf('page_ext', '.'.kona3getConf('def_text_ext', 'txt'));
+  $ext = kona3getConf('page_ext', '.'.kona3getConf('def_text_ext', 'md'));
   if ($ext == ".md") {
       $html = kona3show_markdown_convert($body);
   } else {

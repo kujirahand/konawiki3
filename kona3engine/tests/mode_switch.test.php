@@ -62,6 +62,20 @@ kona3setConf('def_text_ext', 'md'); // デフォルトは md だが txt しか�
 $file = koan3getWikiFileText($page);
 test_eq(__LINE__, basename($file), $page . '.txt', 'Fallback to txt when only txt exists');
 
+// 7. def_text_ext 未設定時の既定値は md (#155: デフォルトをMarkdownモードに)
+cleanup_mode_switch_test();
+file_put_contents($path_txt, 'This is KonaNotation.');
+file_put_contents($path_md, 'This is Markdown.');
+global $kona3conf;
+unset($kona3conf['def_text_ext']);
+$file = koan3getWikiFileText($page);
+test_eq(__LINE__, basename($file), $page . '.md', 'Default ext is md when def_text_ext is not set (#155)');
+// ファイルがどちらもない場合も md が選ばれる
+cleanup_mode_switch_test();
+$file = koan3getWikiFileText($page);
+test_eq(__LINE__, basename($file), $page . '.md', 'New page defaults to md when def_text_ext is not set (#155)');
+kona3setConf('def_text_ext', 'md'); // 後続テストのために既定値に戻す
+
 // クリーンアップ
 cleanup_mode_switch_test();
 echo "=== Mode Switch Resolution Test Completed ===\n";
