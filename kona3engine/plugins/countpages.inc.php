@@ -4,7 +4,7 @@
  * - [引数]
  * -- path ... パス
  * -- pp=xxx ... 1ページあたりの文字数
- * -- ignore=xxx ... 無視するファイル名
+ * -- ignore=xxx ... 無視するファイル名 (拡張子なしのページ名でも指定可、':' 区切りで複数指定可)
  */
 
 function kona3plugins_countpages_execute($args) {
@@ -24,11 +24,12 @@ function kona3plugins_countpages_execute($args) {
       $perpage = intval($m[1]);
       if ($perpage <= 0) { $perpage = 1000; }
     }
-    // ignore
-    if (preg_match('#ignore\=([a-zA-Z0-9_\-]+)#', $a, $m)) {
-      $ignore = explode(":", $m[1]);
-      foreach ($ignore as &$r) {
+    // ignore (値は末尾まで取り込む: ':' 区切りの複数指定と '.' を含むファイル名指定に対応)
+    if (preg_match('#ignore\=(.+)$#', $a, $m)) {
+      $ignore = [];
+      foreach (explode(":", $m[1]) as $r) {
         $r = trim($r);
+        if ($r !== '') { $ignore[] = $r; }
       }
       continue;
     }
@@ -89,13 +90,20 @@ function kona3plugins_countpages_execute($args) {
 function glob_files($dir, $pat = "", $ignore = []) {
   $list = array();
   $dir = rtrim($dir, '/'); // chomp '/'
+  // ignore はファイル名 (拡張子付き) でもページ名 (拡張子なし) でも指定できるよう、
+  // 比較用に拡張子を除いた名前も用意する (.txt/.md どちらの実ファイルでも除外される)
+  $ignore_pages = [];
+  foreach ($ignore as $ig) {
+    $ignore_pages[] = preg_replace('/\.(txt|md)$/', '', $ig);
+  }
   $files = glob("$dir/*");
   foreach ($files as $file) {
     if ($file == "." || $file == "..") continue;
     $name = basename($file);
     if ($ignore) {
-      if (array_search($name, $ignore) !== false) {
-        continue;        
+      $name_noext = preg_replace('/\.(txt|md)$/', '', $name);
+      if (array_search($name, $ignore, true) !== false || array_search($name_noext, $ignore_pages, true) !== false) {
+        continue;
       }
     }
     if (is_dir($file)) {
