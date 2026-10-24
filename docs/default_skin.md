@@ -67,6 +67,8 @@ KonaWiki3 のデフォルトスキン `def` のデザイン方針をまとめた
 | `--k3-color-border-strong` | h1・h2 の下線など強めの罫線 | `#cbd2d9` | `#52606d` |
 | `--k3-color-accent` | リンク・見出しのアクセント線 | `#1f5fbf` | `#7cb4ff` |
 | `--k3-color-accent-hover` | リンクのホバー | `#174a96` | `#a8ccff` |
+| `--k3-color-on-accent` | アクセント色の上に置く文字(主ボタン) | `#ffffff` | `#15191e` |
+| `--k3-color-summary` | まとめ枠(`.column.summary`)の左線 | `#10b981` | `#34d399` |
 
 - 初期値は目安です。実装時に調整してかまいませんが、本文の文字と背景のコントラスト比は **4.5:1 以上**(WCAG AA)を保ちます。
 - 色の役割を増やすときは、新しい変数を追加してから使います。
@@ -173,7 +175,7 @@ body.dark-theme {
 ```
 
 - 個々のセレクタに `body.dark-theme` 用のルールを書き足すのではなく、変数の再定義で対応します。こうすると、新しく追加したプロパティもダーク時に自動で追従します。
-- ただし `darkmode.css` には `body.dark-theme #kona3_main h2` のような、詳細度の高い固定色のルールがあります。これらは `skin/def/kona3.css` の `#kona3_main h2` より優先されるため、変数を切り替えるだけでは効きません。`darkmode.css` の指定にはすべて `!important` が付いているため、`skin/def/kona3.css` の末尾に、同じセレクタ(`body.dark-theme ...`)と `!important` で変数を参照するルールを書いて上書きします。後から読み込まれる同じ詳細度の `!important` が優先されます。
+- ただし `darkmode.css` には `body.dark-theme #kona3_main h2` のような、詳細度の高い固定色のルールがあります。これらは `skin/def/kona3.css` の `#kona3_main h2` より優先されるため、変数を切り替えるだけでは効きません。`darkmode.css` は文字色・背景色・罫線などを `!important` で固定しています。そこで、`skin/def/kona3.css` の末尾に、同じセレクタ(`body.dark-theme ...`)と `!important` で変数を参照するルールを書き、**`darkmode.css` が `!important` で固定しているプロパティだけ**を上書きします。後から読み込まれる同じ詳細度の `!important` が優先されます。`darkmode.css` 側のセレクタの詳細度が高い場合(例: `body.dark-theme input[type="submit"]:hover`)は、スキン側のセレクタの詳細度をそれ以上にします。
 
 ```css
 body.dark-theme #kona3_main h2 {
@@ -189,7 +191,9 @@ body.dark-theme #kona3_main h2 {
 
 - ブレークポイントは既存に合わせ、`48em`(PC 幅)と `480px`(スマホ幅)を使います。
 - スマホ幅では左右の余白を `--k3-space-3` 程度に詰め、本文の幅を確保します。
-- 印刷時(`@media print`)は背景色を使わず、罫線と文字だけで構造が分かるようにします。印刷モードではダークモードが適用されません。
+- 列の多い表は、セルに最小幅(`5em`)を取り、収まらない分は表だけを横スクロールさせます。
+- 印刷時(`@media print`)は背景色を使わず、罫線と文字だけで構造が分かるようにします。横スクロールは紙では見えないため、表は全列を印刷します。
+- 印刷モード(`?print`)ではダークモードが適用されません。ダークモードのままブラウザから印刷した場合もライトの配色で出力されるよう、ダーク用の変数の再定義は `@media screen` の中に置きます。
 
 ---
 
