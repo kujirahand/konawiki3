@@ -562,10 +562,11 @@ function kona3static_notFoundHtml()
  */
 function kona3static_renderForBuild($wikiName)
 {
+    $rel = kona3getStaticFile($wikiName);
     try {
         $html = kona3static_renderPage($wikiName);
     } catch (Kona3StaticRedirectException $e) {
-        return kona3static_redirectHtml($e->target);
+        return kona3static_relativizeHtml(kona3static_redirectHtml($e->target), $rel);
     }
     $dynamic = kona3static_findDynamicLinks($html);
     if (count($dynamic) > 0) {
@@ -573,7 +574,8 @@ function kona3static_renderForBuild($wikiName)
             "Dynamic links remain in `$wikiName`: " . implode(', ', array_slice($dynamic, 0, 5))
         );
     }
-    return $html;
+    // 書き出すHTMLでは、CSS・リンクをそのページからの相対URLにする (#287)
+    return kona3static_relativizeHtml($html, $rel);
 }
 
 // ---------------------------------------------------------------------------
@@ -583,7 +585,7 @@ function kona3static_renderForBuild($wikiName)
 /** 公開URLのベースが絶対URLか (sitemap.xml を生成できるか) */
 function kona3static_isAbsoluteBase()
 {
-    return preg_match('#^https?://#i', kona3static_baseUrl()) === 1;
+    return kona3static_baseIsAbsolute();
 }
 
 /**
@@ -940,6 +942,11 @@ function kona3static_buildLocked($outdir, $options, $depth = 0)
         $generated['sitemap.xml'] = kona3static_sitemapXml($sitemapEntries);
     }
     foreach ($generated as $rel => $content) {
+        // 検索・タグ一覧のHTMLも、各ファイルからの相対URLにする (#287)。
+        // 404.html は、存在しないURLで表示される性質上、従来どおりベースURLのままにする
+        if (substr($rel, -5) === '.html' && $rel !== '404.html') {
+            $content = kona3static_relativizeHtml($content, $rel);
+        }
         try {
             kona3static_publish($state, $rel, $content, true);
             $new['assets'][$rel] = true;

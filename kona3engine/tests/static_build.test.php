@@ -107,12 +107,17 @@ test_assert(__LINE__, !file_exists("$out/_kona3/files/StaticBuildTest/evil.php")
 $page = (string)@file_get_contents("$out/StaticBuildTest/Page/index.html");
 test_assert(__LINE__, strpos($page, '/_kona3/files/StaticBuildTest/a.png') !== FALSE, 'build: ref points to the copied attachment');
 test_assert(__LINE__, strpos($page, '/StaticBuildTest/Md/') !== FALSE, 'build: link to markdown page');
+// #287: 書き出したHTMLは相対URL (このページは出力先から2階層目)
+test_assert(__LINE__, strpos($page, '../../_kona3/resource/pure-min.css') !== FALSE, 'build: css url is relative (#287)');
+test_assert(__LINE__, strpos($page, '../../StaticBuildTest/Md/') !== FALSE, 'build: page link is relative (#287)');
+test_assert(__LINE__, strpos($page, '="/_kona3') === FALSE && strpos($page, "='/_kona3") === FALSE, 'build: no root-absolute asset url (#287)');
+test_assert(__LINE__, strpos($page, '="/StaticBuildTest') === FALSE && strpos($page, "='/StaticBuildTest") === FALSE, 'build: no root-absolute page url (#287)');
 $jsonAlias = (string)@file_get_contents("$out/StaticBuildJsonAlias/index.html");
-test_assert(__LINE__, strpos($jsonAlias, 'http-equiv="refresh"') !== FALSE && strpos($jsonAlias, '/StaticBuildTest/Page/') !== FALSE, 'build: alias-show.json only alias is output');
+test_assert(__LINE__, strpos($jsonAlias, 'http-equiv="refresh"') !== FALSE && strpos($jsonAlias, 'content="0; url=../StaticBuildTest/Page/"') !== FALSE, 'build: alias-show.json only alias is output (refresh url is relative, #289 review)');
 test_assert(__LINE__, !file_exists("$out/alias-show.json") && !file_exists("$out/_kona3/files/alias-show.json"), 'build: alias-show.json is not published');
 $alias = (string)@file_get_contents("$out/StaticBuildTest/Old/index.html");
-test_assert(__LINE__, strpos($alias, 'http-equiv="refresh"') !== FALSE && strpos($alias, '/StaticBuildTest/Page/') !== FALSE, 'build: alias redirect');
-test_assert(__LINE__, strpos($alias, 'rel="canonical"') !== FALSE, 'build: alias canonical');
+test_assert(__LINE__, strpos($alias, 'http-equiv="refresh"') !== FALSE && strpos($alias, 'content="0; url=../../StaticBuildTest/Page/"') !== FALSE, 'build: alias redirect (refresh url is relative, #289 review)');
+test_assert(__LINE__, strpos($alias, 'rel="canonical"') !== FALSE && strpos($alias, 'href="../../StaticBuildTest/Page/"') !== FALSE, 'build: alias canonical (relative, #289 review)');
 test_assert(__LINE__, file_exists($manifest), 'build: manifest');
 test_eq(__LINE__, count(glob("$out/StaticBuildTest/Page/.kona3tmp_*")), 0, 'build: no temporary file');
 

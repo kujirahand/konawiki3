@@ -522,6 +522,133 @@ function kona3static_findDynamicLinks($html)
     return $found;
 }
 
+/** ベースURLが絶対URL (`https://...`) か */
+function kona3static_baseIsAbsolute()
+{
+    return preg_match('#^https?://#i', kona3static_baseUrl()) === 1;
+}
+
+/**
+ * 出力ファイル (`Wiki名/index.html` など) から出力ルートへ戻る相対接頭辞
+ * 例: `index.html` => `./`, `a/index.html` => `../`, `a/b/index.html` => `../../`
+ */
+function kona3static_relativePrefix($relativeFilePath)
+{
+    $dir = str_replace('\\', '/', dirname($relativeFilePath));
+    if ($dir === '.' || $dir === '' || $dir === '/') {
+        return './';
+    }
+    return str_repeat('../', substr_count($dir, '/') + 1);
+}
+
+/**
+ * 書き出すHTMLのリンク・アセットURLを、そのファイルからの相対URLに書き換える (#287)
+ *
+ * 描画時のURLはベースURL (`/` など) から始まる絶対パスなので、出力先を
+ * サーバーのルート以外 (Wikiのサブディレクトリの `dist/` のまま等) に置くと
+ * CSS が読めず、リンクが 404 になる。相対URLにすれば、出力先ツリーを
+ * どのパスに置いても (移動しても) そのまま機能する。
+ * ベースURLが絶対URLのときは、公開先が確定しているので書き換えない。
+ * 公開URLそのもの (`kona3getStaticURL()`、sitemap.xml 用) は変更しない。
+ * 変換対象は href / src / action / srcset 属性と <meta http-equiv="refresh"> の
+ * url だけ。それ以外 (meta の content 属性、data-* 属性、<script> / <style> の
+ * 中身、本文テキスト) は変換しない (docs/static_wiki.md 5章)。
+ *
+ * @param string $html 描画済みHTML
+ * @param string $relativeFilePath 出力先からの相対パス (`Wiki名/index.html` など)
+ * @return string
+ */
+function kona3static_relativizeHtml($html, $relativeFilePath)
+{
+    if (kona3static_baseIsAbsolute()) {
+        return $html;
+    }
+    $base = kona3static_baseUrl();
+    $prefix = kona3static_relativePrefix($relativeFilePath);
+    $toRelative = function ($url) use ($base, $prefix) {
+        if ($url === '' || substr($url, 0, 2) === '//' || strpos($url, $base) !== 0) {
+            return $url;
+        }
+        return $prefix . substr($url, strlen($base));
+    };
+    // href / src / action / srcset 属性 (引用符あり・なし)
+    $rewriteAttrs = function ($text) use ($toRelative) {
+        return preg_replace_callback(
+            '/\b(href|src|action|srcset)(\s*=\s*)("[^"]*"|\'[^\']*\'|[^\s"\'>]+)/i',
+            function ($m) use ($toRelative) {
+                $raw = $m[3];
+                $quote = '';
+                $val = $raw;
+                if ($raw !== '' && ($raw[0] === '"' || $raw[0] === "'")) {
+                    $quote = $raw[0];
+                    $val = substr($raw, 1, -1);
+                }
+                if (strtolower($m[1]) === 'srcset') {
+                    // srcset は「URL ディスクリプタ, ...」の並び。各URLだけを書き換える
+                    $parts = [];
+                    foreach (explode(',', $val) as $entry) {
+                        $tokens = preg_split('/\s+/', trim($entry));
+                        if ($tokens === false || $tokens[0] === '') {
+                            continue;
+                        }
+                        $tokens[0] = $toRelative($tokens[0]);
+                        $parts[] = implode(' ', $tokens);
+                    }
+                    $new = implode(', ', $parts);
+                } else {
+                    $new = $toRelative($val);
+                }
+                if ($new === $val) {
+                    return $m[0];
+                }
+                return $m[1] . $m[2] . $quote . $new . $quote;
+            },
+            $text
+        );
+    };
+    // エイリアスのリダイレクトは、<meta http-equiv="refresh"> の中だけを書き換える
+    // (description など、他の content 属性に `url=` が含まれても誤変換しない)
+    $rewriteMetaRefresh = function ($text) use ($toRelative) {
+        return preg_replace_callback(
+            '/<meta\b[^>]*>/i',
+            function ($m) use ($toRelative) {
+                $tag = $m[0];
+                if (!preg_match('/http-equiv\s*=\s*["\']?refresh/i', $tag)) {
+                    return $tag;
+                }
+                return preg_replace_callback(
+                    '/(url\s*=\s*)([^"\';]+)/i',
+                    function ($mm) use ($toRelative) {
+                        return $mm[1] . $toRelative(trim($mm[2]));
+                    },
+                    $tag
+                );
+            },
+            $text
+        );
+    };
+    $rewrite = function ($text) use ($rewriteAttrs, $rewriteMetaRefresh) {
+        return $rewriteMetaRefresh($rewriteAttrs($text));
+    };
+    // <script> / <style> の中身 (JSの文字列リテラルや CSS の url()) は書き換えない。
+    // 開始タグの src など、タグ自体の属性は書き換える
+    $out = '';
+    $rest = $html;
+    while (preg_match('/<(script|style)\b[^>]*>.*?<\/\1\s*>/is', $rest, $m, PREG_OFFSET_CAPTURE)) {
+        $block = $m[0][0];
+        $pos = $m[0][1];
+        $out .= $rewrite(substr($rest, 0, $pos));
+        if (preg_match('/^(<[^>]*>)(.*)(<\/\w+\s*>)$/s', $block, $pm)) {
+            $out .= $rewrite($pm[1]) . $pm[2] . $pm[3];
+        } else {
+            $out .= $rewrite($block);
+        }
+        $rest = substr($rest, $pos + strlen($block));
+    }
+    $out .= $rewrite($rest);
+    return $out;
+}
+
 /**
  * 静的モードの既定の CSS/JS 一覧を (静的URLで) 設定し直す
  */
@@ -602,6 +729,7 @@ function kona3static_buildPage($wikiName, $outdir)
         );
     }
     $rel = kona3getStaticFile($wikiName);
+    $html = kona3static_relativizeHtml($html, $rel);
     kona3static_writeFile($outdir, $rel, $html);
     return $rel;
 }

@@ -75,13 +75,13 @@ foreach ((array)$idx as $e) {
     $byTitle[$e['t']] = $e;
 }
 test_assert(__LINE__, isset($byTitle['StaticP4/A']), 'search: page is indexed');
-test_eq(__LINE__, $byTitle['StaticP4/A']['u'], '/StaticP4/A/', 'search: page URL');
+test_eq(__LINE__, $byTitle['StaticP4/A']['u'], '../../StaticP4/A/', 'search: page URL is relative to the search page (#287)');
 test_assert(__LINE__, strpos($byTitle['StaticP4/A']['b'], '検索対象') !== FALSE, 'search: body is indexed');
 test_assert(__LINE__, strpos($json, 'secret-only-for-login') === FALSE, 'search: login-only lines are not indexed');
 test_eq(__LINE__, json_encode($byTitle['StaticP4/A']['g']), '["TagOne","a\\/b"]', 'search: tags are indexed');
 test_assert(__LINE__, !isset($byTitle['MenuBar']), 'search: excluded pages are not indexed');
 $sp = (string)@file_get_contents("$out/_kona3/search/index.html");
-test_assert(__LINE__, strpos($sp, '/_kona3/search/index.json') !== FALSE, 'search: page loads the index');
+test_assert(__LINE__, strpos($sp, "fetch('index.json')") !== FALSE, 'search: page loads the index relatively (#287)');
 test_assert(__LINE__, strpos($sp, 'index.php?') === FALSE, 'search: page has no dynamic links');
 
 test_assert(__LINE__, (strpos($json, 'shown-text') !== FALSE) !== (strpos($json, 'hidden-md-text') !== FALSE), 'search: only the displayed source is indexed');
@@ -90,19 +90,19 @@ test_assert(__LINE__, is_file("$out/_kona3/tags/123/index.html"), 'tags: numeric
 
 // --- タグ一覧ページ ---
 $tl = (string)@file_get_contents("$out/_kona3/tags/index.html");
-test_assert(__LINE__, strpos($tl, 'href="/_kona3/tags/tagone/"') !== FALSE, 'tags: list links to a tag');
+test_assert(__LINE__, strpos($tl, 'href="../../_kona3/tags/tagone/"') !== FALSE, 'tags: list links to a tag (relative, #287)');
 test_assert(__LINE__, strpos($tl, '(2)') !== FALSE, 'tags: page count');
 $tp = (string)@file_get_contents("$out/_kona3/tags/tagone/index.html");
-test_assert(__LINE__, strpos($tp, 'href="/StaticP4/A/"') !== FALSE && strpos($tp, 'href="/StaticP4/B/"') !== FALSE, 'tag page: lists pages');
+test_assert(__LINE__, strpos($tp, 'href="../../../StaticP4/A/"') !== FALSE && strpos($tp, 'href="../../../StaticP4/B/"') !== FALSE, 'tag page: lists pages (relative, #287)');
 test_assert(__LINE__, strpos($tp, 'StaticP4/C') === FALSE, 'tag page: untagged page is not listed');
 test_assert(__LINE__, is_file("$out/_kona3/tags/a_2Fb/index.html"), 'tag page: slash tag is generated');
-test_eq(__LINE__, substr_count($tl, 'href="/_kona3/tags/tagone/"'), 1, 'tags: case-variant tags are merged into one entry');
+test_eq(__LINE__, substr_count($tl, 'href="../../_kona3/tags/tagone/"'), 1, 'tags: case-variant tags are merged into one entry');
 test_eq(__LINE__, kona3static_tagUrl('tagone'), kona3static_tagUrl('TagOne'), 'tags: case-variant tags share a URL');
 
 // --- ページ側のタグリンク ---
 $a = (string)@file_get_contents("$out/StaticP4/A/index.html");
-test_assert(__LINE__, strpos($a, "href='/_kona3/tags/tagone/'") !== FALSE, 'show: tag links to the tag page');
-test_assert(__LINE__, strpos($a, 'href="/_kona3/tags/"') !== FALSE, 'show: Tags links to the tag list');
+test_assert(__LINE__, strpos($a, "href='../../_kona3/tags/tagone/'") !== FALSE, 'show: tag links to the tag page (relative, #287)');
+test_assert(__LINE__, strpos($a, 'href="../../_kona3/tags/"') !== FALSE, 'show: Tags links to the tag list (relative, #287)');
 
 // --- 再生成で古いタグページが消える ---
 file_put_contents($metaA, json_encode(['tags' => ['TagOne']]));
