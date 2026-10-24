@@ -9,6 +9,7 @@
             <input type="file" name="file">
             <br>
             <input type="submit" value="{{'Upload'|lang}}">
+            <input type="hidden" name="edit_token" value="{{ $edit_token }}">
             <input type="hidden" name="MAX_FILE_SIZE" value="{{ $max_file_size }}" />
         </form>
         <hr/>

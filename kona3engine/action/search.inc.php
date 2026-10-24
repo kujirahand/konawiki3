@@ -1,5 +1,6 @@
 <?php
 include_once dirname(dirname(__FILE__)).'/kona3lib.inc.php';
+include_once __DIR__.'/show.inc.php';
 // $kona3conf['search.exclude'] に検索除外対象ディレクトリを記述可能
 global $_search_exclude;
 $_search_exclude = empty($kona3conf['search.exclude']) 
@@ -10,6 +11,9 @@ $_search_exclude = empty($kona3conf['search.exclude'])
 function kona3_action_search() {
   global $kona3conf;
   $page = $kona3conf["page"];
+  // 非公開Wikiでは未ログインで検索させない (show と同じ扱い, #324)。
+  // 検索できるとページ名の列挙と本文の存在確認ができてしまう。
+  kona3show_check_private($page);
   $action = kona3getPageURL($page, "search");  
   $am   = kona3param('a_mode', '');
   $key  = kona3param('a_key', '');

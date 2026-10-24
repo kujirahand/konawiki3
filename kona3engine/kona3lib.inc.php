@@ -1598,7 +1598,8 @@ function kona3lock_load($path, $retry = 3, $usleep = 100000)
 // versionup notice
 function kona3_getVersionupNotice()
 {
-    if (!kona3isLogin()) {
+    // 移行の実行は管理者のみのため、案内も管理者にだけ出す (#324)
+    if (!kona3isAdmin()) {
         return '';
     }
     $json_path = KONA3_PAGE_ID_JSON;

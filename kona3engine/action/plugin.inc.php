@@ -19,6 +19,13 @@ function kona3_action_plugin_getActionFuncName($name) {
 function kona3_action_plugin() {
   global $kona3conf;
   $page = $kona3conf["page"];
+  // 非公開Wikiでは未ログインでプラグインを実行させない (show と同じ扱い, #324)。
+  // 個別プラグインの認可実装に依存せず、入口で一括して遮断する。
+  if (kona3getConf('wiki_private') && !kona3isLogin()) {
+    header('HTTP/1.0 403 Forbidden');
+    echo "Forbidden";
+    exit;
+  }
   $name = isset($_GET['name']) ? $_GET['name'] : '';
   if ($name == '') {
     header("location: index.php");

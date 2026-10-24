@@ -29,21 +29,31 @@ function kona3_action_update_page_history()
     $data_dir = KONA3_DIR_DATA;
     echo "<pre>";
 
-    // リンクを表示
-    $current_url = $_SERVER['REQUEST_URI'];
-    $base_url = preg_replace('/[\?\&]clear=\w+/', '', $current_url);
+    // リンクを表示 (全削除リンクにはCSRFトークンを付ける, #324)
+    $edit_token = kona3_getEditToken('edit_token');
+    $current_url = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+    $base_url = preg_replace('/[\?\&](clear|edit_token)=[^&]*/', '', $current_url);
     $separator = (strpos($base_url, '?') !== false) ? '&' : '?';
+    $base_url_h = htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8');
+    $clear_url_h = htmlspecialchars(
+        $base_url . $separator . 'clear=all&edit_token=' . urlencode($edit_token),
+        ENT_QUOTES, 'UTF-8');
 
     echo "=== [操作メニュー] ===\n";
-    echo "- [1] <a href='{$base_url}' style='color: blue; text-decoration: underline;'>通常実行（履歴を残して追加）</a>\n";
-    echo "- [2] <a href='{$base_url}{$separator}clear=all' style='color: red; text-decoration: underline;'>全削除してやり直し</a>\n";
+    echo "- [1] <a href='{$base_url_h}' style='color: blue; text-decoration: underline;'>通常実行（履歴を残して追加）</a>\n";
+    echo "- [2] <a href='{$clear_url_h}' style='color: red; text-decoration: underline;'>全削除してやり直し</a>\n";
     echo "========================\n\n";
 
     echo "データディレクトリ: ".htmlspecialchars($data_dir)."\n";
 
     // clearパラメータのチェック
+    // 全削除は取り消せないため、CSRFトークンなしでは実行しない (#324)
     $clear = isset($_GET['clear']) ? $_GET['clear'] : '';
     if ($clear === 'all') {
+        if (!kona3_checkEditToken('edit_token')) {
+            echo "エラー: Invalid Token (全削除には正しいトークンが必要です)\n";
+            return;
+        }
         echo "=== page_historyテーブルを全削除します ===\n";
         $stmt = db_exec("DELETE FROM page_history");
         echo "=== 削除完了 ===\n\n";

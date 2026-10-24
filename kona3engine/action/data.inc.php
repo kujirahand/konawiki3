@@ -35,6 +35,13 @@ function kona3_action_data() {
     }
     header("Content-Type: $ctype");
     header("Content-Length: ".filesize($fullpath));
+    header("X-Content-Type-Options: nosniff");
+    if (strtolower($m[1]) === 'svg') {
+      // SVGはスクリプトを持てるため、トップレベル文書として開かれても
+      // Wikiのオリジンで実行されないよう sandbox を付ける (#324)。
+      header("Content-Security-Policy: sandbox");
+      header('Content-Disposition: inline; filename="'.basename($fname).'"');
+    }
     echo file_get_contents($fullpath);
     exit;
   }
