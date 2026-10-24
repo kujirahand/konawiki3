@@ -504,3 +504,15 @@ $html = kona3markdown_parser_convert("``   `` end", false);
 test_assert(__LINE__, strpos($html, '<code>   </code>') !== false, "Markdown comment(#312): 空白のみのコードスパンは空白を保持");
 $html = kona3markdown_parser_convert("``foo ` bar`` end", false);
 test_assert(__LINE__, strpos($html, '<code>foo ` bar</code>') !== false, "Markdown comment(#312): 二連バッククォートで単一バッククォートを含むコードを表示");
+
+// 21. Cases confirmed by the PR #312+#315 series review:
+// a multi-line comment starting at the end of a numbered list item
+// (its token cmd is "-", so it is covered by the token check), and
+// an unterminated code span whose <!-- is not a comment.
+$html = kona3markdown_parser_convert("1. First <!-- comment\nhidden\n--> visible", false);
+test_assert(__LINE__, strpos($html, '<li>1. First </li>') !== false && strpos($html, 'hidden') === false && strpos($html, 'visible') !== false, "Markdown comment(#312+#315): 番号付きリストから始まる複数行コメントの後続行を表示しない");
+$html = kona3markdown_parser_convert("1. Item <!-- start\ncontinuation\n-->\nend", false);
+test_assert(__LINE__, strpos($html, 'continuation') === false && strpos($html, '<p>end</p>') !== false, "Markdown comment(#312+#315): 番号付きリストの複数行コメントで --> 単独行も正しく処理");
+$html = kona3markdown_parser_convert("- Item `code <!-- not a comment\nstill visible line", false);
+test_assert(__LINE__, strpos($html, '<code>code &lt;!-- not a comment</code>') !== false, "Markdown comment(#312+#315): 未終了コードスパン内の <!-- はコメントにしない");
+test_assert(__LINE__, strpos($html, 'still visible line') !== false, "Markdown comment(#312+#315): 未終了コードスパンの次の行を表示する");
