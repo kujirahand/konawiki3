@@ -55,12 +55,22 @@ function test_assert($line, $b, $desc = 'assert')
 }
 
 
+// 配列などの値も警告なしで文字列化する
+function test_str($v)
+{
+    if (is_scalar($v) || $v === null) {
+        return (string)$v;
+    }
+    $json = json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR);
+    return ($json === false) ? '[' . gettype($v) . ']' : $json;
+}
+
 function test_eq($line, $a, $b, $desc = 'eq')
 {
-    return test_assert($line, $a === $b, "$desc: `$a` === `$b`");
+    return test_assert($line, $a === $b, $desc . ": `" . test_str($a) . "` === `" . test_str($b) . "`");
 }
 
 function test_ne($line, $a, $b, $desc = 'eq')
 {
-    return test_assert($line, $a !== $b, "$desc: `$a` !== `$b`");
+    return test_assert($line, $a !== $b, $desc . ": `" . test_str($a) . "` !== `" . test_str($b) . "`");
 }

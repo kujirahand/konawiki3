@@ -22,10 +22,14 @@ function kona3_action_user() {
   $user_id = $u['user_id'];
   $pages = kona3db_getPageHistoryByUserId($user_id);
   $edit_token = kona3_getEditToken();
+  // 自分自身のページかどうか (一覧から他人のページを開く場合もある)
+  $loginInfo = kona3getLoginInfo();
+  $is_me = $loginInfo && isset($loginInfo['user']) && $loginInfo['user'] === $name;
   kona3template("user.html",[
     "pages" => $pages,
     "user_id" => $user_id,
     "name" => $name,
+    "is_me" => $is_me,
     "userList_link" => kona3getPageURL($name, 'users', '', "edit_token=$edit_token"),
     "emailLogs_link" => kona3getPageURL($name, 'emailLogs'),
     "editConf_link" => kona3getPageURL($name, 'editConf'),
