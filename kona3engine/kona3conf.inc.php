@@ -86,6 +86,7 @@ function kona3conf_getConfigItems()
             'FrontPage' => ['label' => 'FrontPage Name', 'default' => 'FrontPage', 'type' => 'string'],
             'plugin_disallow' => ['label' => 'Disabled Plugins', 'default' => 'html,htmlshow,filelist', 'type' => 'string', 'note' => "delimiter=','"],
             'show_counter' => ['label' => 'Show Counter', 'default' => FALSE, 'type' => 'bool'],
+            'show_page_list' => ['label' => 'Show Page List', 'default' => FALSE, 'type' => 'bool'],
             'show_data_dir' => ['label' => 'Show Data Directory', 'default' => FALSE, 'type' => 'bool'],
             'data_dir_allow_pattern' => [
                 'label' => 'Data Directory Allow Pattern',

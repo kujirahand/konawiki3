@@ -689,6 +689,176 @@ function kona3getWikiName($filename)
     return $f;
 }
 
+// ---------------------------------------------------------------------------
+// ページ一覧 (#314)
+// ---------------------------------------------------------------------------
+
+/**
+ * data/ 以下にある全ページ名の一覧を返す (ページ一覧ビュー用)
+ *
+ * - .txt / .md ファイルを再帰的に走査する。同名で両方ある場合は1件にまとめる
+ * - ドットで始まるパス要素 (`.meta` など) とシンボリックリンクは対象外
+ * - 既定ではシステムページ (MenuBar / GlobalBar / SideBar) を除く
+ *   (#ls プラグインの `show_system` なしの挙動に合わせる)
+ * - 結果は同一リクエスト内のみキャッシュする ($includeSystem の値ごと)。
+ *   2回目以降の呼び出しでは再走査しない (リクエストをまたぐキャッシュはしない)
+ * @param bool $includeSystem TRUE ならシステムページも含める
+ * @param bool $forceReload TRUE ならキャッシュを破棄して再走査する
+ * @return string[] ソート済みのページ名一覧
+ */
+function kona3getAllPages($includeSystem = FALSE, $forceReload = FALSE)
+{
+    static $cache = [];
+    if ($forceReload) {
+        $cache = [];
+    }
+    $cacheKey = $includeSystem ? 'all' : 'normal';
+    if (!$forceReload && isset($cache[$cacheKey])) {
+        return $cache[$cacheKey];
+    }
+    $dataDir = KONA3_DIR_DATA;
+    if (!is_dir($dataDir)) {
+        return [];
+    }
+    $systemPages = ['MenuBar' => TRUE, 'GlobalBar' => TRUE, 'SideBar' => TRUE];
+    $pages = [];
+    $it = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($dataDir, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::LEAVES_ONLY
+    );
+    foreach ($it as $f) {
+        if ($f->isLink() || !$f->isFile()) {
+            continue;
+        }
+        $path = str_replace('\\', '/', $f->getPathname());
+        $rel = substr($path, strlen(rtrim(str_replace('\\', '/', $dataDir), '/')) + 1);
+        // ドットで始まるパス要素を含むものは対象外
+        $hidden = FALSE;
+        foreach (explode('/', $rel) as $seg) {
+            if ($seg !== '' && $seg[0] === '.') {
+                $hidden = TRUE;
+                break;
+            }
+        }
+        if ($hidden) {
+            continue;
+        }
+        if (!preg_match('/\.(txt|md)$/', $rel)) {
+            continue;
+        }
+        $name = kona3getWikiName($path);
+        if ($name === '') {
+            continue;
+        }
+        if (!$includeSystem && isset($systemPages[basename($name)])) {
+            continue;
+        }
+        $pages[$name] = TRUE; // .txt と .md の重複をまとめる
+    }
+    $list = array_keys($pages);
+    sort($list, SORT_STRING);
+    $cache[$cacheKey] = $list;
+    return $list;
+}
+
+/**
+ * ページ名一覧をフォルダ階層のツリー構造に変換する
+ *
+ * 各ノードは ['name' => 区切り要素名, 'path' => その要素までのページ名,
+ * 'is_page' => ページとして存在するか, 'children' => [要素名 => ノード]]
+ * @param string[] $pages kona3getAllPages() の戻り値など
+ * @return array ルート直下のノード一覧 (フォルダ優先・名前順)
+ */
+function kona3buildPageTree($pages)
+{
+    $root = [];
+    foreach ($pages as $page) {
+        if ($page === '') {
+            continue;
+        }
+        $parts = explode('/', $page);
+        $nodes = &$root;
+        $path = '';
+        foreach ($parts as $i => $part) {
+            $path = ($path === '') ? $part : $path . '/' . $part;
+            if (!isset($nodes[$part])) {
+                $nodes[$part] = [
+                    'name' => $part,
+                    'path' => $path,
+                    'is_page' => FALSE,
+                    'children' => [],
+                ];
+            }
+            if ($i === count($parts) - 1) {
+                $nodes[$part]['is_page'] = TRUE;
+            }
+            $nodes = &$nodes[$part]['children'];
+        }
+        unset($nodes);
+    }
+    // フォルダ (子を持つノード) を先に、同じ種類の中では名前順にする
+    $sortNodes = function (&$nodes) use (&$sortNodes) {
+        uksort($nodes, function ($a, $b) use ($nodes) {
+            $aDir = !empty($nodes[$a]['children']) ? 0 : 1;
+            $bDir = !empty($nodes[$b]['children']) ? 0 : 1;
+            if ($aDir !== $bDir) {
+                return $aDir - $bDir;
+            }
+            return strcmp((string)$a, (string)$b);
+        });
+        foreach ($nodes as &$node) {
+            if (!empty($node['children'])) {
+                $sortNodes($node['children']);
+            }
+        }
+        unset($node);
+    };
+    $sortNodes($root);
+    return $root;
+}
+
+/**
+ * ページツリーを Explorer 風の折りたたみ可能な HTML (<details> 方式) に変換する
+ * ページ名はエスケープし、ページへのリンクは kona3getPageURL() で作る
+ * @param array $tree kona3buildPageTree() の戻り値
+ * @return string HTML
+ */
+function kona3renderPageTree($tree)
+{
+    $renderNodes = function ($nodes) use (&$renderNodes) {
+        $html = '<ul>';
+        foreach ($nodes as $node) {
+            $nameH = kona3text2html($node['name']);
+            $pathH = htmlspecialchars($node['path'], ENT_QUOTES, 'UTF-8');
+            $label = $nameH;
+            $pageLink = '';
+            if (!empty($node['is_page'])) {
+                $url = htmlspecialchars(kona3getPageURL($node['path']), ENT_QUOTES, 'UTF-8');
+                $label = "<a href=\"{$url}\">{$nameH}</a>";
+                $openLabel = htmlspecialchars(lang('Open Page'), ENT_QUOTES, 'UTF-8');
+                $pageLink = " <a class=\"pt-open\" href=\"{$url}\" title=\"{$openLabel}: {$pathH}\" aria-label=\"{$openLabel}: {$pathH}\">🔗</a>";
+            }
+            if (!empty($node['children'])) {
+                // フォルダ名は <summary> の開閉専用にし、フォルダ自体がページの
+                // 場合はページへのリンクを分離する (開閉と遷移の競合を避ける)
+                $dirLabel = $nameH . $pageLink;
+                $html .= "<li class=\"pt-node pt-dir\" data-path=\"{$pathH}\">"
+                    . '<details><summary><span class="pt-icon" aria-hidden="true">📁</span> '
+                    . $dirLabel . '</summary>'
+                    . $renderNodes($node['children'])
+                    . '</details></li>';
+            } else {
+                $html .= "<li class=\"pt-node pt-page\" data-path=\"{$pathH}\">"
+                    . '<span class="pt-icon" aria-hidden="true">📄</span> '
+                    . $label . '</li>';
+            }
+        }
+        $html .= '</ul>';
+        return $html;
+    };
+    return '<div class="kona3-pagetree">' . $renderNodes($tree) . '</div>';
+}
+
 function kona3getSysInfo()
 {
     global $kona3conf;
@@ -712,6 +882,7 @@ function kona3getCtrlMenuArray($type)
     $login_uri = kona3getPageURL($page, 'login');
     $logout_uri = kona3getPageURL($page, 'logout');
     $search_uri = kona3getPageURL($page, 'search');
+    $pagelist_uri = kona3getPageURL($page, 'pagelist');
     $pdf_uri = kona3getPageURL($page, 'pdf');
     $attach_uri = kona3getPageURL($page, 'attach');
     $print_uri = kona3getPageURL($page, 'print');
@@ -732,13 +903,21 @@ function kona3getCtrlMenuArray($type)
         }
         return $list;
     }
+    // ページ一覧 (#314): 設定で許可されているときだけ表示する
+    $show_page_list = kona3getConf('show_page_list');
     if (!kona3isLogin()) {
         if ($type == "bar") {
             $list[] = array(lang('Search'), $search_uri);
+            if ($show_page_list) {
+                $list[] = array(lang('Page List'), $pagelist_uri);
+            }
             $list[] = array(lang('Login'), $login_uri);
         } else {
             $list[] = array($FrontPage_label, $FrontPage_uri);
             $list[] = array(lang('Search'), $search_uri);
+            if ($show_page_list) {
+                $list[] = array(lang('Page List'), $pagelist_uri);
+            }
             $list[] = array(lang('Login'), $login_uri);
         }
     } else {
@@ -756,6 +935,9 @@ function kona3getCtrlMenuArray($type)
         $list[] = array(lang('Edit'), $edit_uri);
         $list[] = array(lang('New'), $new_uri);
         $list[] = array(lang('Search'), $search_uri);
+        if ($show_page_list) {
+            $list[] = array(lang('Page List'), $pagelist_uri);
+        }
         $list[] = array(lang('Print'), $print_uri);
         if (kona3getConf('allow_upload')) {
             $list[] = array(lang('Attach'), $attach_uri);

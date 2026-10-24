@@ -30,6 +30,7 @@ return [
         'FrontPage' => ['desc' => 'Name of the page shown first. "/" cannot be used.'],
         'plugin_disallow' => ['desc' => 'Plugins you do not want to allow, separated by commas.'],
         'show_counter' => ['desc' => 'If true, show an access counter at the bottom of each page.'],
+        'show_page_list' => ['desc' => 'If true, a "Page List" item appears in the hamburger menu and visitors can open pages from a folder tree view.'],
         'show_data_dir' => ['desc' => 'If true, list the files in the page\'s folder below the page.'],
         'data_dir_allow_pattern' => ['desc' => 'Regular expression of file extensions to list in the data folder listing.'],
         'noanchor' => ['desc' => 'If true, do not show the anchor link next to headings.'],
