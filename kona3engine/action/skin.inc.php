@@ -18,6 +18,10 @@ function kona3_action_skin() {
     $ext = $m[1];
   }
   $skin = $kona3conf['skin'];
+  // 設定中以外のスキンのファイル (派生スキンが土台にする def のCSSなど)
+  if (isset($_GET['s']) && is_string($_GET['s'])) {
+    $skin = $_GET['s'];
+  }
   // check skin name
   if (!preg_match('#^[a-zA-Z0-9\_\-]+$#', $skin)) {
     header('HTTP/1.0 404 Not Found');
@@ -57,18 +61,28 @@ function kona3_action_skin() {
   header("Expires: ".gmdate('D, d M Y H:i:s \G\M\T', time() + $cache_expire_time));
   $last_m = gmdate('D, d M Y H:i:s \G\M\T', filemtime($path));
   header("Last-Modified: ". $last_m);
-  header("Content-Length: ".filesize($path));
-  if ($ext == ".css") {
-    echo "/**\n";
-    echo "+[konawiki3]\n";
-    echo "| file: {$fname}\n";
-    echo "| skin: {$skin}\n";
-    echo "| mtime: {$last_m}\n";
-    echo "*/\n";
-    echo "\n";
-  }
+  // CSSには情報コメントを付けるため、Content-Lengthは実際に出力する長さにする
+  // (ファイルサイズを送ると、コメントの分だけ末尾が切り捨てられる)
+  $body = kona3_skin_buildBody($path, $ext, $fname, $skin, $last_m);
+  header("Content-Length: ".strlen($body));
   // output contents
-  echo file_get_contents($path);
+  echo $body;
+}
+
+// スキンファイルの出力内容を作る
+function kona3_skin_buildBody($path, $ext, $fname, $skin, $last_m) {
+  $body = file_get_contents($path);
+  if ($ext == ".css") {
+    $info = "/**\n";
+    $info .= "+[konawiki3]\n";
+    $info .= "| file: {$fname}\n";
+    $info .= "| skin: {$skin}\n";
+    $info .= "| mtime: {$last_m}\n";
+    $info .= "*/\n";
+    $info .= "\n";
+    $body = $info . $body;
+  }
+  return $body;
 }
 
 

@@ -659,14 +659,14 @@ function kona3static_resetAssets()
         kona3getResourceURL('ajax_qq.js'),
         kona3getSkinURL('drawer.js', true),
     ];
-    $kona3conf['css'] = [
+    $kona3conf['css'] = array_merge([
         kona3getResourceURL('pure-min.css'),
         kona3getResourceURL('grids-responsive-min.css'),
         kona3getResourceURL('kona3def.css', true),
         kona3getResourceURL('darkmode.css', true),
-        kona3getSkinURL('kona3.css', true),
+    ], kona3getSkinCSSURLs(true), [
         kona3getSkinURL('drawer.css', true),
-    ];
+    ]);
 }
 
 /**

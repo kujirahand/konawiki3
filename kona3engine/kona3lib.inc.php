@@ -524,14 +524,20 @@ function kona3getResourceURL($file, $use_mtime = FALSE)
     return kona3getPageURL($file, "resource");
 }
 
-function kona3getSkinURL($file, $use_mtime = FALSE)
+// $skin を指定すると、設定中のスキンではなく、そのスキンのファイルのURLを返す
+function kona3getSkinURL($file, $use_mtime = FALSE, $skin = NULL)
 {
     global $kona3conf;
-    $skin = $kona3conf['skin'];
+    $current = $kona3conf['skin'];
+    if ($skin === NULL) {
+        $skin = $current;
+    }
     // check invalid skin pattern
     if (preg_match('#[^a-zA-Z0-9_\-]#', $skin)) {
         $skin = 'def';
     }
+    // 設定中以外のスキンは、skinアクションに s=スキン名 で伝える
+    $skinParam = ($skin !== $current) ? "s=" . urlencode($skin) : "";
     $path_skin = KONA3_DIR_SKIN;
     $path = "{$path_skin}/{$skin}/{$file}";
     // skinディレクトリにファイルがなければresourceを探す
@@ -543,11 +549,27 @@ function kona3getSkinURL($file, $use_mtime = FALSE)
         return kona3static_assetUrl('skin', "{$skin}/{$file}");
     }
     // mtimeをつけて出力?
+    $params = [];
     if ($use_mtime && file_exists($path)) {
-        $mtime = filemtime($path);
-        return kona3getPageURL($file, "skin", "", "sm=$mtime");
+        $params[] = "sm=" . filemtime($path);
     }
-    return kona3getPageURL($file, "skin");
+    if ($skinParam !== "") {
+        $params[] = $skinParam;
+    }
+    return kona3getPageURL($file, "skin", "", implode("&", $params));
+}
+
+// スキンのCSSのURL一覧
+// def 以外のスキンは、def のCSSを土台として先に読み込み、その上に各スキンの差分を重ねる
+function kona3getSkinCSSURLs($use_mtime = FALSE)
+{
+    global $kona3conf;
+    $urls = [];
+    if ($kona3conf['skin'] !== 'def' && file_exists(KONA3_DIR_SKIN . '/def/kona3.css')) {
+        $urls[] = kona3getSkinURL('kona3.css', $use_mtime, 'def');
+    }
+    $urls[] = kona3getSkinURL('kona3.css', $use_mtime);
+    return $urls;
 }
 
 function kona3text2html($text)

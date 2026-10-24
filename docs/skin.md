@@ -1,13 +1,14 @@
 # KonaWiki3 スキン作成ガイド
 
 KonaWiki3 では、CSS を中心としたシンプルな仕組みで Wiki の見た目（スキン）をカスタマイズ・追加できます。
-本ドキュメントでは、スキンの基本的な仕組みから、作成手順、ダークモード対応、そして清涼感のあるサンプルスキン `aqua` の実装例について解説します。
+本ドキュメントでは、スキンの基本的な仕組みから、作成手順、ダークモード対応、そしてサンプルスキン `aqua` の実装例について解説します。
 
 ---
 
 ## 1. スキンシステムの概要
 
-KonaWiki3 のデザインは、基本となるスタイルシートが読み込まれた後、選択されたスキンのスタイルシート（`kona3.css`）が読み込まれ、上書き（オーバーライド）されることで決定します。
+KonaWiki3 のスキンは、デフォルトスキン `def` を土台にして作ります。
+`def` のスタイルシートが先に読み込まれ、その後に選択されたスキンのスタイルシート（`kona3.css`）が読み込まれて、上書き（オーバーライド）されることで見た目が決まります。
 
 ### CSS の読み込み順
 
@@ -16,11 +17,14 @@ KonaWiki3 のデザインは、基本となるスタイルシートが読み込�
 2. kona3engine/resource/grids-responsive-min.css
 3. kona3engine/resource/kona3def.css   # 全スキン共通の基本スタイル
 4. kona3engine/resource/darkmode.css   # 全スキン共通のダークモード
-5. skin/{スキン名}/kona3.css           # スキン固有のスタイル
-6. drawer.css                          # ドロワーメニュー
+5. skin/def/kona3.css                  # デフォルトスキン(全スキンの土台)
+6. skin/{スキン名}/kona3.css           # スキン固有のスタイル(def 以外のとき)
+7. drawer.css                          # ドロワーメニュー
 ```
 
-`kona3def.css` と `darkmode.css` は全スキンの土台です。特定のスキンの見た目を変えるために、これらを編集しないでください。デフォルトスキン `def` も、固有のスタイルは `skin/def/kona3.css` に書きます（デザイン方針は [default_skin.md](default_skin.md) を参照）。
+- `def` 以外のスキンでも、5 の `skin/def/kona3.css` が必ず先に読み込まれます。余白・表・コード・印刷・ダークモードの仕組みは `def` が受け持つので、各スキンは **配色の変数と、そのスキン固有の装飾だけ** を書けば済みます。
+- `kona3def.css` と `darkmode.css` も全スキンの土台です。特定のスキンの見た目を変えるために、これらを編集しないでください。
+- `def` のデザイン方針と変数の一覧は [default_skin.md](default_skin.md) を参照してください。
 
 ### スキンのディレクトリ構造
 
@@ -29,23 +33,21 @@ KonaWiki3 のデザインは、基本となるスタイルシートが読み込�
 ```text
 konawiki3/
 ├── skin/
-│   ├── def/            # デフォルトスキン
+│   ├── def/            # デフォルトスキン(全スキンの土台)
 │   ├── single/         # シングルカラムスキン
 │   ├── nako3/          # なでしこ3風スキン
-│   └── aqua/           # 新規作成するスキン（例）
+│   └── aqua/           # 水中イメージのスキン
 │       └── kona3.css   # スキンのメインスタイルシート
 ```
 
 ### アセットの優先順位
 
-CSS や JavaScript などのリソースが読み込まれる際、システムは以下の優先順位でファイルを探索します。
+`kona3.css` 以外の CSS や JavaScript などのリソースは、以下の優先順位でファイルを探索します。
 
 1. `skin/{現在設定されているスキン名}/{ファイル名}`
 2. `kona3engine/resource/{ファイル名}`（コアのデフォルトリソース）
 
-`skin/def/` へのフォールバックはありません。そのため、`skin/def/kona3.css` に書いたスタイルは、他のスキンには適用されません。
-
-新しくスキンを作成する際は、デフォルトの CSS をすべてコピーする必要はありません。基本スタイルは `kona3def.css` から読み込まれるので、**変更したい部分のみを `kona3.css` に記述する**だけで動作します。
+静的出力(`just build`)では、設定中のスキンに加えて `skin/def/` も出力されます。
 
 ---
 
@@ -58,6 +60,17 @@ CSS や JavaScript などのリソースが読み込まれる際、システム�
 
 ### ステップ 2: `kona3.css` の作成
 作成したフォルダ内に `kona3.css` ファイルを作成し、カスタムスタイルを記述します。
+まずは `def` の変数(`--k3-` で始まる CSS 変数)を上書きするところから始めるのがおすすめです。
+
+```css
+:root {
+  --k3-color-heading: #006064;
+  --k3-color-accent: #0077cc;
+  --k3-color-accent-hover: #00838f;
+}
+```
+
+これだけで、見出し・リンク・ボタン・表・コードなどの配色がまとめて切り替わります。
 
 ### ステップ 3: スキンの適用
 スキンを有効化するには、以下のいずれかの方法を行います。
@@ -76,257 +89,63 @@ CSS や JavaScript などのリソースが読み込まれる際、システム�
 
 ## 3. サンプルスキン `aqua` の実装例
 
-「水中をイメージした清涼感のある爽やかな画面デザイン」をコンセプトにしたスキン `aqua` の実装例です。
+「水中をイメージした清涼感のある爽やかな画面デザイン」をコンセプトにしたスキン `aqua` の実装例です。全体は [`skin/aqua/kona3.css`](../skin/aqua/kona3.css) を参照してください。
 
 ### デザインのポイント
-* **ライトテーマ (水面・浅瀬イメージ)**: 
+* **ライトテーマ (水面・浅瀬イメージ)**:
   * 全体の背景に淡い水色のグラデーションを使用し、水の中にいるような浮遊感を与えています。
-  * ヘッダーには美しい水色〜エメラルドグリーンのグラデーションを適用し、清涼感を強調しています。
-  * リンクや見出しに透明感のあるブルーやシアンを効果的に配置し、メリハリをつけています。
+  * ヘッダーには水色〜エメラルドグリーンのグラデーションを適用し、清涼感を強調しています。
+  * 見出しに透明感のあるブルーやシアンの帯と線を使い、メリハリをつけています。
 * **ダークテーマ (深海イメージ)**:
-  * ダークモード時は、深海を思わせる濃いネイビー（`#030a16`）を背景とし、発光する水色（`#38bdf8`）をアクセントカラーとして使用しています。
+  * 深海を思わせる濃いネイビー（`#030a16`）を背景とし、発光する水色（`#38bdf8`）をアクセントカラーとして使用しています。
 
-### `skin/aqua/kona3.css`
+### 書き方の要点
+
+**1. `def` の変数を上書きする**
 
 ```css
-/**
- * KonaWiki3 Skin: aqua
- * 水中をイメージした清涼感のある爽やかな画面デザイン
- */
-
-/* ==========================================
-   Light Theme (デフォルト / 水中・水面イメージ)
-   ========================================== */
-
-/* 全体設定 */
-body {
-  background-color: #f7fcfe;
-  color: #2c3e50;
-  background-image: radial-gradient(circle at 50% -20%, #e0f4ff 0%, transparent 50%);
-  background-attachment: fixed;
-}
-
-/* ヘッダー */
-#kona3_layout_header {
-  background: linear-gradient(135deg, #0077cc 0%, #00bcd4 100%);
-  border-bottom: 2px solid #0097a7;
-  box-shadow: 0 2px 8px rgba(0, 188, 212, 0.15);
-}
-
-#kona3_header_title a {
-  color: #ffffff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  font-weight: bold;
-}
-
-#kona3_header_title .pagename {
-  color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* リンク */
-#kona3_main a:link,
-#kona3_main a:active,
-#kona3_menubar a:link,
-#kona3_menubar a:active {
-  color: #0077cc;
-  text-decoration: none;
-  transition: all 0.25s ease;
-}
-
-#kona3_main a:visited,
-#kona3_menubar a:visited {
-  color: #005599;
-}
-
-#kona3_main a:hover {
-  color: #0099b8;
-  background-color: #e6f9ff;
-  border-radius: 3px;
-  padding: 1px 4px;
-  margin: -1px -4px;
-}
-
-#kona3_menubar a:hover {
-  color: #0099b8;
-  background-color: #e6f9ff;
-}
-
-/* 見出し */
-#kona3_main h1 {
-  background: linear-gradient(to right, #e0f7fa 0%, #e0f2fe 100%);
-  border-bottom: 2px solid #00acc1;
-  border-left: 6px solid #00838f;
-  color: #006064;
-  padding: 12px 16px;
-  border-radius: 0 8px 8px 0;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-}
-
-#kona3_main h2 {
-  border: none;
-  border-left: 5px solid #00bcd4;
-  background: linear-gradient(to right, #f1fbfd 0%, transparent 100%);
-  color: #00838f;
-  font-size: 1.3em;
-  font-weight: 700;
-  margin: 1.8em 0 1em;
-  padding: 0.6em 0.8em;
-  border-radius: 0 4px 4px 0;
-}
-
-#kona3_main h3 {
-  border: none;
-  border-bottom: 2px dashed #00e5ff;
-  color: #0097a7;
-  font-size: 1.15em;
-  font-weight: 700;
-  margin: 1.6em 0 0.8em;
-  padding: 0.4em 0 0.4em 4px;
-}
-
-#kona3_main h4,
-#kona3_main h5,
-#kona3_main h6 {
-  border-bottom: 1px solid #e0f7fa;
-  color: #00acc1;
-}
-
-/* メニューバー */
-#kona3_menubar {
-  border-left-color: #b2ebf2;
-  border-top-color: #b2ebf2;
-}
-
-#kona3_menubar h1,
-#kona3_menubar h2,
-#kona3_menubar h3 {
-  color: #00838f;
-  border-bottom: 1px solid #b2ebf2;
-  font-weight: bold;
-}
-
-/* コードブロックなど */
-pre {
-  background-color: #f0f9ff;
-  border: 1px solid #bae7ff;
-  border-radius: 6px;
-}
-
-/* 強調表示 */
-strong.strong1 {
-  background: linear-gradient(transparent 60%, rgba(0, 229, 255, 0.2) 60%);
-}
-strong.strong2 {
-  background: linear-gradient(transparent 60%, rgba(0, 188, 212, 0.3) 60%);
-}
-
-
-/* ==========================================
-   Dark Theme (深海イメージ)
-   ========================================== */
-
-body.dark-theme {
-  background-color: #030a16;
-  color: #d0e8ff;
-  background-image: radial-gradient(circle at 50% -20%, #082545 0%, transparent 60%);
-}
-
-body.dark-theme #kona3_layout_header {
-  background: linear-gradient(135deg, #011627 0%, #082545 100%);
-  border-bottom: 2px solid #0b3c5d;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-}
-
-body.dark-theme #kona3_header_title a {
-  color: #38bdf8;
-  text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
-}
-
-body.dark-theme #kona3_header_title .pagename {
-  color: #93c5fd;
-}
-
-/* ダークテーマのリンク */
-body.dark-theme #kona3_main a:link,
-body.dark-theme #kona3_main a:active,
-body.dark-theme #kona3_menubar a:link,
-body.dark-theme #kona3_menubar a:active {
-  color: #38bdf8;
-}
-
-body.dark-theme #kona3_main a:visited,
-body.dark-theme #kona3_menubar a:visited {
-  color: #0284c7;
-}
-
-body.dark-theme #kona3_main a:hover {
-  color: #7dd3fc;
-  background-color: #0c2340;
-}
-
-body.dark-theme #kona3_menubar a:hover {
-  color: #7dd3fc;
-  background-color: #0c2340;
-}
-
-/* ダークテーマの見出し */
-body.dark-theme #kona3_main h1 {
-  background: linear-gradient(to right, #082545 0%, #031022 100%);
-  border-bottom: 2px solid #00e5ff;
-  border-left: 6px solid #38bdf8;
-  color: #e0f2fe;
-}
-
-body.dark-theme #kona3_main h2 {
-  border-left: 5px solid #00bcd4;
-  background: linear-gradient(to right, #041d37 0%, transparent 100%);
-  color: #38bdf8;
-}
-
-body.dark-theme #kona3_main h3 {
-  border-bottom: 2px dashed #0c4a6e;
-  color: #0ea5e9;
-}
-
-body.dark-theme #kona3_main h4,
-body.dark-theme #kona3_main h5,
-body.dark-theme #kona3_main h6 {
-  border-bottom: 1px solid #0c4a6e;
-  color: #0ea5e9;
-}
-
-/* ダークテーマのメニューバー */
-body.dark-theme #kona3_menubar {
-  border-left-color: #0c4a6e;
-  border-top-color: #0c4a6e;
-}
-
-body.dark-theme #kona3_menubar h1,
-body.dark-theme #kona3_menubar h2,
-body.dark-theme #kona3_menubar h3 {
-  color: #38bdf8;
-  border-bottom: 1px solid #0c4a6e;
-}
-
-/* ダークテーマのコードブロックなど */
-body.dark-theme pre {
-  background-color: #031525;
-  border: 1px solid #0c3e60;
-}
-
-body.dark-theme code {
-  color: #60a5fa;
-}
-
-/* ダークテーマの強調表示 */
-body.dark-theme strong.strong1 {
-  background: linear-gradient(transparent 60%, rgba(56, 189, 248, 0.25) 60%);
-}
-body.dark-theme strong.strong2 {
-  background: linear-gradient(transparent 60%, rgba(0, 229, 255, 0.35) 60%);
+:root {
+  --k3-color-text: #2c3e50;
+  --k3-color-heading: #006064;
+  --k3-color-bg: #f7fcfe;
+  --k3-color-accent: #0077cc;
+  /* ... */
 }
 ```
+
+**2. スキン固有の装飾も変数にする**
+
+グラデーションなど、スキン固有の値もスキン名で始まる変数(`--aqua-`)にしておくと、ダークテーマでは変数の値を差し替えるだけで済みます。
+
+```css
+:root {
+  --aqua-header-bg: linear-gradient(135deg, #0077cc 0%, #00bcd4 100%);
+  --aqua-h1-bg: linear-gradient(to right, #e0f7fa 0%, #e0f2fe 100%);
+}
+
+#kona3_layout_header {
+  background: var(--aqua-header-bg);
+}
+#kona3_main h1 {
+  background: var(--aqua-h1-bg);
+  border-left: 6px solid var(--aqua-h1-bar);
+}
+```
+
+**3. ダークテーマの値は `@media screen` の中で差し替える**
+
+```css
+@media screen {
+body.dark-theme {
+  --k3-color-bg: #030a16;
+  --k3-color-accent: #38bdf8;
+  --aqua-header-bg: linear-gradient(135deg, #011627 0%, #082545 100%);
+  /* ... */
+}
+}
+```
+
+`@media screen` に入れておくと、ダークモードのままブラウザから印刷しても、ライトの配色で印刷されます。
 
 ---
 
@@ -339,16 +158,25 @@ KonaWiki3 は標準でダークモード切替機能を備えています。
 <body class="dark-theme">
 ```
 
-スキン側でダークモードに対応するには、CSS 内で以下のように `.dark-theme` クラスがある場合のスタイル定義を記述します。
+### 変数を差し替えるだけで済む部分
+
+`def` は、ダークモードで使う色をすべて変数で指定しています。そのため、上の「3. ダークテーマの値は `@media screen` の中で差し替える」のように、スキン側で `body.dark-theme` の変数を差し替えるだけで、本文・表・コード・メニュー・フッターなどがダークの配色に切り替わります。
+
+### `!important` が必要な部分
+
+`darkmode.css` には `body.dark-theme #kona3_main h2` のような詳細度の高いルールが含まれており、`def` もそれを `!important` 付きで上書きしています。そのため、スキン側で見出しの装飾(背景や罫線)などを変えた場合は、ダークモード用にも `body.dark-theme` から始まるセレクタと `!important` で指定する必要があります(`!important` が付いていないプロパティには不要です)。
 
 ```css
-/* 例: ダークモード時に背景色と文字色を切り替える */
-body.dark-theme {
-  background-color: #030a16;
-  color: #d0e8ff;
+/* ライト */
+#kona3_main h1 {
+  background: var(--aqua-h1-bg);
+}
+/* ダーク: def の body.dark-theme #kona3_main h1 { background: none !important } を上書きする */
+body.dark-theme #kona3_main h1 {
+  background: var(--aqua-h1-bg) !important;
 }
 ```
 
-このアプローチにより、一つの `kona3.css` ファイル内でライトモードとダークモードの双方に美しく対応したスキンを作成できます。
+値を変数にしておけば、ライト用とダーク用で同じ変数を参照するだけなので、配色を変えるときに直す場所は変数の定義だけで済みます。
 
-なお、`darkmode.css` には `body.dark-theme #kona3_main h2` のような詳細度の高いルールが含まれています。スキン側で `#kona3_main h2` などに色を指定しても、ダークモード時は `darkmode.css` の指定が優先されます。ダークモードの見た目を変えたい場合は、スキン側でも `body.dark-theme` から始まるセレクタで指定してください。
+この `!important` の上書きは、`darkmode.css` を変数化すれば不要にできる見込みです(#294)。

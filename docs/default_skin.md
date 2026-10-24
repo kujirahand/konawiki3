@@ -34,14 +34,16 @@ KonaWiki3 のデフォルトスキン `def` のデザイン方針をまとめた
 2. kona3engine/resource/grids-responsive-min.css
 3. kona3engine/resource/kona3def.css            # 全スキン共通の基本スタイル
 4. kona3engine/resource/darkmode.css            # 全スキン共通のダークモード
-5. skin/def/kona3.css                           # def スキン固有のスタイル ← ここに書く
-6. drawer.css                                   # ドロワーメニュー
+5. skin/def/kona3.css                           # def のスタイル ← ここに書く(全スキンの土台)
+6. skin/{スキン名}/kona3.css                    # 派生スキンのスタイル(def 以外のとき)
+7. drawer.css                                   # ドロワーメニュー
 ```
 
 ### 方針
 
 - **デザインの変更は `skin/def/kona3.css` に書きます。**
-- `kona3engine/resource/kona3def.css` は aqua・nako3・single など **全スキンの土台** です。各スキンは一部だけを上書きし、残りは `kona3def.css` に頼っています。そのため、`def` の見た目を変える目的で `kona3def.css` を編集してはいけません。全スキンに共通するバグ修正だけを `kona3def.css` で行います。
+- `skin/def/kona3.css` は、aqua・nako3・single など **派生スキンの土台** でもあります。派生スキンは `def` の変数(`--k3-*`)を上書きし、そのスキン固有の装飾だけを足しています。そのため、`def` の変更は派生スキンにも反映されます。`def` を変えたら、派生スキンの表示も確認してください。
+- `kona3engine/resource/kona3def.css` は全スキン共通の、さらに下の土台です。`def` の見た目を変える目的で `kona3def.css` を編集してはいけません。全スキンに共通するバグ修正だけを `kona3def.css` で行います。
 - `darkmode.css` には手を入れず、`def` 固有のダーク配色は `skin/def/kona3.css` の中で定義します(「5. ダークモード」を参照)。
 
 ---
@@ -67,6 +69,8 @@ KonaWiki3 のデフォルトスキン `def` のデザイン方針をまとめた
 | `--k3-color-border-strong` | h1・h2 の下線など強めの罫線 | `#cbd2d9` | `#52606d` |
 | `--k3-color-accent` | リンク・見出しのアクセント線 | `#1f5fbf` | `#7cb4ff` |
 | `--k3-color-accent-hover` | リンクのホバー | `#174a96` | `#a8ccff` |
+| `--k3-color-on-accent` | アクセント色の上に置く文字(主ボタン) | `#ffffff` | `#15191e` |
+| `--k3-color-summary` | まとめ枠(`.column.summary`)の左線 | `#10b981` | `#34d399` |
 
 - 初期値は目安です。実装時に調整してかまいませんが、本文の文字と背景のコントラスト比は **4.5:1 以上**(WCAG AA)を保ちます。
 - 色の役割を増やすときは、新しい変数を追加してから使います。
@@ -81,14 +85,16 @@ KonaWiki3 のデフォルトスキン `def` のデザイン方針をまとめた
 | `--k3-space-2` | `0.5em` | セル内の上下余白、リスト項目の間 |
 | `--k3-space-3` | `1em` | 段落の間、セル内の左右余白 |
 | `--k3-space-4` | `1.5em` | ブロック要素(表・コード・引用)の上下 |
-| `--k3-space-5` | `2em` | h3 以下の見出しの上 |
-| `--k3-space-6` | `3em` | h1・h2 の見出しの上、セクションの区切り |
+| `--k3-space-5` | `2em` | 見出しの上、水平線の上下 |
+| `--k3-space-6` | `3em` | 本文の末尾など、大きな区切り |
+
+`em` は指定した要素の文字サイズが基準になります。そのため、見出しの上に同じ `--k3-space-5` を使っても、文字の大きい h1・h2 ほど余白が広くなり、自然に階層が付きます。
 
 ### 幅
 
 | 変数 | 値 | 用途 |
 |------|----|------|
-| `--k3-width-content` | `48rem`(768px 相当) | 本文カラムの最大幅 |
+| `--k3-width-layout` | `64rem`(1024px 相当) | ヘッダー・本文・フッターの最大幅。PC 幅では本文が約 19/24、メニューが約 5/24 を使い、本文は 1 行 45 文字前後になります |
 | `--k3-radius` | `4px` | コード・ボタンの角丸(これ以上丸くしない) |
 
 ---
@@ -171,7 +177,15 @@ body.dark-theme {
 ```
 
 - 個々のセレクタに `body.dark-theme` 用のルールを書き足すのではなく、変数の再定義で対応します。こうすると、新しく追加したプロパティもダーク時に自動で追従します。
-- ただし `darkmode.css` には `body.dark-theme #kona3_main h2` のような、詳細度の高い固定色のルールがあります。これらは `skin/def/kona3.css` の `#kona3_main h2` より優先されるため、変数を切り替えるだけでは効きません。`darkmode.css` が色を指定している要素には、同じ詳細度のセレクタ(`body.dark-theme ...`)で変数を参照するルールを `skin/def/kona3.css` に書き、上書きします。
+- ただし `darkmode.css` には `body.dark-theme #kona3_main h2` のような、詳細度の高い固定色のルールがあります。これらは `skin/def/kona3.css` の `#kona3_main h2` より優先されるため、変数を切り替えるだけでは効きません。`darkmode.css` は文字色・背景色・罫線などを `!important` で固定しています。そこで、`skin/def/kona3.css` の末尾に、同じセレクタ(`body.dark-theme ...`)と `!important` で変数を参照するルールを書き、**`darkmode.css` が `!important` で固定しているプロパティだけ**を上書きします。後から読み込まれる同じ詳細度の `!important` が優先されます。`darkmode.css` 側のセレクタの詳細度が高い場合(例: `body.dark-theme input[type="submit"]:hover`)は、スキン側のセレクタの詳細度をそれ以上にします。
+
+```css
+body.dark-theme #kona3_main h2 {
+  border-left: 3px solid var(--k3-color-accent) !important;
+}
+```
+
+- この上書きに `!important` が付いていることは、テスト(`kona3engine/tests/skin_def.test.php`)で確認しています。
 
 ---
 
@@ -179,7 +193,9 @@ body.dark-theme {
 
 - ブレークポイントは既存に合わせ、`48em`(PC 幅)と `480px`(スマホ幅)を使います。
 - スマホ幅では左右の余白を `--k3-space-3` 程度に詰め、本文の幅を確保します。
-- 印刷時(`@media print`)は背景色を使わず、罫線と文字だけで構造が分かるようにします。印刷モードではダークモードが適用されません。
+- 列の多い表は、セルに最小幅(`5em`)を取り、収まらない分は表だけを横スクロールさせます。
+- 印刷時(`@media print`)は背景色を使わず、罫線と文字だけで構造が分かるようにします。横スクロールは紙では見えないため、表は全列を印刷します。
+- 印刷モード(`?print`)ではダークモードが適用されません。ダークモードのままブラウザから印刷した場合もライトの配色で出力されるよう、ダーク用の変数の再定義は `@media screen` の中に置きます。`darkmode.css` が固定色で指定していて変数では戻らないもの(強調の文字色、todo、filecode の構文の色)は、`@media print` で個別に戻します。そのため、ダークモードで印刷すると filecode の構文の色は付きません。
 
 ---
 
@@ -192,5 +208,5 @@ body.dark-theme {
 - [ ] 主なプラグインの出力(コメント、タグ、filecode、目次など)
 - [ ] 印刷プレビュー
 - [ ] 静的出力(`just build`)したページ
-- [ ] スキンを aqua・nako3・single に切り替えても見た目が変わっていないこと
+- [ ] スキンを aqua・nako3・single に切り替えても崩れないこと(ライト・ダーク)
 - [ ] `just test` が全件パスすること
