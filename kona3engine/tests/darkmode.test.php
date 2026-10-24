@@ -32,6 +32,29 @@ foreach (explode("\n", $css_nc) as $line) {
     }
 }
 
+// 1c. --k3d-* 変数の定義と参照に誤記がないこと (#294)
+//     darkmode.css で定義した変数だけが、darkmode.css と各スキンで参照・再定義されること
+preg_match_all('#(--k3d-[a-z0-9\-]+)\s*:#', $css_nc, $m);
+$k3d_defined = array_unique($m[1]);
+test_assert(__LINE__, count($k3d_defined) > 30, "darkmode.css defines many --k3d-* variables");
+preg_match_all('#var\(\s*(--k3d-[a-z0-9\-]+)#', $css_nc, $m);
+foreach (array_unique($m[1]) as $name) {
+    test_assert(__LINE__, in_array($name, $k3d_defined), "darkmode.css: used variable $name is defined");
+}
+foreach (['def', 'aqua', 'nako3', 'single'] as $skin) {
+    $skin_css = preg_replace('#/\*.*?\*/#s', '', file_get_contents(KONA3_DIR_SKIN . "/$skin/kona3.css"));
+    // スキンが再定義する --k3d-* は、darkmode.css に実在する変数であること(タイポ検出)
+    preg_match_all('#(--k3d-[a-z0-9\-]+)\s*:#', $skin_css, $m);
+    foreach (array_unique($m[1]) as $name) {
+        test_assert(__LINE__, in_array($name, $k3d_defined), "$skin: redefined variable $name exists in darkmode.css");
+    }
+    // スキンが参照する --k3d-* も、darkmode.css で定義済みであること
+    preg_match_all('#var\(\s*(--k3d-[a-z0-9\-]+)#', $skin_css, $m);
+    foreach (array_unique($m[1]) as $name) {
+        test_assert(__LINE__, in_array($name, $k3d_defined), "$skin: used variable $name is defined in darkmode.css");
+    }
+}
+
 // 2. Check if parts_header.html contains toggle button and inline JS to restore preference
 $parts_header = dirname(__DIR__) . '/template/parts_header.html';
 test_assert(__LINE__, file_exists($parts_header), "parts_header.html exists");

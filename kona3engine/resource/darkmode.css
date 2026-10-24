@@ -72,6 +72,11 @@ body.dark-theme {
   --k3d-code-bg: var(--k3-color-bg-subtle, #1a1a1a);
   --k3d-code-fg: var(--k3-color-text, #e0e0e0);
   --k3d-code-border: var(--k3-color-border, #333);
+  /* 素の code 要素は、従来スキン側の上書き対象ではなく汎用色のままだったため、
+     専用トークンで従来の値を維持する */
+  --k3d-inline-code-bg: #1a1a1a;
+  --k3d-inline-code-fg: #e0e0e0;
+  --k3d-inline-code-border: #333;
   /* comment plugin */
   --k3d-comment-title-bg: var(--k3-color-bg-subtle, #1a1a2e);
   --k3d-comment-title-fg: var(--k3-color-text, #e0e0ff);
@@ -287,11 +292,30 @@ body.dark-theme #drawer_wrapper nav.menuitems ul li a:hover {
 
 /* pre / code / syntax highlighting */
 body.dark-theme pre,
-body.dark-theme code,
 body.dark-theme .mathjax {
   background-color: var(--k3d-code-bg);
   color: var(--k3d-code-fg);
   border: 1px solid var(--k3d-code-border);
+}
+
+body.dark-theme code {
+  background-color: var(--k3d-inline-code-bg);
+  color: var(--k3d-inline-code-fg);
+  border: 1px solid var(--k3d-inline-code-border);
+}
+
+/* <pre><code> の内側の code には、インラインコード用の背景・枠線を付けない */
+body.dark-theme pre code {
+  background: none;
+  border: none;
+  color: var(--k3d-code-fg);
+}
+
+/* インラインコードの外側(span.code)は code 要素ではないため、
+   kona3def.css の .code の文字色(黒)が残らないよう、ここで文字色を指定する */
+body.dark-theme span.code,
+body.dark-theme span.code code {
+  color: var(--k3d-code-fg);
 }
 
 /* filecode plugin */

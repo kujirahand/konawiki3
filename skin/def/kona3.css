@@ -574,10 +574,20 @@ body #ai_output_area {
    Dark mode
    darkmode.css は変数(--k3d-*)で配色を切り替えるため(#294)、
    def のダーク配色は冒頭の変数ブロックの再定義だけで完結する。
-   ここに残すのは、darkmode.css の汎用リンク色より詳細度で勝てない
-   見出しアンカー(*)だけ。!important は不要で、詳細度で上書きする。
+   ここに残すのは、darkmode.css の汎用ルールより詳細度で勝てない
+   要素だけ。!important は不要で、詳細度で上書きする。
    ========================================== */
+/* 見出しアンカー(*): 汎用リンク色(body.dark-theme #kona3_main a:link)より詳細度を上げる */
 body.dark-theme #kona3_main a.anchor_super:link,
 body.dark-theme #kona3_main a.anchor_super:visited {
   color: var(--k3-color-border-strong);
+}
+/* 主ボタン: #kona3_main の外(ログイン画面など)では、darkmode.css の
+   汎用フォーム規則(body.dark-theme input[type="submit"] など)より詳細度を上げる */
+body.dark-theme .pure-button.pure-button-primary,
+body.dark-theme .pure-button.pure-button-primary:hover,
+body.dark-theme #kona3_main .pure-button.pure-button-primary {
+  background-color: var(--k3-color-accent);
+  border: 1px solid var(--k3-color-accent);
+  color: var(--k3-color-on-accent);
 }
