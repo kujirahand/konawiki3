@@ -10,6 +10,7 @@
     class="pure-form pure-form-stacked" 
     method="post" action="{{$action}}">
     <input type="hidden" name="a_mode" value="verify_code">
+    <input type="hidden" name="signup_token" value="{{$signup_token}}">
     <input type="hidden" name="a_email" value="{{$email}}">
     <!-- verification code -->
     <label for="code">{{'Verification code' | lang}}:</label>
@@ -21,12 +22,15 @@
     <input class="pure-button pure-button-primary"
       type="submit" value="{{'Verify' | lang}}">
     </form></div>
-  <!-- resend verification code link -->
+  <!-- resend verification code (POST form, not a GET link: #325) -->
   <div style="margin-top: 20px; text-align: center;">
-    <a href="{{$action}}&a_mode=resend&a_email={{$email | url_encode}}" 
-       class="pure-button">
-      {{'Resend verification code' | lang}}
-    </a>
+    <form method="post" action="{{$action}}">
+      <input type="hidden" name="a_mode" value="resend">
+      <input type="hidden" name="signup_token" value="{{$signup_token}}">
+      <input type="hidden" name="a_email" value="{{$email}}">
+      <input class="pure-button" type="submit"
+        value="{{'Resend verification code' | lang}}">
+    </form>
   </div>
 </div>
 <br>

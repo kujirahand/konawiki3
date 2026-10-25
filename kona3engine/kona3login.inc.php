@@ -374,6 +374,7 @@ if (!defined('KONA3_LOGIN_REASON_OK')) {
   define('KONA3_LOGIN_REASON_INVALID', 'invalid_credentials');
   define('KONA3_LOGIN_REASON_DISABLED', 'user_disabled');
   define('KONA3_LOGIN_REASON_SYSTEM', 'system_error');
+  define('KONA3_LOGIN_REASON_THROTTLED', 'throttled');
 }
 
 // 理由コードからログインフォームに表示する文言 (langキー) を引く
@@ -383,8 +384,93 @@ function kona3loginReasonLangKey($reason) {
     KONA3_LOGIN_REASON_INVALID => 'Invalid User or Password.',
     KONA3_LOGIN_REASON_DISABLED => 'This account is disabled.',
     KONA3_LOGIN_REASON_SYSTEM => 'Login is unavailable due to a system error.',
+    KONA3_LOGIN_REASON_THROTTLED => 'Too many login attempts.',
   ];
   return isset($map[$reason]) ? $map[$reason] : 'Invalid User or Password.';
+}
+
+// --- ログイン試行回数制限 (スロットリング, #325) ---
+// 2024年に導入した IP 単位の制限は、#132 のログイン画面の書き換えで
+// チェックと失敗記録だけが落ち、成功時の掃除だけが残っていた。
+// ここで共通関数として復活させる。失敗は meta テーブルに
+// name='login_error' / value_s="{IP}|{ユーザー識別子のハッシュ}" /
+// value_i=時刻 の行として記録する (旧形式の value_s="{IP}" の行も数える)。
+if (!defined('KONA3_LOGIN_THROTTLE_WINDOW')) {
+  // 失敗を数える期間 (秒)
+  define('KONA3_LOGIN_THROTTLE_WINDOW', 60 * 10);
+  // 同じ IP+ユーザー の失敗上限 (これ以上は期間内ログインを拒否)
+  define('KONA3_LOGIN_THROTTLE_MAX_PER_USER', 5);
+  // 同じ IP 全体の失敗上限 (多数アカウントへの総当たりを防ぐ)
+  define('KONA3_LOGIN_THROTTLE_MAX_PER_IP', 20);
+}
+
+// スロットリング用のキー (IP と正規化したユーザー名のハッシュ)
+function kona3loginThrottleKey($ip, $user) {
+  $u = is_string($user) ? strtolower(trim($user)) : '';
+  return (string)$ip . '|' . hash('sha256', $u);
+}
+
+function kona3loginThrottleClientIp() {
+  return isset($_SERVER['REMOTE_ADDR']) && is_string($_SERVER['REMOTE_ADDR'])
+    ? $_SERVER['REMOTE_ADDR'] : '';
+}
+
+// 期間内の失敗回数を数える。$user が null のときは IP 全体を数える
+function kona3loginThrottleFailureCount($ip, $user = null, $now = null) {
+  if ($now === null) $now = time();
+  $since = $now - KONA3_LOGIN_THROTTLE_WINDOW;
+  $rows = db_get(
+    "SELECT value_s, value_i FROM meta WHERE name='login_error' AND value_i > ?",
+    [$since]);
+  $key = ($user === null) ? null : kona3loginThrottleKey($ip, $user);
+  $cnt = 0;
+  foreach ($rows as $r) {
+    $vs = isset($r['value_s']) ? (string)$r['value_s'] : '';
+    if ($user === null) {
+      // IP全体: "{IP}" (旧形式) と "{IP}|..." の両方を数える
+      if ($vs === (string)$ip || strpos($vs, (string)$ip . '|') === 0) $cnt++;
+    } else {
+      if ($vs === $key) $cnt++;
+    }
+  }
+  return $cnt;
+}
+
+// これ以上ログインを試させてよいかどうか
+function kona3loginThrottleIsBlocked($ip, $user, $now = null) {
+  if ($now === null) $now = time();
+  if (kona3loginThrottleFailureCount($ip, $user, $now) >= KONA3_LOGIN_THROTTLE_MAX_PER_USER) {
+    return TRUE;
+  }
+  if (kona3loginThrottleFailureCount($ip, null, $now) >= KONA3_LOGIN_THROTTLE_MAX_PER_IP) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+// ログイン失敗を記録する (古い記録は掃除する)
+function kona3loginThrottleRecordFailure($ip, $user, $now = null) {
+  if ($now === null) $now = time();
+  db_exec(
+    "INSERT INTO meta (name, value_s, value_i) VALUES ('login_error', ?, ?)",
+    [kona3loginThrottleKey($ip, $user), $now]);
+  db_exec(
+    "DELETE FROM meta WHERE name='login_error' AND value_i <= ?",
+    [$now - KONA3_LOGIN_THROTTLE_WINDOW]);
+}
+
+// ログイン成功時に、その IP+ユーザー の失敗記録を消す
+function kona3loginThrottleClear($ip, $user) {
+  db_exec(
+    "DELETE FROM meta WHERE name='login_error' AND value_s=?",
+    [kona3loginThrottleKey($ip, $user)]);
+  // 旧形式 (value_s が IP そのもの) の記録も消す
+  db_exec(
+    "DELETE FROM meta WHERE name='login_error' AND value_s=?",
+    [(string)$ip]);
+  db_exec(
+    "DELETE FROM meta WHERE name='login_error' AND value_i <= ?",
+    [time() - KONA3_LOGIN_THROTTLE_WINDOW]);
 }
 
 // --- ログイン認証処理（管理者・一般ユーザー両対応） ---
@@ -440,9 +526,33 @@ function kona3sanitizeForLog($text, $maxLen = 100) {
   return $text;
 }
 
-// 理由付きのログイン認証 (#132)
+// 理由付きのログイン認証 (#132) + 試行回数制限 (#325)
+// スロットリング中はパスワードを照合せずに拒否する。
+// 照合に失敗 (invalid_credentials) したときだけ失敗を記録し、
+// 成功したらその IP+ユーザー の失敗記録を消す。
+// 空入力・無効化アカウント (パスワード自体は正しい)・システムエラーは
+// 総当たりではないので記録しない。
 // 戻り値: ['ok' => bool, 'reason' => KONA3_LOGIN_REASON_* のいずれか]
 function kona3tryLoginResult($user, $pw) {
+  $ip = kona3loginThrottleClientIp();
+  if (is_string($user) && trim($user) !== '' && is_string($pw) && $pw !== '') {
+    if (kona3loginThrottleIsBlocked($ip, $user)) {
+      return ['ok' => FALSE, 'reason' => KONA3_LOGIN_REASON_THROTTLED];
+    }
+  }
+  $res = kona3_tryLoginResultRaw($user, $pw);
+  if ($res['ok']) {
+    if (is_string($user)) kona3loginThrottleClear($ip, $user);
+  } else if ($res['reason'] === KONA3_LOGIN_REASON_INVALID
+      && is_string($user) && trim($user) !== ''
+      && is_string($pw) && $pw !== '') {
+    kona3loginThrottleRecordFailure($ip, $user);
+  }
+  return $res;
+}
+
+// スロットリングなしの理由付きログイン認証 (本体)
+function kona3_tryLoginResultRaw($user, $pw) {
   global $kona3conf;
   if (!is_string($user) || !is_string($pw)) {
     return ['ok' => FALSE, 'reason' => KONA3_LOGIN_REASON_INVALID];

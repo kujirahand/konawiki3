@@ -92,8 +92,13 @@ function login_handle_success($page, $user, $ip, $remember = FALSE) {
         "<input type='submit' class='pure-button pure-button-primary' value='$m_success'>",
         "</form>",
     ]);
-    db_exec("DELETE FROM meta WHERE name='login_error' AND value_s=?", [$ip]);
-    $old_time = time() - 60 * 1;
-    db_exec("DELETE FROM meta WHERE name='login_error' AND value_i < ?", [$old_time]);
+    // ログイン成功: この IP+ユーザー の失敗記録を消す (#325)
+    // (以前は成功のたびに1分以上前の失敗記録を全体から消していたため、
+    //  スロットリングの期間が実質1分になっていた)
+    if (function_exists('kona3loginThrottleClear')) {
+        kona3loginThrottleClear($ip, $user);
+    } else {
+        db_exec("DELETE FROM meta WHERE name='login_error' AND value_s=?", [$ip]);
+    }
     kona3showMessage($page, $msg);
 }

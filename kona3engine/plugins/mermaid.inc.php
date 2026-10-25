@@ -58,6 +58,37 @@ function kona3plugins_mermaid_get_data_url($full_path)
     return "index.php?" . urlencode($url) . "&data";
 }
 
+// 検査用に属性値などを正規化する (#325)
+// ブラウザはURL中のタブ/改行などの制御文字を取り除き、HTML実体参照を
+// 解釈してからスキームを判定するため、検査側も同じ正規化をしないと
+// "java<TAB>script:" や "&#106;avascript:" のような分割表記が素通りする。
+function kona3plugins_mermaid_normalize_for_check($value)
+{
+    $v = (string)$value;
+    // 実体参照を繰り返しデコードする (二重エンコード対策は1段で十分だが念のため最大3回)
+    for ($i = 0; $i < 3; $i++) {
+        $decoded = html_entity_decode($v, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        if ($decoded === $v) break;
+        $v = $decoded;
+    }
+    // 制御文字と空白を取り除き、小文字化する
+    $v = preg_replace('/[\x00-\x20\x7F]/', '', $v);
+    return strtolower($v === null ? '' : $v);
+}
+
+// href系の属性値として安全かどうか
+// - フラグメント (#...) は許可
+// - <a> のリンクだけ http/https/mailto を許可
+// - それ以外 (javascript: / vbscript: / data: など) は拒否
+function kona3plugins_mermaid_href_is_safe($value, $is_anchor)
+{
+    $n = kona3plugins_mermaid_normalize_for_check($value);
+    if ($n === '') return true;
+    if ($n[0] === '#') return true;
+    if ($is_anchor && preg_match('/^(https?|mailto):/', $n)) return true;
+    return false;
+}
+
 function kona3plugins_mermaid_validate_svg($svg)
 {
     $svg = trim($svg);
@@ -68,6 +99,7 @@ function kona3plugins_mermaid_validate_svg($svg)
     if (!preg_match('/^<svg[\s>]/i', $svg_without_xml)) {
         return false;
     }
+    // --- 従来のブラックリスト (後方互換の第一防衛線) ---
     $danger_patterns = [
         '/<script\b/i',
         '/<foreignObject\b/i',
@@ -77,6 +109,99 @@ function kona3plugins_mermaid_validate_svg($svg)
     foreach ($danger_patterns as $pattern) {
         if (preg_match($pattern, $svg)) {
             return false;
+        }
+    }
+    // --- 構造的な検証 (#325) ---
+    // ブラックリストだけでは、data: URIで入れ子にしたSVG画像 (<image>) や
+    // タブで分割した javascript: href が素通りした。XMLとして走査し、
+    // 要素・属性ごとに検証する。
+    if (!class_exists('DOMDocument')) {
+        return false;
+    }
+    $prev = libxml_use_internal_errors(true);
+    $dom = new DOMDocument();
+    $loaded = $dom->loadXML($svg, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING);
+    libxml_clear_errors();
+    libxml_use_internal_errors($prev);
+    if (!$loaded || $dom->documentElement === null) {
+        return false;
+    }
+    if (strtolower($dom->documentElement->localName) !== 'svg') {
+        return false;
+    }
+    // 許可しない要素: スクリプト実行・外部埋め込み・入れ子画像など。
+    // 特に <image> は data:image/svg+xml の入れ子でスクリプトを持ち込める。
+    $blocked_elements = [
+        'script', 'foreignobject', 'image', 'iframe', 'frame', 'frameset',
+        'object', 'embed', 'form', 'input', 'button', 'select', 'textarea',
+        'video', 'audio', 'source', 'track', 'link', 'meta', 'base',
+        'animate', 'animatetransform', 'animatemotion', 'set',
+    ];
+    $all = $dom->getElementsByTagName('*');
+    foreach ($all as $el) {
+        $tag = strtolower($el->localName);
+        if (in_array($tag, $blocked_elements, true)) {
+            return false;
+        }
+        // <style> の中身: 外部参照や危険なスキームを許可しない
+        // (mermaid が使う url(#id) のフラグメント参照だけは許可する)
+        if ($tag === 'style') {
+            $css = kona3plugins_mermaid_normalize_for_check($el->textContent);
+            if (strpos($css, 'javascript:') !== false
+                || strpos($css, 'vbscript:') !== false
+                || strpos($css, 'data:') !== false
+                || strpos($css, 'expression(') !== false
+                || strpos($css, '-moz-binding') !== false
+                || strpos($css, '@import') !== false) {
+                return false;
+            }
+            if (preg_match_all('/url\(([^)]*)\)/', $css, $mm)) {
+                foreach ($mm[1] as $u) {
+                    $u = trim($u, "\"'");
+                    if ($u === '' || $u[0] !== '#') return false;
+                }
+            }
+        }
+        if (!$el->hasAttributes()) continue;
+        for ($ai = 0; $ai < $el->attributes->length; $ai++) {
+            $attr = $el->attributes->item($ai);
+            $aname = strtolower($attr->localName);
+            $avalue = $attr->value;
+            // イベントハンドラ属性は名前の分割 (on&#x09;load等) も含めて拒否
+            $aname_norm = kona3plugins_mermaid_normalize_for_check($aname);
+            if (strpos($aname_norm, 'on') === 0) {
+                return false;
+            }
+            // href / xlink:href の検証
+            if ($aname_norm === 'href') {
+                if (!kona3plugins_mermaid_href_is_safe($avalue, $tag === 'a')) {
+                    return false;
+                }
+                continue;
+            }
+            // style 属性も <style> と同じ検証をする
+            if ($aname_norm === 'style') {
+                $css = kona3plugins_mermaid_normalize_for_check($avalue);
+                if (strpos($css, 'javascript:') !== false
+                    || strpos($css, 'vbscript:') !== false
+                    || strpos($css, 'data:') !== false
+                    || strpos($css, 'expression(') !== false) {
+                    return false;
+                }
+                if (preg_match_all('/url\(([^)]*)\)/', $css, $mm)) {
+                    foreach ($mm[1] as $u) {
+                        $u = trim($u, "\"'");
+                        if ($u === '' || $u[0] !== '#') return false;
+                    }
+                }
+                continue;
+            }
+            // その他の属性値に危険なスキームが正規化後に現れたら拒否
+            $nval = kona3plugins_mermaid_normalize_for_check($avalue);
+            if (strpos($nval, 'javascript:') !== false
+                || strpos($nval, 'vbscript:') !== false) {
+                return false;
+            }
         }
     }
     return true;

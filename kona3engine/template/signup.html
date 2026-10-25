@@ -8,6 +8,7 @@
     class="pure-form pure-form-stacked" 
     method="post" action="{{$action}}">
     <input type="hidden" name="a_mode" value="try">
+    <input type="hidden" name="signup_token" value="{{$signup_token}}">
     <!-- user -->
     <label for="user">{{'User' | lang}}:</label>
     <input id="user" type="text" name="a_user" 
