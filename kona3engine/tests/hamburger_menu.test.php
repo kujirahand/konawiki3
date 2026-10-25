@@ -135,3 +135,9 @@ test_assert(__LINE__, strpos($css_content, '.kona3-default-mark') !== false, "dr
 test_assert(__LINE__, strpos($css_content, '--kd-accent') !== false, "drawer.css defines dialog color variables");
 
 echo "hamburger_menu.test.php: ALL OK\n";
+
+// menu closes when a settings dialog opens, and 'Close' exists in en
+$js = file_get_contents(dirname(__DIR__) . '/resource/drawer.js');
+test_eq(__LINE__, strpos($js, 'closeMenu(); }') !== FALSE, TRUE, 'drawer.js closes menu before opening dialog');
+$en = file_get_contents(dirname(__DIR__) . '/lang/en.inc.php');
+test_eq(__LINE__, strpos($en, "'Close' => 'Close'") !== FALSE, TRUE, "en has 'Close'");

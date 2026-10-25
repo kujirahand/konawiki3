@@ -74,6 +74,7 @@ $lang_data = [
     'Font Size' => 'Font Size',
     'Line Height' => 'Line Height',
     'Cache Settings' => '⚙ Cache Settings',
+    'Close' => 'Close',
     'Default' => 'Default',
     'Text Preview Sample' => 'This is a preview sample. You can check how the font size and line height change here. Adjust them so the text is easy for you to read.',
     'Access Log' => 'Access Log',

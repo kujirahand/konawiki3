@@ -319,6 +319,8 @@ qq(function(){
     if (!opener || !dlg) return;
     opener.addEventListener('click', function(e) {
       if (e) { e.preventDefault(); }
+      // ダイアログの背面にメニューが残らないよう、先にメニューを閉じる
+      if (btn.hasClass("open")) { closeMenu(); }
       openSettingsDialog(dlg);
     });
     const closer = document.getElementById(closeId);
