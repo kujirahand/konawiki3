@@ -8,3 +8,6 @@ test_eq(__LINE__, file_exists($htaccess), true, "docs/.htaccess が存在する"
 $body = file_exists($htaccess) ? file_get_contents($htaccess) : '';
 test_eq(__LINE__, strpos($body, 'Require all denied') !== false, true, "Apache 2.4 で全拒否");
 test_eq(__LINE__, strpos($body, 'Deny from all') !== false, true, "Apache 2.2 で全拒否");
+
+// .htaccess が効かない環境向けに、ディレクトリ一覧を防ぐダミーの index.html を置く
+test_eq(__LINE__, file_exists("$root/docs/index.html"), true, "docs/index.html が存在する");
