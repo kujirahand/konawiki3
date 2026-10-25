@@ -40,6 +40,8 @@ function kona3index_main()
     $session_name = isset($kona3conf['session_name']) ? $kona3conf['session_name'] : 'kona3session';
     session_start(['name' => $session_name]);
 
+    // セッションに保存した古い権限を使う前に、現在のアカウント状態を反映する。
+    kona3login_refreshSession();
     kona3remember_tryAutoLogin();
 
 

@@ -69,7 +69,9 @@ db_exec(
 );
 $saved_host325 = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : null;
 $saved_static325 = isset($kona3conf['static_mode']) ? $kona3conf['static_mode'] : null;
-$_SERVER['HTTP_HOST'] = 'localhost'; // メール送信ではなくデバッグ表示にする
+$_SERVER['HTTP_HOST'] = 'localhost';
+$saved_admin_email325 = $kona3conf['admin_email'];
+$kona3conf['admin_email'] = 'admin@example.com'; // メール送信を行わないテスト設定
 $kona3conf['static_mode'] = TRUE; // kona3showMessage を例外で止める
 $sg_msg2 = '';
 try {
@@ -78,11 +80,12 @@ try {
     // 成功時のメッセージ表示 (static_mode では例外) はここでは無視する
 }
 if ($saved_host325 === null) { unset($_SERVER['HTTP_HOST']); } else { $_SERVER['HTTP_HOST'] = $saved_host325; }
+$kona3conf['admin_email'] = $saved_admin_email325;
 if ($saved_static325 === null) { unset($kona3conf['static_mode']); } else { $kona3conf['static_mode'] = $saved_static325; }
 $renewed_row = db_get1("SELECT * FROM users WHERE email=?", [$expired_email]);
 test_assert(__LINE__, $renewed_row !== FALSE && $renewed_row !== null, 'signup: 期限切れ後は再登録の行が作られる');
 test_eq(__LINE__, $renewed_row['name'], 'renewed-user', 'signup: 期限切れ後は新しい申込者で登録できる');
-test_eq(__LINE__, $renewed_row['password'], kona3getHash('renewed-pw-325'), 'signup: 期限切れ後は新しいパスワードで登録できる');
+test_assert(__LINE__, kona3_verify_user_password('renewed-pw-325', $renewed_row['password']), 'signup: 期限切れ後は新しいパスワードで登録できる');
 test_assert(__LINE__, $renewed_row['token'] !== '999999' && $renewed_row['token'] !== '', 'signup: 期限切れ後の再登録では新しいコードが発行される');
 test_eq(__LINE__, intval($renewed_row['enabled']), 0, 'signup: 再登録も未認証から始まる');
 db_exec("DELETE FROM users WHERE email=?", [$expired_email]);
