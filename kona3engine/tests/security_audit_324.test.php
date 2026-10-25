@@ -176,3 +176,14 @@ $src_lib = file_get_contents(dirname(__DIR__) . '/kona3lib.inc.php');
 $pos_notice = strpos($src_lib, 'function kona3_getVersionupNotice');
 $notice_seg = substr($src_lib, $pos_notice, 300);
 test_assert(__LINE__, strpos($notice_seg, 'kona3isAdmin()') !== FALSE, 'versionup案内: 管理者にだけ表示する');
+
+// --- data: 画像以外のファイルは拡張子から固定のMIMEで配信する ---
+// (中身にHTML/SVGを書いた .csv / .xml を text/html などで返さない)
+require_once $action_dir . '/data.inc.php';
+test_eq(__LINE__, kona3_action_data_getContentType('csv'), 'text/csv; charset=utf-8', 'data: csvはtext/csv');
+test_eq(__LINE__, kona3_action_data_getContentType('xml'), 'text/plain; charset=utf-8', 'data: xmlはtext/plain (SVGとして描画させない)');
+test_eq(__LINE__, kona3_action_data_getContentType('drawio'), 'text/plain; charset=utf-8', 'data: drawioはtext/plain');
+test_eq(__LINE__, kona3_action_data_getContentType('pdf'), 'application/pdf', 'data: pdfはapplication/pdf');
+test_eq(__LINE__, kona3_action_data_getContentType('html'), 'application/octet-stream', 'data: 未知の拡張子はoctet-stream');
+test_eq(__LINE__, kona3_action_data_getContentType('svg'), 'application/octet-stream', 'data: 画像分岐以外のsvgはoctet-stream');
+test_assert(__LINE__, strpos($src_data, 'mime_content_type') === FALSE, 'data: 中身からMIMEを判定しない');
