@@ -442,7 +442,11 @@ function kona3loginThrottleIsBlocked($ip, $user, $now = null) {
   if (kona3loginThrottleFailureCount($ip, $user, $now) >= KONA3_LOGIN_THROTTLE_MAX_PER_USER) {
     return TRUE;
   }
-  if (kona3loginThrottleFailureCount($ip, null, $now) >= KONA3_LOGIN_THROTTLE_MAX_PER_IP) {
+  // IP全体の上限は、実IPがある場合にだけ適用する (agyレビュー対応)。
+  // REMOTE_ADDR が無い環境 (CLI等) では空文字列に全アカウントの失敗が
+  // 集約されてしまうため、IP単位の集計は行わない (アカウント単位は効く)。
+  if ((string)$ip !== ''
+      && kona3loginThrottleFailureCount($ip, null, $now) >= KONA3_LOGIN_THROTTLE_MAX_PER_IP) {
     return TRUE;
   }
   return FALSE;

@@ -271,9 +271,19 @@ function signup_execute($user, $email, $pw, &$msg) {
   $existing = db_get1(
     "SELECT * FROM users WHERE email=? AND enabled=0", [$email]);
   if ($existing != null) {
-    $msg = lang('This email is already awaiting verification. '.
-      'Please enter the verification code or resend it.');
-    return FALSE;
+    if (!signup_code_is_expired($existing)) {
+      $msg = lang('This email is already awaiting verification. '.
+        'Please enter the verification code or resend it.');
+      return FALSE;
+    }
+    // 認証コードの有効期限が切れた未認証行は、登録をやり直せるよう
+    // 削除してから新規登録を受け付ける (agyレビュー対応)。
+    // 期限内の行を守ることで乗っ取りは防ぎつつ、期限切れの行が残って
+    // そのメールアドレスで二度と登録できなくなる事態を避ける。
+    // なお期限切れのコードはどのみち使えず、新規登録は通常の仮登録と
+    // 同じ手続き (メール所持確認) を踏むため、安全性は変わらない。
+    db_exec("DELETE FROM users WHERE email=? AND enabled=0", [$email]);
+    signup_clear_verify_failures($email);
   }
 
   // 6桁の数字コードを生成

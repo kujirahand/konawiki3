@@ -59,6 +59,34 @@ test_eq(__LINE__, $pending_row['password'], $orig_hash, 'signup: 未認証行の
 test_eq(__LINE__, $pending_row['token'], '123456', 'signup: 未認証行の認証コードは上書きされない');
 db_exec("DELETE FROM users WHERE email=?", [$pending_email]);
 
+// --- 期限切れの未認証行は削除され、登録をやり直せる (agyレビュー対応) ---
+$expired_email = 'expired325@example.com';
+db_exec("DELETE FROM users WHERE email=?", [$expired_email]);
+$expired_mtime = $now325 - SIGNUP_CODE_TTL - 100;
+db_exec(
+    "INSERT INTO users (name, email, password, token, perm, enabled, ctime, mtime) VALUES (?,?,?,?,?,?,?,?)",
+    ['expired-user', $expired_email, kona3getHash('expired-pw-325'), '999999', 'normal', 0, $expired_mtime, $expired_mtime]
+);
+$saved_host325 = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : null;
+$saved_static325 = isset($kona3conf['static_mode']) ? $kona3conf['static_mode'] : null;
+$_SERVER['HTTP_HOST'] = 'localhost'; // メール送信ではなくデバッグ表示にする
+$kona3conf['static_mode'] = TRUE; // kona3showMessage を例外で止める
+$sg_msg2 = '';
+try {
+    signup_execute('renewed-user', $expired_email, 'renewed-pw-325', $sg_msg2);
+} catch (Throwable $e) {
+    // 成功時のメッセージ表示 (static_mode では例外) はここでは無視する
+}
+if ($saved_host325 === null) { unset($_SERVER['HTTP_HOST']); } else { $_SERVER['HTTP_HOST'] = $saved_host325; }
+if ($saved_static325 === null) { unset($kona3conf['static_mode']); } else { $kona3conf['static_mode'] = $saved_static325; }
+$renewed_row = db_get1("SELECT * FROM users WHERE email=?", [$expired_email]);
+test_assert(__LINE__, $renewed_row !== FALSE && $renewed_row !== null, 'signup: 期限切れ後は再登録の行が作られる');
+test_eq(__LINE__, $renewed_row['name'], 'renewed-user', 'signup: 期限切れ後は新しい申込者で登録できる');
+test_eq(__LINE__, $renewed_row['password'], kona3getHash('renewed-pw-325'), 'signup: 期限切れ後は新しいパスワードで登録できる');
+test_assert(__LINE__, $renewed_row['token'] !== '999999' && $renewed_row['token'] !== '', 'signup: 期限切れ後の再登録では新しいコードが発行される');
+test_eq(__LINE__, intval($renewed_row['enabled']), 0, 'signup: 再登録も未認証から始まる');
+db_exec("DELETE FROM users WHERE email=?", [$expired_email]);
+
 // --- ソース確認: CSRF と各制限が結線されていること ---
 $src_signup = file_get_contents(dirname(__DIR__) . '/action/signup.inc.php');
 test_assert(__LINE__, strpos($src_signup, "kona3_checkEditToken(SIGNUP_CSRF_KEY)") !== FALSE, 'signup: 状態変更にCSRFトークンを要求する');
@@ -108,6 +136,15 @@ for ($i = 0; $i < KONA3_LOGIN_THROTTLE_MAX_PER_IP; $i++) {
 }
 test_assert(__LINE__, kona3loginThrottleIsBlocked($ip2, 'never-tried@example.com', $now325), 'login throttle: IP全体の上限でもブロックする');
 test_assert(__LINE__, !kona3loginThrottleIsBlocked('192.0.2.1', 'never-tried@example.com', $now325), 'login throttle: 関係ないIPはブロックしない');
+// 空IP (CLI等) ではIP全体の集計をせず、アカウント単位だけが効く (agyレビュー対応)
+for ($i = 0; $i < KONA3_LOGIN_THROTTLE_MAX_PER_IP; $i++) {
+    kona3loginThrottleRecordFailure('', "cli-other{$i}@example.com", $now325);
+}
+test_assert(__LINE__, !kona3loginThrottleIsBlocked('', 'cli-new@example.com', $now325), 'login throttle: 空IPではIP全体上限を適用しない');
+for ($i = 0; $i < KONA3_LOGIN_THROTTLE_MAX_PER_USER; $i++) {
+    kona3loginThrottleRecordFailure('', 'cli-same@example.com', $now325);
+}
+test_assert(__LINE__, kona3loginThrottleIsBlocked('', 'cli-same@example.com', $now325), 'login throttle: 空IPでもアカウント単位の上限は効く');
 db_exec("DELETE FROM meta WHERE name='login_error'");
 db_exec("DELETE FROM users WHERE email=?", [$th_email]);
 if ($saved_remote === null) { unset($_SERVER['REMOTE_ADDR']); } else { $_SERVER['REMOTE_ADDR'] = $saved_remote; }
