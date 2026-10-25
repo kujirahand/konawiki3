@@ -121,7 +121,7 @@
 
     border: 1px solid var(--kd-border);
     border-radius: 12px;
-    padding: 16px 20px 20px;
+    padding: 20px 24px 24px;
     width: 360px;
     max-width: calc(100vw - 32px);
     box-sizing: border-box;
@@ -129,11 +129,53 @@
     color: var(--kd-fg);
     box-shadow: 0 8px 32px rgba(0,0,0,0.35);
 }
+.kona3-settings-dialog {
+    position: relative;
+}
+/* 右上の丸い閉じるボタン */
+.kona3-settings-dialog .kona3-dialog-x {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    min-width: 0;
+    min-height: 0; /* 汎用 button の min-height を打ち消して正円にする */
+    box-sizing: border-box;
+    aspect-ratio: 1 / 1;
+    flex: none;
+    border: 1px solid var(--kd-border);
+    border-radius: 50%;
+    background: var(--kd-btn-bg);
+    color: var(--kd-fg);
+    line-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: background 0.15s, transform 0.15s;
+}
+.kona3-settings-dialog .kona3-dialog-x:hover {
+    background: var(--kd-btn-hover);
+    transform: rotate(90deg);
+}
+.kona3-settings-dialog .kona3-dialog-x:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--kd-ring);
+}
+.kona3-settings-dialog .kona3-dialog-x svg {
+    display: block;
+    width: 16px;
+    height: 16px;
+}
 .kona3-settings-dialog::backdrop {
     background: rgba(0,0,0,0.5);
 }
 .kona3-settings-dialog h3 {
-    margin: 0 0 12px;
+    margin: 4px 0 20px;
+    padding-right: 40px; /* 右上の×ボタンと重ならないように */
     font-size: 16px;
 }
 .kona3-settings-dialog .kona3-dialog-row {
@@ -365,6 +407,35 @@
 @media (prefers-reduced-motion: reduce) {
     .kona3-range::-webkit-slider-thumb { transition: none; }
     .kona3-range::-moz-range-thumb { transition: none; }
+}
+
+/* ページ一覧 (ページ表示とダイアログで共用) */
+.kona3-pagelist-tools { margin: 0.5em 0; display: flex; flex-wrap: wrap; gap: 0.5em; align-items: center; }
+.kona3-pagelist-tools input[type="text"] { flex: 1 1 12em; padding: 0.4em; }
+.kona3-pagetree ul { list-style: none; margin: 0; padding-left: 1.4em; }
+.kona3-pagetree > ul { padding-left: 0.2em; }
+.kona3-pagetree li { margin: 0.15em 0; }
+.kona3-pagetree summary { cursor: pointer; padding: 0.2em 0.1em; }
+.kona3-pagetree .pt-page { padding: 0.2em 0.1em 0.2em 1.1em; }
+.kona3-pagetree a { text-decoration: none; }
+.kona3-pagetree a:hover { text-decoration: underline; }
+.kona3-pagetree a.pt-open { font-size: 0.85em; margin-left: 0.3em; }
+
+.kona3-pagelist-dialog {
+    width: 560px;
+    max-height: 80vh;
+    display: none;
+    flex-direction: column;
+}
+.kona3-pagelist-dialog[open] {
+    display: flex;
+}
+.kona3-pagelist-dialog .kona3-pagelist-body {
+    overflow: auto;
+    min-height: 0;
+}
+.kona3-pagelist-dialog .pagelist_loading {
+    color: var(--kd-muted);
 }
 
 @media print {

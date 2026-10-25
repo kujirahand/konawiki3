@@ -141,3 +141,26 @@ $js = file_get_contents(dirname(__DIR__) . '/resource/drawer.js');
 test_eq(__LINE__, strpos($js, 'closeMenu(); }') !== FALSE, TRUE, 'drawer.js closes menu before opening dialog');
 $en = file_get_contents(dirname(__DIR__) . '/lang/en.inc.php');
 test_eq(__LINE__, strpos($en, "'Close' => 'Close'") !== FALSE, TRUE, "en has 'Close'");
+
+// circular X close button in settings dialogs
+$hdr = file_get_contents(dirname(__DIR__) . '/template/parts_header.html');
+test_eq(__LINE__, substr_count($hdr, 'class="kona3-dialog-x"'), 3, 'all dialogs have X button');
+$css = file_get_contents(dirname(__DIR__) . '/resource/drawer.css');
+test_eq(__LINE__, strpos($css, '.kona3-dialog-x') !== FALSE && strpos($css, 'border-radius: 50%') !== FALSE, TRUE, 'X button css is circular');
+test_eq(__LINE__, strpos($js, '.kona3-dialog-x') !== FALSE, TRUE, 'drawer.js wires X button');
+
+// page list menu opens in a dialog
+test_eq(__LINE__, strpos($hdr, 'id="pagelist_dialog"') !== FALSE, TRUE, 'header has pagelist dialog');
+test_eq(__LINE__, strpos($hdr, 'id=\"pagelist_open\"') !== FALSE, TRUE, 'pagelist menu item has opener id');
+test_eq(__LINE__, strpos($js, 'pagelist_open') !== FALSE && strpos($js, 'setupPageTree') !== FALSE, TRUE, 'drawer.js wires pagelist dialog');
+test_eq(__LINE__, strpos($css, '.kona3-pagelist-dialog') !== FALSE && strpos($css, '.kona3-pagetree') !== FALSE, TRUE, 'drawer.css has pagelist styles');
+
+// X button is an SVG icon in a perfect circle
+test_eq(__LINE__, substr_count($hdr, '<svg viewBox="0 0 24 24"'), 3, 'X buttons use SVG');
+test_eq(__LINE__, strpos($css, 'aspect-ratio: 1 / 1') !== FALSE, TRUE, 'X button keeps 1:1 ratio');
+
+// the generic button min-height must not stretch the X button
+test_eq(__LINE__, preg_match('/\\.kona3-dialog-x \\{[^}]*min-height: 0;/s', $css), 1, 'X button resets min-height');
+
+// opener clicks must not bubble to the hamburger toggle (menu re-opened, icon turned white)
+test_eq(__LINE__, substr_count($js = file_get_contents(dirname(__DIR__) . '/resource/drawer.js'), 'e.stopPropagation()') >= 2, TRUE, 'dialog openers stop propagation');

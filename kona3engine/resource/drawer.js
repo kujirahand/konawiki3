@@ -318,7 +318,11 @@ qq(function(){
     const dlg = document.getElementById(dialogId);
     if (!opener || !dlg) return;
     opener.addEventListener('click', function(e) {
-      if (e) { e.preventDefault(); }
+      if (e) {
+        e.preventDefault();
+        // nav は #hamburger_icon の子なので、伝播させると toggleMenu が走ってメニューが開き直る
+        e.stopPropagation();
+      }
       // ダイアログの背面にメニューが残らないよう、先にメニューを閉じる
       if (btn.hasClass("open")) { closeMenu(); }
       openSettingsDialog(dlg);
@@ -330,9 +334,85 @@ qq(function(){
         closeSettingsDialog(dlg);
       });
     }
+    // 右上の丸い×ボタンでも閉じる
+    const xBtn = dlg.querySelector('.kona3-dialog-x');
+    if (xBtn) {
+      xBtn.addEventListener('click', function(e) {
+        if (e) { e.preventDefault(); }
+        closeSettingsDialog(dlg);
+      });
+    }
     // ダイアログの背景(backdrop)クリックでも閉じる
     dlg.addEventListener('click', function(e) {
       if (e.target === dlg) { closeSettingsDialog(dlg); }
+    });
+  }
+  // --- ページ一覧ダイアログ ---
+  // 初回オープン時に pagelist アクションの HTML を取得し、ツリーをダイアログへ埋め込む
+  function setupPageTree(body) {
+    const root = body.querySelector('.kona3-pagetree');
+    if (!root) return;
+    function setAll(open) {
+      root.querySelectorAll('details').forEach(function(d) { d.open = open; });
+    }
+    const btnExpand = body.querySelector('#pagelist_expand');
+    const btnCollapse = body.querySelector('#pagelist_collapse');
+    if (btnExpand) btnExpand.addEventListener('click', function() { setAll(true); });
+    if (btnCollapse) btnCollapse.addEventListener('click', function() { setAll(false); });
+    const filter = body.querySelector('#pagelist_filter');
+    if (!filter) return;
+    filter.addEventListener('input', function() {
+      const q = filter.value.trim().toLowerCase();
+      const nodes = root.querySelectorAll('li.pt-node');
+      nodes.forEach(function(li) { li.style.display = q === '' ? '' : 'none'; });
+      if (q === '') return;
+      nodes.forEach(function(li) {
+        if ((li.getAttribute('data-path') || '').toLowerCase().indexOf(q) === -1) return;
+        // 一致したノードと、その祖先フォルダを表示する
+        let cur = li;
+        while (cur) {
+          cur.style.display = '';
+          const det = cur.querySelector(':scope > details');
+          if (det) det.open = true;
+          cur = cur.parentElement ? cur.parentElement.closest('li.pt-node') : null;
+        }
+      });
+    });
+  }
+  const pagelistOpen = document.getElementById('pagelist_open');
+  const pagelistDlg = document.getElementById('pagelist_dialog');
+  const pagelistBody = document.getElementById('pagelist_body');
+  if (pagelistOpen && pagelistDlg && pagelistBody && typeof window.fetch === 'function') {
+    let loaded = false;
+    pagelistOpen.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation(); // toggleMenu への伝播を止める (メニューが開き直るのを防ぐ)
+      if (btn.hasClass("open")) { closeMenu(); }
+      openSettingsDialog(pagelistDlg);
+      if (loaded) return;
+      pagelistBody.innerHTML = '<p class="pagelist_loading">...</p>';
+      fetch(pagelistOpen.getAttribute('href'), {credentials: 'same-origin'})
+        .then(function(res) { return res.ok ? res.text() : Promise.reject(res.status); })
+        .then(function(html) {
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+          const box = doc.querySelector('#wikimessage .box');
+          if (!box || !box.querySelector('.kona3-pagetree')) { return Promise.reject('no tree'); }
+          const h2 = box.querySelector('h2');
+          if (h2) h2.remove(); // 見出しはダイアログ側に持っている
+          pagelistBody.innerHTML = box.innerHTML;
+          setupPageTree(pagelistBody);
+          loaded = true;
+        })
+        .catch(function() {
+          // 取得できないときは通常のページ遷移にフォールバックする
+          window.location.href = pagelistOpen.getAttribute('href');
+        });
+    });
+    // ×ボタン・背景クリックで閉じる
+    const px = document.getElementById('pagelist_close_x');
+    if (px) px.addEventListener('click', function() { closeSettingsDialog(pagelistDlg); });
+    pagelistDlg.addEventListener('click', function(e) {
+      if (e.target === pagelistDlg) { closeSettingsDialog(pagelistDlg); }
     });
   }
   setupSettingsDialog('text_style_open', 'text_style_dialog', 'text_style_close');
