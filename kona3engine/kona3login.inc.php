@@ -269,6 +269,22 @@ function kona3getLoginInfo() {
   return $_SESSION[KONA3_SESSKEY_LOGIN];
 }
 
+// 各リクエストの入口で呼ぶ。DBユーザーの降格・無効化・削除と、
+// 設定ファイル上の管理者削除を、既存セッションにも反映する。
+function kona3login_refreshSession() {
+  $info = kona3getLoginInfo();
+  if (!$info) return;
+  $current = kona3remember_getCurrentLoginInfo($info);
+  if (!$current) {
+    // 直後の自動ログインで復活しないよう、このブラウザのトークンも失効させる。
+    kona3logout();
+    return;
+  }
+  $_SESSION[KONA3_SESSKEY_LOGIN] = array_merge($info, $current, [
+    'name' => $current['user'],
+  ]);
+}
+
 // --- 現在ログイン中のユーザー名を取得 ---
 function kona3getUserName() {
   $u = kona3getLoginInfo();
@@ -355,7 +371,7 @@ function kona3createAdminUser($userid, $password, $overwrite = FALSE) {
   }
   $salt = kona3admin_genSalt();
   $users[$userid] = [
-    'hash' => kona3getHash($password, $salt),
+    'hash' => kona3password_hash($password),
     'salt' => $salt,
   ];
   kona3saveAdminUsers($users);
@@ -620,8 +636,12 @@ function kona3_admin_auth_result($user, $pw, $kona3conf) {
   }
   $hash = isset($users[$user]['hash']) ? $users[$user]['hash'] : '';
   $salt = isset($users[$user]['salt']) ? $users[$user]['salt'] : '';
-  // パスワード+ソルトでハッシュを生成し比較
-  if (hash_equals((string)$hash, kona3getHash($pw, $salt))) {
+  // 新方式と、個別ソルトを使う旧SHA-512形式の両方を検証する。
+  if (kona3password_verify($pw, $hash, $salt)) {
+    if (kona3password_needsRehash($hash)) {
+      $users[$user]['hash'] = kona3password_hash($pw);
+      kona3saveAdminUsers($users);
+    }
     $email = isset($kona3conf['admin_email']) ? $kona3conf['admin_email'] : '';
     kona3login($user, $email, "admin", 0);
     return ['ok' => TRUE, 'reason' => KONA3_LOGIN_REASON_OK];
@@ -661,6 +681,11 @@ function kona3_user_auth_result($email, $pw) {
   if (intval(isset($r['enabled']) ? $r['enabled'] : 0) !== 1) {
     return ['ok' => FALSE, 'reason' => KONA3_LOGIN_REASON_DISABLED, 'found' => TRUE];
   }
+  if (kona3password_needsRehash($stored_password)) {
+    // 照合後に別リクエストがパスワードを変更した場合は上書きしない。
+    db_exec('UPDATE users SET password=? WHERE user_id=? AND password=?',
+      [kona3password_hash($pw), $r['user_id'], $stored_password]);
+  }
   // 認証成功時はセッションに情報を保存
   kona3login($r['name'], $r['email'], $r['perm'], $r['user_id']);
   return ['ok' => TRUE, 'reason' => KONA3_LOGIN_REASON_OK, 'found' => TRUE];
@@ -668,15 +693,30 @@ function kona3_user_auth_result($email, $pw) {
 
 // --- 一般ユーザーのパスワード検証（複数方式対応） ---
 function kona3_verify_user_password($pw, $stored_password) {
-  // method1: 現行方式（ソルトなし）
-  if (kona3getHash($pw) == $stored_password) return true;
-  // method2: 空文字ソルト
-  if (kona3getHash($pw, '') == $stored_password) return true;
-  // method3: 旧方式（ソルト連結位置が異なる）
-  $alt_hash = hash("sha512", KONA3_PASSWORD_SALT . "::" . $pw, FALSE);
-  if ($alt_hash == $stored_password) return true;
-  // いずれにも一致しなければ失敗
-  return false;
+  return kona3password_verify($pw, $stored_password);
+}
+
+// 固定長の事前ハッシュでbcryptの72バイト制限を避ける。
+// 接頭辞で旧SHA-512形式と区別し、将来の方式変更にも備える。
+function kona3password_hash($password) {
+  $input = base64_encode(hash('sha384', $password, true));
+  return 'kona3:v1:' . password_hash($input, PASSWORD_DEFAULT);
+}
+
+function kona3password_verify($password, $stored, $legacySalt = '') {
+  if (!is_string($password) || !is_string($stored)) return false;
+  if (strpos($stored, 'kona3:v1:') === 0) {
+    $input = base64_encode(hash('sha384', $password, true));
+    return password_verify($input, substr($stored, strlen('kona3:v1:')));
+  }
+  // 既存の管理者・一般ユーザーは認証成功時に新方式へ移行する。
+  return preg_match('/^[a-f0-9]{128}$/D', $stored) === 1
+    && hash_equals($stored, kona3getHash($password, $legacySalt));
+}
+
+function kona3password_needsRehash($stored) {
+  if (strpos($stored, 'kona3:v1:') !== 0) return true;
+  return password_needs_rehash(substr($stored, strlen('kona3:v1:')), PASSWORD_DEFAULT);
 }
 
 // --- パスワードハッシュ生成関数 ---

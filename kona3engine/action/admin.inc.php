@@ -199,7 +199,7 @@ function kona3sestup_admin_write_pw($userid, $pw)
     // 管理画面からの保存は従来どおり管理者を1人に置き換える。
     // 追加だけを行いたい場合は kona3createAdminUser() (#295) を使う。
     $salt = kona3admin_genSalt();
-    $hash = kona3getHash($pw, $salt); // convert to hash
+    $hash = kona3password_hash($pw);
     kona3saveAdminUsers([
         $userid => [
             'hash' => $hash,
@@ -231,7 +231,7 @@ function kona3setup_check_admin_user()
         }
         $userid = trim(empty($_POST['email']) ? '' : $_POST['email']);
         kona3sestup_admin_write_pw($userid, $pw);
-        kona3login($userid, $userid, 'admin', $userid);
+        kona3login($userid, $userid, 'admin', 0);
         $userid_ = urldecode($userid);
         $success = lang('Success!');
         $FrontPageMsg = lang('Please access the `FrontPage`.');
