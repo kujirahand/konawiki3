@@ -94,35 +94,104 @@
       <ul>
         {{ e:
           $ctrlMenu = kona3getCtrlMenuArray('list');
+          $pagelist_href = kona3getPageURL($kona3conf['page'], 'pagelist');
+          $show_page_list_dialog = empty($kona3conf['static_mode']) && kona3getConf('show_page_list');
           foreach ($ctrlMenu as $it) {
             $label = $it[0];
             $href  = $it[1];
             if ($href != "-") {
-              echo "<li><a href=\"$href\">$label</a></li>";
+              // ページ一覧はダイアログで開く (JS無効時は従来どおりページ遷移)
+              if (!empty($show_page_list_dialog) && $href == $pagelist_href) {
+                echo "<li><a href=\"$href\" id=\"pagelist_open\" aria-haspopup=\"dialog\">$label</a></li>";
+              } else {
+                echo "<li><a href=\"$href\">$label</a></li>";
+              }
             }
           }
         }}
         <li class="menu-separator" aria-hidden="true" role="separator"></li>
         <li><a href="#" id="dark_mode_toggle">🌙 Dark Mode</a></li>
-        <li class="menu-separator" aria-hidden="true" role="separator"></li>
-        <li><a href="#" id="font_size_plus">{{e: echo lang('Increase Font Size') }}</a></li>
-        <li><a href="#" id="font_size_minus">{{e: echo lang('Decrease Font Size') }}</a></li>
-        <li class="menu-separator" aria-hidden="true" role="separator"></li>
-        <li><a href="#" id="line_height_plus">{{e: echo lang('Increase Line Height') }}</a></li>
-        <li><a href="#" id="line_height_minus">{{e: echo lang('Decrease Line Height') }}</a></li>
-        <li class="menu-separator" aria-hidden="true" role="separator"></li>
-        <li><a href="#" id="text_style_reset">{{e: echo lang('Reset Font & Line Height') }}</a></li>
-        <li class="menu-separator" aria-hidden="true" role="separator"></li>
+        <!-- #330: 文字サイズと行間はダイアログにまとめ、メニュー項目を減らす -->
+        <li><a href="#" id="text_style_open" aria-haspopup="dialog">{{e: echo lang('Font Size & Line Height') }}</a></li>
         {{ if !$static_mode }}
-        <li><a href="#" id="offline_cache_toggle">{{e: echo lang('Offline Cache') }}</a></li>
-        <li><a href="#" id="offline_cache_clear">{{e: echo lang('Clear Cache') }}</a></li>
+        <!-- #330: キャッシュ関連も「キャッシュの設定」ダイアログにまとめる -->
+        <li><a href="#" id="cache_settings_open" aria-haspopup="dialog">{{e: echo lang('Cache Settings') }}</a></li>
         {{ endif }}
+        <!-- #329: システムメニューとコンテンツメニュー(GlobalBar)の間に区切り線を入れる (キャッシュ設定の下) -->
+        <li class="menu-separator" aria-hidden="true" role="separator"></li>
       </ul>
       {{ e:echo kona3getWikiPage('GlobalBar', '') }}
     </nav>
   </div>
   <!-- 透明な背景ウィンドウ(閉じる専用) -->
   <div id="drawer_background"></div>
+  <!-- 文字サイズと行間の設定ダイアログ (#330: スライダーで調整) -->
+  <dialog id="text_style_dialog" class="kona3-settings-dialog kona3-text-style-dialog" aria-labelledby="text_style_title">
+    <button type="button" id="text_style_close_x" class="kona3-dialog-x" aria-label="{{e: echo lang('Close') }}"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M6 6L18 18M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+    <h3 id="text_style_title">{{e: echo lang('Font Size & Line Height') }}</h3>
+    <!-- サンプル文プレビュー (ダイアログ表示中は本文が見えないため、その場で変化を確認できるように) -->
+    <div class="kona3-text-preview" id="text_style_preview" aria-hidden="true">
+      <p>{{e: echo lang('Text Preview Sample') }}</p>
+    </div>
+    <!-- 文字サイズ -->
+    <div class="kona3-slider-field">
+      <div class="kona3-slider-head">
+        <label for="font_size_range">{{e: echo lang('Font Size') }}</label>
+        <output id="font_size_value" class="kona3-dialog-value" for="font_size_range" aria-live="off">100%</output>
+      </div>
+      <div class="kona3-slider-row">
+        <button type="button" id="font_size_minus" class="kona3-step-btn kona3-step-a-small" tabindex="-1" aria-controls="font_size_range" aria-label="{{e: echo lang('Decrease Font Size') }}">A</button>
+        <div class="kona3-slider-track">
+          <input type="range" id="font_size_range" class="kona3-range" min="0.7" max="2.0" step="0.1" value="1.0" aria-valuetext="100%" autofocus>
+          <span class="kona3-default-mark" aria-hidden="true"></span>
+          <span class="kona3-default-label" aria-hidden="true">{{e: echo lang('Default') }}</span>
+        </div>
+        <button type="button" id="font_size_plus" class="kona3-step-btn kona3-step-a-large" tabindex="-1" aria-controls="font_size_range" aria-label="{{e: echo lang('Increase Font Size') }}">A</button>
+      </div>
+    </div>
+    <!-- 行間 -->
+    <div class="kona3-slider-field">
+      <div class="kona3-slider-head">
+        <label for="line_height_range">{{e: echo lang('Line Height') }}</label>
+        <output id="line_height_value" class="kona3-dialog-value" for="line_height_range" aria-live="off">1.7</output>
+      </div>
+      <div class="kona3-slider-row">
+        <button type="button" id="line_height_minus" class="kona3-step-btn" tabindex="-1" aria-controls="line_height_range" aria-label="{{e: echo lang('Decrease Line Height') }}">−</button>
+        <div class="kona3-slider-track">
+          <input type="range" id="line_height_range" class="kona3-range" min="1.2" max="2.5" step="0.1" value="1.7" aria-valuetext="1.7">
+          <span class="kona3-default-mark" aria-hidden="true"></span>
+          <span class="kona3-default-label" aria-hidden="true">{{e: echo lang('Default') }}</span>
+        </div>
+        <button type="button" id="line_height_plus" class="kona3-step-btn" tabindex="-1" aria-controls="line_height_range" aria-label="{{e: echo lang('Increase Line Height') }}">＋</button>
+      </div>
+    </div>
+    <div class="kona3-dialog-actions">
+      <button type="button" id="text_style_reset" class="kona3-reset-btn">{{e: echo lang('Reset Font & Line Height') }}</button>
+      <button type="button" id="text_style_close">{{e: echo lang('Close') }}</button>
+    </div>
+  </dialog>
+  {{ if !$static_mode }}
+  <!-- ページ一覧ダイアログ: 初回に開いたとき pagelist アクションから一覧を読み込む -->
+  <dialog id="pagelist_dialog" class="kona3-settings-dialog kona3-pagelist-dialog" aria-labelledby="pagelist_title">
+    <button type="button" id="pagelist_close_x" class="kona3-dialog-x" aria-label="{{e: echo lang('Close') }}"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M6 6L18 18M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+    <h3 id="pagelist_title">{{e: echo lang('Page List') }}</h3>
+    <div id="pagelist_body" class="kona3-pagelist-body"></div>
+  </dialog>
+  <!-- キャッシュの設定ダイアログ (#330) -->
+  <dialog id="cache_settings_dialog" class="kona3-settings-dialog" aria-label="{{e: echo lang('Cache Settings') }}">
+    <button type="button" id="cache_settings_close_x" class="kona3-dialog-x" aria-label="{{e: echo lang('Close') }}"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M6 6L18 18M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+    <h3>{{e: echo lang('Cache Settings') }}</h3>
+    <div class="kona3-dialog-row">
+      <button type="button" id="offline_cache_toggle">{{e: echo lang('Offline Cache') }}</button>
+    </div>
+    <div class="kona3-dialog-row">
+      <button type="button" id="offline_cache_clear">{{e: echo lang('Clear Cache') }}</button>
+    </div>
+    <div class="kona3-dialog-actions">
+      <button type="button" id="cache_settings_close">{{e: echo lang('Close') }}</button>
+    </div>
+  </dialog>
+  {{ endif }}
 </div>
 <!-- drawer.end -->
 
