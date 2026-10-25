@@ -118,6 +118,10 @@ function kona3plugins_mermaid_validate_svg($svg)
     if (!class_exists('DOMDocument')) {
         return false;
     }
+    // DOCTYPE (実体宣言) を持つSVGは受け付けない
+    if (preg_match('/<!DOCTYPE/i', $svg)) {
+        return false;
+    }
     $prev = libxml_use_internal_errors(true);
     $dom = new DOMDocument();
     $loaded = $dom->loadXML($svg, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING);

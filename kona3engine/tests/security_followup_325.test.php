@@ -218,3 +218,9 @@ test_assert(__LINE__, strpos($src_email325, 'q=deleteall-go&') === FALSE, 'email
 $pos_email_method = strpos($src_email325, "REQUEST_METHOD");
 $pos_email_delete = strpos($src_email325, 'DELETE FROM email_logs');
 test_assert(__LINE__, $pos_email_method !== FALSE && $pos_email_delete !== FALSE && $pos_email_method < $pos_email_delete, 'emailLogs: 全削除の実行前にPOSTであることを確認する');
+
+// DOCTYPE を含むSVGは拒否する
+require_once dirname(__DIR__) . '/plugins/mermaid.inc.php';
+test_eq(__LINE__, kona3plugins_mermaid_validate_svg(
+  '<!DOCTYPE svg [<!ENTITY a "b">]><svg xmlns="http://www.w3.org/2000/svg"><text>&a;</text></svg>'),
+  false, "mermaid: DOCTYPE rejected");
