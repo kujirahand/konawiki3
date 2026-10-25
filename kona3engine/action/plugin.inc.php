@@ -1,6 +1,7 @@
 <?php
 include_once dirname(dirname(__FILE__)).'/kona3lib.inc.php';
 include_once dirname(dirname(__FILE__)).'/kona3parser.inc.php';
+include_once __DIR__.'/show.inc.php';
 
 function err404($msg) {
   echo "<h1><span style='color:red'>404</span>\n$msg\n</h1>";
@@ -21,11 +22,7 @@ function kona3_action_plugin() {
   $page = $kona3conf["page"];
   // 非公開Wikiでは未ログインでプラグインを実行させない (show と同じ扱い, #324)。
   // 個別プラグインの認可実装に依存せず、入口で一括して遮断する。
-  if (kona3getConf('wiki_private') && !kona3isLogin()) {
-    header('HTTP/1.0 403 Forbidden');
-    echo "Forbidden";
-    exit;
-  }
+  kona3show_check_private($page, FALSE);
   $name = isset($_GET['name']) ? $_GET['name'] : '';
   if ($name == '') {
     header("location: index.php");

@@ -11,13 +11,14 @@ if (!defined('KONA3_INCLUDE_MAX_DEPTH')) {
   define('KONA3_INCLUDE_MAX_DEPTH', 5);
 }
 
-/** $fname の実パスが data ディレクトリ配下にあるか (シンボリックリンク経由の外部読み取りを防ぐ, #324) */
+/** $fname の実パスが data ディレクトリ配下にある通常ファイルか (シンボリックリンク経由の外部読み取りを防ぐ, #324) */
 function kona3plugins_file_inDataDir($fname) {
   $real = realpath($fname);
   $data = realpath(KONA3_DIR_DATA);
   if ($real === false || $data === false) return false;
+  if (!is_file($real)) return false;
   $data = rtrim($data, '/\\');
-  return $real === $data || strpos($real, $data . DIRECTORY_SEPARATOR) === 0;
+  return strpos($real, $data . DIRECTORY_SEPARATOR) === 0;
 }
 
 function kona3plugins_file_execute($args) {

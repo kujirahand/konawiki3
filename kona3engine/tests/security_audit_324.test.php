@@ -83,6 +83,8 @@ $file_html = kona3plugins_file_execute(['link324.txt']);
 test_assert(__LINE__, strpos($file_html, 'SECRET324_BODY') === FALSE, 'file: シンボリックリンク先の秘密は読めない');
 $fc_html = kona3plugins_filecode_execute(['linkcode324.txt']);
 test_assert(__LINE__, strpos($fc_html, 'SECRET324_BODY') === FALSE, 'filecode: シンボリックリンク先の秘密は読めない');
+test_assert(__LINE__, !kona3plugins_file_inDataDir(KONA3_DIR_DATA), 'file: dataディレクトリ自体は許可しない');
+test_assert(__LINE__, !kona3plugins_include_inDataDir(KONA3_DIR_DATA), 'include: dataディレクトリ自体は許可しない');
 @unlink($link_file);
 @unlink($linkcode_file);
 // 通常ファイルは読める
@@ -167,9 +169,10 @@ test_assert(__LINE__, $pos_token !== FALSE && $pos_delete !== FALSE && $pos_toke
 $src_versionup = file_get_contents($action_dir . '/versionup.inc.php');
 test_assert(__LINE__, strpos($src_versionup, 'kona3isAdmin()') !== FALSE, 'versionup: 管理者のみ実行できる');
 $src_user = file_get_contents($action_dir . '/user.inc.php');
-test_assert(__LINE__, strpos($src_user, "kona3getConf('wiki_private')") !== FALSE, 'user: 非公開Wikiのチェックがある');
+test_assert(__LINE__, strpos($src_user, 'kona3show_check_private') !== FALSE, 'user: 非公開Wikiのチェックがある');
 $src_plugin = file_get_contents($action_dir . '/plugin.inc.php');
-test_assert(__LINE__, strpos($src_plugin, "kona3getConf('wiki_private')") !== FALSE, 'plugin: 非公開Wikiのチェックがある');
+test_assert(__LINE__, strpos($src_plugin, 'kona3show_check_private') !== FALSE, 'plugin: 非公開Wikiのチェックがある');
+test_assert(__LINE__, strpos($src_data, 'realpath') !== FALSE, 'data: 実パスの配下チェックがある');
 $src_resource = file_get_contents($action_dir . '/resource.inc.php');
 test_assert(__LINE__, strpos($src_resource, 'X-Content-Type-Options: nosniff') !== FALSE, 'resource: nosniffを付ける');
 $src_lib = file_get_contents(dirname(__DIR__) . '/kona3lib.inc.php');

@@ -18,13 +18,17 @@ function kona3_action_data() {
   }
   // remove ".."
   $fname = str_replace('..', '', $fname);
-  // check data dir
+  // check data dir (シンボリックリンク経由で data 外のファイルを配信しない, #324)
   $fullpath = KONA3_DIR_DATA."/$fname";
-  if (!file_exists($fullpath)) {
+  $real = realpath($fullpath);
+  $data_real = realpath(KONA3_DIR_DATA);
+  if ($real === false || $data_real === false || !is_file($real) ||
+      strpos($real, rtrim($data_real, '/\\') . DIRECTORY_SEPARATOR) !== 0) {
     header('HTTP/1.0 404 Not Found');
     echo $fileNotFound;
     exit;
   }
+  $fullpath = $real;
   // image
   $image_type = kona3getConf("image_pattern", "(jpg|jpeg|png|gif|ico|svg|webp)");
   $pattern = "#\.($image_type)$#";

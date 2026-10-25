@@ -1,21 +1,11 @@
 <?php
+include_once __DIR__ . '/show.inc.php';
 
 function kona3_action_user() {
   global $kona3conf;
 
   // 非公開Wikiでは未ログインで他人の情報を出さない (show と同じ扱い, #324)
-  if (kona3getConf('wiki_private') && !kona3isLogin()) {
-    header('HTTP/1.0 403 Forbidden');
-    $url = kona3getPageURL($kona3conf['page'], "login");
-    $msg_private = lang('Private Mode');
-    $msg_please_login = lang('Please login.');
-    kona3error(
-      $kona3conf['page'],
-      "<div>$msg_private</div><div>&nbsp;</div>" .
-        "<div><a href='$url'>$msg_please_login</a></div>"
-    );
-    return;
-  }
+  kona3show_check_private($kona3conf['page']);
 
   $name = $kona3conf['page'];
   $u = kona3db_getUserByName($name);
