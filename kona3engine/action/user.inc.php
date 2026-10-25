@@ -1,7 +1,11 @@
 <?php
+include_once __DIR__ . '/show.inc.php';
 
 function kona3_action_user() {
   global $kona3conf;
+
+  // 非公開Wikiでは未ログインで他人の情報を出さない (show と同じ扱い, #324)
+  kona3show_check_private($kona3conf['page']);
 
   $name = $kona3conf['page'];
   $u = kona3db_getUserByName($name);

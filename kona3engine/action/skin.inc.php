@@ -1,6 +1,13 @@
 <?php
 include_once dirname(dirname(__FILE__)).'/kona3lib.inc.php';
 
+/** スキンとして配信してよい拡張子か (テンプレート等のソース開示を防ぐ, #324) */
+function kona3_action_skin_isAllowedExt($ext) {
+  $allowed = ['.css', '.js', '.png', '.jpg', '.jpeg', '.jpe', '.gif',
+    '.ico', '.json', '.svg', '.webp', '.woff', '.woff2', '.ttf', '.otf', '.map'];
+  return in_array(strtolower($ext), $allowed, TRUE);
+}
+
 function kona3_action_skin() {
   global $kona3conf;
   $fname = $kona3conf["page"];
@@ -16,6 +23,12 @@ function kona3_action_skin() {
   $ext = "";
   if (preg_match('/(\.\w+?)$/', $fname, $m)) {
     $ext = $m[1];
+  }
+  // 配信してよい拡張子だけを許可する (.tpl.php 等のソースは返さない, #324)
+  if (!kona3_action_skin_isAllowedExt($ext)) {
+    header('HTTP/1.0 404 Not Found');
+    echo "File not found.\n";
+    exit;
   }
   $skin = $kona3conf['skin'];
   // 設定中以外のスキンのファイル (派生スキンが土台にする def のCSSなど)
@@ -54,9 +67,16 @@ function kona3_action_skin() {
   else if ($ext == ".gif") $ctype = "image/gif";
   else if ($ext == ".ico") $ctype = "image/png";
   else if ($ext == ".json") $ctype = "application/json";
+  else if ($ext == ".svg") $ctype = "image/svg+xml";
+  else if ($ext == ".webp") $ctype = "image/webp";
   // output header
+  if ($ext == ".svg") {
+    // スクリプト入りSVGをトップレベル文書として開いても実行させない (#324)
+    header("Content-Security-Policy: sandbox");
+  }
   $cache_expire_time = 60 * 60 * 3;
   header("Content-Type: $ctype");
+  header("X-Content-Type-Options: nosniff");
   header("Cache-Control: max-age={$cache_expire_time}");
   header("Expires: ".gmdate('D, d M Y H:i:s \G\M\T', time() + $cache_expire_time));
   $last_m = gmdate('D, d M Y H:i:s \G\M\T', filemtime($path));

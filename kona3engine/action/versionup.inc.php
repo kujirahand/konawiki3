@@ -16,7 +16,16 @@ function kona3_action_versionup() {
         );
         return;
     }
-    
+
+    // データ移行は管理者のみ (一般ユーザーが実行できてはいけない, #324)
+    if (!kona3isAdmin()) {
+        kona3error(
+            lang('Admin Page'),
+            lang('You do not have admin perm.')
+        );
+        return;
+    }
+
     // CSRF保護のチェック
     $token = isset($_GET['write_token']) ? $_GET['write_token'] : '';
     $correct_token = kona3_getEditToken('versionup');

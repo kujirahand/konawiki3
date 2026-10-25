@@ -32,7 +32,11 @@ EOS;
   if (substr($textH, 0, 4) == "http") {
     $textH = "<a href=\"$textH\" target=\"_new\">$textH</a>";
   }
-  $textQ = str_replace("\"", "\\\"", $text);
+  // <script> 内のJS文字列リテラルへ埋め込むため、JSONとしてエンコードする。
+  // 単純な " の置換だけでは </script> や \ で文字列を抜け出せてしまう (#324)。
+  $textQ = json_encode((string)$text,
+    JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
+  if ($textQ === false) $textQ = '""';
   $body = <<<EOS
 <div class="kona3qrcode" style="margin: 0.3em; padding: 0.5em;">
     <div id="$domid"></div>
@@ -42,7 +46,7 @@ EOS;
 (() => {
     const qrdom = document.getElementById("$domid");
     new QRCode(qrdom, {
-        text: "$textQ",
+        text: $textQ,
         width: $size,
         height: $size,
         colorDark : "#000000",

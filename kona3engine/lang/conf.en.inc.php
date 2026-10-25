@@ -23,7 +23,7 @@ return [
         'skin' => ['desc' => 'The design (theme) of the wiki. Choose from the skin folder.'],
         'allow_add_user' => ['desc' => 'If true, anyone can sign up. Keep it false unless you trust the visitors.'],
         'def_text_ext' => ['desc' => 'Format of new pages: txt is KonaWiki notation, md is Markdown.'],
-        'bbs_admin_password' => ['desc' => 'Password for deleting posts in BBS/comments. Be sure to change the default.'],
+        'bbs_admin_password' => ['desc' => 'Admin password for deleting posts in BBS/comments. If empty, deleting with the admin password is disabled. Use a hard-to-guess value.'],
         'allpage_header' => ['desc' => 'Content shown above the body of every page.'],
         'allpage_footer' => ['desc' => 'Content shown below the body of every page.'],
         'analytics' => ['desc' => 'Paste a tag such as Google Analytics. It is output on every page.'],

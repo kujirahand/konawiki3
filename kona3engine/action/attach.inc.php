@@ -37,6 +37,11 @@ function kona3_action_attach() {
     // has upload
     $msg = '';
     if (!empty($_FILES['file']['tmp_name'])) {
+        // CSRF対策: アップロードには edit_token を必須にする (#324)
+        if (!kona3_checkEditToken('edit_token')) {
+            kona3error(lang('Invalid Token'), lang('Invalid edit token.'));
+            exit;
+        }
         $tmp_name = $_FILES['file']['tmp_name'];
         // detect file name
         $name = empty($_POST['name']) ? '' : trim($_POST['name']);
@@ -99,9 +104,10 @@ function kona3_action_attach() {
         $htm .= "<li>".htmlspecialchars($fn)."</li>";
     }
     
-    // show form 
+    // show form
     kona3template('attach.html', [
         'msg' => $msg,
+        'edit_token' => kona3_getEditToken('edit_token'),
         'action' => $action,
         'dir' => $dir,
         'max_file_size' => $max_file_size,
