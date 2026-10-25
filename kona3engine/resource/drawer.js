@@ -77,12 +77,19 @@ qq(function(){
     }
   }
 
-  // 文字サイズと行間の初期化・制御
+  // 文字サイズと行間の初期化・制御 (#330: スライダーで調整)
   const DEFAULT_FONT_SIZE = 1.0;
   const DEFAULT_LINE_HEIGHT = 1.7;
+  const FONT_SIZE_MIN = 0.7;
+  const FONT_SIZE_MAX = 2.0;
   const FONT_SIZE_STEP = 0.1;
+  const LINE_HEIGHT_MIN = 1.2;
+  const LINE_HEIGHT_MAX = 2.5;
   const LINE_HEIGHT_STEP = 0.1;
-  
+
+  // 0.1刻みの計算で出る浮動小数点の誤差 (1.2000000002など) を取り除く
+  function roundStep(v) { return Math.round(v * 10) / 10; }
+
   // 現在の設定値を取得（localStorageまたはデフォルト）
   let currentFontSize = DEFAULT_FONT_SIZE;
   let currentLineHeight = DEFAULT_LINE_HEIGHT;
@@ -109,6 +116,56 @@ qq(function(){
     }
   } catch (err) {
     console.warn("Storage read failed for line_height:", err);
+  }
+
+  // スライダーの位置・塗りつぶし・読み上げ用テキストを値に同期する
+  function syncSlider(range, value, min, max, text) {
+    if (!range) return;
+    if (parseFloat(range.value) !== value) { range.value = String(value); }
+    range.setAttribute('aria-valuetext', text);
+    range.style.setProperty('--fill', ((value - min) / (max - min) * 100) + '%');
+  }
+
+  // disabledにすると押した直後にフォーカスが外れるので、端のボタンはaria-disabledで表す
+  function setStepAriaDisabled(id, flag) {
+    const el = document.getElementById(id);
+    if (el) { el.setAttribute('aria-disabled', flag ? 'true' : 'false'); }
+  }
+  function isStepDisabled(id) {
+    const el = document.getElementById(id);
+    return el && el.getAttribute('aria-disabled') === 'true';
+  }
+
+  // ダイアログ内の現在の設定値表示を更新する (#330)
+  function updateTextStyleDisplay() {
+    const fontText = Math.round(currentFontSize * 100) + '%';
+    const lineText = currentLineHeight.toFixed(1);
+    const fontVal = document.getElementById('font_size_value');
+    if (fontVal) {
+      fontVal.textContent = fontText;
+    }
+    const lineVal = document.getElementById('line_height_value');
+    if (lineVal) {
+      lineVal.textContent = lineText;
+    }
+    syncSlider(document.getElementById('font_size_range'),
+      currentFontSize, FONT_SIZE_MIN, FONT_SIZE_MAX, fontText);
+    syncSlider(document.getElementById('line_height_range'),
+      currentLineHeight, LINE_HEIGHT_MIN, LINE_HEIGHT_MAX, lineText);
+    // ダイアログ内のサンプル文にもその場で反映する
+    const preview = document.getElementById('text_style_preview');
+    if (preview) {
+      preview.style.fontSize = currentFontSize.toFixed(1) + 'rem';
+      preview.style.lineHeight = currentLineHeight.toFixed(1);
+    }
+    const eps = 0.001;
+    setStepAriaDisabled('font_size_minus', currentFontSize <= FONT_SIZE_MIN + eps);
+    setStepAriaDisabled('font_size_plus', currentFontSize >= FONT_SIZE_MAX - eps);
+    setStepAriaDisabled('line_height_minus', currentLineHeight <= LINE_HEIGHT_MIN + eps);
+    setStepAriaDisabled('line_height_plus', currentLineHeight >= LINE_HEIGHT_MAX - eps);
+    setStepAriaDisabled('text_style_reset',
+      Math.abs(currentFontSize - DEFAULT_FONT_SIZE) < 0.01 &&
+      Math.abs(currentLineHeight - DEFAULT_LINE_HEIGHT) < 0.01);
   }
 
   function updateTextStyle() {
@@ -157,6 +214,7 @@ qq(function(){
         styleEl.parentNode.removeChild(styleEl);
       }
     }
+    updateTextStyleDisplay();
   }
 
   // ボタンイベントの設定
@@ -169,14 +227,16 @@ qq(function(){
   if (btnFontPlus) {
     btnFontPlus.click(function(e) {
       if (e) { e.preventDefault(); }
-      currentFontSize = Math.min(2.0, currentFontSize + FONT_SIZE_STEP);
+      if (isStepDisabled('font_size_plus')) return;
+      currentFontSize = roundStep(Math.min(FONT_SIZE_MAX, currentFontSize + FONT_SIZE_STEP));
       updateTextStyle();
     });
   }
   if (btnFontMinus) {
     btnFontMinus.click(function(e) {
       if (e) { e.preventDefault(); }
-      currentFontSize = Math.max(0.7, currentFontSize - FONT_SIZE_STEP);
+      if (isStepDisabled('font_size_minus')) return;
+      currentFontSize = roundStep(Math.max(FONT_SIZE_MIN, currentFontSize - FONT_SIZE_STEP));
       updateTextStyle();
     });
   }
@@ -184,25 +244,179 @@ qq(function(){
   if (btnLinePlus) {
     btnLinePlus.click(function(e) {
       if (e) { e.preventDefault(); }
-      currentLineHeight = Math.min(2.5, currentLineHeight + LINE_HEIGHT_STEP);
+      if (isStepDisabled('line_height_plus')) return;
+      currentLineHeight = roundStep(Math.min(LINE_HEIGHT_MAX, currentLineHeight + LINE_HEIGHT_STEP));
       updateTextStyle();
     });
   }
   if (btnLineMinus) {
     btnLineMinus.click(function(e) {
       if (e) { e.preventDefault(); }
-      currentLineHeight = Math.max(1.2, currentLineHeight - LINE_HEIGHT_STEP);
+      if (isStepDisabled('line_height_minus')) return;
+      currentLineHeight = roundStep(Math.max(LINE_HEIGHT_MIN, currentLineHeight - LINE_HEIGHT_STEP));
       updateTextStyle();
     });
   }
+
+  // スライダー: 動かした瞬間に反映・保存する (inputイベント)
+  function bindTextStyleRange(id, apply) {
+    const range = document.getElementById(id);
+    if (!range) return;
+    range.addEventListener('input', function() {
+      const v = parseFloat(range.value);
+      if (isNaN(v)) return;
+      apply(roundStep(v));
+      updateTextStyle();
+    });
+  }
+  bindTextStyleRange('font_size_range', function(v) {
+    currentFontSize = Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, v));
+  });
+  bindTextStyleRange('line_height_range', function(v) {
+    currentLineHeight = Math.min(LINE_HEIGHT_MAX, Math.max(LINE_HEIGHT_MIN, v));
+  });
+
+  // 「標準」の目印をデフォルト値の位置に置く
+  function placeDefaultMark(rangeId, def, min, max) {
+    const range = document.getElementById(rangeId);
+    if (!range || !range.parentNode) return;
+    range.parentNode.style.setProperty('--default-p', String((def - min) / (max - min)));
+  }
+  placeDefaultMark('font_size_range', DEFAULT_FONT_SIZE, FONT_SIZE_MIN, FONT_SIZE_MAX);
+  placeDefaultMark('line_height_range', DEFAULT_LINE_HEIGHT, LINE_HEIGHT_MIN, LINE_HEIGHT_MAX);
   if (btnReset) {
     btnReset.click(function(e) {
       if (e) { e.preventDefault(); }
+      if (isStepDisabled('text_style_reset')) return;
       currentFontSize = DEFAULT_FONT_SIZE;
       currentLineHeight = DEFAULT_LINE_HEIGHT;
       updateTextStyle();
     });
   }
+  updateTextStyleDisplay();
+
+  // --- 設定ダイアログの制御 (#330) ---
+  // ハンバーガーメニューの項目はダイアログを開くだけにし、調整はダイアログ内で行う
+  function openSettingsDialog(dlg) {
+    if (!dlg) return;
+    if (typeof dlg.showModal === 'function') {
+      if (!dlg.open) { dlg.showModal(); }
+    } else {
+      dlg.setAttribute('open', '');
+    }
+  }
+  function closeSettingsDialog(dlg) {
+    if (!dlg) return;
+    if (typeof dlg.close === 'function' && dlg.open) {
+      dlg.close();
+    } else {
+      dlg.removeAttribute('open');
+    }
+  }
+  function setupSettingsDialog(openId, dialogId, closeId) {
+    const opener = document.getElementById(openId);
+    const dlg = document.getElementById(dialogId);
+    if (!opener || !dlg) return;
+    opener.addEventListener('click', function(e) {
+      if (e) {
+        e.preventDefault();
+        // nav は #hamburger_icon の子なので、伝播させると toggleMenu が走ってメニューが開き直る
+        e.stopPropagation();
+      }
+      // ダイアログの背面にメニューが残らないよう、先にメニューを閉じる
+      if (btn.hasClass("open")) { closeMenu(); }
+      openSettingsDialog(dlg);
+    });
+    const closer = document.getElementById(closeId);
+    if (closer) {
+      closer.addEventListener('click', function(e) {
+        if (e) { e.preventDefault(); }
+        closeSettingsDialog(dlg);
+      });
+    }
+    // 右上の丸い×ボタンでも閉じる
+    const xBtn = dlg.querySelector('.kona3-dialog-x');
+    if (xBtn) {
+      xBtn.addEventListener('click', function(e) {
+        if (e) { e.preventDefault(); }
+        closeSettingsDialog(dlg);
+      });
+    }
+    // ダイアログの背景(backdrop)クリックでも閉じる
+    dlg.addEventListener('click', function(e) {
+      if (e.target === dlg) { closeSettingsDialog(dlg); }
+    });
+  }
+  // --- ページ一覧ダイアログ ---
+  // 初回オープン時に pagelist アクションの HTML を取得し、ツリーをダイアログへ埋め込む
+  function setupPageTree(body) {
+    const root = body.querySelector('.kona3-pagetree');
+    if (!root) return;
+    function setAll(open) {
+      root.querySelectorAll('details').forEach(function(d) { d.open = open; });
+    }
+    const btnExpand = body.querySelector('#pagelist_expand');
+    const btnCollapse = body.querySelector('#pagelist_collapse');
+    if (btnExpand) btnExpand.addEventListener('click', function() { setAll(true); });
+    if (btnCollapse) btnCollapse.addEventListener('click', function() { setAll(false); });
+    const filter = body.querySelector('#pagelist_filter');
+    if (!filter) return;
+    filter.addEventListener('input', function() {
+      const q = filter.value.trim().toLowerCase();
+      const nodes = root.querySelectorAll('li.pt-node');
+      nodes.forEach(function(li) { li.style.display = q === '' ? '' : 'none'; });
+      if (q === '') return;
+      nodes.forEach(function(li) {
+        if ((li.getAttribute('data-path') || '').toLowerCase().indexOf(q) === -1) return;
+        // 一致したノードと、その祖先フォルダを表示する
+        let cur = li;
+        while (cur) {
+          cur.style.display = '';
+          const det = cur.querySelector(':scope > details');
+          if (det) det.open = true;
+          cur = cur.parentElement ? cur.parentElement.closest('li.pt-node') : null;
+        }
+      });
+    });
+  }
+  const pagelistOpen = document.getElementById('pagelist_open');
+  const pagelistDlg = document.getElementById('pagelist_dialog');
+  const pagelistBody = document.getElementById('pagelist_body');
+  if (pagelistOpen && pagelistDlg && pagelistBody && typeof window.fetch === 'function') {
+    let loaded = false;
+    pagelistOpen.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation(); // toggleMenu への伝播を止める (メニューが開き直るのを防ぐ)
+      if (btn.hasClass("open")) { closeMenu(); }
+      openSettingsDialog(pagelistDlg);
+      if (loaded) return;
+      pagelistBody.innerHTML = '<p class="pagelist_loading">...</p>';
+      fetch(pagelistOpen.getAttribute('href'), {credentials: 'same-origin'})
+        .then(function(res) { return res.ok ? res.text() : Promise.reject(res.status); })
+        .then(function(html) {
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+          const box = doc.querySelector('#wikimessage .box');
+          if (!box || !box.querySelector('.kona3-pagetree')) { return Promise.reject('no tree'); }
+          const h2 = box.querySelector('h2');
+          if (h2) h2.remove(); // 見出しはダイアログ側に持っている
+          pagelistBody.innerHTML = box.innerHTML;
+          setupPageTree(pagelistBody);
+          loaded = true;
+        })
+        .catch(function() {
+          // 取得できないときは通常のページ遷移にフォールバックする
+          window.location.href = pagelistOpen.getAttribute('href');
+        });
+    });
+    // ×ボタン・背景クリックで閉じる
+    const px = document.getElementById('pagelist_close_x');
+    if (px) px.addEventListener('click', function() { closeSettingsDialog(pagelistDlg); });
+    pagelistDlg.addEventListener('click', function(e) {
+      if (e.target === pagelistDlg) { closeSettingsDialog(pagelistDlg); }
+    });
+  }
+  setupSettingsDialog('text_style_open', 'text_style_dialog', 'text_style_close');
+  setupSettingsDialog('cache_settings_open', 'cache_settings_dialog', 'cache_settings_close');
 
   // --- オフラインキャッシュの制御 ---
   const DB_NAME = 'kona3_offline_db';
