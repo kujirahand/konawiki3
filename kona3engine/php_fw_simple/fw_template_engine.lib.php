@@ -47,15 +47,16 @@ function template_render($tpl_filename, $tpl_params)
         $tpl_filename.'.'. $mtime_tpl.'_'.TEMPLATE_VERSION.'.php';
         if (file_exists($file_cache) && TEMPLATE_USE_CACHE) {
             // extract variable
-            if ($FW_TEMPLATE_PARAMS) {
-                extract($FW_TEMPLATE_PARAMS, EXTR_SKIP);
-            }
-            if ($tpl_params) {
-                extract($tpl_params, EXTR_SKIP);
-            }
-            // extract で $file_cache 自身が上書きされても、確定済みの
-            // キャッシュファイル以外を実行しないよう退避してから include する (#324)
+            // パラメータは先に合成する (全体設定より呼び出し側の $tpl_params が
+            // 優先される従来の上書き順序を保つ)。退避変数は extract より前に
+            // 確定させ、extract は EXTR_SKIP で既存のローカル変数
+            // ($file_cache や $__file_cache 等) を上書きしない (#324)
             $__file_cache = $file_cache;
+            $__tpl_params_all = array_merge(
+                is_array($FW_TEMPLATE_PARAMS) ? $FW_TEMPLATE_PARAMS : [],
+                is_array($tpl_params) ? $tpl_params : []
+            );
+            extract($__tpl_params_all, EXTR_SKIP);
             // include
             // 壊れたキャッシュ(書き込み途中のファイルなど)を掴んだ場合は、
             // 削除して下のコンパイル処理で作り直す。
@@ -70,16 +71,13 @@ function template_render($tpl_filename, $tpl_params)
         $file_cache = $DIR_TEMPLATE_CACHE.'/'.$tpl_filename.'.php';
         $mtime_cache = file_exists($file_cache) ? filemtime($file_cache) : 0;
         if ($mtime_tpl < $mtime_cache && TEMPLATE_USE_CACHE) {
-            // extract variable
-            if ($FW_TEMPLATE_PARAMS) {
-                extract($FW_TEMPLATE_PARAMS, EXTR_SKIP);
-            }
-            if ($tpl_params) {
-                extract($tpl_params, EXTR_SKIP);
-            }
-            // extract で $file_cache 自身が上書きされても、確定済みの
-            // キャッシュファイル以外を実行しないよう退避してから include する (#324)
+            // extract variable (DATETYPE 経路と同じ合成・退避方式, #324)
             $__file_cache = $file_cache;
+            $__tpl_params_all = array_merge(
+                is_array($FW_TEMPLATE_PARAMS) ? $FW_TEMPLATE_PARAMS : [],
+                is_array($tpl_params) ? $tpl_params : []
+            );
+            extract($__tpl_params_all, EXTR_SKIP);
             // include
             // 壊れたキャッシュ(書き込み途中のファイルなど)を掴んだ場合は、
             // 削除して下のコンパイル処理で作り直す。
@@ -167,17 +165,18 @@ function template_render($tpl_filename, $tpl_params)
         },
     ], $fw_contents);
     // save cache
-    // 退避用変数は extract より前に確定させ、extract は EXTR_SKIP で
-    // 既存変数を上書きしない (パラメータ経由の任意ファイル実行を防ぐ, #324)
+    // 退避用変数は extract より前に確定させ、パラメータは先に合成して
+    // (全体設定より $tpl_params が優先される従来の順序を保ちつつ)
+    // EXTR_SKIP で既存変数を上書きしない
+    // (パラメータ経由の任意ファイル実行を防ぐ, #324)
     $__file_cache = $file_cache;
     $__fw_contents = $fw_contents;
     // extract variable
-    if ($FW_TEMPLATE_PARAMS) {
-        extract($FW_TEMPLATE_PARAMS, EXTR_SKIP);
-    }
-    if ($tpl_params) {
-        extract($tpl_params, EXTR_SKIP);
-    }
+    $__tpl_params_all = array_merge(
+        is_array($FW_TEMPLATE_PARAMS) ? $FW_TEMPLATE_PARAMS : [],
+        is_array($tpl_params) ? $tpl_params : []
+    );
+    extract($__tpl_params_all, EXTR_SKIP);
     // 同時アクセスでの書き込み競合によるキャッシュ破損(不完全なファイルのinclude)を防ぐため、
     // 一時ファイルに書いてから rename() でアトミックに置き換える。
     // 書き込みや rename に失敗した時は、壊れたキャッシュを残さず、生成した内容を直接実行する。

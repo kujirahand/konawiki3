@@ -128,6 +128,19 @@ for ($i = 0; $i < 2; $i++) { // 1回目はコンパイル経路、2回目はキ�
     test_assert(__LINE__, strpos($tpl_out, 'Hello, SAFE324!') !== FALSE, "テンプレート: 通常の変数は表示される (試行$i)");
     test_assert(__LINE__, strpos($tpl_out, 'EXTRACT_PWNED324') === FALSE, "テンプレート: パラメータで任意ファイルを実行できない (試行$i)");
 }
+// 呼び出し側パラメータが全体設定より優先されること (従来の上書き順序の維持)
+// 例: 編集画面の $action は全体設定の action='edit' ではなく、
+// フォームの送信先URL (呼び出し側が渡す値) でなければならない
+file_put_contents($tpl_dir324 . '/prio324.html', 'A={{$action}} N={{$name}}');
+$FW_TEMPLATE_PARAMS = ['action' => 'FW_ACTION324', 'name' => 'FW_NAME324'];
+for ($i = 0; $i < 2; $i++) { // コンパイル経路とキャッシュ経路の両方で確認
+    ob_start();
+    template_render('prio324.html', ['action' => 'TPL_ACTION324']);
+    $tpl_out = ob_get_clean();
+    test_assert(__LINE__, strpos($tpl_out, 'A=TPL_ACTION324') !== FALSE, "テンプレート: 呼び出し側の値が全体設定より優先される (試行$i)");
+    test_assert(__LINE__, strpos($tpl_out, 'N=FW_NAME324') !== FALSE, "テンプレート: 全体設定の値も使える (試行$i)");
+}
+$FW_TEMPLATE_PARAMS = [];
 $DIR_TEMPLATE = $saved_tpl_dir;
 $DIR_TEMPLATE_CACHE = $saved_tpl_cache;
 array_map('unlink', glob($tpl_dir324 . '/*'));

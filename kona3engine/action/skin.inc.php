@@ -76,6 +76,7 @@ function kona3_action_skin() {
   }
   $cache_expire_time = 60 * 60 * 3;
   header("Content-Type: $ctype");
+  header("X-Content-Type-Options: nosniff");
   header("Cache-Control: max-age={$cache_expire_time}");
   header("Expires: ".gmdate('D, d M Y H:i:s \G\M\T', time() + $cache_expire_time));
   $last_m = gmdate('D, d M Y H:i:s \G\M\T', filemtime($path));
