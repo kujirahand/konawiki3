@@ -111,6 +111,18 @@ qq(function(){
     console.warn("Storage read failed for line_height:", err);
   }
 
+  // ダイアログ内の現在の設定値表示を更新する (#330)
+  function updateTextStyleDisplay() {
+    const fontVal = document.getElementById('font_size_value');
+    if (fontVal) {
+      fontVal.textContent = Math.round(currentFontSize * 100) + '%';
+    }
+    const lineVal = document.getElementById('line_height_value');
+    if (lineVal) {
+      lineVal.textContent = currentLineHeight.toFixed(1);
+    }
+  }
+
   function updateTextStyle() {
     let css = '';
     // デフォルト値と異なる場合のみCSSを適用
@@ -157,6 +169,7 @@ qq(function(){
         styleEl.parentNode.removeChild(styleEl);
       }
     }
+    updateTextStyleDisplay();
   }
 
   // ボタンイベントの設定
@@ -203,6 +216,48 @@ qq(function(){
       updateTextStyle();
     });
   }
+  updateTextStyleDisplay();
+
+  // --- 設定ダイアログの制御 (#330) ---
+  // ハンバーガーメニューの項目はダイアログを開くだけにし、調整はダイアログ内で行う
+  function openSettingsDialog(dlg) {
+    if (!dlg) return;
+    if (typeof dlg.showModal === 'function') {
+      if (!dlg.open) { dlg.showModal(); }
+    } else {
+      dlg.setAttribute('open', '');
+    }
+  }
+  function closeSettingsDialog(dlg) {
+    if (!dlg) return;
+    if (typeof dlg.close === 'function' && dlg.open) {
+      dlg.close();
+    } else {
+      dlg.removeAttribute('open');
+    }
+  }
+  function setupSettingsDialog(openId, dialogId, closeId) {
+    const opener = document.getElementById(openId);
+    const dlg = document.getElementById(dialogId);
+    if (!opener || !dlg) return;
+    opener.addEventListener('click', function(e) {
+      if (e) { e.preventDefault(); }
+      openSettingsDialog(dlg);
+    });
+    const closer = document.getElementById(closeId);
+    if (closer) {
+      closer.addEventListener('click', function(e) {
+        if (e) { e.preventDefault(); }
+        closeSettingsDialog(dlg);
+      });
+    }
+    // ダイアログの背景(backdrop)クリックでも閉じる
+    dlg.addEventListener('click', function(e) {
+      if (e.target === dlg) { closeSettingsDialog(dlg); }
+    });
+  }
+  setupSettingsDialog('text_style_open', 'text_style_dialog', 'text_style_close');
+  setupSettingsDialog('cache_settings_open', 'cache_settings_dialog', 'cache_settings_close');
 
   // --- オフラインキャッシュの制御 ---
   const DB_NAME = 'kona3_offline_db';

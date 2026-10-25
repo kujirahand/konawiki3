@@ -290,6 +290,24 @@ body.dark-theme #drawer_wrapper nav.menuitems ul li a:hover {
   color: var(--k3d-drawer-hover);
 }
 
+/* settings dialogs in hamburger menu in dark mode (#330) */
+body.dark-theme .kona3-settings-dialog {
+  background-color: var(--k3d-field-bg);
+  color: var(--k3d-text);
+  border-color: var(--k3d-field-border);
+}
+
+body.dark-theme .kona3-settings-dialog button {
+  background-color: var(--k3d-button-bg);
+  color: var(--k3d-text);
+  border-color: var(--k3d-field-border);
+}
+
+body.dark-theme .kona3-settings-dialog button:hover {
+  background-color: var(--k3d-button-hover-bg);
+  color: var(--k3d-button-hover-fg);
+}
+
 /* pre / code / syntax highlighting */
 body.dark-theme pre,
 body.dark-theme .mathjax {

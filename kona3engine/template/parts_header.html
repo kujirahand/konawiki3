@@ -104,25 +104,61 @@
         }}
         <li class="menu-separator" aria-hidden="true" role="separator"></li>
         <li><a href="#" id="dark_mode_toggle">🌙 Dark Mode</a></li>
-        <li class="menu-separator" aria-hidden="true" role="separator"></li>
-        <li><a href="#" id="font_size_plus">{{e: echo lang('Increase Font Size') }}</a></li>
-        <li><a href="#" id="font_size_minus">{{e: echo lang('Decrease Font Size') }}</a></li>
-        <li class="menu-separator" aria-hidden="true" role="separator"></li>
-        <li><a href="#" id="line_height_plus">{{e: echo lang('Increase Line Height') }}</a></li>
-        <li><a href="#" id="line_height_minus">{{e: echo lang('Decrease Line Height') }}</a></li>
-        <li class="menu-separator" aria-hidden="true" role="separator"></li>
-        <li><a href="#" id="text_style_reset">{{e: echo lang('Reset Font & Line Height') }}</a></li>
-        <li class="menu-separator" aria-hidden="true" role="separator"></li>
+        <!-- #330: 文字サイズと行間はダイアログにまとめ、メニュー項目を減らす -->
+        <li><a href="#" id="text_style_open" aria-haspopup="dialog">{{e: echo lang('Font Size & Line Height') }}</a></li>
         {{ if !$static_mode }}
-        <li><a href="#" id="offline_cache_toggle">{{e: echo lang('Offline Cache') }}</a></li>
-        <li><a href="#" id="offline_cache_clear">{{e: echo lang('Clear Cache') }}</a></li>
+        <!-- #330: キャッシュ関連も「キャッシュの設定」ダイアログにまとめる -->
+        <li><a href="#" id="cache_settings_open" aria-haspopup="dialog">{{e: echo lang('Cache Settings') }}</a></li>
         {{ endif }}
+        <!-- #329: システムメニューとコンテンツメニュー(GlobalBar)の間に区切り線を入れる (キャッシュ設定の下) -->
+        <li class="menu-separator" aria-hidden="true" role="separator"></li>
       </ul>
       {{ e:echo kona3getWikiPage('GlobalBar', '') }}
     </nav>
   </div>
   <!-- 透明な背景ウィンドウ(閉じる専用) -->
   <div id="drawer_background"></div>
+  <!-- 文字サイズと行間の設定ダイアログ (#330) -->
+  <dialog id="text_style_dialog" class="kona3-settings-dialog" aria-label="{{e: echo lang('Font Size & Line Height') }}">
+    <h3>{{e: echo lang('Font Size & Line Height') }}</h3>
+    <div class="kona3-dialog-row">
+      <span>{{e: echo lang('Font Size') }}</span>
+      <span class="kona3-dialog-controls">
+        <button type="button" id="font_size_minus" aria-label="{{e: echo lang('Decrease Font Size') }}">−</button>
+        <span class="kona3-dialog-value" id="font_size_value">100%</span>
+        <button type="button" id="font_size_plus" aria-label="{{e: echo lang('Increase Font Size') }}">＋</button>
+      </span>
+    </div>
+    <div class="kona3-dialog-row">
+      <span>{{e: echo lang('Line Height') }}</span>
+      <span class="kona3-dialog-controls">
+        <button type="button" id="line_height_minus" aria-label="{{e: echo lang('Decrease Line Height') }}">−</button>
+        <span class="kona3-dialog-value" id="line_height_value">1.7</span>
+        <button type="button" id="line_height_plus" aria-label="{{e: echo lang('Increase Line Height') }}">＋</button>
+      </span>
+    </div>
+    <div class="kona3-dialog-row">
+      <button type="button" id="text_style_reset">{{e: echo lang('Reset Font & Line Height') }}</button>
+    </div>
+    <div class="kona3-dialog-actions">
+      <button type="button" id="text_style_close">{{e: echo lang('Close') }}</button>
+    </div>
+  </dialog>
+  {{ if !$static_mode }}
+  <!-- キャッシュの設定ダイアログ (#330) -->
+  <dialog id="cache_settings_dialog" class="kona3-settings-dialog" aria-label="{{e: echo lang('Cache Settings') }}">
+    <h3>{{e: echo lang('Cache Settings') }}</h3>
+    <div class="kona3-dialog-row">
+      <button type="button" id="offline_cache_toggle">{{e: echo lang('Offline Cache') }}</button>
+    </div>
+    <div class="kona3-dialog-row">
+      <button type="button" id="offline_cache_clear">{{e: echo lang('Clear Cache') }}</button>
+    </div>
+    <div class="kona3-dialog-actions">
+      <button type="button" id="cache_settings_close">{{e: echo lang('Close') }}</button>
+    </div>
+  </dialog>
+  {{ endif }}
 </div>
 <!-- drawer.end -->
 

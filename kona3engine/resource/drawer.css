@@ -102,6 +102,67 @@
     border: none !important;
 }
 
+/* settings dialogs in hamburger menu (#330) */
+.kona3-settings-dialog {
+    border: 1px solid #888;
+    border-radius: 12px;
+    padding: 16px 20px 20px;
+    width: 320px;
+    max-width: calc(100vw - 48px);
+    box-sizing: border-box;
+    background: #fff;
+    color: #222;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+}
+.kona3-settings-dialog::backdrop {
+    background: rgba(0,0,0,0.5);
+}
+.kona3-settings-dialog h3 {
+    margin: 0 0 12px;
+    font-size: 16px;
+}
+.kona3-settings-dialog .kona3-dialog-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 10px 0;
+}
+.kona3-settings-dialog .kona3-dialog-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.kona3-settings-dialog .kona3-dialog-value {
+    min-width: 3.5em;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+.kona3-settings-dialog button {
+    padding: 6px 14px;
+    border: 1px solid #888;
+    border-radius: 8px;
+    background: #f0f0f0;
+    color: #222;
+    font-size: 14px;
+    cursor: pointer;
+}
+.kona3-settings-dialog button:hover {
+    background: #e2e2e2;
+}
+.kona3-settings-dialog .kona3-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+@media print {
+    .kona3-settings-dialog {
+        display: none !important;
+    }
+}
+
 
 
 
