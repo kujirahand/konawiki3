@@ -1,7 +1,21 @@
 <?php
-require __DIR__.'/show.inc.php';
+require_once __DIR__.'/show.inc.php';
+
+// PDF出力が設定で有効かどうか (#325)
+// メニューの表示判定 (kona3lib) だけでなく、アクション側でも確認する。
+// これまでは use_pdf_out が無効でも URL を直接開けば PDF 化でき、
+// フォント未配置時は閲覧者のリクエストで外部URLからZIPを取得していた。
+function kona3_action_pdf_isEnabled() {
+    return (bool)kona3getConf('use_pdf_out', FALSE);
+}
 
 function kona3_action_pdf() {
+    // 設定チェック: use_pdf_out が無効なら何もしない (#325)
+    // (TCPDFの読み込みもフォントのダウンロードも行わない)
+    if (!kona3_action_pdf_isEnabled()) {
+      kona3error('PDF', 'PDF output is disabled.');
+      exit;
+    }
     // インストールチェック
     $lib = dirname(__DIR__).'/vendor/tecnickcom/tcpdf/tcpdf.php';
     if (!file_exists($lib)) {

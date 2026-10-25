@@ -87,6 +87,10 @@ $lang_data = [
     'Resend verification code' => '認証コードを再送信',
     'Verification code has been resent' => '新しい認証コードをメールで送信しました。メールをご確認ください。',
     'Code not found' => '認証コードが見つかりません。もう一度最初から登録してください。',
+    'Verification code has expired. Please request a new code.' => '認証コードの有効期限が切れています。新しいコードを再送信してください。',
+    'Too many verification attempts. Please request a new code.' => '認証コードの入力に何度も失敗したため、コードを無効にしました。新しいコードを再送信してください。',
+    'Please wait a moment before resending the code.' => '再送信まで少し時間をおいてください。',
+    'This email is already awaiting verification. Please enter the verification code or resend it.' => 'このメールアドレスは認証待ちです。認証コードを入力するか、コードを再送信してください。',
     'Please access here: %s' =>
     "この度は新規登録ありがとうございます。\n" .
         "下記のURLにアクセスすると完成です。\n" .

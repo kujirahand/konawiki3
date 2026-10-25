@@ -29,26 +29,31 @@ function kona3_action_update_page_history()
     $data_dir = KONA3_DIR_DATA;
     echo "<pre>";
 
-    // リンクを表示 (全削除リンクにはCSRFトークンを付ける, #324)
+    // 操作メニューを表示する
+    // 全削除は POST フォームにする (#325)。トークン付きでも GET リンクだと
+    // URLにトークンが残り (Referer/アクセスログ/履歴)、プリフェッチ等で
+    // 誤実行されうるため、破壊的操作はPOSTに統一する。
     $edit_token = kona3_getEditToken('edit_token');
     $current_url = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
     $base_url = preg_replace('/[\?\&](clear|edit_token)=[^&]*/', '', $current_url);
-    $separator = (strpos($base_url, '?') !== false) ? '&' : '?';
     $base_url_h = htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8');
-    $clear_url_h = htmlspecialchars(
-        $base_url . $separator . 'clear=all&edit_token=' . urlencode($edit_token),
-        ENT_QUOTES, 'UTF-8');
+    $edit_token_h = htmlspecialchars($edit_token, ENT_QUOTES, 'UTF-8');
 
     echo "=== [操作メニュー] ===\n";
     echo "- [1] <a href='{$base_url_h}' style='color: blue; text-decoration: underline;'>通常実行（履歴を残して追加）</a>\n";
-    echo "- [2] <a href='{$clear_url_h}' style='color: red; text-decoration: underline;'>全削除してやり直し</a>\n";
+    echo "- [2] <form method='post' action='{$base_url_h}' style='display:inline'>"
+        . "<input type='hidden' name='clear' value='all'>"
+        . "<input type='hidden' name='edit_token' value='{$edit_token_h}'>"
+        . "<input type='submit' value='全削除してやり直し' "
+        . "style='color: red; text-decoration: underline; background: none; border: none; cursor: pointer; padding: 0;'>"
+        . "</form>\n";
     echo "========================\n\n";
 
     echo "データディレクトリ: ".htmlspecialchars($data_dir)."\n";
 
-    // clearパラメータのチェック
+    // clearパラメータのチェック (POSTのみ受け付ける, #325)
     // 全削除は取り消せないため、CSRFトークンなしでは実行しない (#324)
-    $clear = isset($_GET['clear']) ? $_GET['clear'] : '';
+    $clear = isset($_POST['clear']) ? $_POST['clear'] : '';
     if ($clear === 'all') {
         if (!kona3_checkEditToken('edit_token')) {
             echo "エラー: Invalid Token (全削除には正しいトークンが必要です)\n";

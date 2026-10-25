@@ -92,8 +92,6 @@ function login_handle_success($page, $user, $ip, $remember = FALSE) {
         "<input type='submit' class='pure-button pure-button-primary' value='$m_success'>",
         "</form>",
     ]);
-    db_exec("DELETE FROM meta WHERE name='login_error' AND value_s=?", [$ip]);
-    $old_time = time() - 60 * 1;
-    db_exec("DELETE FROM meta WHERE name='login_error' AND value_i < ?", [$old_time]);
+    // 失敗記録の掃除は kona3tryLoginResult (成功時) が行う (#325)
     kona3showMessage($page, $msg);
 }

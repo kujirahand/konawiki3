@@ -18,6 +18,12 @@
  * - ログイン済みユーザーは、自分の投稿を削除パスワードなしで削除できる。
  * - ログイン済みユーザーが他人の投稿を削除しようとした場合、管理ユーザーへの依頼を促す。
  * - 管理ユーザーは、すべてのコメントを削除パスワードなしで削除できる。
+ * - todo/done の切替は、削除とは認可レベルが異なる「協調利用」が仕様 (#325):
+ *   コメントをWiki上の共有タスクとして使うため、ログイン済みユーザーであれば
+ *   投稿者でなくても切替できる (type=todo の一覧はそのための共有タスクボード)。
+ *   切替は可逆で内容も失われず、ログイン＋edit_token が必要。
+ *   一方、削除は不可逆なので投稿者本人/管理者のみに制限する。
+ *   この非対称は意図した仕様であり、docs/security_audit_324.md にも明記する。
 */
 function kona3plugins_comment_execute($params) {
   global $kona3conf;
@@ -360,6 +366,9 @@ function kona3plugins_comment_action() {
     return;
   }
   // set todo
+  // 仕様 (#325): todo切替は共有タスクの協調利用として、投稿者でなくても
+  // ログイン済みユーザーなら実行できる (不可逆な削除とは認可を分ける)。
+  // 詳細はこのファイル先頭のdocblockと docs/security_audit_324.md を参照。
   if ($m == "todo") {
     if (!kona3isLogin()) {
       _err($page, 'Please login.'); exit;
