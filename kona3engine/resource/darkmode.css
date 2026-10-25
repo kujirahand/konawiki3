@@ -291,21 +291,19 @@ body.dark-theme #drawer_wrapper nav.menuitems ul li a:hover {
 }
 
 /* settings dialogs in hamburger menu in dark mode (#330) */
+/* drawer.css の --kd-* 変数をダーク配色で上書きする */
 body.dark-theme .kona3-settings-dialog {
-  background-color: var(--k3d-field-bg);
-  color: var(--k3d-text);
-  border-color: var(--k3d-field-border);
-}
-
-body.dark-theme .kona3-settings-dialog button {
-  background-color: var(--k3d-button-bg);
-  color: var(--k3d-text);
-  border-color: var(--k3d-field-border);
-}
-
-body.dark-theme .kona3-settings-dialog button:hover {
-  background-color: var(--k3d-button-hover-bg);
-  color: var(--k3d-button-hover-fg);
+  --kd-bg: var(--k3d-field-bg);
+  --kd-fg: var(--k3d-text);
+  --kd-muted: #a3a8b0;
+  --kd-border: var(--k3d-field-border);
+  --kd-btn-bg: var(--k3d-button-bg);
+  --kd-btn-hover: var(--k3d-button-hover-bg);
+  --kd-accent: var(--k3d-link);
+  --kd-track: #4a4f58;
+  --kd-thumb: #e8e8e8;
+  --kd-ring: rgba(110, 168, 255, 0.45);
+  --kd-preview-bg: var(--k3d-msg-box-bg);
 }
 
 /* pre / code / syntax highlighting */

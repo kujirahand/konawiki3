@@ -89,4 +89,49 @@ test_assert(__LINE__, strpos($css_content, '.kona3-settings-dialog') !== false, 
 test_assert(__LINE__, strpos($css_content, '.kona3-settings-dialog::backdrop') !== false, "drawer.css contains dialog backdrop styles (#330)");
 test_assert(__LINE__, strpos($css_content, '.menu-separator') !== false, "drawer.css contains styling for menu-separator (#329)");
 
+// --- スライダー化 (フォローアップ: agy/Claude Opus のデザイン案を採用) ---
+// スライダー本体と属性
+test_assert(__LINE__, strpos($header_content, '<input type="range" id="font_size_range"') !== false, "parts_header.html contains font_size_range slider");
+test_assert(__LINE__, strpos($header_content, '<input type="range" id="line_height_range"') !== false, "parts_header.html contains line_height_range slider");
+test_assert(__LINE__, strpos($header_content, 'min="0.7" max="2.0" step="0.1"') !== false, "font size slider has 0.7-2.0 step 0.1");
+test_assert(__LINE__, strpos($header_content, 'min="1.2" max="2.5" step="0.1"') !== false, "line height slider has 1.2-2.5 step 0.1");
+// ラベルと値表示の関連付け、プレビュー、標準の目印
+test_assert(__LINE__, strpos($header_content, '<label for="font_size_range">') !== false, "font size slider has a label");
+test_assert(__LINE__, strpos($header_content, '<label for="line_height_range">') !== false, "line height slider has a label");
+test_assert(__LINE__, strpos($header_content, '<output id="font_size_value"') !== false, "font size value is an output element");
+test_assert(__LINE__, strpos($header_content, '<output id="line_height_value"') !== false, "line height value is an output element");
+test_assert(__LINE__, strpos($header_content, 'id="text_style_preview"') !== false, "dialog contains text preview");
+test_assert(__LINE__, strpos($header_content, "lang('Text Preview Sample')") !== false, "dialog uses Text Preview Sample lang text");
+test_assert(__LINE__, strpos($header_content, 'class="kona3-default-mark"') !== false, "sliders have a default mark");
+test_assert(__LINE__, strpos($header_content, "lang('Default')") !== false, "sliders use Default lang label");
+// +/- は端ラベル兼1段階ボタンとして残る
+test_assert(__LINE__, strpos($header_content, 'class="kona3-step-btn kona3-step-a-small"') !== false, "font minus is a small-A step button");
+test_assert(__LINE__, strpos($header_content, 'class="kona3-step-btn kona3-step-a-large"') !== false, "font plus is a large-A step button");
+
+// 言語キー (Default / Text Preview Sample)
+include $en_lang_file;
+test_assert(__LINE__, isset($lang_data['Default']), "en.inc.php has Default");
+test_assert(__LINE__, isset($lang_data['Text Preview Sample']), "en.inc.php has Text Preview Sample");
+include $ja_lang_file;
+test_assert(__LINE__, $lang_data['Default'] === '標準', "ja.inc.php has correct translation for Default");
+test_assert(__LINE__, isset($lang_data['Text Preview Sample']), "ja.inc.php has Text Preview Sample");
+
+// drawer.js: スライダーの input 連動・同期・標準位置
+test_assert(__LINE__, strpos($js_content, "addEventListener('input'") !== false, "drawer.js binds slider input events");
+test_assert(__LINE__, strpos($js_content, 'font_size_range') !== false, "drawer.js handles font_size_range");
+test_assert(__LINE__, strpos($js_content, 'line_height_range') !== false, "drawer.js handles line_height_range");
+test_assert(__LINE__, strpos($js_content, 'aria-valuetext') !== false, "drawer.js syncs aria-valuetext");
+test_assert(__LINE__, strpos($js_content, "'--fill'") !== false, "drawer.js syncs slider fill position");
+test_assert(__LINE__, strpos($js_content, "'--default-p'") !== false, "drawer.js places the default mark");
+test_assert(__LINE__, strpos($js_content, 'text_style_preview') !== false, "drawer.js updates the preview");
+test_assert(__LINE__, strpos($js_content, 'aria-disabled') !== false, "drawer.js marks end step buttons with aria-disabled");
+
+// drawer.css: スライダーとプレビューのスタイル
+test_assert(__LINE__, strpos($css_content, '.kona3-range') !== false, "drawer.css contains .kona3-range styles");
+test_assert(__LINE__, strpos($css_content, '::-webkit-slider-thumb') !== false, "drawer.css styles the webkit slider thumb");
+test_assert(__LINE__, strpos($css_content, '::-moz-range-thumb') !== false, "drawer.css styles the moz slider thumb");
+test_assert(__LINE__, strpos($css_content, '.kona3-text-preview') !== false, "drawer.css contains preview styles");
+test_assert(__LINE__, strpos($css_content, '.kona3-default-mark') !== false, "drawer.css contains default mark styles");
+test_assert(__LINE__, strpos($css_content, '--kd-accent') !== false, "drawer.css defines dialog color variables");
+
 echo "hamburger_menu.test.php: ALL OK\n";

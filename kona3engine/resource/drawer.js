@@ -77,12 +77,19 @@ qq(function(){
     }
   }
 
-  // 文字サイズと行間の初期化・制御
+  // 文字サイズと行間の初期化・制御 (#330: スライダーで調整)
   const DEFAULT_FONT_SIZE = 1.0;
   const DEFAULT_LINE_HEIGHT = 1.7;
+  const FONT_SIZE_MIN = 0.7;
+  const FONT_SIZE_MAX = 2.0;
   const FONT_SIZE_STEP = 0.1;
+  const LINE_HEIGHT_MIN = 1.2;
+  const LINE_HEIGHT_MAX = 2.5;
   const LINE_HEIGHT_STEP = 0.1;
-  
+
+  // 0.1刻みの計算で出る浮動小数点の誤差 (1.2000000002など) を取り除く
+  function roundStep(v) { return Math.round(v * 10) / 10; }
+
   // 現在の設定値を取得（localStorageまたはデフォルト）
   let currentFontSize = DEFAULT_FONT_SIZE;
   let currentLineHeight = DEFAULT_LINE_HEIGHT;
@@ -111,16 +118,54 @@ qq(function(){
     console.warn("Storage read failed for line_height:", err);
   }
 
+  // スライダーの位置・塗りつぶし・読み上げ用テキストを値に同期する
+  function syncSlider(range, value, min, max, text) {
+    if (!range) return;
+    if (parseFloat(range.value) !== value) { range.value = String(value); }
+    range.setAttribute('aria-valuetext', text);
+    range.style.setProperty('--fill', ((value - min) / (max - min) * 100) + '%');
+  }
+
+  // disabledにすると押した直後にフォーカスが外れるので、端のボタンはaria-disabledで表す
+  function setStepAriaDisabled(id, flag) {
+    const el = document.getElementById(id);
+    if (el) { el.setAttribute('aria-disabled', flag ? 'true' : 'false'); }
+  }
+  function isStepDisabled(id) {
+    const el = document.getElementById(id);
+    return el && el.getAttribute('aria-disabled') === 'true';
+  }
+
   // ダイアログ内の現在の設定値表示を更新する (#330)
   function updateTextStyleDisplay() {
+    const fontText = Math.round(currentFontSize * 100) + '%';
+    const lineText = currentLineHeight.toFixed(1);
     const fontVal = document.getElementById('font_size_value');
     if (fontVal) {
-      fontVal.textContent = Math.round(currentFontSize * 100) + '%';
+      fontVal.textContent = fontText;
     }
     const lineVal = document.getElementById('line_height_value');
     if (lineVal) {
-      lineVal.textContent = currentLineHeight.toFixed(1);
+      lineVal.textContent = lineText;
     }
+    syncSlider(document.getElementById('font_size_range'),
+      currentFontSize, FONT_SIZE_MIN, FONT_SIZE_MAX, fontText);
+    syncSlider(document.getElementById('line_height_range'),
+      currentLineHeight, LINE_HEIGHT_MIN, LINE_HEIGHT_MAX, lineText);
+    // ダイアログ内のサンプル文にもその場で反映する
+    const preview = document.getElementById('text_style_preview');
+    if (preview) {
+      preview.style.fontSize = currentFontSize.toFixed(1) + 'rem';
+      preview.style.lineHeight = currentLineHeight.toFixed(1);
+    }
+    const eps = 0.001;
+    setStepAriaDisabled('font_size_minus', currentFontSize <= FONT_SIZE_MIN + eps);
+    setStepAriaDisabled('font_size_plus', currentFontSize >= FONT_SIZE_MAX - eps);
+    setStepAriaDisabled('line_height_minus', currentLineHeight <= LINE_HEIGHT_MIN + eps);
+    setStepAriaDisabled('line_height_plus', currentLineHeight >= LINE_HEIGHT_MAX - eps);
+    setStepAriaDisabled('text_style_reset',
+      Math.abs(currentFontSize - DEFAULT_FONT_SIZE) < 0.01 &&
+      Math.abs(currentLineHeight - DEFAULT_LINE_HEIGHT) < 0.01);
   }
 
   function updateTextStyle() {
@@ -182,14 +227,16 @@ qq(function(){
   if (btnFontPlus) {
     btnFontPlus.click(function(e) {
       if (e) { e.preventDefault(); }
-      currentFontSize = Math.min(2.0, currentFontSize + FONT_SIZE_STEP);
+      if (isStepDisabled('font_size_plus')) return;
+      currentFontSize = roundStep(Math.min(FONT_SIZE_MAX, currentFontSize + FONT_SIZE_STEP));
       updateTextStyle();
     });
   }
   if (btnFontMinus) {
     btnFontMinus.click(function(e) {
       if (e) { e.preventDefault(); }
-      currentFontSize = Math.max(0.7, currentFontSize - FONT_SIZE_STEP);
+      if (isStepDisabled('font_size_minus')) return;
+      currentFontSize = roundStep(Math.max(FONT_SIZE_MIN, currentFontSize - FONT_SIZE_STEP));
       updateTextStyle();
     });
   }
@@ -197,20 +244,50 @@ qq(function(){
   if (btnLinePlus) {
     btnLinePlus.click(function(e) {
       if (e) { e.preventDefault(); }
-      currentLineHeight = Math.min(2.5, currentLineHeight + LINE_HEIGHT_STEP);
+      if (isStepDisabled('line_height_plus')) return;
+      currentLineHeight = roundStep(Math.min(LINE_HEIGHT_MAX, currentLineHeight + LINE_HEIGHT_STEP));
       updateTextStyle();
     });
   }
   if (btnLineMinus) {
     btnLineMinus.click(function(e) {
       if (e) { e.preventDefault(); }
-      currentLineHeight = Math.max(1.2, currentLineHeight - LINE_HEIGHT_STEP);
+      if (isStepDisabled('line_height_minus')) return;
+      currentLineHeight = roundStep(Math.max(LINE_HEIGHT_MIN, currentLineHeight - LINE_HEIGHT_STEP));
       updateTextStyle();
     });
   }
+
+  // スライダー: 動かした瞬間に反映・保存する (inputイベント)
+  function bindTextStyleRange(id, apply) {
+    const range = document.getElementById(id);
+    if (!range) return;
+    range.addEventListener('input', function() {
+      const v = parseFloat(range.value);
+      if (isNaN(v)) return;
+      apply(roundStep(v));
+      updateTextStyle();
+    });
+  }
+  bindTextStyleRange('font_size_range', function(v) {
+    currentFontSize = Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, v));
+  });
+  bindTextStyleRange('line_height_range', function(v) {
+    currentLineHeight = Math.min(LINE_HEIGHT_MAX, Math.max(LINE_HEIGHT_MIN, v));
+  });
+
+  // 「標準」の目印をデフォルト値の位置に置く
+  function placeDefaultMark(rangeId, def, min, max) {
+    const range = document.getElementById(rangeId);
+    if (!range || !range.parentNode) return;
+    range.parentNode.style.setProperty('--default-p', String((def - min) / (max - min)));
+  }
+  placeDefaultMark('font_size_range', DEFAULT_FONT_SIZE, FONT_SIZE_MIN, FONT_SIZE_MAX);
+  placeDefaultMark('line_height_range', DEFAULT_LINE_HEIGHT, LINE_HEIGHT_MIN, LINE_HEIGHT_MAX);
   if (btnReset) {
     btnReset.click(function(e) {
       if (e) { e.preventDefault(); }
+      if (isStepDisabled('text_style_reset')) return;
       currentFontSize = DEFAULT_FONT_SIZE;
       currentLineHeight = DEFAULT_LINE_HEIGHT;
       updateTextStyle();

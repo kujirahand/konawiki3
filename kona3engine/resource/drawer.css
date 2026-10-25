@@ -104,14 +104,29 @@
 
 /* settings dialogs in hamburger menu (#330) */
 .kona3-settings-dialog {
-    border: 1px solid #888;
+    /* 配色は変数にまとめる (ダークモードは darkmode.css で変数を上書きする) */
+    --kd-bg: #fff;
+    --kd-fg: #222;
+    --kd-muted: #666;
+    --kd-border: #888;
+    --kd-btn-bg: #f0f0f0;
+    --kd-btn-hover: #e2e2e2;
+    --kd-accent: #2b6cd4;
+    --kd-track: #d4d8df;
+    --kd-thumb: #fff;
+    --kd-ring: rgba(43, 108, 212, 0.35);
+    --kd-preview-bg: #f7f7f4;
+    --kd-thumb-size: 24px;
+    --kd-track-h: 6px;
+
+    border: 1px solid var(--kd-border);
     border-radius: 12px;
     padding: 16px 20px 20px;
-    width: 320px;
-    max-width: calc(100vw - 48px);
+    width: 360px;
+    max-width: calc(100vw - 32px);
     box-sizing: border-box;
-    background: #fff;
-    color: #222;
+    background: var(--kd-bg);
+    color: var(--kd-fg);
     box-shadow: 0 8px 32px rgba(0,0,0,0.35);
 }
 .kona3-settings-dialog::backdrop {
@@ -140,21 +155,216 @@
 }
 .kona3-settings-dialog button {
     padding: 6px 14px;
-    border: 1px solid #888;
+    border: 1px solid var(--kd-border);
     border-radius: 8px;
-    background: #f0f0f0;
-    color: #222;
+    background: var(--kd-btn-bg);
+    color: var(--kd-fg);
     font-size: 14px;
+    min-height: 36px;
     cursor: pointer;
 }
 .kona3-settings-dialog button:hover {
-    background: #e2e2e2;
+    background: var(--kd-btn-hover);
+}
+.kona3-settings-dialog button:focus-visible {
+    outline: 2px solid var(--kd-accent);
+    outline-offset: 2px;
+}
+.kona3-settings-dialog button[aria-disabled="true"] {
+    opacity: 0.4;
+    cursor: default;
+}
+.kona3-settings-dialog button[aria-disabled="true"]:hover {
+    background: var(--kd-btn-bg);
 }
 .kona3-settings-dialog .kona3-dialog-actions {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
     margin-top: 16px;
+}
+/* リセットは左、閉じるは右に置く */
+.kona3-settings-dialog .kona3-dialog-actions .kona3-reset-btn {
+    margin-right: auto;
+}
+
+/* サンプル文プレビュー (高さ固定: 値を変えてもスライダーの位置がずれない) */
+.kona3-text-preview {
+    position: relative;
+    height: 6.5rem;
+    overflow: hidden;
+    margin: 0 0 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--kd-border);
+    border-radius: 8px;
+    background: var(--kd-preview-bg);
+    font-size: 1rem;
+    line-height: 1.7;
+    box-sizing: border-box;
+}
+.kona3-text-preview p {
+    margin: 0;
+}
+.kona3-text-preview::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1.5rem;
+    background: linear-gradient(to bottom, transparent, var(--kd-preview-bg));
+    pointer-events: none;
+}
+
+/* スライダーの行 (#330) */
+.kona3-slider-field {
+    margin: 12px 0 4px;
+}
+.kona3-slider-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 2px;
+}
+.kona3-slider-head label {
+    font-size: 14px;
+    font-weight: 600;
+}
+.kona3-slider-field .kona3-dialog-value {
+    min-width: 4em;
+    text-align: right;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--kd-accent);
+}
+.kona3-slider-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+}
+/* 端ラベル兼用の1段階ボタン (タッチ範囲44px) */
+.kona3-settings-dialog .kona3-step-btn {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+}
+.kona3-settings-dialog .kona3-step-btn.kona3-step-a-small {
+    font-size: 13px;
+}
+.kona3-settings-dialog .kona3-step-btn.kona3-step-a-large {
+    font-size: 21px;
+}
+.kona3-slider-track {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    padding-bottom: 16px; /* 「標準」ラベルを表示する余白 */
+}
+/* 「標準」の目印: つまみの中心が通る範囲に合わせて配置する */
+.kona3-default-mark,
+.kona3-default-label {
+    position: absolute;
+    left: calc(var(--kd-thumb-size) / 2 + (100% - var(--kd-thumb-size)) * var(--default-p, 0));
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+.kona3-default-mark {
+    top: 29px;
+    width: 2px;
+    height: 7px;
+    border-radius: 1px;
+    background: var(--kd-muted);
+}
+.kona3-default-label {
+    top: 38px;
+    font-size: 11px;
+    line-height: 1;
+    color: var(--kd-muted);
+    white-space: nowrap;
+}
+
+/* input[type=range] 本体 (タッチ範囲44px) */
+.kona3-range {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 100%;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+}
+.kona3-range:focus {
+    outline: none; /* フォーカスリングはつまみ側に表示する */
+}
+/* WebKit / Blink (webkit と moz のセレクタは1つのルールにまとめないこと) */
+.kona3-range::-webkit-slider-runnable-track {
+    height: var(--kd-track-h);
+    border-radius: 999px;
+    background: linear-gradient(to right,
+        var(--kd-accent) 0, var(--kd-accent) var(--fill, 50%),
+        var(--kd-track) var(--fill, 50%), var(--kd-track) 100%);
+}
+.kona3-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
+    width: var(--kd-thumb-size);
+    height: var(--kd-thumb-size);
+    margin-top: calc((var(--kd-track-h) - var(--kd-thumb-size)) / 2);
+    border: 3px solid var(--kd-accent);
+    border-radius: 50%;
+    background: var(--kd-thumb);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.kona3-range:active::-webkit-slider-thumb {
+    transform: scale(1.15);
+}
+.kona3-range:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 6px var(--kd-ring), 0 1px 3px rgba(0,0,0,0.3);
+}
+/* Firefox */
+.kona3-range::-moz-range-track {
+    height: var(--kd-track-h);
+    border-radius: 999px;
+    background: var(--kd-track);
+}
+.kona3-range::-moz-range-progress {
+    height: var(--kd-track-h);
+    border-radius: 999px;
+    background: var(--kd-accent);
+}
+.kona3-range::-moz-range-thumb {
+    box-sizing: border-box;
+    width: var(--kd-thumb-size);
+    height: var(--kd-thumb-size);
+    border: 3px solid var(--kd-accent);
+    border-radius: 50%;
+    background: var(--kd-thumb);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.kona3-range:active::-moz-range-thumb {
+    transform: scale(1.15);
+}
+.kona3-range:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 6px var(--kd-ring), 0 1px 3px rgba(0,0,0,0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .kona3-range::-webkit-slider-thumb { transition: none; }
+    .kona3-range::-moz-range-thumb { transition: none; }
 }
 
 @media print {
