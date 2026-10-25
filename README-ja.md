@@ -121,6 +121,16 @@ chown -R www-data:www-data /path/to/wiki
 docker-compose up
 ```
 
+### Webサーバーの設定について (内部ディレクトリへのアクセス拒否)
+
+Apacheでは、`data/`、`private/`、`docs/` に置いた `.htaccess` により直接アクセスが拒否されます。nginx など `.htaccess` が効かないサーバーでは、同等の設定をサーバー側で行う必要があります。特に `docs/` はファイルの有無からKonawiki3のバージョンが推測できてしまうため、`docs/` へのアクセスも拒否してください。
+
+```nginx
+location ~ ^/(data|private|docs)/ {
+    deny all;
+}
+```
+
 ## (オプション) ライブラリのインストール
 
 Git保存機能や簡易PDF生成機能を使用したい場合などは、composerを使用してインストールします。
