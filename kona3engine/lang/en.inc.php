@@ -53,6 +53,7 @@ $lang_data = [
     'Verify' => 'Verify',
     'Resend verification code' => 'Resend verification code',
     'Verification code has been resent' => 'A new verification code has been sent to your email. Please check your email.',
+    'Verification email could not be sent because mail is not configured. Please contact the administrator.' => 'The verification email could not be sent because mail is not configured on this wiki. Please contact the administrator.',
     'Code not found' => 'Verification code not found. Please register again from the beginning.',
     'Verification code has expired. Please request a new code.' => 'The verification code has expired. Please request a new code.',
     'Too many verification attempts. Please request a new code.' => 'Too many failed verification attempts. The code has been invalidated. Please request a new code.',

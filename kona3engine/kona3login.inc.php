@@ -639,14 +639,33 @@ function kona3_admin_auth_result($user, $pw, $kona3conf) {
   // 新方式と、個別ソルトを使う旧SHA-512形式の両方を検証する。
   if (kona3password_verify($pw, $hash, $salt)) {
     if (kona3password_needsRehash($hash)) {
-      $users[$user]['hash'] = kona3password_hash($pw);
-      kona3saveAdminUsers($users);
+      kona3password_migrateAdminHash($user, $pw, $hash);
     }
     $email = isset($kona3conf['admin_email']) ? $kona3conf['admin_email'] : '';
     kona3login($user, $email, "admin", 0);
     return ['ok' => TRUE, 'reason' => KONA3_LOGIN_REASON_OK];
   }
   return ['ok' => FALSE, 'reason' => KONA3_LOGIN_REASON_INVALID];
+}
+
+// ログイン成功時に管理者のパスワード保存形式を移行する。
+// 認証開始時点の一覧をそのまま書き戻すと、その間に並行して行われた
+// 管理者の追加・パスワード変更を古い内容で上書きしてしまう (agyレビュー
+// PR #335 中1)。保存直前に最新の一覧を読み直し、対象ユーザーのハッシュが
+// 照合した値のままの場合だけ差し替える。
+// 戻り値: TRUE=移行して保存した, FALSE=対象不在・変更済み・読み取り失敗で保存しなかった
+function kona3password_migrateAdminHash($user, $pw, $verifiedHash) {
+  try {
+    $fresh = kona3getAdminUsersStrict();
+  } catch (JsonphpLoadException $e) {
+    return FALSE;
+  }
+  if (!isset($fresh[$user])) return FALSE;
+  $current = isset($fresh[$user]['hash']) ? $fresh[$user]['hash'] : '';
+  if (!hash_equals((string)$current, (string)$verifiedHash)) return FALSE;
+  $fresh[$user]['hash'] = kona3password_hash($pw);
+  kona3saveAdminUsers($fresh);
+  return TRUE;
 }
 
 // --- 一般ユーザー認証 ---

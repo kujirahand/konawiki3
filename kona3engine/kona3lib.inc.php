@@ -1377,11 +1377,14 @@ function kona3getShortcutLink()
 
 
 
+// 戻り値: TRUE=送信を試みた, FALSE=送信設定が未完了のため送信しなかった
+// (admin_email が未設定または初期値のままでは送信しない。その場合に
+// 呼び出し側が無言で「送信しました」と案内しないよう、結果を返す)
 function kona3lib_send_email($to, $subject, $email_body)
 {
     $admin_email = kona3getConf('admin_email', '');
     if ($admin_email == '' || $admin_email == 'admin@example.com') {
-        return;
+        return FALSE;
     }
     $headers = "From: $admin_email";
     @mb_send_mail($to, $subject, $email_body, $headers);
@@ -1393,6 +1396,7 @@ function kona3lib_send_email($to, $subject, $email_body)
             'VALUES(?, ?,?,?)'
     );
     $stmt->execute([$to, $email_body, $subject, time()]);
+    return TRUE;
 }
 
 function kona3lib_send_email_to_admin($subject, $email_body)

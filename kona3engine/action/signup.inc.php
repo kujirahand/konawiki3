@@ -170,8 +170,11 @@ function kona3_action_signup() {
       $code, $admin_email);
     $signup_title = "[$wiki_title] ".lang('Signup');
     // Hostヘッダーはクライアントが指定できるため、認証コードを表示しない。
-    kona3lib_send_email($email, $signup_title, $signup_body);
-    $msg = lang('Verification code has been resent');
+    // 送信設定が未完了の場合は、送信できたように見せない (PR #335 中2)。
+    $sent = kona3lib_send_email($email, $signup_title, $signup_body);
+    $msg = $sent
+      ? lang('Verification code has been resent')
+      : lang('Verification email could not be sent because mail is not configured. Please contact the administrator.');
     // 認証コード入力画面に戻る
     signup_render_verify($action, $email, $msg);
   }
@@ -309,7 +312,11 @@ function signup_execute($user, $email, $pw, &$msg) {
   $signup_title = "[$wiki_title] ".lang('Signup');
   $body_msg = lang('Please check email for code.');
   // ローカル環境でもコードはメールのみで通知する。
-  kona3lib_send_email($email, $signup_title, $signup_body);
+  // 送信設定が未完了の場合は、送信できたように見せない (PR #335 中2)。
+  $sent = kona3lib_send_email($email, $signup_title, $signup_body);
+  if (!$sent) {
+    $body_msg = lang('Verification email could not be sent because mail is not configured. Please contact the administrator.');
+  }
   // --- コード入力画面へのリンクを表示 ---
   $verify_url = kona3getPageURL("user", "signup", "",
     kona3getURLParams([

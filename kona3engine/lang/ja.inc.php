@@ -86,6 +86,7 @@ $lang_data = [
     'Verify' => '認証する',
     'Resend verification code' => '認証コードを再送信',
     'Verification code has been resent' => '新しい認証コードをメールで送信しました。メールをご確認ください。',
+    'Verification email could not be sent because mail is not configured. Please contact the administrator.' => 'メール送信が設定されていないため、認証コードを送信できませんでした。管理者にお問い合わせください。',
     'Code not found' => '認証コードが見つかりません。もう一度最初から登録してください。',
     'Verification code has expired. Please request a new code.' => '認証コードの有効期限が切れています。新しいコードを再送信してください。',
     'Too many verification attempts. Please request a new code.' => '認証コードの入力に何度も失敗したため、コードを無効にしました。新しいコードを再送信してください。',

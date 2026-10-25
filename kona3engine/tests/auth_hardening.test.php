@@ -5,7 +5,10 @@ require_once KONA3_DIR_ENGINE . '/action/signup.inc.php';
 // 終了するアクションは別プロセスで実行し、実際のレスポンスを検査する。
 if (isset($argv[1]) && $argv[1] === '--signup-probe') {
     $kona3conf['allow_add_user'] = true;
-    $kona3conf['admin_email'] = 'admin@example.com'; // 外部メールを送らない
+    // 第5引数 mailok のときだけ送信設定が有効な状態にする。
+    // それ以外は初期値 (プレースホルダ) で、メールは送信されない。
+    $kona3conf['admin_email'] = (isset($argv[4]) && $argv[4] === 'mailok')
+        ? 'wiki-admin@example.org' : 'admin@example.com';
     $kona3conf['page'] = 'signup';
     $_SERVER['HTTP_HOST'] = $argv[3];
     $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -42,7 +45,28 @@ foreach (['localhost', 'localhost:8080', 'wiki.example.com'] as $host) {
         test_assert(__LINE__, strpos($response, 'DEBUG:') === false, "signup $mode $host: no code disclosure");
         $expected = $mode === 'try' ? 'a_mode=verify' : 'name="a_code"';
         test_assert(__LINE__, strpos($response, $expected) !== false, "signup $mode $host: verification flow rendered");
+        // 送信設定が未完了 (admin_email が初期値) のときは、送信できたように
+        // 見せず、その旨が表示される (PR #335 中2)。
+        $warned = strpos($response, 'could not be sent because mail is not configured') !== false
+            || strpos($response, '認証コードを送信できませんでした') !== false;
+        test_assert(__LINE__, $warned, "signup $mode $host: mail-not-configured warning shown");
     }
+}
+
+// 送信設定が有効なときは警告が出ず、通常の案内になる (PR #335 中2)。
+// テスト環境には MTA がなく実際の配送はされないが、送信処理は試みられる。
+foreach (['try', 'resend'] as $mode) {
+    $out = [];
+    $code = -1;
+    exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' --signup-probe '
+        . escapeshellarg($mode) . ' ' . escapeshellarg('wiki.example.com')
+        . ' ' . escapeshellarg('mailok') . ' 2>&1', $out, $code);
+    $response = implode("\n", $out);
+    test_eq(__LINE__, $code, 0, "signup $mode mailok: action succeeds");
+    test_assert(__LINE__, strpos($response, 'DEBUG:') === false, "signup $mode mailok: no code disclosure");
+    $warned = strpos($response, 'could not be sent because mail is not configured') !== false
+        || strpos($response, '認証コードを送信できませんでした') !== false;
+    test_assert(__LINE__, !$warned, "signup $mode mailok: no mail warning");
 }
 
 $newHashAuth = kona3password_hash($authPw);
@@ -92,11 +116,40 @@ kona3saveAdminUsers(['legacy-auth-admin' => ['hash' => kona3getHash($authPw, 'le
 test_assert(__LINE__, kona3_admin_auth('legacy-auth-admin', $authPw, $kona3conf), 'legacy admin password accepted');
 $adminsAuth = kona3getAdminUsers();
 test_assert(__LINE__, !kona3password_needsRehash($adminsAuth['legacy-auth-admin']['hash']), 'legacy admin password migrated');
+
 kona3login_refreshSession();
 test_assert(__LINE__, kona3isAdmin(), 'configured admin session remains valid');
 kona3saveAdminUsers([]);
 kona3login_refreshSession();
 test_assert(__LINE__, !kona3isLogin(), 'removed configured admin loses session');
+// 管理者移行は保存直前に最新の一覧を読み直し、並行する変更を上書き
+// しない (PR #335 中1: agyレビュー対応)。
+$migHashA = kona3getHash($authPw, 'mig-salt-a');
+$migHashB = kona3getHash($authPw, 'mig-salt-b');
+kona3saveAdminUsers(['mig-admin-a' => ['hash' => $migHashA, 'salt' => 'mig-salt-a']]);
+// 認証開始後に別の管理者が追加された状況を再現する。
+kona3saveAdminUsers([
+    'mig-admin-a' => ['hash' => $migHashA, 'salt' => 'mig-salt-a'],
+    'mig-admin-b' => ['hash' => $migHashB, 'salt' => 'mig-salt-b'],
+]);
+test_assert(__LINE__, kona3password_migrateAdminHash('mig-admin-a', $authPw, $migHashA),
+    'admin migration: migrates against the fresh list');
+$adminsAuth = kona3getAdminUsers();
+test_assert(__LINE__, !kona3password_needsRehash($adminsAuth['mig-admin-a']['hash']),
+    'admin migration: target admin migrated');
+test_eq(__LINE__, $adminsAuth['mig-admin-b']['hash'], $migHashB,
+    'admin migration: concurrently added admin preserved');
+// 照合後にハッシュが変わっていたら、古い照合結果で上書きしない。
+$migChanged = kona3password_hash($authPw);
+kona3saveAdminUsers(['mig-admin-a' => ['hash' => $migChanged, 'salt' => 'mig-salt-a']]);
+test_assert(__LINE__, !kona3password_migrateAdminHash('mig-admin-a', $authPw, $migHashA),
+    'admin migration: skips when hash changed after verification');
+$adminsAuth = kona3getAdminUsers();
+test_eq(__LINE__, $adminsAuth['mig-admin-a']['hash'], $migChanged,
+    'admin migration: changed hash preserved');
+// 対象が削除されていたら保存しない。
+test_assert(__LINE__, !kona3password_migrateAdminHash('missing-admin', $authPw, $migHashA),
+    'admin migration: missing admin skipped');
 kona3createAdminUser('new-auth-admin', $authPw);
 $adminsAuth = kona3getAdminUsers();
 test_assert(__LINE__, !kona3password_needsRehash($adminsAuth['new-auth-admin']['hash']), 'new admin uses modern password hash');
@@ -107,6 +160,14 @@ require_once KONA3_DIR_ENGINE . '/action/admin.inc.php';
 kona3sestup_admin_write_pw('setup-auth-admin', $authPw);
 $adminsAuth = kona3getAdminUsers();
 test_assert(__LINE__, !kona3password_needsRehash($adminsAuth['setup-auth-admin']['hash']), 'setup screen uses modern password hash');
+
+// メール送信設定が未完了なら送信せず FALSE を返す (PR #335 中2)。
+$kona3conf['admin_email'] = 'admin@example.com';
+test_assert(__LINE__, kona3lib_send_email('someone@example.com', 'title', 'body') === FALSE,
+    'send_email: placeholder admin_email is not sent');
+$kona3conf['admin_email'] = '';
+test_assert(__LINE__, kona3lib_send_email('someone@example.com', 'title', 'body') === FALSE,
+    'send_email: empty admin_email is not sent');
 
 // 新規登録の保存形式も検査する (メールは送信しない)。
 $kona3conf['admin_email'] = 'admin@example.com';
