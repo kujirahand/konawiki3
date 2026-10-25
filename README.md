@@ -121,6 +121,16 @@ Run the following command in your terminal to start Konawiki3. This runs Konawik
 docker-compose up
 ```
 
+### Web Server Notes (Blocking Access to Internal Directories)
+
+On Apache, `.htaccess` files in `data/`, `private/` and `docs/` deny direct access. Servers that ignore `.htaccess` (such as nginx) need an equivalent rule in the server configuration. In particular, the files in `docs/` reveal the version of Konawiki3 by their presence, so deny access to `docs/` as well.
+
+```nginx
+location ~ ^/(data|private|docs)/ {
+    deny all;
+}
+```
+
 ## Installing Libraries (Optional)
 
 If you want to use features such as Git saving or simple PDF generation, install the libraries with Composer.
