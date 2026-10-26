@@ -929,10 +929,10 @@ function kona3edit_ai_get_validated_model($ai_model, $provider)
         if ($provider === "OpenRouter") {
             $ai_model = kona3getConf('openrouter_model', '');
             if ($ai_model === '') {
-                $ai_model = 'meta-llama/llama-3-8b-instruct:free';
+                $ai_model = 'openrouter/free';
             }
         } else {
-            $ai_model = kona3getConf('openai_apikey_model', 'gpt-4o-mini');
+            $ai_model = kona3getConf('openai_apikey_model', 'gpt-6-luna');
         }
     } else {
         // OpenAIプロバイダーの場合、モデル名がホワイトリストに含まれるか検証する
@@ -940,9 +940,9 @@ function kona3edit_ai_get_validated_model($ai_model, $provider)
             $confItems = kona3conf_getConfigItems();
             $allowed_models = isset($confItems['AI']['openai_apikey_model']['items']) 
                 ? $confItems['AI']['openai_apikey_model']['items'] 
-                : ['gpt-5', 'gpt-5-mini', 'gpt-4.1', 'gpt-4.1-mini', 'gpt-4o', 'gpt-4o-mini'];
+                : ['gpt-6.1-sol', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-5.5', 'gpt-5.4-mini'];
             if (!in_array($ai_model, $allowed_models, TRUE)) {
-                $ai_model = kona3getConf('openai_apikey_model', 'gpt-4o-mini');
+                $ai_model = kona3getConf('openai_apikey_model', 'gpt-6-luna');
             }
         }
     }
@@ -1030,7 +1030,7 @@ function kona3edit_ai_get_provider_settings()
     }
     if ($ai_provider === 'OpenAI') {
         $apikey = $openai_key;
-        $default_model = kona3getConf('openai_apikey_model', 'gpt-4o-mini');
+        $default_model = kona3getConf('openai_apikey_model', 'gpt-6-luna');
     } else if ($ai_provider === 'OpenRouter') {
         $apikey = $openrouter_key;
         $default_model = kona3getConf('openrouter_model', '');

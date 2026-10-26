@@ -141,9 +141,9 @@ function kona3conf_getConfigItems()
         'AI' => [
             'openai_provider' => ['label' => 'AI Provider', 'default' => 'none', 'type' => 'select', 'items' => ['none', 'OpenAI', 'OpenRouter']],
             'openai_apikey' => ['label' => 'OpenAI API Key', 'default' => '', 'type' => 'string', 'note' => 'for ChatGPT'],
-            'openai_apikey_model' => ['label' => 'OpenAI API Model', 'default' => 'gpt-4o-mini', 'type' => 'select', 'items' => ['gpt-5', 'gpt-5-mini', 'gpt-4.1', 'gpt-4.1-mini', 'gpt-4o', 'gpt-4o-mini']],
+            'openai_apikey_model' => ['label' => 'OpenAI API Model', 'default' => 'gpt-6-luna', 'type' => 'select', 'items' => ['gpt-6.1-sol', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-5.5', 'gpt-5.4-mini']],
             'openrouter_apikey' => ['label' => 'OpenRouter API Key', 'default' => '', 'type' => 'string'],
-            'openrouter_model' => ['label' => 'OpenRouter Model', 'default' => '', 'type' => 'string', 'note' => 'e.g. meta-llama/llama-3-8b-instruct:free'],
+            'openrouter_model' => ['label' => 'OpenRouter Model', 'default' => '', 'type' => 'string', 'note' => 'e.g. openai/gpt-6-luna'],
             'openai_api_basic_instruction' => ['label' => 'OpenAI Basic Instruction', 'default' => 'You are helpful AI assistant.', 'type' => 'string'],
             'ai_shortcut_complete' => ['label' => 'Shortcut: AI Complete', 'default' => 'Ctrl+Shift+H', 'type' => 'string'],
             'ai_shortcut_spellcheck' => ['label' => 'Shortcut: AI Spellcheck', 'default' => 'Ctrl+Shift+J', 'type' => 'string'],
