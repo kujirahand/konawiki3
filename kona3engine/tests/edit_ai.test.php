@@ -5,15 +5,15 @@ require_once KONA3_DIR_ENGINE . '/action/edit.inc.php';
 // --- AIモデル名検証機能のテスト ---
 
 // 1. OpenAIプロバイダーで有効なモデルを指定した場合
-$model = kona3edit_ai_get_validated_model('gpt-4o-mini', 'OpenAI');
-test_eq(__LINE__, $model, 'gpt-4o-mini', "OpenAI: 有効なモデル 'gpt-4o-mini' はそのまま許可される");
+$model = kona3edit_ai_get_validated_model('gpt-6-luna', 'OpenAI');
+test_eq(__LINE__, $model, 'gpt-6-luna', "OpenAI: 有効なモデル 'gpt-6-luna' はそのまま許可される");
 
-$model = kona3edit_ai_get_validated_model('gpt-5', 'OpenAI');
-test_eq(__LINE__, $model, 'gpt-5', "OpenAI: 有効なモデル 'gpt-5' はそのまま許可される");
+$model = kona3edit_ai_get_validated_model('gpt-6.1-sol', 'OpenAI');
+test_eq(__LINE__, $model, 'gpt-6.1-sol', "OpenAI: 有効なモデル 'gpt-6.1-sol' はそのまま許可される");
 
 // 2. OpenAIプロバイダーで無効なモデル（未許可のモデルや悪意あるパラメータ）を指定した場合
 $model = kona3edit_ai_get_validated_model('gpt-4-expensive-model', 'OpenAI');
-$default_model = kona3getConf('openai_apikey_model', 'gpt-4o-mini');
+$default_model = kona3getConf('openai_apikey_model', 'gpt-6-luna');
 test_eq(__LINE__, $model, $default_model, "OpenAI: 無効なモデルが指定された場合はデフォルトモデル（{$default_model}）にフォールバックされる");
 
 $model = kona3edit_ai_get_validated_model('random-string-123', 'OpenAI');
@@ -23,18 +23,45 @@ test_eq(__LINE__, $model, $default_model, "OpenAI: ランダムな文字列が�
 $model = kona3edit_ai_get_validated_model('', 'OpenAI');
 test_eq(__LINE__, $model, $default_model, "OpenAI: 空文字を指定した場合はデフォルトモデルが選択される");
 
-// 4. OpenRouterプロバイダーで任意のモデルを指定した場合
-$model = kona3edit_ai_get_validated_model('meta-llama/llama-3-8b-instruct:free', 'OpenRouter');
-test_eq(__LINE__, $model, 'meta-llama/llama-3-8b-instruct:free', "OpenRouter: 任意のモデル名はそのまま許可される");
+// 3.5 互換性: 旧モデル名を指定した場合は新デフォルトにフォールバックされる
+$model = kona3edit_ai_get_validated_model('gpt-4o-mini', 'OpenAI');
+test_eq(__LINE__, $model, 'gpt-6-luna', "OpenAI: 旧モデル 'gpt-4o-mini' は新デフォルトにフォールバックされる");
 
-$model = kona3edit_ai_get_validated_model('anthropic/claude-3-opus', 'OpenRouter');
-test_eq(__LINE__, $model, 'anthropic/claude-3-opus', "OpenRouter: 別の任意のモデル名も許可される");
+$model = kona3edit_ai_get_validated_model('gpt-5', 'OpenAI');
+test_eq(__LINE__, $model, 'gpt-6-luna', "OpenAI: 旧モデル 'gpt-5' は新デフォルトにフォールバックされる");
+
+// 3.6 互換性: 設定ファイルに旧モデル名が残っている場合も新デフォルトが使われる
+$old_conf_model = isset($kona3conf['openai_apikey_model']) ? $kona3conf['openai_apikey_model'] : null;
+$kona3conf['openai_apikey_model'] = 'gpt-4o-mini';
+$model = kona3edit_ai_get_validated_model('', 'OpenAI');
+test_eq(__LINE__, $model, 'gpt-6-luna', "OpenAI: 設定に旧モデル名が残っていても新デフォルトが選択される");
+$model = kona3edit_ai_get_validated_model('gpt-4-expensive-model', 'OpenAI');
+test_eq(__LINE__, $model, 'gpt-6-luna', "OpenAI: 設定に旧モデル名が残っていても無効なモデルのフォールバック先は新デフォルトになる");
+if ($old_conf_model === null) {
+    unset($kona3conf['openai_apikey_model']);
+} else {
+    $kona3conf['openai_apikey_model'] = $old_conf_model;
+}
+
+// 3.7 設定の選択肢にあるモデルはすべて許可される
+$conf_items_for_ai = kona3conf_getConfigItems();
+foreach ($conf_items_for_ai['AI']['openai_apikey_model']['items'] as $item_model) {
+    $model = kona3edit_ai_get_validated_model($item_model, 'OpenAI');
+    test_eq(__LINE__, $model, $item_model, "OpenAI: 選択肢のモデル '{$item_model}' は許可される");
+}
+
+// 4. OpenRouterプロバイダーで任意のモデルを指定した場合
+$model = kona3edit_ai_get_validated_model('openai/gpt-6-luna', 'OpenRouter');
+test_eq(__LINE__, $model, 'openai/gpt-6-luna', "OpenRouter: 任意のモデル名はそのまま許可される");
+
+$model = kona3edit_ai_get_validated_model('anthropic/claude-sonnet-5.5', 'OpenRouter');
+test_eq(__LINE__, $model, 'anthropic/claude-sonnet-5.5', "OpenRouter: 別の任意のモデル名も許可される");
 
 // 5. OpenRouterプロバイダーで空文字を指定した場合のフォールバック
 $model = kona3edit_ai_get_validated_model('', 'OpenRouter');
 $expected_or_model = kona3getConf('openrouter_model', '');
 if ($expected_or_model === '') {
-    $expected_or_model = 'meta-llama/llama-3-8b-instruct:free';
+    $expected_or_model = 'openrouter/free';
 }
 test_eq(__LINE__, $model, $expected_or_model, "OpenRouter: 空文字指定時は設定のデフォルトかフリーモデル（{$expected_or_model}）にフォールバックされる");
 

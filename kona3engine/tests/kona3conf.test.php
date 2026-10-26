@@ -217,8 +217,10 @@ test_eq(__LINE__, $flat_items['ai_shortcut_complete']['default'], 'Ctrl+Shift+H'
 test_eq(__LINE__, $flat_items['ai_shortcut_spellcheck']['default'], 'Ctrl+Shift+J', "設定項目定義: AI誤字脱字修正ショートカット");
 test_eq(__LINE__, $flat_items['ai_shortcut_user_prompt1']['default'], 'Ctrl+Alt+1', "設定項目定義: AI USER_PROMPT1ショートカット");
 test_eq(__LINE__, $flat_items['ai_shortcut_user_prompt2']['default'], 'Ctrl+Alt+2', "設定項目定義: AI USER_PROMPT2ショートカット");
-test_assert(__LINE__, in_array('gpt-5', $flat_items['openai_apikey_model']['items']), "設定項目定義: OpenAIモデルのgpt-5サポート");
-test_assert(__LINE__, in_array('gpt-4o-mini', $flat_items['openai_apikey_model']['items']), "設定項目定義: OpenAIモデルのgpt-4o-miniサポート");
+test_assert(__LINE__, in_array('gpt-6.1-sol', $flat_items['openai_apikey_model']['items']), "設定項目定義: OpenAIモデルのgpt-6.1-solサポート");
+test_assert(__LINE__, in_array('gpt-6-luna', $flat_items['openai_apikey_model']['items']), "設定項目定義: OpenAIモデルのgpt-6-lunaサポート");
+test_eq(__LINE__, $flat_items['openai_apikey_model']['default'], 'gpt-6-luna', "設定項目定義: OpenAIモデルのデフォルトはgpt-6-luna");
+test_eq(__LINE__, kona3conf_normalizeConfigValue('gpt-4o-mini', $flat_items['openai_apikey_model']), 'gpt-6-luna', "設定値正規化: 旧モデル名はデフォルトに戻る");
 
 $form_items = kona3conf_getConfigFormItems([
     'wiki_private' => 'false',

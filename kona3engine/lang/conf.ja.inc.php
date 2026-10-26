@@ -59,7 +59,7 @@ return [
         'openai_apikey' => ['label' => 'OpenAIのAPIキー', 'desc' => 'OpenAIのAPIを使うためのキーです。他人に知られないよう注意してください。', 'note' => 'ChatGPT用'],
         'openai_apikey_model' => ['label' => 'OpenAIのモデル', 'desc' => '使うモデルです。大きなモデルほど賢くなりますが、料金が高くなります。'],
         'openrouter_apikey' => ['label' => 'OpenRouterのAPIキー', 'desc' => 'OpenRouterのAPIを使うためのキーです。他人に知られないよう注意してください。'],
-        'openrouter_model' => ['label' => 'OpenRouterのモデル', 'desc' => 'OpenRouterで使うモデルの名前です。', 'note' => '例: meta-llama/llama-3-8b-instruct:free'],
+        'openrouter_model' => ['label' => 'OpenRouterのモデル', 'desc' => 'OpenRouterで使うモデルの名前です。', 'note' => '例: openai/gpt-6-luna（空欄の場合は openrouter/free を使用）'],
         'openai_api_basic_instruction' => ['label' => 'AIへの基本指示', 'desc' => 'AIに最初に伝える役割や口調の指示です。'],
         'ai_shortcut_complete' => ['label' => 'ショートカット: 文章補完', 'desc' => '編集画面で、AIに文章の続きを書かせるキーです。'],
         'ai_shortcut_spellcheck' => ['label' => 'ショートカット: 誤字脱字修正', 'desc' => '編集画面で、AIに誤字脱字を直させるキーです。'],
