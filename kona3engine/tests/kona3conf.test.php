@@ -220,6 +220,7 @@ test_eq(__LINE__, $flat_items['ai_shortcut_user_prompt2']['default'], 'Ctrl+Alt+
 test_assert(__LINE__, in_array('gpt-6.1-sol', $flat_items['openai_apikey_model']['items']), "設定項目定義: OpenAIモデルのgpt-6.1-solサポート");
 test_assert(__LINE__, in_array('gpt-6-luna', $flat_items['openai_apikey_model']['items']), "設定項目定義: OpenAIモデルのgpt-6-lunaサポート");
 test_eq(__LINE__, $flat_items['openai_apikey_model']['default'], 'gpt-6-luna', "設定項目定義: OpenAIモデルのデフォルトはgpt-6-luna");
+test_eq(__LINE__, kona3conf_normalizeConfigValue('gpt-4o-mini', $flat_items['openai_apikey_model']), 'gpt-6-luna', "設定値正規化: 旧モデル名はデフォルトに戻る");
 
 $form_items = kona3conf_getConfigFormItems([
     'wiki_private' => 'false',

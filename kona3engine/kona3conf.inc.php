@@ -143,7 +143,7 @@ function kona3conf_getConfigItems()
             'openai_apikey' => ['label' => 'OpenAI API Key', 'default' => '', 'type' => 'string', 'note' => 'for ChatGPT'],
             'openai_apikey_model' => ['label' => 'OpenAI API Model', 'default' => 'gpt-6-luna', 'type' => 'select', 'items' => ['gpt-6.1-sol', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-5.5', 'gpt-5.4-mini']],
             'openrouter_apikey' => ['label' => 'OpenRouter API Key', 'default' => '', 'type' => 'string'],
-            'openrouter_model' => ['label' => 'OpenRouter Model', 'default' => '', 'type' => 'string', 'note' => 'e.g. openai/gpt-6-luna'],
+            'openrouter_model' => ['label' => 'OpenRouter Model', 'default' => '', 'type' => 'string', 'note' => 'e.g. openai/gpt-6-luna (blank: openrouter/free)'],
             'openai_api_basic_instruction' => ['label' => 'OpenAI Basic Instruction', 'default' => 'You are helpful AI assistant.', 'type' => 'string'],
             'ai_shortcut_complete' => ['label' => 'Shortcut: AI Complete', 'default' => 'Ctrl+Shift+H', 'type' => 'string'],
             'ai_shortcut_spellcheck' => ['label' => 'Shortcut: AI Spellcheck', 'default' => 'Ctrl+Shift+J', 'type' => 'string'],

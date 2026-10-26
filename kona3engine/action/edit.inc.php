@@ -923,6 +923,30 @@ EOS;
     kona3jump($url, 'Show AI Prompt');
 }
 
+function kona3edit_ai_get_allowed_models()
+{
+    $confItems = kona3conf_getConfigItems();
+    return isset($confItems['AI']['openai_apikey_model']['items'])
+        ? $confItems['AI']['openai_apikey_model']['items']
+        : ['gpt-6.1-sol', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-5.5', 'gpt-5.4-mini'];
+}
+
+function kona3edit_ai_get_default_model()
+{
+    // 設定値が現行の選択肢に含まれない場合（旧モデル名が設定ファイルに残っている場合）は、
+    // kona3getConf() が生の値を返すため、そのままでは無効なモデルを使ってしまう。
+    // そのため、ここで選択肢に含まれる場合だけ設定値を採用し、それ以外は定義側のデフォルトを使う。
+    $confItems = kona3conf_getConfigItems();
+    $default = isset($confItems['AI']['openai_apikey_model']['default'])
+        ? $confItems['AI']['openai_apikey_model']['default']
+        : 'gpt-6-luna';
+    $model = kona3getConf('openai_apikey_model', '');
+    if ($model !== '' && in_array($model, kona3edit_ai_get_allowed_models(), TRUE)) {
+        return $model;
+    }
+    return $default;
+}
+
 function kona3edit_ai_get_validated_model($ai_model, $provider)
 {
     if ($ai_model === '') {
@@ -932,17 +956,13 @@ function kona3edit_ai_get_validated_model($ai_model, $provider)
                 $ai_model = 'openrouter/free';
             }
         } else {
-            $ai_model = kona3getConf('openai_apikey_model', 'gpt-6-luna');
+            $ai_model = kona3edit_ai_get_default_model();
         }
     } else {
         // OpenAIプロバイダーの場合、モデル名がホワイトリストに含まれるか検証する
         if ($provider === "OpenAI") {
-            $confItems = kona3conf_getConfigItems();
-            $allowed_models = isset($confItems['AI']['openai_apikey_model']['items']) 
-                ? $confItems['AI']['openai_apikey_model']['items'] 
-                : ['gpt-6.1-sol', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-5.5', 'gpt-5.4-mini'];
-            if (!in_array($ai_model, $allowed_models, TRUE)) {
-                $ai_model = kona3getConf('openai_apikey_model', 'gpt-6-luna');
+            if (!in_array($ai_model, kona3edit_ai_get_allowed_models(), TRUE)) {
+                $ai_model = kona3edit_ai_get_default_model();
             }
         }
     }
@@ -1030,7 +1050,7 @@ function kona3edit_ai_get_provider_settings()
     }
     if ($ai_provider === 'OpenAI') {
         $apikey = $openai_key;
-        $default_model = kona3getConf('openai_apikey_model', 'gpt-6-luna');
+        $default_model = kona3edit_ai_get_default_model();
     } else if ($ai_provider === 'OpenRouter') {
         $apikey = $openrouter_key;
         $default_model = kona3getConf('openrouter_model', '');
