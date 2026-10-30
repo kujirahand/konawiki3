@@ -114,5 +114,6 @@ test_assert(__LINE__, strpos($drawer_js_src, '.edit_preview_body { line-height')
 foreach (['findSourceHeadings', 'pairHeadings', 'buildHeadingSync', 'syncPreviewFromEditor', 'syncEditorFromPreview', 'jumpToHeading', 'initHeadingSync'] as $fn) {
     test_assert(__LINE__, strpos($edit_js, 'function ' . $fn . '(') !== false, "preview: edit.js has {$fn}() (#153 heading sync)");
 }
-test_assert(__LINE__, strpos($edit_js, 'buildHeadingSync(body)') !== false, 'preview: heading pairs are rebuilt after each refresh (#153 heading sync)');
+test_assert(__LINE__, strpos($edit_js, 'buildHeadingSync(body, sentText)') !== false, 'preview: heading pairs are rebuilt after each refresh (#153 heading sync)');
 test_assert(__LINE__, strpos($edit_css, '.sync-current') !== false, 'preview: edit.css marks the current heading (#153 heading sync)');
+test_assert(__LINE__, strpos($edit_css, '.sync-linked') !== false, 'preview: edit.css marks linked headings clickable (#153 heading sync)');
