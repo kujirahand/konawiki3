@@ -452,11 +452,65 @@ function edit_command($cmd)
     kona3error('ng', 'Unknown command');
 }
 
+// 行単位の差分テキストを作る。共通行はそのまま、$text_a にのみある行は
+// '<< '、$text_b にのみある行は '>> ' を付ける。
+// 以前は単純な位置合わせだったため、途中の1行の差し替えで以降の行が
+// すべてずれて表示されていた。LCS で行の対応を取るようにし、巨大な
+// テキストでは従来の位置合わせにフォールバックする
+// (PR #349 レビュー対応、表示は AJAX 側の computeLineDiff と揃えた)。
 function kona3_make_diff($text_a, $text_b)
 {
     $lines_a = explode("\n", $text_a);
     $lines_b = explode("\n", $text_b);
+    $na = count($lines_a);
+    $nb = count($lines_b);
+    if (($na + 1) * ($nb + 1) > 1000000) {
+        return kona3_make_diff_simple($lines_a, $lines_b);
+    }
+    // LCS の長さ表 (後方から)
+    $lcs = array();
+    for ($i = 0; $i <= $na; $i++) {
+        $lcs[$i] = array_fill(0, $nb + 1, 0);
+    }
+    for ($i = $na - 1; $i >= 0; $i--) {
+        for ($j = $nb - 1; $j >= 0; $j--) {
+            if ($lines_a[$i] === $lines_b[$j]) {
+                $lcs[$i][$j] = $lcs[$i + 1][$j + 1] + 1;
+            } else {
+                $lcs[$i][$j] = max($lcs[$i + 1][$j], $lcs[$i][$j + 1]);
+            }
+        }
+    }
+    $res = array();
+    $i = 0;
+    $j = 0;
+    while ($i < $na && $j < $nb) {
+        if ($lines_a[$i] === $lines_b[$j]) {
+            $res[] = $lines_a[$i];
+            $i++;
+            $j++;
+        } else if ($lcs[$i + 1][$j] >= $lcs[$i][$j + 1]) {
+            $res[] = '<< ' . $lines_a[$i];
+            $i++;
+        } else {
+            $res[] = '>> ' . $lines_b[$j];
+            $j++;
+        }
+    }
+    while ($i < $na) {
+        $res[] = '<< ' . $lines_a[$i];
+        $i++;
+    }
+    while ($j < $nb) {
+        $res[] = '>> ' . $lines_b[$j];
+        $j++;
+    }
+    return implode("\n", $res);
+}
 
+// 従来の位置合わせによる差分 (巨大なテキスト用のフォールバック)
+function kona3_make_diff_simple($lines_a, $lines_b)
+{
     $res = array();
     $ia = $ib = 0;
     for (;;) {
@@ -492,11 +546,13 @@ function kona3_edit_err($msg, $method = "web", $code = '', $extra = array())
 {
     global $page;
     if ($method == "ajax" || $method == "git") {
-        echo json_encode(array_merge(array(
+        // $extra は追加情報専用で、result/reason/code を上書きできない
+        // ように本体を後勝ちでマージする (PR #349 レビュー対応)
+        echo json_encode(array_merge($extra, array(
             'result' => 'ng',
             'reason' => $msg,
             'code' => $code,
-        ), $extra));
+        )));
     } else {
         kona3error($page, $msg);
     }

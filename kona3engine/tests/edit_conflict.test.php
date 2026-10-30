@@ -59,3 +59,40 @@ $lang_ja = file_get_contents($root . '/lang/ja.inc.php');
 $lang_en = file_get_contents($root . '/lang/en.inc.php');
 test_assert(__LINE__, strpos($lang_ja, "'Edit conflict' => '編集の競合'") !== false, 'conflict: ja lang has Edit conflict (#153)');
 test_assert(__LINE__, strpos($lang_en, "'Load server version' => 'Load server version'") !== false, 'conflict: en lang has Load server version (#153)');
+
+// --- レビュー第1ラウンドのフォローアップ (Copilot/agy, PR #349) ---
+// LCS 化した kona3_make_diff: 途中の行の差し替えと行ずれが伝播しない
+$diff = kona3_make_diff("a\nmine\nc", "a\nserver\nc");
+test_assert(__LINE__, strpos($diff, '<< mine') !== false, 'conflict: LCS diff marks a replaced user line (#349 review)');
+test_assert(__LINE__, strpos($diff, '>> server') !== false, 'conflict: LCS diff marks a replaced server line (#349 review)');
+$diff = kona3_make_diff("a\nb\nc\nd", "a\nx\nb\nc\nd");
+test_assert(__LINE__, strpos($diff, '>> x') !== false && strpos($diff, '<<') === false, 'conflict: LCS diff does not cascade after an inserted line (#349 review)');
+// kona3_edit_err の $extra は本体のキーを上書きできない
+ob_start();
+kona3_edit_err('m', 'ajax', 'conflict', array('result' => 'ok', 'server_text' => 'S'));
+$json = ob_get_clean();
+$res = json_decode($json, true);
+test_assert(__LINE__, $res['result'] === 'ng' && $res['server_text'] === 'S', 'conflict: edit_err extra cannot override core keys (#349 review)');
+// フォームの差分表示はテンプレートでエスケープされる (XSS 対策の回帰確認)
+global $kona3conf, $page;
+$page = 'FrontPage';
+$kona3conf['edit_screen'] = true;
+$render_params = array(
+    'page' => 'FrontPage', 'page_title' => 'FrontPage',
+    'page_url' => kona3getPageURL('FrontPage'), 'action' => kona3getPageURL('FrontPage', 'edit'),
+    'edit_token' => 't', 'a_hash' => 'h', 'edit_txt' => 'body', 'page_mode' => '',
+    'git_enabled' => false, 'ai_enabled' => false, 'tags' => '', 'history' => array(),
+    'conflict_diff' => "line\n<script>alert(1)</script>",
+);
+ob_start();
+kona3template('edit.html', $render_params);
+$html = ob_get_clean();
+test_assert(__LINE__, strpos($html, '<script>alert(1)</script>') === false, 'conflict: form diff is escaped in the template (#349 review)');
+test_assert(__LINE__, strpos($html, '&lt;script&gt;alert(1)') !== false, 'conflict: form diff shows the escaped script text (#349 review)');
+test_assert(__LINE__, strpos($html, 'edit_conflict_notice') !== false, 'conflict: form notice renders when a diff exists (#349 review)');
+$render_params['conflict_diff'] = '';
+ob_start();
+kona3template('edit.html', $render_params);
+$html = ob_get_clean();
+test_assert(__LINE__, strpos($html, 'edit_conflict_notice') === false, 'conflict: form notice stays hidden without a diff (#349 review)');
+$kona3conf['edit_screen'] = false;

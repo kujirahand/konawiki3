@@ -78,6 +78,8 @@ function edit_init() {
   }
   // Keep the match count in sync while the text is edited (issue #153)
   edit_txt.addEventListener('input', updateSearchCount)
+  // Keep an open conflict diff in sync while the text is edited (#153)
+  edit_txt.addEventListener('input', refreshConflictDiffIfOpen)
   // Ctrl+F / Cmd+F opens the drawer search panel (issue #153). Guards
   // (review follow-up for PR #345): no Shift/Alt combos, no IME
   // composition, Cmd only on Mac (Ctrl+F is forward-char there) and
@@ -308,6 +310,13 @@ function clickTempSaveButton() {
 
 // save to server by ajax
 function ajaxSave(source) {
+  // While an edit conflict is unresolved, the timer autosave would
+  // only fail again with the same stale hash; skip it until the user
+  // resolves the conflict (PR #349 review follow-up).
+  if (source === 'timerAutoSaveOnTime' && conflictState &&
+      qq('#a_hash').val() !== conflictState.serverHash) {
+    return
+  }
   ajaxProc('trywrite', source)
 }
 
@@ -900,13 +909,21 @@ function searchOnClick(forceShow) {
 let conflictState = null
 
 function handleEditConflict(msg, source) {
+  // On a repeated conflict, keep the backup of the user's own text
+  // taken during the previous round, and re-sync the panel UI with
+  // the fresh state (PR #349 review follow-up).
+  const prevBackup = conflictState ? conflictState.myBackup : null
   conflictState = {
     serverText: (msg && msg['server_text']) || '',
     serverHash: (msg && msg['server_hash']) || '',
-    myBackup: null
+    myBackup: prevBackup
   }
   const nav = qs('#conflict_nav')
   if (nav) { nav.style.display = '' }
+  const restoreBtn = qs('#conflict_restore_btn')
+  if (restoreBtn) { restoreBtn.style.display = prevBackup !== null ? '' : 'none' }
+  setConflictNote('')
+  refreshConflictDiffIfOpen()
   qq('#edit_info').html('⚠ 競合が発生しました')
   qq('#edit_info').css('color', 'red')
   setButtonsDisabled(false)
@@ -928,6 +945,10 @@ function clearConflictUI() {
   if (restoreBtn) { restoreBtn.style.display = 'none' }
   const box = qs('#conflict_diff_box')
   if (box) { box.style.display = 'none' }
+  // Do not leave a stale, inert conflict panel open in the drawer
+  // after the conflict was resolved by a successful save.
+  const panel = qs('#conflict_div')
+  if (panel) { panel.style.display = 'none' }
   setConflictNote('')
 }
 
@@ -944,8 +965,11 @@ function setConflictNote(text) {
 // {type: 'same'|'mine'|'server', text}, or null when the texts are
 // too large for the DP table.
 function computeLineDiff(myText, serverText) {
-  const mine = myText.split('\n')
-  const server = serverText.split('\n')
+  // The server text is the raw file content and may use CRLF, while
+  // the textarea value is normalized to LF; compare on LF so a CRLF
+  // page does not diff as "every line changed" (PR #349 review).
+  const mine = myText.replace(/\r\n?/g, '\n').split('\n')
+  const server = serverText.replace(/\r\n?/g, '\n').split('\n')
   if ((mine.length + 1) * (server.length + 1) > 1000000) {
     return null
   }
@@ -996,8 +1020,21 @@ function toggleConflictDiff() {
     return
   }
   if (!conflictState) { return }
+  renderConflictDiff()
+  box.style.display = ''
+}
+
+// Re-render the diff while it is open, so it never shows a stale
+// comparison after the text or the server version changed.
+function refreshConflictDiffIfOpen() {
+  const box = qs('#conflict_diff_box')
+  if (!box || box.style.display === 'none' || !conflictState) { return }
+  renderConflictDiff()
+}
+
+function renderConflictDiff() {
   const wrap = qs('#conflict_diff')
-  if (!wrap) { return }
+  if (!wrap || !conflictState) { return }
   wrap.textContent = ''
   const rows = computeLineDiff(edit_txt.value, conflictState.serverText)
   if (rows === null) {
@@ -1033,12 +1070,16 @@ function toggleConflictDiff() {
       wrap.appendChild(el)
     }
   }
-  box.style.display = ''
 }
 
 function conflictLoadServer() {
   if (!conflictState) { return }
-  conflictState.myBackup = edit_txt.value
+  // Back up the user's text only once: a second click would otherwise
+  // back up the server text itself and lose the original for good
+  // (PR #349 review follow-up, found by both reviewers).
+  if (conflictState.myBackup === null) {
+    conflictState.myBackup = edit_txt.value
+  }
   edit_txt.value = conflictState.serverText
   qq('#a_hash').val(conflictState.serverHash)
   handleChange(false, 'conflictLoadServer')
@@ -1046,6 +1087,7 @@ function conflictLoadServer() {
   const restoreBtn = qs('#conflict_restore_btn')
   if (restoreBtn) { restoreBtn.style.display = '' }
   setConflictNote('サーバーの内容を読み込みました。あなたの内容は「自分の内容に戻す」で復元できます。')
+  refreshConflictDiffIfOpen()
 }
 
 function conflictRestoreMine() {
@@ -1057,10 +1099,18 @@ function conflictRestoreMine() {
   const restoreBtn = qs('#conflict_restore_btn')
   if (restoreBtn) { restoreBtn.style.display = 'none' }
   setConflictNote('あなたの内容に戻しました。保存するとサーバー側の内容を上書きします。')
+  refreshConflictDiffIfOpen()
 }
 
 function conflictOverwrite() {
   if (!conflictState) { return }
+  if (edit_txt.value === conflictState.serverText) {
+    // The editor already holds the server text (e.g. after loading
+    // it): there is nothing to overwrite, the conflict is resolved.
+    clearConflictUI()
+    closeEditDrawer()
+    return
+  }
   qq('#a_hash').val(conflictState.serverHash)
   closeEditDrawer()
   ajaxSave('conflict-overwrite')
