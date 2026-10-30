@@ -82,6 +82,13 @@ function edit_init() {
     const drawer = qs('#edit_drawer')
     if (drawer && drawer.classList.contains('open')) { closeEditDrawer() }
   })
+  // Keep the preview layout in sync with the window width (issue #153):
+  // split on wide screens, full-width preview on narrow screens.
+  window.addEventListener('resize', () => {
+    if (previewMode === 'off') { return }
+    const desired = window.innerWidth < 800 ? 'full' : 'split'
+    if (desired !== previewMode) { setPreviewMode(desired) }
+  })
 
   // フォーム送信時にも本文を localStorage へ退避する (issue #64)。
   // サーバー側の退避 (セッション) と合わせて、送信に失敗しても
@@ -457,8 +464,10 @@ function ajaxProc(a_mode, source) {
       info.css('backgroundColor', '#ffffc0')
       info.css('color', 'green')
       setTimeout(function () {
-        info.css('backgroundColor', '#ffffff')
-        info.css('color', 'silver')
+        // reset to the stylesheet values (an inline white would break
+        // the dark theme, agy review on PR #341)
+        info.css('backgroundColor', '')
+        info.css('color', '')
       }, 700)
     })
     .fail(function (error) {
@@ -584,6 +593,7 @@ function closeEditDrawer() {
 // (preview replaces the editor on narrow screens)
 let previewMode = 'off'
 let previewTimer = null
+let previewSeq = 0
 
 function togglePreview() {
   closeEditDrawer()
@@ -605,6 +615,12 @@ function setPreviewMode(mode) {
   main.classList.remove('preview-full')
   if (mode === 'off') {
     pane.style.display = 'none'
+    // drop any pending/in-flight preview update
+    previewSeq++
+    if (previewTimer) {
+      clearTimeout(previewTimer)
+      previewTimer = null
+    }
     return
   }
   pane.style.display = ''
@@ -620,6 +636,7 @@ function refreshPreview() {
   if (!body) {
     return
   }
+  const seq = ++previewSeq
   const action = qq('#wikiedit form').attr('action')
   qq().post(action, {
     'i_mode': 'ajax',
@@ -628,9 +645,22 @@ function refreshPreview() {
     'edit_txt': edit_txt.value,
     'page_mode': qs('#page_mode') ? qs('#page_mode').value : '',
   }).done(function (obj) {
+    // ignore stale responses and responses arriving after the preview
+    // was turned off (review follow-up for PR #341)
+    if (seq !== previewSeq || previewMode === 'off') {
+      return
+    }
     if (obj && obj['result'] === 'ok') {
       body.innerHTML = obj['html']
+      return
     }
+    const msg = (obj && (obj['reason'] || obj['message'])) || 'プレビューを更新できませんでした'
+    body.textContent = msg
+  }).fail(function () {
+    if (seq !== previewSeq || previewMode === 'off') {
+      return
+    }
+    body.textContent = 'プレビューを更新できませんでした'
   })
 }
 

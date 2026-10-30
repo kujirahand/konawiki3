@@ -46,3 +46,40 @@ test_assert(__LINE__, strpos($edit_js, 'setTimeout(refreshPreview, 700)') !== fa
 // --- CSS ---
 test_assert(__LINE__, strpos($edit_css, '#edit_main.preview-split') !== false, 'preview: split layout CSS exists (#153)');
 test_assert(__LINE__, strpos($edit_css, '#edit_main.preview-full .editor') !== false, 'preview: full layout hides the editor (#153)');
+
+// --- Review follow-ups (Copilot/agy, PR #341) ---
+// invalid page_mode falls back to KonaNotation rendering
+$html_bogus = kona3edit_render_preview("* 見出しテスト\n本文です", 'Bogus');
+test_assert(__LINE__, strpos($html_bogus, '<h') !== false && strpos($html_bogus, '見出しテスト') !== false, 'preview: invalid page_mode falls back to KonaNotation (#341 review)');
+// preview rendering must not increment the view counter (Copilot [high])
+test_assert(__LINE__, strpos($edit_js, 'previewSeq') !== false, 'preview: edit.js guards response order with previewSeq (#341 review)');
+test_assert(__LINE__, strpos($edit_js, "addEventListener('resize'") !== false, 'preview: layout follows window resize (#341 review)');
+test_assert(__LINE__, strpos($edit_php, "kona3setConf('page_ext'") !== false, 'preview: ajax sets page_ext like the show action (#341 review)');
+$counter_php = file_get_contents($root . '/plugins/counter.inc.php');
+test_assert(__LINE__, strpos($counter_php, "kona3conf['preview_mode']") !== false, 'preview: counter plugin checks preview_mode (#341 review)');
+test_assert(__LINE__, strpos($counter_php, 'function kona3plugins_counter_getValue(') !== false, 'preview: counter has a read-only getter (#341 review)');
+
+global $kona3conf;
+$orig_page = isset($kona3conf['page']) ? $kona3conf['page'] : 'FrontPage';
+$ctest_page = 'TestPreviewCounter_' . time();
+$kona3conf['page'] = $ctest_page;
+$ctest_file = kona3getWikiFile($ctest_page);
+kona3lock_save($ctest_file, "preview counter test");
+$ctest_id = kona3db_getPageId($ctest_page, TRUE);
+subdb_exec("INSERT INTO counter (page_id, value, mtime) VALUES (?,5,?)", [$ctest_id, time()]);
+subdb_exec(
+    "INSERT INTO counter_month (page_id, year, month, value, mtime) VALUES (?,?,?,?,?)",
+    [$ctest_id, intval(date('Y')), intval(date('n')), 7, time()]
+);
+$chtml = kona3edit_render_preview("#counter", 'KonaNotation');
+$chtml2 = kona3edit_render_preview("#counter", 'KonaNotation');
+$cr = subdb_get1("SELECT value FROM counter WHERE page_id=?", [$ctest_id]);
+test_eq(__LINE__, intval($cr['value']), 5, 'preview: counter total is not incremented by previews (#341 review)');
+$cmr = subdb_get1(
+    "SELECT value FROM counter_month WHERE page_id=? AND year=? AND month=?",
+    [$ctest_id, intval(date('Y')), intval(date('n'))]
+);
+test_eq(__LINE__, intval($cmr['value']), 7, 'preview: monthly counter is not incremented by previews (#341 review)');
+test_assert(__LINE__, strpos($chtml, '>5<') !== false, 'preview: counter shows the current value (#341 review)');
+test_assert(__LINE__, empty($kona3conf['preview_mode']), 'preview: preview_mode flag is restored after rendering (#341 review)');
+$kona3conf['page'] = $orig_page;

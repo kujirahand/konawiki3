@@ -833,13 +833,26 @@ function kona3_trygit(&$txt, &$a_hash, $i_mode)
 }
 
 // プレビュー用に本文を HTML へ変換する (issue #153)
+// 描画中は $kona3conf['preview_mode'] を立て、副作用のあるプラグイン
+// (例: #counter の加算) がプレビューでは動かないようにする。
 function kona3edit_render_preview($txt, $page_mode)
 {
-    if ($page_mode === 'Markdown') {
-        require_once dirname(__DIR__) . '/kona3parser_md.inc.php';
-        return kona3markdown_parser_convert($txt);
+    global $kona3conf;
+    $old = isset($kona3conf['preview_mode']) ? $kona3conf['preview_mode'] : null;
+    $kona3conf['preview_mode'] = true;
+    try {
+        if ($page_mode === 'Markdown') {
+            require_once dirname(__DIR__) . '/kona3parser_md.inc.php';
+            return kona3markdown_parser_convert($txt);
+        }
+        return konawiki_parser_convert($txt);
+    } finally {
+        if ($old === null) {
+            unset($kona3conf['preview_mode']);
+        } else {
+            $kona3conf['preview_mode'] = $old;
+        }
     }
-    return konawiki_parser_convert($txt);
 }
 
 function kona3edit_preview_ajax($page)
@@ -848,15 +861,17 @@ function kona3edit_preview_ajax($page)
     if (!kona3edit_checkEditToken($page, 'ajax')) {
         return;
     }
-    header('Content-Type: application/json');
+    header('Content-Type: application/json; charset=utf-8');
     global $kona3conf;
     $txt = kona3param('edit_txt', '');
     $page_mode = kona3param('page_mode', '');
     $max = isset($kona3conf['max_edit_size']) ? intval($kona3conf['max_edit_size']) : 0;
     if ($max > 0 && strlen($txt) > $max) {
-        echo json_encode(array('result' => 'ng', 'message' => 'Text is too large.'));
+        kona3_edit_err('Text is too large.', 'ajax');
         return;
     }
+    // 表示画面と描画環境を揃える (page_ext に依存するプラグイン向け)
+    kona3setConf('page_ext', $page_mode === 'Markdown' ? '.md' : '.txt');
     $html = kona3edit_render_preview($txt, $page_mode);
     echo json_encode(array('result' => 'ok', 'html' => $html));
 }
