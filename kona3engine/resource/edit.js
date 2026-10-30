@@ -473,6 +473,11 @@ function ajaxProc(a_mode, source) {
           handleSessionLost(reason)
           return
         }
+        if (code == 'conflict') {
+          // 編集の競合 (issue #153)。ドロワーの競合パネルで解決する。
+          handleEditConflict(msg, source)
+          return
+        }
         qq('#edit_info').html("[error] " + reason)
         qq('#edit_info').css("color", "red")
         setButtonsDisabled(false)
@@ -487,6 +492,7 @@ function ajaxProc(a_mode, source) {
       countText()
       // set hash
       qq('#a_hash').val(msg["a_hash"])
+      clearConflictUI()
       if (msg["edit_ext"]) {
         qq('#edit_ext').val(msg["edit_ext"])
       }
@@ -717,7 +723,7 @@ function showOnlyPanel(selector, forceShow) {
     return null
   }
   const isVisible = target.style.display !== 'none'
-  const panels = ['#help_div', '#tags_div', '#replace_div', '#history_div', '#misc_div', '#ai_div', '#search_div']
+  const panels = ['#help_div', '#tags_div', '#replace_div', '#history_div', '#misc_div', '#ai_div', '#search_div', '#conflict_div']
   panels.forEach(function (panelSelector) {
     if (qs(panelSelector)) {
       qq(panelSelector).hide()
@@ -885,6 +891,179 @@ function searchOnClick(forceShow) {
     input.focus()
     input.select()
   }
+}
+
+// Edit conflict handling (issue #153, phase 4). The server answers a
+// conflicting save with code 'conflict' plus the server-side text and
+// its hash; the user resolves it in the drawer panel. The editor text
+// is never rewritten behind the user's back.
+let conflictState = null
+
+function handleEditConflict(msg, source) {
+  conflictState = {
+    serverText: (msg && msg['server_text']) || '',
+    serverHash: (msg && msg['server_hash']) || '',
+    myBackup: null
+  }
+  const nav = qs('#conflict_nav')
+  if (nav) { nav.style.display = '' }
+  qq('#edit_info').html('⚠ 競合が発生しました')
+  qq('#edit_info').css('color', 'red')
+  setButtonsDisabled(false)
+  // Background saves (autosave timer, keepalive restore) must not yank
+  // the drawer open while the user is typing; the warning button in
+  // the drawer nav opens the panel instead.
+  if (source !== 'timerAutoSaveOnTime' && source !== 'keepalive-restored') {
+    openEditDrawer()
+    showOnlyPanel('#conflict_div', true)
+  }
+}
+
+function clearConflictUI() {
+  if (!conflictState) { return }
+  conflictState = null
+  const nav = qs('#conflict_nav')
+  if (nav) { nav.style.display = 'none' }
+  const restoreBtn = qs('#conflict_restore_btn')
+  if (restoreBtn) { restoreBtn.style.display = 'none' }
+  const box = qs('#conflict_diff_box')
+  if (box) { box.style.display = 'none' }
+  setConflictNote('')
+}
+
+function conflictOnClick() {
+  openToolPanel('#conflict_div')
+}
+
+function setConflictNote(text) {
+  const note = qs('#conflict_note')
+  if (note) { note.textContent = text }
+}
+
+// Line-based diff (LCS) between two texts. Returns rows of
+// {type: 'same'|'mine'|'server', text}, or null when the texts are
+// too large for the DP table.
+function computeLineDiff(myText, serverText) {
+  const mine = myText.split('\n')
+  const server = serverText.split('\n')
+  if ((mine.length + 1) * (server.length + 1) > 1000000) {
+    return null
+  }
+  const cols = server.length + 1
+  const lcs = []
+  for (let i = 0; i <= mine.length; i++) {
+    lcs.push(new Uint32Array(cols))
+  }
+  for (let i = mine.length - 1; i >= 0; i--) {
+    for (let j = server.length - 1; j >= 0; j--) {
+      lcs[i][j] = mine[i] === server[j]
+        ? lcs[i + 1][j + 1] + 1
+        : Math.max(lcs[i + 1][j], lcs[i][j + 1])
+    }
+  }
+  const rows = []
+  let i = 0
+  let j = 0
+  while (i < mine.length && j < server.length) {
+    if (mine[i] === server[j]) {
+      rows.push({ type: 'same', text: mine[i] })
+      i++
+      j++
+    } else if (lcs[i + 1][j] >= lcs[i][j + 1]) {
+      rows.push({ type: 'mine', text: mine[i] })
+      i++
+    } else {
+      rows.push({ type: 'server', text: server[j] })
+      j++
+    }
+  }
+  while (i < mine.length) {
+    rows.push({ type: 'mine', text: mine[i] })
+    i++
+  }
+  while (j < server.length) {
+    rows.push({ type: 'server', text: server[j] })
+    j++
+  }
+  return rows
+}
+
+function toggleConflictDiff() {
+  const box = qs('#conflict_diff_box')
+  if (!box) { return }
+  if (box.style.display !== 'none') {
+    box.style.display = 'none'
+    return
+  }
+  if (!conflictState) { return }
+  const wrap = qs('#conflict_diff')
+  if (!wrap) { return }
+  wrap.textContent = ''
+  const rows = computeLineDiff(edit_txt.value, conflictState.serverText)
+  if (rows === null) {
+    // Too large to diff line by line: show both versions in full.
+    const mineHead = document.createElement('b')
+    mineHead.textContent = 'あなたの内容'
+    wrap.appendChild(mineHead)
+    const minePre = document.createElement('pre')
+    minePre.className = 'conflict_full_text'
+    minePre.textContent = edit_txt.value
+    wrap.appendChild(minePre)
+    const serverHead = document.createElement('b')
+    serverHead.textContent = 'サーバー側の内容'
+    wrap.appendChild(serverHead)
+    const serverPre = document.createElement('pre')
+    serverPre.className = 'conflict_full_text'
+    serverPre.textContent = conflictState.serverText
+    wrap.appendChild(serverPre)
+  } else {
+    let shown = 0
+    for (const row of rows) {
+      if (row.type === 'same') { continue }
+      const el = document.createElement('div')
+      el.className = 'conflict_line conflict_line_' + row.type
+      el.textContent = row.text === '' ? ' ' : row.text
+      wrap.appendChild(el)
+      shown++
+    }
+    if (shown === 0) {
+      const el = document.createElement('div')
+      el.className = 'info'
+      el.textContent = '行単位の差分はありません（末尾の改行などの差異のみです）'
+      wrap.appendChild(el)
+    }
+  }
+  box.style.display = ''
+}
+
+function conflictLoadServer() {
+  if (!conflictState) { return }
+  conflictState.myBackup = edit_txt.value
+  edit_txt.value = conflictState.serverText
+  qq('#a_hash').val(conflictState.serverHash)
+  handleChange(false, 'conflictLoadServer')
+  countText()
+  const restoreBtn = qs('#conflict_restore_btn')
+  if (restoreBtn) { restoreBtn.style.display = '' }
+  setConflictNote('サーバーの内容を読み込みました。あなたの内容は「自分の内容に戻す」で復元できます。')
+}
+
+function conflictRestoreMine() {
+  if (!conflictState || conflictState.myBackup === null) { return }
+  edit_txt.value = conflictState.myBackup
+  conflictState.myBackup = null
+  handleChange(true, 'conflictRestoreMine')
+  countText()
+  const restoreBtn = qs('#conflict_restore_btn')
+  if (restoreBtn) { restoreBtn.style.display = 'none' }
+  setConflictNote('あなたの内容に戻しました。保存するとサーバー側の内容を上書きします。')
+}
+
+function conflictOverwrite() {
+  if (!conflictState) { return }
+  qq('#a_hash').val(conflictState.serverHash)
+  closeEditDrawer()
+  ajaxSave('conflict-overwrite')
 }
 
 function openToolPanel(selector) {
