@@ -48,6 +48,17 @@
   --k3-font-sans: system-ui, -apple-system, "Segoe UI", "Hiragino Sans",
     "Hiragino Kaku Gothic ProN", "Noto Sans JP", Meiryo, sans-serif;
   --k3-font-mono: ui-monospace, Menlo, Consolas, "Noto Sans Mono", monospace;
+  /* reading (#340 方向3) */
+  --k3-measure: 40em;              /* 本文の最大行長。レイアウト幅(--k3-width-layout)とは別軸 */
+  --k3-line-height-body: 1.85;
+  --k3-line-height-tight: 1.35;    /* 見出し・表 */
+  --k3-line-height-code: 1.6;
+  --k3-fs-h1: 1.75em;
+  --k3-fs-h2: 1.45em;
+  --k3-fs-h3: 1.2em;
+  --k3-fs-h4: 1.05em;
+  --k3-fs-small: 0.875em;
+  --k3-fs-code: 0.9em;
 }
 
 /* 印刷時はダークモードでもライトの配色にする(@media screen に限定) */
@@ -133,7 +144,9 @@ body {
   max-width: var(--k3-width-layout);
 }
 #kona3_layout_show {
-  line-height: 1.75;
+  /* 利用者設定(#330)は同じ要素に !important で注入されるため、常にそちらが優先される。
+     子孫には line-height を書かず継承させる(表・見出し・コードを除く) */
+  line-height: var(--k3-line-height-body);
 }
 
 /** header */
@@ -162,10 +175,24 @@ body {
 #kona3_main {
   margin: 0;
   padding: var(--k3-space-4) var(--k3-space-3) var(--k3-space-6);
+  /* 和文組版(未対応ブラウザでは無視される) */
+  line-break: strict;
+  text-autospace: normal;
 }
 
 #kona3_main p {
   margin: 0 0 var(--k3-space-3);
+}
+
+/* 本文の行長(measure)。本文(.contents)直下の段落系要素だけに掛け、
+   表・コード・画像・プラグイン出力・見出しはカラム幅いっぱいを使う */
+#kona3_main > .contents > p,
+#kona3_main > .contents > ul,
+#kona3_main > .contents > ol,
+#kona3_main > .contents > dl,
+#kona3_main > .contents > blockquote,
+#kona3_main > .contents > .resmark {
+  max-width: var(--k3-measure);
 }
 
 /** headings */
@@ -180,34 +207,45 @@ body {
   border-radius: 0;
   color: var(--k3-color-heading);
   font-weight: 700;
-  line-height: 1.4;
+  line-height: var(--k3-line-height-tight);
+  /* 日本語を文節で改行し(lang="ja" のときだけ効く)、行頭の全角括弧の空きを詰める */
+  word-break: auto-phrase;
+  text-spacing-trim: trim-start;
 }
+/* 上余白は見出し自身の em で解決されるため、h1・h2 を space-6 にして階層の順に並べる */
 #kona3_main h1 {
   border-bottom: 1px solid var(--k3-color-border-strong);
-  font-size: 1.5em;
-  margin: var(--k3-space-5) 0 var(--k3-space-3);
+  font-size: var(--k3-fs-h1);
+  margin: var(--k3-space-6) 0 var(--k3-space-3);
   padding: 0 0 var(--k3-space-2);
 }
 #kona3_main h2 {
   border-left: 3px solid var(--k3-color-accent);
-  font-size: 1.3em;
-  margin: var(--k3-space-5) 0 var(--k3-space-3);
+  font-size: var(--k3-fs-h2);
+  margin: var(--k3-space-6) 0 var(--k3-space-3);
   padding: var(--k3-space-1) 0 var(--k3-space-1) var(--k3-space-2);
 }
 #kona3_main h3 {
   border-bottom: 1px solid var(--k3-color-border);
-  font-size: 1.15em;
+  font-size: var(--k3-fs-h3);
   margin: var(--k3-space-5) 0 var(--k3-space-3);
   padding: 0 0 var(--k3-space-2);
 }
-#kona3_main h4,
+#kona3_main h4 {
+  font-size: var(--k3-fs-h4);
+  margin: var(--k3-space-5) 0 var(--k3-space-2);
+  padding: 0;
+}
 #kona3_main h5,
 #kona3_main h6 {
   font-size: 1em;
   margin: var(--k3-space-5) 0 var(--k3-space-2);
   padding: 0;
 }
+/* 先頭の見出しはログインバー直下に大きな空きを作らない */
 #kona3_main .contents > h1:first-child,
+#kona3_main .contents > h2:first-child,
+#kona3_main .contents > h3:first-child,
 #kona3_main .kona3_login_bar + h1 {
   margin-top: 0;
 }
@@ -233,10 +271,32 @@ body {
   color: var(--k3-color-accent);
   text-decoration: none;
 }
+/* 本文(.contents)中のリンクは常に下線を付け、色だけに頼らずリンクと分かるようにする */
+#kona3_main .contents a:link,
+#kona3_main .contents a:visited {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
 #kona3_main a:hover {
   background-color: transparent;
   color: var(--k3-color-accent-hover);
   text-decoration: underline;
+}
+#kona3_main .contents a:hover {
+  text-decoration-thickness: 2px;
+}
+/* 見出しアンカー(*)とボタン状のリンク、画像だけのリンクには下線を付けない */
+#kona3_main .contents a.anchor_super:link,
+#kona3_main .contents a.anchor_super:visited,
+#kona3_main .contents a.anchor_super:hover,
+#kona3_main .contents a.pure-button:link,
+#kona3_main .contents a.pure-button:visited,
+#kona3_main .contents a.pure-button:hover,
+#kona3_main .contents a:has(> img):link,
+#kona3_main .contents a:has(> img):visited,
+#kona3_main .contents a:has(> img):hover {
+  text-decoration: none;
 }
 
 /** lists */
@@ -265,6 +325,9 @@ body {
   max-width: 100%;
   overflow-x: auto;
   padding: 0;
+  /* 数字の幅を揃えて列を縦に揃える。表の中には利用者の行間設定は効かない(密度を優先) */
+  font-variant-numeric: tabular-nums;
+  line-height: var(--k3-line-height-tight);
 }
 #kona3_main table tbody {
   border: none;
@@ -306,6 +369,7 @@ body {
   color: var(--k3-color-text-muted);
   margin: var(--k3-space-4) 0;
   padding: 0 0 0 var(--k3-space-3);
+  font-style: normal;     /* 和文に斜体は使わない */
 }
 #kona3_main .resmark p {
   margin: 0;
@@ -319,8 +383,8 @@ pre.code {
   border-radius: var(--k3-radius);
   color: var(--k3-color-text);
   font-family: var(--k3-font-mono);
-  font-size: 0.875em;
-  line-height: 1.6;
+  font-size: var(--k3-fs-code);
+  line-height: var(--k3-line-height-code);
   margin: var(--k3-space-4) 0;
   padding: var(--k3-space-3);
 }
@@ -329,7 +393,7 @@ span.code {
   border: 1px solid var(--k3-color-border);
   border-radius: var(--k3-radius);
   font-family: var(--k3-font-mono);
-  font-size: 0.875em;
+  font-size: var(--k3-fs-code);
   padding: 0.1em 0.35em;
 }
 span.code code,
@@ -338,6 +402,17 @@ pre code {
   border: none;
   font-family: inherit;
   padding: 0;
+}
+/* 和欧間の自動スペースは、桁揃えが崩れる等幅テキストと入力欄では使わない */
+pre,
+code,
+kbd,
+samp,
+span.code,
+.filecode,
+textarea,
+input {
+  text-autospace: no-autospace;
 }
 
 /** misc */
@@ -353,8 +428,10 @@ hr {
 }
 #kona3_main .date,
 #kona3_main div.date,
+#kona3_main .imagecaption,
 .memo {
   color: var(--k3-color-text-muted);
+  font-size: var(--k3-fs-small);
 }
 .column {
   background-color: var(--k3-color-bg-subtle);
@@ -564,10 +641,11 @@ body #ai_output_area {
     font-size: 1.1em;
   }
   #kona3_main h1 {
-    font-size: 1.35em;
+    font-size: 1.5em;
   }
   #kona3_main h2 {
-    font-size: 1.2em;
+    font-size: 1.3em;
+    margin-top: var(--k3-space-5);  /* 狭い画面では h2 の上の余白を詰める */
   }
   #kona3_main table th,
   #kona3_main table td {
@@ -578,6 +656,9 @@ body #ai_output_area {
 /* ==========================================
    Print
    ========================================== */
+@page {
+  margin: 20mm;
+}
 @media print {
   #kona3_main table th,
   pre,
@@ -595,6 +676,53 @@ body #ai_output_area {
   #kona3_main table td {
     min-width: 3em;
     padding: var(--k3-space-1) var(--k3-space-2);
+  }
+
+  /* 読書体験 (#340 方向3) */
+  /* 紙は行長が用紙で決まるため、measure の制限を外す */
+  :root {
+    --k3-measure: none;
+  }
+  /* 利用者の文字サイズ設定(#kona3_layout_show への em)は、この値に対する倍率として効く */
+  body {
+    font-size: 10.5pt;
+  }
+  #kona3_main {
+    orphans: 3;
+    widows: 3;
+  }
+  #kona3_main h1,
+  #kona3_main h2,
+  #kona3_main h3,
+  #kona3_main h4,
+  #kona3_main h5,
+  #kona3_main h6 {
+    break-after: avoid;
+    page-break-after: avoid;
+    break-inside: avoid;
+  }
+  /* 表は全体ではなく行単位で分割を避ける(長い表で大きな空白を作らない)。
+     見出し行(thead)は各ページに繰り返す */
+  #kona3_main table thead {
+    display: table-header-group;
+  }
+  #kona3_main table tr {
+    break-inside: avoid;
+  }
+  /* コードは短いものは1ページに収め、紙では見えない横スクロールをやめて折り返す */
+  pre,
+  pre.code {
+    break-inside: avoid;
+    overflow: visible;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  /* filecode 内のコードは kona3def.css の詳細度の高いルール
+     (.filecode .filecode-body > pre.code { width: max-content; white-space: pre })
+     が印刷でも勝つため、同じ詳細度で折り返しを指定する */
+  .filecode .filecode-body > pre.code {
+    width: auto;
+    white-space: pre-wrap;
   }
 }
 

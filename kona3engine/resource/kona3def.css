@@ -105,7 +105,11 @@
 #kona3_show_data_dir input
 {
   background-color:var(--k3-color-bg-subtle, #f5f7fa);
+  border:1px solid var(--k3-color-border, #e4e7eb);
+  border-radius:var(--k3-radius, 4px);
+  box-shadow:none;
   color:var(--k3-color-text-muted, #616e7c);
+  font:inherit;
   padding:6px;
   width:50%;
 }
