@@ -25,3 +25,7 @@ test_assert(__LINE__, strpos($edit_css, 'max-width: 1120px') === false, 'design:
 test_assert(__LINE__, strpos($edit_css, 'padding: 8px 26px 24px') !== false, 'design: the editor keeps the blueprint side padding (#153 wide)');
 test_assert(__LINE__, strpos($edit_css, '.edit_save_state::before') !== false, 'design: save state is a dot plus text, not a filled pill (#153 clean)');
 test_assert(__LINE__, strpos($edit_css, 'border-bottom: 2px solid var(--k3-color-accent') === false, 'design: topbar has no accent rule line (#153 clean)');
+
+// --- プレビュー表示中は全幅 (幅キャップの例外) ---
+test_assert(__LINE__, strpos($edit_css, '#wikiedit:has(#edit_main.preview-split)') !== false, 'design: split preview drops the width cap (#153 preview wide)');
+test_assert(__LINE__, strpos($edit_css, '#wikiedit:has(#edit_main.preview-full)') !== false, 'design: full preview drops the width cap (#153 preview wide)');
