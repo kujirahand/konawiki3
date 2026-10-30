@@ -63,7 +63,7 @@ test_assert(__LINE__, strpos($edit_css, '#edit_drawer') !== false, 'edit.css sty
 test_assert(__LINE__, strpos($edit_css, 'translateX(105%)') !== false, 'edit.css slides the drawer off-canvas (#153)');
 test_assert(__LINE__, strpos($edit_css, 'calc(100vh - 240px)') !== false, 'edit.css gives the textarea a viewport-based height (#153)');
 test_assert(__LINE__, strpos($edit_css, '60vh') === false, 'edit.css no longer fixes the textarea at 60vh (#153)');
-test_assert(__LINE__, strpos($edit_css, 'max-width: 1120px') === false, 'edit.css gives #wikiedit the full window width (#153)');
+test_assert(__LINE__, strpos($edit_css, 'max-width: 1500px') !== false, 'edit.css caps #wikiedit at a wide 1500px (#153)');
 
 // --- Copilot レビューのフォローアップ (PR #341) ---
 $drawer_js = file_get_contents($root . '/resource/drawer.js');
