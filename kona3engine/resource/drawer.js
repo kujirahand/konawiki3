@@ -1,11 +1,15 @@
 qq(function(){
 
+  // ページによってはハンバーガーメニューが存在しない (編集画面は issue #153 で
+  // 共通ヘッダーを出さない)。qq() は要素がないと警告を出すため、先に
+  // querySelector で存在を確かめる (警告は本当の不整合の検出用に残す)。
+  if (!document.querySelector('#hamburger_icon') ||
+      !document.querySelector('#drawer_background') ||
+      !document.querySelector('nav.menuitems')) { return; }
+
   const btn = qq('#hamburger_icon');
   const win = qq("#drawer_background");
   const nav = qq("nav.menuitems");
-
-  // ページによってはハンバーガーメニューが存在しない (編集画面は issue #153 で
-  // 共通ヘッダーを出さない)。qq() は要素がないと null を返すため、ここで終了する。
   if (!btn || !win || !nav) { return; }
 
   function toggleMenu() {

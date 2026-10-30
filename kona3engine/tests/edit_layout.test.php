@@ -78,6 +78,9 @@ test_assert(__LINE__, strpos($edit_js, "openToolPanel('#ai_div')") !== false, 'a
 test_assert(__LINE__, strpos($edit_js, 'e.isComposing') !== false, 'Esc handler checks isComposing (#341 review)');
 // ハンバーガーのない画面でも drawer.js が落ちない
 test_assert(__LINE__, strpos($drawer_js, 'if (!btn || !win || !nav) { return; }') !== false, 'drawer.js has a null guard (#341 review)');
+// ハンバーガーのない画面では qq() の警告を出さないよう先に存在を確かめる
+test_assert(__LINE__, strpos($drawer_js, "document.querySelector('nav.menuitems')") !== false, 'drawer.js pre-checks the nav without qq() (#153)');
+test_assert(__LINE__, strpos($drawer_js, "document.querySelector('#hamburger_icon')") !== false, 'drawer.js pre-checks the hamburger without qq() (#153)');
 // 閉じたドロワーはタブ順序から外れる
 test_assert(__LINE__, strpos($edit_css, 'visibility: hidden;') !== false, 'closed drawer is visibility hidden (#341 review)');
 test_assert(__LINE__, strpos($edit_css, 'visibility: visible;') !== false, 'open drawer is visibility visible (#341 review)');
