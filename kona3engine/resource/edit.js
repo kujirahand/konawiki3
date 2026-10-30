@@ -64,6 +64,40 @@ function edit_init() {
       handleChange(true, 'page_mode')
     })
   }
+  const search_key_el = qs('#search_key')
+  if (search_key_el) {
+    search_key_el.addEventListener('input', updateSearchCount)
+    search_key_el.addEventListener('keydown', (e) => {
+      // Enter that commits an IME composition must not trigger a search
+      if (e.isComposing || e.keyCode === 229) { return }
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        if (e.shiftKey) { searchPrev() } else { searchNext() }
+      }
+    })
+  }
+  // Keep the match count in sync while the text is edited (issue #153)
+  edit_txt.addEventListener('input', updateSearchCount)
+  // Ctrl+F / Cmd+F opens the drawer search panel (issue #153). Guards
+  // (review follow-up for PR #345): no Shift/Alt combos, no IME
+  // composition, Cmd only on Mac (Ctrl+F is forward-char there) and
+  // Ctrl only elsewhere, and never steal a key the user bound to an
+  // editor/AI shortcut.
+  document.addEventListener('keydown', (e) => {
+    if (e.isComposing || e.shiftKey || e.altKey) { return }
+    if (e.key !== 'f' && e.key !== 'F') { return }
+    const isMac = /Mac|iPhone|iPad/.test(navigator.platform || '')
+    const modOk = isMac ? (e.metaKey && !e.ctrlKey) : (e.ctrlKey && !e.metaKey)
+    if (!modOk) { return }
+    const shortcutIds = ['editor_shortcut_temp_save', 'editor_shortcut_new',
+      'ai_shortcut_complete', 'ai_shortcut_spellcheck',
+      'ai_shortcut_user_prompt1', 'ai_shortcut_user_prompt2']
+    for (const id of shortcutIds) {
+      if (matchesShortcut(e, getShortcutValue(id))) { return }
+    }
+    e.preventDefault()
+    searchOnClick(true)
+  })
   const ai_ask_btn = qs('#ai_ask_btn')
   if (ai_ask_btn) {
     qq(ai_ask_btn).click(aiAskClickHandler)
@@ -683,7 +717,7 @@ function showOnlyPanel(selector, forceShow) {
     return null
   }
   const isVisible = target.style.display !== 'none'
-  const panels = ['#help_div', '#tags_div', '#replace_div', '#history_div', '#misc_div', '#ai_div']
+  const panels = ['#help_div', '#tags_div', '#replace_div', '#history_div', '#misc_div', '#ai_div', '#search_div']
   panels.forEach(function (panelSelector) {
     if (qs(panelSelector)) {
       qq(panelSelector).hide()
@@ -699,6 +733,160 @@ function showOnlyPanel(selector, forceShow) {
 // Open the drawer and show the given tool panel. When the drawer was
 // closed, the panel is always shown: a panel left visible inside the
 // closed drawer must not be toggled off (Copilot review on PR #341).
+// In-editor text search (issue #153)
+let searchIndex = -1
+let searchQuery = ''
+let searchText = null
+
+// All match offsets of query in text (case-insensitive, non-overlapping).
+function computeSearchMatches(text, query) {
+  const matches = []
+  if (!query) {
+    return matches
+  }
+  let hay = text.toLowerCase()
+  let needle = query.toLowerCase()
+  // toLowerCase() can change the string length for a few characters
+  // (e.g. 'İ'), which would shift every offset. Fall back to a
+  // case-sensitive search in that case (review follow-up for PR #345).
+  if (hay.length !== text.length || needle.length !== query.length) {
+    hay = text
+    needle = query
+  }
+  let pos = 0
+  while (true) {
+    const i = hay.indexOf(needle, pos)
+    if (i < 0) {
+      break
+    }
+    matches.push(i)
+    pos = i + Math.max(1, needle.length)
+  }
+  return matches
+}
+
+// Reset the remembered position when the query or the text changed, so
+// navigation always starts from the current caret/selection.
+function searchSyncState(query) {
+  if (query !== searchQuery || edit_txt.value !== searchText) {
+    searchQuery = query
+    searchText = edit_txt.value
+    searchIndex = -1
+  }
+}
+
+// Index of the match to jump to from currentPos: the first match at or
+// after currentPos for dir=1, the last match before currentPos for
+// dir=-1, wrapping around. -1 when there are no matches.
+function findSearchTarget(matches, currentPos, dir) {
+  if (matches.length === 0) {
+    return -1
+  }
+  if (dir > 0) {
+    for (let i = 0; i < matches.length; i++) {
+      if (matches[i] >= currentPos) {
+        return i
+      }
+    }
+    return 0
+  }
+  for (let i = matches.length - 1; i >= 0; i--) {
+    if (matches[i] < currentPos) {
+      return i
+    }
+  }
+  return matches.length - 1
+}
+
+function updateSearchCount() {
+  const input = qs('#search_key')
+  const countEl = qs('#search_count')
+  if (!input || !countEl) {
+    return
+  }
+  const query = input.value
+  searchSyncState(query)
+  const matches = computeSearchMatches(edit_txt.value, query)
+  if (!query) {
+    countEl.textContent = ''
+  } else if (matches.length === 0) {
+    countEl.textContent = '見つかりません'
+  } else if (searchIndex >= 0) {
+    countEl.textContent = (searchIndex + 1) + ' / ' + matches.length
+  } else {
+    countEl.textContent = matches.length + ' 件'
+  }
+}
+
+function searchMove(dir) {
+  const input = qs('#search_key')
+  const query = input ? input.value : ''
+  const matches = computeSearchMatches(edit_txt.value, query)
+  searchSyncState(query)
+  if (searchIndex >= matches.length) {
+    searchIndex = matches.length - 1
+  }
+  // Base position: continue from the last match only while the current
+  // selection still is that match; otherwise start from the selection
+  // the user actually has (review follow-up for PR #345).
+  const selStart = edit_txt.selectionStart || 0
+  const selEnd = edit_txt.selectionEnd || 0
+  const onMatch = searchIndex >= 0 && searchIndex < matches.length &&
+    matches[searchIndex] === selStart && selEnd === selStart + query.length
+  const from = dir > 0
+    ? (onMatch ? matches[searchIndex] + 1 : selEnd)
+    : (onMatch ? matches[searchIndex] : selStart)
+  const idx = findSearchTarget(matches, from, dir)
+  if (idx < 0) {
+    updateSearchCount()
+    return
+  }
+  searchIndex = idx
+  const start = matches[idx]
+  edit_txt.setSelectionRange(start, start + query.length)
+  scrollEditorToPos(start)
+  updateSearchCount()
+  // Keep the focus on the search input: moving it to the textarea would
+  // make the next Enter insert a newline over the matched text, and
+  // would break repeated Enter navigation (review follow-up, PR #345).
+  if (input) {
+    input.focus()
+  }
+}
+
+function searchNext() {
+  searchMove(1)
+}
+
+function searchPrev() {
+  searchMove(-1)
+}
+
+// Scroll the textarea so that the given offset is roughly in view.
+function scrollEditorToPos(pos) {
+  const before = edit_txt.value.substring(0, pos)
+  const lines = before.split('\n').length - 1
+  const style = window.getComputedStyle(edit_txt)
+  const lineHeight = parseInt(style.lineHeight, 10) || 20
+  edit_txt.scrollTop = Math.max(0, lines * lineHeight - edit_txt.clientHeight / 3)
+}
+
+function searchOnClick(forceShow) {
+  if (forceShow) {
+    // The Ctrl+F shortcut must always open the panel, never toggle it
+    // shut (review follow-up for PR #345).
+    openEditDrawer()
+    showOnlyPanel('#search_div', true)
+  } else {
+    openToolPanel('#search_div')
+  }
+  const input = qs('#search_key')
+  if (input) {
+    input.focus()
+    input.select()
+  }
+}
+
 function openToolPanel(selector) {
   const drawer = qs('#edit_drawer')
   const wasOpen = drawer && drawer.classList.contains('open')
