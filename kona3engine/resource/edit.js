@@ -75,9 +75,12 @@ function edit_init() {
   loadAutoSave()
   startKeepalive()
 
-  // Esc closes the tool drawer (issue #153)
+  // Esc closes the tool drawer (issue #153). Ignore Esc while an IME
+  // composition is in progress, and do nothing when it is already closed.
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { closeEditDrawer() }
+    if (e.key !== 'Escape' || e.isComposing) { return }
+    const drawer = qs('#edit_drawer')
+    if (drawer && drawer.classList.contains('open')) { closeEditDrawer() }
   })
 
   // フォーム送信時にも本文を localStorage へ退避する (issue #64)。
@@ -577,8 +580,9 @@ function closeEditDrawer() {
 }
 
 // Show only the given panel in the drawer. If it is already visible,
-// hide it instead (toggle). Returns the shown panel or null.
-function showOnlyPanel(selector) {
+// hide it instead (toggle), unless forceShow is set. Returns the shown
+// panel or null.
+function showOnlyPanel(selector, forceShow) {
   const target = qs(selector)
   if (!target) {
     return null
@@ -590,36 +594,41 @@ function showOnlyPanel(selector) {
       qq(panelSelector).hide()
     }
   })
-  if (isVisible) {
+  if (isVisible && !forceShow) {
     return null
   }
   qq(selector).show()
   return target
 }
 
-function historyOnClick() {
+// Open the drawer and show the given tool panel. When the drawer was
+// closed, the panel is always shown: a panel left visible inside the
+// closed drawer must not be toggled off (Copilot review on PR #341).
+function openToolPanel(selector) {
+  const drawer = qs('#edit_drawer')
+  const wasOpen = drawer && drawer.classList.contains('open')
   openEditDrawer()
-  showOnlyPanel('#history_div')
+  showOnlyPanel(selector, !wasOpen)
+}
+
+function historyOnClick() {
+  openToolPanel('#history_div')
 }
 
 function helpOnClick() {
-  openEditDrawer()
-  showOnlyPanel('#help_div')
+  openToolPanel('#help_div')
 }
 
 function tagsOnClick() {
-  openEditDrawer()
-  showOnlyPanel('#tags_div')
+  openToolPanel('#tags_div')
 }
 
 function aiOnClick() {
-  openEditDrawer()
-  showOnlyPanel('#ai_div')
+  openToolPanel('#ai_div')
 }
 
 function aiSpellCheckOnClick() {
-  openEditDrawer()
-  showOnlyPanel('#ai_div')
+  openToolPanel('#ai_div')
   const selectBox = document.getElementById('ai_template_select')
   if (!selectBox) { return }
   showDisplay('#ai_div')
@@ -1062,13 +1071,11 @@ function copyToClipboard(text) {
 }
 
 function replaceOnClick() {
-  openEditDrawer()
-  showOnlyPanel('#replace_div')
+  openToolPanel('#replace_div')
 }
 
 function miscOnClick() {
-  openEditDrawer()
-  showOnlyPanel('#misc_div')
+  openToolPanel('#misc_div')
 }
 
 function convertToMarkdownClick() {

@@ -136,11 +136,15 @@ textarea#edit_txt {
   background: #fff;
   box-shadow: -4px 0 16px rgba(0, 0, 0, 0.15);
   transform: translateX(105%);
-  transition: transform 0.25s;
+  /* visibility keeps the closed drawer out of the tab order */
+  visibility: hidden;
+  transition: transform 0.25s, visibility 0s 0.25s;
 }
 
 #edit_drawer.open {
   transform: translateX(0);
+  visibility: visible;
+  transition: transform 0.25s, visibility 0s 0s;
 }
 
 .edit_drawer_header {

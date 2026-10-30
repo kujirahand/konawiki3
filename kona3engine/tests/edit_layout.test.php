@@ -64,3 +64,26 @@ test_assert(__LINE__, strpos($edit_css, 'translateX(105%)') !== false, 'edit.css
 test_assert(__LINE__, strpos($edit_css, 'calc(100vh - 240px)') !== false, 'edit.css gives the textarea a viewport-based height (#153)');
 test_assert(__LINE__, strpos($edit_css, '60vh') === false, 'edit.css no longer fixes the textarea at 60vh (#153)');
 test_assert(__LINE__, strpos($edit_css, 'max-width: 1120px') !== false, 'edit.css widens #wikiedit (#153)');
+
+// --- Copilot レビューのフォローアップ (PR #341) ---
+$drawer_js = file_get_contents($root . '/resource/drawer.js');
+$dark_css = file_get_contents($root . '/resource/darkmode.css');
+// ドロワーが閉じていたときはパネルを強制表示する (空ドロワー防止)
+test_assert(__LINE__, strpos($edit_js, 'function openToolPanel(') !== false, 'edit.js has openToolPanel() (#341 review)');
+test_assert(__LINE__, strpos($edit_js, 'function showOnlyPanel(selector, forceShow)') !== false, 'showOnlyPanel takes forceShow (#341 review)');
+test_assert(__LINE__, strpos($edit_js, 'isVisible && !forceShow') !== false, 'showOnlyPanel skips the toggle when forced (#341 review)');
+test_assert(__LINE__, strpos($edit_js, "openToolPanel('#help_div')") !== false, 'help uses openToolPanel (#341 review)');
+test_assert(__LINE__, strpos($edit_js, "openToolPanel('#ai_div')") !== false, 'ai uses openToolPanel (#341 review)');
+// Esc は IME 変換中を無視する
+test_assert(__LINE__, strpos($edit_js, 'e.isComposing') !== false, 'Esc handler checks isComposing (#341 review)');
+// ハンバーガーのない画面でも drawer.js が落ちない
+test_assert(__LINE__, strpos($drawer_js, 'if (!btn || !win || !nav) { return; }') !== false, 'drawer.js has a null guard (#341 review)');
+// 閉じたドロワーはタブ順序から外れる
+test_assert(__LINE__, strpos($edit_css, 'visibility: hidden;') !== false, 'closed drawer is visibility hidden (#341 review)');
+test_assert(__LINE__, strpos($edit_css, 'visibility: visible;') !== false, 'open drawer is visibility visible (#341 review)');
+// ダークモードでトップバー/ドロワーが白く残らない
+test_assert(__LINE__, strpos($dark_css, 'body.dark-theme #edit_topbar') !== false, 'dark mode covers #edit_topbar (#341 review)');
+test_assert(__LINE__, strpos($dark_css, 'body.dark-theme #edit_drawer') !== false, 'dark mode covers #edit_drawer (#341 review)');
+test_assert(__LINE__, strpos($dark_css, '#outline_btn') === false, 'dark mode has no #outline_btn leftover (#341 review)');
+// change-info の初期表示は保存状態と矛盾しない
+test_assert(__LINE__, strpos($edit_html, '<span id="change-info">保存済み</span>') !== false, 'change-info initial text matches the save state (#341 review)');
