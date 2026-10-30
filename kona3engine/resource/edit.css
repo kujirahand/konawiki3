@@ -5,7 +5,8 @@ body {
 
 #wikiedit {
   box-sizing: border-box;
-  margin: 0;
+  max-width: 1500px;
+  margin: 0 auto;
   padding: 8px 26px 24px;
   background: var(--k3-color-bg, #ffffff);
   color: var(--k3-color-text, #1f2933);
