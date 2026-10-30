@@ -307,3 +307,61 @@ textarea#ai_input_text {
 #search_count {
   margin-left: 0.5em;
 }
+
+/* edit conflict panel and form notice (issue #153) */
+#conflict_nav {
+  color: var(--k3-color-danger-text, #9b1c1c);
+  font-weight: bold;
+}
+
+.conflict_diff {
+  max-height: 300px;
+  overflow: auto;
+  font-family: monospace;
+  font-size: 12px;
+  border: 1px solid var(--k3-color-border, #d0d7de);
+}
+
+.conflict_line {
+  padding: 1px 6px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.conflict_line_mine {
+  background-color: var(--k3-color-danger-bg, #fde8e8);
+}
+
+.conflict_line_server {
+  background-color: var(--k3-color-success-bg, #eefbf3);
+}
+
+.conflict_swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+}
+
+.conflict_full_text {
+  max-height: 200px;
+  overflow: auto;
+  font-family: monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+.edit_conflict_notice {
+  background-color: var(--k3-color-warn-bg, #fff8e6);
+  color: var(--k3-color-warn-text, #7a4d00);
+  padding: 8px 12px;
+  margin: 8px 0;
+}
+
+.edit_conflict_diff {
+  max-height: 300px;
+  overflow: auto;
+  font-family: monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  background-color: #ffffff;
+}

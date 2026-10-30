@@ -32,6 +32,15 @@
         <button type="button" id="tools_btn" onclick="toggleEditDrawer()">ツール</button>
       </div>
 
+      {{ if $conflict_diff }}
+      <div class="edit_conflict_notice">
+        <p><strong>⚠ {{'Edit conflict'|lang}}</strong><br>
+        サーバー側の内容と競合しました。あなたの本文はそのままテキストエリアに残してあります。差分を確認し、もう一度保存するとあなたの内容で上書きされます。</p>
+        <p class="info">&lt;&lt; {{'Your version'|lang}} / &gt;&gt; {{'Server version'|lang}}</p>
+        <pre class="edit_conflict_diff">{{ $conflict_diff }}</pre>
+      </div>
+      {{ endif }}
+
       <div id="edit_main">
         <div class="editor">
           <textarea id="edit_txt" name="edit_txt">{{$edit_txt}}</textarea>
@@ -63,6 +72,7 @@
         <button type="button" onclick="closeEditDrawer()">×</button>
       </div>
       <nav class="edit_drawer_nav">
+        <button id="conflict_nav" type="button" onclick="conflictOnClick()" style="display: none;">⚠ {{'Edit conflict' | lang}}</button>
         <button onclick="searchOnClick()">{{'Search' | lang}}</button>
         <button onclick="replaceOnClick()">{{'Replace' | lang}}</button>
         <button onclick="tagsOnClick()">{{'Tags' | lang}}</button>
@@ -109,6 +119,23 @@
           <button type="button" onclick="searchPrev()">{{'Prev'|lang}}</button>
           <button type="button" onclick="searchNext()">{{'Next'|lang}}</button>
           <span id="search_count" class="info" aria-live="polite"></span>
+        </div>
+      </div>
+
+      <div id="conflict_div" class="desc" style="display: none;">
+        <div>
+          <b>⚠ {{'Edit conflict'|lang}}</b>
+          <p class="info">サーバー側の内容が、編集中に他の誰か（または別のタブ）によって更新されました。あなたの本文はそのまま残してあります。どうするか選んでください。</p>
+          <button type="button" onclick="toggleConflictDiff()">{{'Show diff'|lang}}</button>
+          <button type="button" onclick="conflictLoadServer()">{{'Load server version'|lang}}</button>
+          <button type="button" onclick="conflictOverwrite()">{{'Overwrite with my version'|lang}}</button>
+          <button type="button" id="conflict_restore_btn" onclick="conflictRestoreMine()" style="display: none;">{{'Restore my version'|lang}}</button>
+          <div id="conflict_note" class="info" aria-live="polite"></div>
+          <div id="conflict_diff_box" style="display: none;">
+            <p class="info"><span class="conflict_swatch conflict_line_mine"></span> {{'Your version'|lang}}　
+            <span class="conflict_swatch conflict_line_server"></span> {{'Server version'|lang}}</p>
+            <div id="conflict_diff" class="conflict_diff"></div>
+          </div>
         </div>
       </div>
 
