@@ -1,28 +1,74 @@
 /* edit.css */
 #wikiedit {
-  padding:8px;
+  box-sizing: border-box;
+  max-width: 1120px;
   margin: 0 auto;
-  background-color: #f0f0ff;
-  max-width:700px;
+  padding: 12px;
+  background: #ffffff;
+}
+
+#edit_topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding: 8px 4px;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+}
+
+.edit_back {
+  color: inherit;
+  font-size: 1.5em;
+  line-height: 1;
+  text-decoration: none;
+}
+
+#edit_page_name {
+  overflow: hidden;
+  font-weight: bold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.edit_topbar_spacer {
+  flex: 1;
+}
+
+.edit_save_state {
+  color: #0a7d43;
+  white-space: nowrap;
+}
+
+.edit_save_state.dirty {
+  color: #b45309;
+  font-weight: bold;
 }
 
 textarea#edit_txt {
-  margin: 0px;
-  padding: 1%;
+  box-sizing: border-box;
+  width: 100%;
+  height: calc(100vh - 240px);
+  min-height: 320px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
   font-size: 1em;
   line-height: 1.7em;
-  width: calc(100%);
-  height: calc(60vh);
+  resize: vertical;
 }
 
-
 #wikiedit input[type="submit"],
-#wikiedit input[type="button"] {
-  font-size: 0.9em;
+#wikiedit input[type="button"],
+#wikiedit button {
   border: 1px solid gray;
-  color: black;
   padding: 8px;
   background-color: #f0f0f0;
+  color: black;
+  font-size: 0.9em;
   text-decoration: none;
 }
 
@@ -40,76 +86,115 @@ textarea#edit_txt {
   font-size: 10px;
 }
 
-#func_area {
-  border: 1px dashed #f0c0c0;
-  margin-top: 24px;
-  padding: 12px;
-}
-#recover_div a {
-  font-size: 12px;
-  border: 1px solid gray;
-  color: black;
-  padding: 8px;
-  background-color: #f0f0f0;
-  text-decoration: none; 
-}
-#auto_save_label {
-  font-size:12px;
-    color: gray;
+#edit_statusbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 4px;
+  border-top: 1px dotted silver;
+  color: #555;
+  font-size: 0.85em;
 }
 
-#wikiedit input#outline_btn {
-  font-size: 12px;
-  border: 1px solid silver;
-  color: black;
-  padding: 8px;
-  background-color: #f0f0f0;
-  text-decoration: none;
-  width: 100px;
-}
-
-#wikiedit #edit_counter {
-  background-color: #f0f0ff;
-  border: none;
-  margin-top: 8px;
-  padding:0.5%;
-  font-size: 0.8em;
-  width: 99%;
-}
-
+#wikiedit #edit_counter,
 #wikiedit #edit_info {
-  background-color: #f0f0ff;
   border: none;
-  margin-top: 8px;
-  padding:0.5%;
+  padding: 0.5%;
+  background-color: #fff;
   font-size: 0.8em;
-  width: 99%;
 }
 
 #wikiedit .desc {
-  font-size: 0.8em;
   color: gray;
+  font-size: 0.8em;
 }
 
-.info_box {
+#edit_drawer_scrim {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+#edit_drawer_scrim.open {
+  display: block;
+}
+
+#edit_drawer {
+  box-sizing: border-box;
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1000;
+  width: min(420px, 92vw);
+  height: 100vh;
+  padding: 14px;
+  overflow-y: auto;
+  border-left: 1px solid #ccc;
+  background: #fff;
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.15);
+  transform: translateX(105%);
+  transition: transform 0.25s;
+}
+
+#edit_drawer.open {
+  transform: translateX(0);
+}
+
+.edit_drawer_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 1.1em;
+}
+
+.edit_drawer_nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+#ai_buttons {
+  display: contents;
+}
+
+#edit_drawer .block2,
+#edit_drawer .tag_box,
+#edit_drawer #replace_div,
+#edit_drawer #misc_div {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
   padding: 0.5em;
   border-bottom: 1px dotted silver;
 }
 
-.tag_box {
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-  padding: 0.3em;
-  border-bottom: 1px dotted silver;
+#func_area {
+  margin-top: 24px;
+  padding: 12px;
+  border: 1px dashed #f0c0c0;
 }
 
-.buttons {
-  display: flex;
-  justify-content: space-between;
+#recover_div a {
+  border: 1px solid gray;
+  padding: 8px;
+  background-color: #f0f0f0;
+  color: black;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+#auto_save_label {
+  color: gray;
+  font-size: 12px;
 }
 
 textarea#ai_input_text {
-  width: calc(100% - 14px);
+  box-sizing: border-box;
+  width: 100%;
   height: 6em;
   margin-top: 8px;
   padding: 1%;
@@ -127,32 +212,54 @@ textarea#ai_input_text {
 #ai_output_area button {
   margin-right: 0.3em;
 }
+
 #ai_output_area .ai_block {
-  font-size: 1.1em;
-  line-height: 1.8em;
-  margin: 0.3em;
-  margin-top: 0.5em;
+  margin: 0.5em 0.3em 0.3em;
   padding: 0.5em;
+  border: 1px solid gray;
   background-color: #ffffff;
   color: black;
-  border: 1px solid gray;
+  font-size: 1.1em;
+  line-height: 1.8em;
 }
 
 #ai_loader {
-  font-size: 1.0em;
+  font-size: 1em;
 }
 
 #aiReplaceButtons {
-  text-align: right;
   padding-top: 1em;
   border-top: 1px dotted silver;
+  text-align: right;
 }
 
 .ai-ng {
   color: #d9534f;
   font-weight: bold;
 }
+
 .ai-ok {
   color: #0275d8;
   font-weight: bold;
+}
+
+@media (max-width: 640px) {
+  #edit_topbar {
+    flex-wrap: wrap;
+  }
+
+  textarea#edit_txt {
+    height: 52vh;
+  }
+
+  #edit_topbar input[type="submit"],
+  #edit_topbar input[type="button"] {
+    width: auto;
+    padding: 10px 12px;
+  }
+
+  .edit_topbar_spacer {
+    flex-basis: 100%;
+    height: 0;
+  }
 }

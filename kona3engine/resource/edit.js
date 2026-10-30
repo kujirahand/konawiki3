@@ -14,8 +14,6 @@ const KEEPALIVE_TICK = 1000 * 15 // 15sec
 const KEEPALIVE_RETRY_INTERVAL = 1000 * 20 // 20sec while session is lost
 
 // var
-var outline_mode = false
-var outline_lines = []
 var isChanged = false
 var timerIdAutosave = 0
 var timerIdKeepalive = 0
@@ -54,7 +52,6 @@ function edit_init() {
 
   // set button event
   qq('#temporarily_save_btn').click(clickTempSaveButton)
-  // qq('#outline_btn').click(change_outline);
   const git_save_btn = qs('#git_save_btn')
   if (git_save_btn) {
     qq(git_save_btn).click(git_save)
@@ -77,6 +74,11 @@ function edit_init() {
   }
   loadAutoSave()
   startKeepalive()
+
+  // Esc closes the tool drawer (issue #153)
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeEditDrawer() }
+  })
 
   // フォーム送信時にも本文を localStorage へ退避する (issue #64)。
   // サーバー側の退避 (セッション) と合わせて、送信に失敗しても
@@ -160,13 +162,22 @@ function normalizeShortcutKey(key) {
 function handleChange(changed, reason) {
   elog(`changed: ${changed} - ${reason}`)
   isChanged = changed
-  // set #change-info
+  // set #change-info and the topbar save state (issue #153)
+  const saveState = qs('#edit_save_state')
   if (isChanged) {
-    qq('#change-info').html('[c]')
+    qq('#change-info').html('未保存')
+    if (saveState) {
+      saveState.textContent = '未保存の変更があります'
+      saveState.classList.add('dirty')
+    }
     use_beforeunload(true)
     setButtonsDisabled(false)
   } else {
-    qq('#change-info').html('-')
+    qq('#change-info').html('保存済み')
+    if (saveState) {
+      saveState.textContent = '保存済み'
+      saveState.classList.remove('dirty')
+    }
     use_beforeunload(false)
     setButtonsDisabled(true)
   }
@@ -442,7 +453,7 @@ function ajaxProc(a_mode, source) {
       info.css('backgroundColor', '#ffffc0')
       info.css('color', 'green')
       setTimeout(function () {
-        info.css('backgroundColor', '#f0f0ff')
+        info.css('backgroundColor', '#ffffff')
         info.css('color', 'silver')
       }, 700)
     })
@@ -513,64 +524,10 @@ function edit_recover() {
   edit_txt.value = localStorage[STORAGE_KEY]
 }
 
-function change_outline() {
-  outline_mode = !outline_mode
-  if (outline_mode == false) {
-    outline_to_text()
-    qq('#edit_txt').show()
-    qq('#outline_btn').val('Outline')
-    qq('#outline_div').html('')
-  } else {
-    qq('#edit_txt').hide()
-    qq('#outline_btn').val('Text')
-    outline_build()
-  }
-}
-
-function outline_build() {
-  // alert('実装中のテスト機能です。');
-  outline_lines = []
-  var txt = qq('#edit_txt').val()
-  var lines = txt.split("\n")
-  var root = document.createElement('div')
-  for (var i = 0; i < lines.length; i++) {
-    var line = document.createElement('div')
-    var cmd = lines[i]
-    line.innerHTML = text2html(lines[i])
-    line.contentEditable = true
-    var ch = cmd.substr(0, 1)
-    if (ch == "-") {
-      var l = cmd.match(/^\-+/)
-      var px = l[0].length * 20
-      line.style.marginLeft = px + "px"
-    }
-    root.appendChild(document.createElement('a'))
-    root.appendChild(line)
-    outline_lines.push(line)
-  }
-  qs('#outline_div').appendChild(root)
-}
-
-function outline_to_text() {
-  if (outline_lines.length == 0) return
-  var text = []
-  for (var i = 0; i < outline_lines.length; i++) {
-    text.push(html2text(outline_lines[i].innerHTML))
-  }
-  qq('#edit_txt').val(text.join("\n"))
-  outline_lines = []
-}
-
 function text2html(s) {
   s = s.replace(/\&/g, '&amp;')
   s = s.replace(/\</g, '&lt;')
   s = s.replace(/\>/g, '&gt;')
-  return s
-}
-function html2text(s) {
-  s = s.replace(/\&gt\;/g, '>')
-  s = s.replace(/\&lt\;/g, '<')
-  s = s.replace(/\&amp\;/g, '&')
   return s
 }
 
@@ -598,23 +555,71 @@ function showDisplay(query) {
   }
 }
 
+// edit drawer (issue #153): all tool panels live in one drawer and
+// only one panel is open at a time.
+function toggleEditDrawer() {
+  const drawer = qs('#edit_drawer')
+  if (drawer && drawer.classList.contains('open')) {
+    closeEditDrawer()
+  } else {
+    openEditDrawer()
+  }
+}
+
+function openEditDrawer() {
+  qq('#edit_drawer').addClass('open')
+  qq('#edit_drawer_scrim').addClass('open')
+}
+
+function closeEditDrawer() {
+  qq('#edit_drawer').removeClass('open')
+  qq('#edit_drawer_scrim').removeClass('open')
+}
+
+// Show only the given panel in the drawer. If it is already visible,
+// hide it instead (toggle). Returns the shown panel or null.
+function showOnlyPanel(selector) {
+  const target = qs(selector)
+  if (!target) {
+    return null
+  }
+  const isVisible = target.style.display !== 'none'
+  const panels = ['#help_div', '#tags_div', '#replace_div', '#history_div', '#misc_div', '#ai_div']
+  panels.forEach(function (panelSelector) {
+    if (qs(panelSelector)) {
+      qq(panelSelector).hide()
+    }
+  })
+  if (isVisible) {
+    return null
+  }
+  qq(selector).show()
+  return target
+}
+
 function historyOnClick() {
-  toggleDisplay('#history_div')
+  openEditDrawer()
+  showOnlyPanel('#history_div')
 }
 
 function helpOnClick() {
-  toggleDisplay('#help_div')
+  openEditDrawer()
+  showOnlyPanel('#help_div')
 }
 
 function tagsOnClick() {
-  toggleDisplay('#tags_div')
+  openEditDrawer()
+  showOnlyPanel('#tags_div')
 }
 
 function aiOnClick() {
-  toggleDisplay('#ai_div')
+  openEditDrawer()
+  showOnlyPanel('#ai_div')
 }
 
 function aiSpellCheckOnClick() {
+  openEditDrawer()
+  showOnlyPanel('#ai_div')
   const selectBox = document.getElementById('ai_template_select')
   if (!selectBox) { return }
   showDisplay('#ai_div')
@@ -1057,13 +1062,13 @@ function copyToClipboard(text) {
 }
 
 function replaceOnClick() {
-  const replace_div = qq('#replace_div')
-  replace_div.toggle()
+  openEditDrawer()
+  showOnlyPanel('#replace_div')
 }
 
 function miscOnClick() {
-  const misc_div = qq('#misc_div')
-  misc_div.toggle()
+  openEditDrawer()
+  showOnlyPanel('#misc_div')
 }
 
 function convertToMarkdownClick() {

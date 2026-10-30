@@ -4,7 +4,6 @@
 <div id="wikimessage">
   <div id="wikiedit">
     <div class="edit_msg">{{ $msg | safe }}</div>
-    <div id="outline_div"></div>
     <form method="post" action="{{$action}}" class="pure-form">
       <input type="hidden" name="a_mode" value="trywrite">
       <input type="hidden" id="a_hash" name="a_hash" value="{{$a_hash}}">
@@ -18,23 +17,28 @@
       <input type="hidden" id="ai_shortcut_spellcheck" value="{{ $ai_shortcut_spellcheck }}">
       <input type="hidden" id="ai_shortcut_user_prompt1" value="{{ $ai_shortcut_user_prompt1 }}">
       <input type="hidden" id="ai_shortcut_user_prompt2" value="{{ $ai_shortcut_user_prompt2 }}">
-      <div class="editor">
-        <textarea id="edit_txt" name="edit_txt">{{$edit_txt}}</textarea>
-      </div>
-      <div class="buttons">
+
+      <div id="edit_topbar">
+        <a class="edit_back" href="{{$page_url}}">←</a>
+        <span id="edit_page_name">{{$page_title}}</span>
+        <span id="edit_save_state" class="edit_save_state">保存済み</span>
+        <span class="edit_topbar_spacer"></span>
         <input id="temporarily_save_btn" class="pure-button button-long" disabled="true" type="button"
           value="{{'Save temp'|lang}}">
         <input id="save_btn" class="pure-button button-short" type="submit" value="{{'Save &amp; Show'|lang}}">
-        
         <input id="git_save_btn" type="button"
           class="pure-button button-short" value="{{'Save to Repo'|lang}}"
           {{ if !$git_enabled }} style="display: none;" {{ endif }}>
+        <button type="button" id="tools_btn" onclick="toggleEditDrawer()">ツール</button>
       </div>
-      <div class="info_box">
+
+      <div class="editor">
+        <textarea id="edit_txt" name="edit_txt">{{$edit_txt}}</textarea>
+      </div>
+
+      <div id="edit_statusbar">
         <span id="edit_counter" class="info"></span>
         <span id="edit_info" class="info"></span>
-      </div><!-- end of info_box -->
-      <div class="desc">
         <input type="checkbox" id="autosave" class="info" style="width:2em;" name="autosave" value="yes" checked>
         <label for="autosave"> Auto save </label>
         <label for="page_mode" style="margin-left:1.5em;">Format:</label>
@@ -46,8 +50,13 @@
       </div>
     </form>
 
-    <div class="desc">
-      <div style="text-align: right;">
+    <div id="edit_drawer_scrim" onclick="closeEditDrawer()"></div>
+    <aside id="edit_drawer">
+      <div class="edit_drawer_header">
+        <strong>ツール</strong>
+        <button type="button" onclick="closeEditDrawer()">×</button>
+      </div>
+      <nav class="edit_drawer_nav">
         <button onclick="replaceOnClick()">{{'Replace' | lang}}</button>
         <button onclick="tagsOnClick()">{{'Tags' | lang}}</button>
         <button onclick="historyOnClick()">{{'History' | lang}}</button>
@@ -59,7 +68,8 @@
         </span>
         {{ endif }}
         <button onclick="helpOnClick()">?</button>
-      </div>
+      </nav>
+
       <div id="help_div" class="block2" style="display: none;">
         <div>
           <h3>Help:</h3>
@@ -75,6 +85,7 @@
           </ul>
         </div>
       </div>
+
       <div id="tags_div" class="desc tag_box block2" style="display: none;">
         <div>
           <b style="width:5em;">{{'Tags'|lang}}</b>:
@@ -82,6 +93,7 @@
             placeholder="tag1/tag2/tag3/..." onchange="syncTagsToHidden()">
         </div>
       </div>
+
       <div id="replace_div" class="desc" class="block2" style="display: none;">
         <div>
           <b style="width:5em;">{{'Replace'|lang}}</b>:<br>
@@ -94,6 +106,7 @@
           <label for="replace_regexp">{{ 'RegExp' | lang }}</label>
         </div>
       </div>
+
       <div id="history_div" class="block2" style="display: none;">
         <ul>
           <li><a href="#" id="ls_load_btn">😃{{'Load temp'| lang}}</a></li>
@@ -112,11 +125,13 @@
           {{ endfor }}
         </ul>
       </div><!-- end of #history_div -->
+
       <div id="misc_div" class="desc" class="block2" style="display: none;">
         <div>
           <button onclick="convertToMarkdownClick()">Convert KonaWikiNotation to Markdown</button>
         </div>
       </div>
+
       {{ if $ai_enabled }}
       <div id="ai_div" class="block2" style="display: none;">
         <div>
@@ -139,6 +154,7 @@
         </div>
       </div><!-- end of $ai_div -->
       {{ endif }}
+    </aside>
   </div>
 </div>
 <div style="clear:both;"></div>
@@ -153,6 +169,5 @@
 </div>
 
 <script src="index.php?edit_wiki.js&resource"></script>
-
 
 {{ include parts_footer.html }}

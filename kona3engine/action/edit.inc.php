@@ -173,11 +173,15 @@ function kona3_action_edit()
         }
     }
 
+    // 編集画面では共通ヘッダー/フッターを出さない (issue #153)
+    $kona3conf['edit_screen'] = true;
+
     // show
     kona3template('edit.html', array(
         "action" => $action,
         "a_hash" => $a_hash,
         "page_title" => $page,
+        "page_url" => kona3getPageURL($page, "show"),
         "edit_txt"  => $txt,
         "msg" => $msg,
         "history" => $history,

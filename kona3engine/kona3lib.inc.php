@@ -449,6 +449,9 @@ function kona3template_prepare($name, $params)
     // 静的出力モードのフラグ (テンプレートが未定義変数を参照しないよう常に定義する)
     $kona3conf['static_mode'] = !empty($kona3conf['static_mode']);
 
+    // 編集画面モードのフラグ (issue #153: 編集画面では共通ヘッダー/フッターを出さない)
+    $kona3conf['edit_screen'] = !empty($kona3conf['edit_screen']);
+
     // css tags
     $css = "";
     if (isset($kona3conf['css'])) {
