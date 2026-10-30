@@ -4,7 +4,13 @@
 {{ if !$edit_screen }}
 <div id="wikifooter">
   <div style="clear:both;"></div>
-  
+
+  <!-- site info row (#340 方向2) -->
+  <div class="kona3-footer-site">
+    <a class="kona3-footer-sitename" href="{{$FrontPage_url}}">{{ $wiki_title }}</a>
+    {{e: echo kona3getSiteNavHTML('footer', !empty($page) ? $page : $FrontPage) }}
+  </div>
+
   <div class="footer_menu">
     <nav>{{e:echo kona3getCtrlMenu('bar') }}</nav>
   </div>
