@@ -29,3 +29,11 @@ test_assert(__LINE__, strpos($edit_css, 'border-bottom: 2px solid var(--k3-color
 // --- プレビュー表示中は全幅 (幅キャップの例外) ---
 test_assert(__LINE__, strpos($edit_css, '#wikiedit:has(#edit_main.preview-split)') !== false, 'design: split preview drops the width cap (#153 preview wide)');
 test_assert(__LINE__, strpos($edit_css, '#wikiedit:has(#edit_main.preview-full)') !== false, 'design: full preview drops the width cap (#153 preview wide)');
+
+// --- #wikimessage の 760px カラムを編集画面だけ外す ---
+test_assert(__LINE__, strpos($edit_css, '#wikimessage.edit_screen') !== false, 'design: edit.css uncages #wikimessage on the edit screen (#153 split wide)');
+test_assert(__LINE__, strpos($edit_css, '#wikimessage:has(> #wikiedit)') !== false, 'design: edit.css uncages #wikimessage via :has as a fallback (#153 split wide)');
+$def_css = file_get_contents($root . '/resource/kona3def.css');
+test_assert(__LINE__, strpos($def_css, 'max-width:760px') !== false, 'design: kona3def keeps the 760px column for other screens (#153 split wide)');
+$edit_html_src = file_get_contents($root . '/template/edit.html');
+test_assert(__LINE__, strpos($edit_html_src, 'id="wikimessage" class="edit_screen"') !== false, 'design: edit.html marks #wikimessage as the edit screen (#153 split wide)');

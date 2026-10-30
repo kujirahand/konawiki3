@@ -3,6 +3,15 @@ body {
   background: var(--k3-color-bg-subtle, #f5f7fa);
 }
 
+/* 編集画面では #wikimessage の 760px カラム (kona3def.css) を外す (#153)。
+   基底ルールは login/message/admin など他画面の読みやすいカラムとして残し、
+   編集画面でのみ幅の制御を #wikiedit 側 (1500px / プレビュー時は全幅) に任せる。
+   class は全ブラウザ用、:has() は独自 edit.html を持つスキン向けの安全網。 */
+#wikimessage.edit_screen,
+#wikimessage:has(> #wikiedit) {
+  max-width: none;
+}
+
 #wikiedit {
   box-sizing: border-box;
   max-width: 1500px;
