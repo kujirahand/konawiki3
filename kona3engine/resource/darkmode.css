@@ -479,6 +479,60 @@ body.dark-theme #edit_preview {
   border: 1px solid var(--k3d-field-border);
 }
 
+/* edit screen design refresh (issue #153): dark variants for the
+   token-based pieces added to edit.css */
+body.dark-theme #wikiedit {
+  border-color: var(--k3d-field-border);
+  box-shadow: none;
+  color: var(--k3d-text);
+}
+
+body.dark-theme #edit_topbar {
+  border-bottom: 2px solid var(--k3d-link);
+}
+
+body.dark-theme #wikiedit #save_btn {
+  background-color: var(--k3d-link);
+  border-color: var(--k3d-link);
+  color: #0b0f14;
+}
+
+body.dark-theme #wikiedit #tools_btn {
+  background-color: var(--k3d-field-bg);
+  border-color: var(--k3d-field-border);
+  color: var(--k3d-link);
+}
+
+body.dark-theme .edit_save_state {
+  background-color: #14532d;
+  color: #bbf7d0;
+}
+
+body.dark-theme .edit_save_state.dirty {
+  background-color: #574413;
+  color: #fde68a;
+}
+
+body.dark-theme #edit_drawer .edit_drawer_nav button {
+  background-color: var(--k3d-field-bg);
+  border-color: var(--k3d-field-border);
+  color: var(--k3d-text);
+}
+
+body.dark-theme #edit_drawer .block2,
+body.dark-theme #edit_drawer .tag_box,
+body.dark-theme #edit_drawer #replace_div,
+body.dark-theme #edit_drawer #misc_div,
+body.dark-theme #edit_drawer .desc {
+  background-color: var(--k3d-edit-bg);
+  border-color: var(--k3d-field-border);
+}
+
+body.dark-theme textarea#edit_txt:focus {
+  border-color: var(--k3d-link);
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.25);
+}
+
 body.dark-theme #wikiedit input[disabled="true"],
 body.dark-theme #wikiedit button:disabled {
   background-color: var(--k3d-field-bg);
