@@ -1,10 +1,18 @@
 /* edit.css */
+body {
+  background: var(--k3-color-bg-subtle, #f5f7fa);
+}
+
 #wikiedit {
   box-sizing: border-box;
   max-width: 1120px;
-  margin: 0 auto;
-  padding: 12px;
-  background: #ffffff;
+  margin: 24px auto;
+  padding: 20px;
+  border: 1px solid var(--k3-color-border, #e4e7eb);
+  border-radius: 12px;
+  background: var(--k3-color-bg, #ffffff);
+  box-shadow: 0 8px 24px rgba(16, 42, 67, 0.08);
+  color: var(--k3-color-text, #1f2933);
 }
 
 #edit_topbar {
@@ -15,19 +23,39 @@
   top: 0;
   z-index: 20;
   padding: 8px 4px;
-  background: #fff;
-  border-bottom: 1px solid #ddd;
+  background: var(--k3-color-bg, #ffffff);
+  border-bottom: 2px solid var(--k3-color-accent, #1f5fbf);
 }
 
 .edit_back {
-  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--k3-color-text, #1f2933);
   font-size: 1.5em;
   line-height: 1;
   text-decoration: none;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.edit_back:hover {
+  background: var(--k3-color-accent-subtle, #e8f0fb);
+  color: var(--k3-color-accent, #1f5fbf);
+}
+
+.edit_back:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--k3-color-accent-subtle, #e8f0fb);
 }
 
 #edit_page_name {
   overflow: hidden;
+  color: var(--k3-color-heading, #102a43);
+  font-size: 1.05em;
   font-weight: bold;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -38,12 +66,18 @@
 }
 
 .edit_save_state {
-  color: #0a7d43;
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: var(--k3-color-success-bg, #eefbf3);
+  color: var(--k3-color-success-text, #146c2e);
+  font-size: 0.85em;
   white-space: nowrap;
+  transition: background-color 0.15s, color 0.15s;
 }
 
 .edit_save_state.dirty {
-  color: #b45309;
+  background: var(--k3-color-warn-bg, #fff8e6);
+  color: var(--k3-color-warn-text, #7a4d00);
   font-weight: bold;
 }
 
@@ -53,23 +87,84 @@ textarea#edit_txt {
   height: calc(100vh - 240px);
   min-height: 320px;
   margin: 0;
-  padding: 12px;
-  border: 1px solid #bbb;
-  border-radius: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--k3-color-border-strong, #cbd2d9);
+  border-radius: 10px;
+  background: var(--k3-color-bg, #ffffff);
+  color: var(--k3-color-text, #1f2933);
+  caret-color: var(--k3-color-accent, #1f5fbf);
   font-size: 1em;
   line-height: 1.7em;
   resize: vertical;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+textarea#edit_txt:focus {
+  border-color: var(--k3-color-accent, #1f5fbf);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--k3-color-accent-subtle, #e8f0fb);
 }
 
 #wikiedit input[type="submit"],
 #wikiedit input[type="button"],
 #wikiedit button {
-  border: 1px solid gray;
-  padding: 8px;
-  background-color: #f0f0f0;
-  color: black;
+  padding: 8px 14px;
+  border: 1px solid var(--k3-color-border-strong, #cbd2d9);
+  border-radius: 8px;
+  background-color: var(--k3-color-bg, #ffffff);
+  color: var(--k3-color-text, #1f2933);
   font-size: 0.9em;
   text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+#wikiedit input[type="submit"]:hover,
+#wikiedit input[type="button"]:hover,
+#wikiedit button:hover {
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
+  border-color: var(--k3-color-border-strong, #cbd2d9);
+}
+
+#wikiedit input[type="submit"]:active,
+#wikiedit input[type="button"]:active,
+#wikiedit button:active {
+  background-color: var(--k3-color-accent-subtle, #e8f0fb);
+}
+
+#wikiedit input[type="submit"]:focus-visible,
+#wikiedit input[type="button"]:focus-visible,
+#wikiedit button:focus-visible {
+  outline: none;
+  border-color: var(--k3-color-accent, #1f5fbf);
+  box-shadow: 0 0 0 3px var(--k3-color-accent-subtle, #e8f0fb);
+}
+
+#wikiedit input[type="submit"]:disabled,
+#wikiedit input[type="button"]:disabled,
+#wikiedit button:disabled {
+  color: var(--k3-color-text-muted, #616e7c);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+#wikiedit #save_btn {
+  border-color: var(--k3-color-accent, #1f5fbf);
+  background: var(--k3-color-accent, #1f5fbf);
+  color: var(--k3-color-on-accent, #ffffff);
+  font-weight: bold;
+}
+
+#wikiedit #save_btn:hover {
+  border-color: var(--k3-color-accent-hover, #174a96);
+  background: var(--k3-color-accent-hover, #174a96);
+}
+
+#wikiedit #tools_btn {
+  border-color: var(--k3-color-accent-subtle, #e8f0fb);
+  border-radius: 999px;
+  background: var(--k3-color-accent-subtle, #e8f0fb);
+  color: var(--k3-color-accent, #1f5fbf);
 }
 
 #wikiedit .button-short {
@@ -81,9 +176,9 @@ textarea#edit_txt {
 }
 
 #wikiedit .info {
-  background-color: white;
-  color: gray;
-  font-size: 10px;
+  background-color: var(--k3-color-bg, #ffffff);
+  color: var(--k3-color-text-muted, #616e7c);
+  font-size: 0.75rem;
 }
 
 #edit_statusbar {
@@ -92,21 +187,49 @@ textarea#edit_txt {
   gap: 12px;
   align-items: center;
   padding: 8px 4px;
-  border-top: 1px dotted silver;
-  color: #555;
+  border-top: 1px solid var(--k3-color-border, #e4e7eb);
+  color: var(--k3-color-text-muted, #616e7c);
   font-size: 0.85em;
+}
+
+#edit_statusbar select,
+#edit_statusbar input[type="text"],
+#edit_statusbar input[type="search"],
+#edit_statusbar input[type="number"] {
+  padding: 5px 8px;
+  border: 1px solid var(--k3-color-border-strong, #cbd2d9);
+  border-radius: 6px;
+  background: var(--k3-color-bg, #ffffff);
+  color: var(--k3-color-text, #1f2933);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+#edit_statusbar select:focus,
+#edit_statusbar input[type="text"]:focus,
+#edit_statusbar input[type="search"]:focus,
+#edit_statusbar input[type="number"]:focus {
+  border-color: var(--k3-color-accent, #1f5fbf);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--k3-color-accent-subtle, #e8f0fb);
+}
+
+#wikiedit #preview_btn {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--k3-color-bg-subtle, #f5f7fa);
+  color: var(--k3-color-text, #1f2933);
 }
 
 #wikiedit #edit_counter,
 #wikiedit #edit_info {
-  border: none;
   padding: 0.5%;
-  background-color: #fff;
+  border: none;
+  background-color: var(--k3-color-bg, #ffffff);
   font-size: 0.8em;
 }
 
 #wikiedit .desc {
-  color: gray;
+  color: var(--k3-color-text-muted, #616e7c);
   font-size: 0.8em;
 }
 
@@ -115,7 +238,7 @@ textarea#edit_txt {
   position: fixed;
   inset: 0;
   z-index: 999;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(16, 42, 67, 0.35);
 }
 
 #edit_drawer_scrim.open {
@@ -132,9 +255,9 @@ textarea#edit_txt {
   height: 100vh;
   padding: 14px;
   overflow-y: auto;
-  border-left: 1px solid #ccc;
-  background: #fff;
-  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.15);
+  border-left: 1px solid var(--k3-color-border-strong, #cbd2d9);
+  background: var(--k3-color-bg, #ffffff);
+  box-shadow: -4px 0 16px rgba(16, 42, 67, 0.15);
   transform: translateX(105%);
   /* visibility keeps the closed drawer out of the tab order */
   visibility: hidden;
@@ -152,7 +275,11 @@ textarea#edit_txt {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--k3-color-border, #e4e7eb);
+  color: var(--k3-color-accent, #1f5fbf);
   font-size: 1.1em;
+  font-weight: bold;
 }
 
 .edit_drawer_nav {
@@ -162,6 +289,18 @@ textarea#edit_txt {
   margin-bottom: 14px;
 }
 
+#edit_drawer .edit_drawer_nav button {
+  border-color: var(--k3-color-border, #e4e7eb);
+  border-radius: 999px;
+  background: var(--k3-color-bg-subtle, #f5f7fa);
+}
+
+#edit_drawer .edit_drawer_nav button:hover {
+  border-color: var(--k3-color-accent-subtle, #e8f0fb);
+  background: var(--k3-color-accent-subtle, #e8f0fb);
+  color: var(--k3-color-accent, #1f5fbf);
+}
+
 #ai_buttons {
   display: contents;
 }
@@ -169,30 +308,69 @@ textarea#edit_txt {
 #edit_drawer .block2,
 #edit_drawer .tag_box,
 #edit_drawer #replace_div,
-#edit_drawer #misc_div {
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-  padding: 0.5em;
-  border-bottom: 1px dotted silver;
+#edit_drawer #misc_div,
+#edit_drawer .desc {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid var(--k3-color-border, #e4e7eb);
+  border-radius: 10px;
+  background: var(--k3-color-bg, #ffffff);
+}
+
+#edit_drawer input[type="text"],
+#edit_drawer input[type="search"],
+#edit_drawer input[type="email"],
+#edit_drawer input[type="url"],
+#edit_drawer input[type="number"],
+#edit_drawer input[type="password"] {
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--k3-color-border-strong, #cbd2d9);
+  border-radius: 6px;
+  background: var(--k3-color-bg, #ffffff);
+  color: var(--k3-color-text, #1f2933);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+#edit_drawer input[type="text"]:focus,
+#edit_drawer input[type="search"]:focus,
+#edit_drawer input[type="email"]:focus,
+#edit_drawer input[type="url"]:focus,
+#edit_drawer input[type="number"]:focus,
+#edit_drawer input[type="password"]:focus {
+  border-color: var(--k3-color-accent, #1f5fbf);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--k3-color-accent-subtle, #e8f0fb);
 }
 
 #func_area {
   margin-top: 24px;
   padding: 12px;
-  border: 1px dashed #f0c0c0;
+  border: 1px dashed var(--k3-color-border-strong, #cbd2d9);
+  border-radius: 10px;
+  background: var(--k3-color-bg-subtle, #f5f7fa);
 }
 
 #recover_div a {
-  border: 1px solid gray;
+  display: inline-block;
   padding: 8px;
-  background-color: #f0f0f0;
-  color: black;
+  border: 1px solid var(--k3-color-border-strong, #cbd2d9);
+  border-radius: 8px;
+  background-color: var(--k3-color-bg, #ffffff);
+  color: var(--k3-color-text, #1f2933);
   font-size: 12px;
   text-decoration: none;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+#recover_div a:hover {
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
+  border-color: var(--k3-color-accent, #1f5fbf);
 }
 
 #auto_save_label {
-  color: gray;
+  color: var(--k3-color-text-muted, #616e7c);
   font-size: 12px;
 }
 
@@ -202,15 +380,28 @@ textarea#ai_input_text {
   height: 6em;
   margin-top: 8px;
   padding: 1%;
+  border: 1px solid var(--k3-color-border-strong, #cbd2d9);
+  border-radius: 8px;
+  background: var(--k3-color-bg, #ffffff);
+  color: var(--k3-color-text, #1f2933);
+  caret-color: var(--k3-color-accent, #1f5fbf);
   font-size: 0.9em;
   line-height: 1.3em;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+textarea#ai_input_text:focus {
+  border-color: var(--k3-color-accent, #1f5fbf);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--k3-color-accent-subtle, #e8f0fb);
 }
 
 #ai_output_area {
   margin-top: 1em;
   margin-bottom: 1em;
   padding: 0.1em;
-  background-color: #f0f0ff;
+  border-radius: 10px;
+  background-color: var(--k3-color-accent-subtle, #e8f0fb);
 }
 
 #ai_output_area button {
@@ -220,9 +411,10 @@ textarea#ai_input_text {
 #ai_output_area .ai_block {
   margin: 0.5em 0.3em 0.3em;
   padding: 0.5em;
-  border: 1px solid gray;
-  background-color: #ffffff;
-  color: black;
+  border: 1px solid var(--k3-color-border, #e4e7eb);
+  border-radius: 8px;
+  background-color: var(--k3-color-bg, #ffffff);
+  color: var(--k3-color-text, #1f2933);
   font-size: 1.1em;
   line-height: 1.8em;
 }
@@ -233,21 +425,27 @@ textarea#ai_input_text {
 
 #aiReplaceButtons {
   padding-top: 1em;
-  border-top: 1px dotted silver;
+  border-top: 1px solid var(--k3-color-border, #e4e7eb);
   text-align: right;
 }
 
 .ai-ng {
-  color: #d9534f;
+  color: var(--k3-color-danger-text, #9b1c1c);
   font-weight: bold;
 }
 
 .ai-ok {
-  color: #0275d8;
+  color: var(--k3-color-accent, #1f5fbf);
   font-weight: bold;
 }
 
 @media (max-width: 640px) {
+  #wikiedit {
+    margin: 12px auto;
+    padding: 12px;
+    border-radius: 10px;
+  }
+
   #edit_topbar {
     flex-wrap: wrap;
   }
@@ -281,11 +479,12 @@ textarea#ai_input_text {
 }
 
 #edit_preview {
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background: #fff;
-  padding: 8px 12px;
   box-sizing: border-box;
+  padding: 8px 12px;
+  border: 1px solid var(--k3-color-border, #e4e7eb);
+  border-radius: 10px;
+  background: var(--k3-color-bg, #ffffff);
+  color: var(--k3-color-text, #1f2933);
 }
 
 #edit_main.preview-split #edit_preview {
@@ -310,16 +509,26 @@ textarea#ai_input_text {
 
 /* edit conflict panel and form notice (issue #153) */
 #conflict_nav {
+  border-color: var(--k3-color-danger-bg, #fde8e8);
+  border-radius: 999px;
+  background: var(--k3-color-danger-bg, #fde8e8);
   color: var(--k3-color-danger-text, #9b1c1c);
   font-weight: bold;
+}
+
+#edit_drawer .edit_drawer_nav #conflict_nav:hover {
+  border-color: var(--k3-color-danger-text, #9b1c1c);
+  background: var(--k3-color-danger-bg, #fde8e8);
+  color: var(--k3-color-danger-text, #9b1c1c);
 }
 
 .conflict_diff {
   max-height: 300px;
   overflow: auto;
+  border: 1px solid var(--k3-color-border, #e4e7eb);
+  border-radius: 8px;
   font-family: monospace;
   font-size: 12px;
-  border: 1px solid var(--k3-color-border, #d0d7de);
 }
 
 .conflict_line {
@@ -351,17 +560,20 @@ textarea#ai_input_text {
 }
 
 .edit_conflict_notice {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border: 1px solid var(--k3-color-warn-border, #f0c36d);
+  border-radius: 8px;
   background-color: var(--k3-color-warn-bg, #fff8e6);
   color: var(--k3-color-warn-text, #7a4d00);
-  padding: 8px 12px;
-  margin: 8px 0;
 }
 
 .edit_conflict_diff {
   max-height: 300px;
   overflow: auto;
+  border-radius: 8px;
+  background-color: var(--k3-color-bg, #ffffff);
   font-family: monospace;
   font-size: 12px;
   white-space: pre-wrap;
-  background-color: #ffffff;
 }
