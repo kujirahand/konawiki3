@@ -26,7 +26,7 @@ test_eq(__LINE__, $links[0]['href'], 'index.php?Docs&show', 'href はエンテ�
 
 // 3. エンコード済みと未エンコードのページ名
 $links = kona3extractNavLinks('<a href="index.php?%E6%97%A5%E6%9C%AC&amp;show">A</a><a href="index.php?日本&show">B</a><a href="index.php?A%2FB">C</a>');
-test_eq(__LINE__, $nav_pages($links), ['日本', '日本', 'A/B'], 'エンコード済み/未エンコードが同じページ名になる');
+test_eq(__LINE__, $nav_pages($links), ['日本', 'A/B'], 'エンコード済み/未エンコードは同じページ名になり、タブは1件にまとまる');
 
 // 4. 外部リンク
 $links = kona3extractNavLinks('<a href="https://example.com/">Ex</a><a href="//example.com/">Rel</a>');
@@ -82,6 +82,30 @@ test_eq(__LINE__, count($links), 1, 'foo.html は残る');
 test_assert(__LINE__, array_key_exists('page', $links[0]) && $links[0]['page'] === null, 'foo.html の page は null');
 test_eq(__LINE__, $links[0]['external'] ?? null, false, 'foo.html は内部扱い');
 
+// 12b. Copilot レビュー対応: 制御文字でスキーム判定をすり抜ける href は除外する
+test_eq(__LINE__, kona3extractNavLinks('<a href="java&#9;script:alert(1)">x</a>'), [], 'タブ入りの javascript: は除外');
+test_eq(__LINE__, kona3extractNavLinks("<a href=\"java\nscript:alert(1)\">x</a>"), [], '改行入りの javascript: は除外');
+test_eq(__LINE__, kona3extractNavLinks("<a href=\"\x01javascript:alert(1)\">x</a>"), [], '制御文字始まりの javascript: は除外');
+test_eq(__LINE__, kona3extractNavLinks('<a href="&#x6A;avascript:alert(1)">x</a>'), [], 'エンティティ経由の javascript: は除外');
+test_eq(__LINE__, kona3extractNavLinks('<a href="vbscript:msgbox(1)">x</a>'), [], 'vbscript: は除外');
+test_eq(__LINE__, kona3extractNavLinks('<a href="1foo:bar">x</a>'), [], 'スキーム風の相対 URL は除外');
+// data-href を href と誤認しない
+$links = kona3extractNavLinks('<a data-href="index.php?Fake" href="index.php?Real">x</a>');
+test_eq(__LINE__, $nav_pages($links), ['Real'], 'data-href は拾わない');
+// 末尾の & (空の第2セグメント) は show 扱い
+$links = kona3extractNavLinks('<a href="index.php?Docs&amp;">x</a>');
+test_eq(__LINE__, $nav_pages($links), ['Docs'], '?Docs& は Docs として扱う');
+// ?Docs と ?Docs&show は同じページとして重複排除
+$links = kona3extractNavLinks('<a href="index.php?Docs">a</a><a href="index.php?Docs&amp;show">b</a>');
+test_eq(__LINE__, count($links), 1, '?Docs と ?Docs&show は 1 件にまとまる');
+// url.index が index.php 以外でもページ名を取る
+global $kona3conf;
+$saved_index = $kona3conf['url.index'] ?? null;
+$kona3conf['url.index'] = 'wiki.php';
+$links = kona3extractNavLinks('<a href="wiki.php?Docs&amp;show">x</a>');
+test_eq(__LINE__, $nav_pages($links), ['Docs'], 'url.index=wiki.php でもページ名を取る');
+if ($saved_index === null) { unset($kona3conf['url.index']); } else { $kona3conf['url.index'] = $saved_index; }
+
 // ---------------------------------------------------------------
 // 5.1 関数レベル: kona3markActiveNavLinks
 // ---------------------------------------------------------------
@@ -113,6 +137,13 @@ test_eq(__LINE__, $active_labels(kona3markActiveNavLinks($tabs, 'FrontPage')), [
 $null_tab = [['label' => 'Docs', 'href' => kona3getPageURL('Docs'), 'page' => null, 'external' => false]];
 test_eq(__LINE__, $active_labels(kona3markActiveNavLinks($null_tab, 'Docs')), ['Docs'], 'page が null でも URL 一致で active');
 test_eq(__LINE__, $active_labels(kona3markActiveNavLinks($null_tab, 'Blog')), [], 'page が null で URL 不一致なら active にならない');
+// 19b. 静的モードの URL でも active 判定できる
+global $kona3conf;
+$saved_static = $kona3conf['static_mode'] ?? null;
+$kona3conf['static_mode'] = true;
+$static_tab = [['label' => 'Docs', 'href' => kona3getPageURL('Docs'), 'page' => null, 'external' => false]];
+test_eq(__LINE__, $active_labels(kona3markActiveNavLinks($static_tab, 'Docs')), ['Docs'], '静的URLでも一致すれば active');
+if ($saved_static === null) { unset($kona3conf['static_mode']); } else { $kona3conf['static_mode'] = $saved_static; }
 
 // ---------------------------------------------------------------
 // 描画・GlobalBar 系の準備

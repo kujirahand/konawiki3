@@ -381,6 +381,11 @@ function kona3navParseHref($href)
     if ($href === '' || $href[0] === '#') {
         return null;
     }
+    // 制御文字や空白を含む href は、ブラウザが除去して解釈するため
+    // スキーム判定をすり抜ける (java<TAB>script: など)。丸ごと除外する
+    if (preg_match('/[\x00-\x20\x7F]/', $href)) {
+        return null;
+    }
     if (preg_match('/^([a-z][a-z0-9+.\-]*):/i', $href, $m)) {
         $scheme = strtolower($m[1]);
         if ($scheme !== 'http' && $scheme !== 'https') {
@@ -391,18 +396,28 @@ function kona3navParseHref($href)
     if (substr($href, 0, 2) === '//') {
         return ['page' => null, 'external' => true]; // プロトコル相対
     }
-    // 相対 URL
+    // 相対 URL: 最初の / ? # より前に ':' があるものはスキーム風なので除外する
+    $first_delim = strcspn($href, '/?#');
+    $colon = strpos($href, ':');
+    if ($colon !== false && $colon < $first_delim) {
+        return null;
+    }
     $url = explode('#', $href, 2)[0];
     $parts = explode('?', $url, 2);
     $path = $parts[0];
     $query = isset($parts[1]) ? $parts[1] : '';
-    $is_index = ($path === '' || $path === 'index.php' || substr($path, -10) === '/index.php');
+    $index_name = kona3getConf('url.index');
+    if (!is_string($index_name) || $index_name === '') {
+        $index_name = 'index.php';
+    }
+    $base = basename($path);
+    $is_index = ($path === '' || $base === 'index.php' || $base === $index_name);
     if ($is_index && $query !== '') {
         $segs = explode('&', $query);
         $seg0 = $segs[0];
         if ($seg0 !== '' && strpos($seg0, '=') === false) {
             $page = urldecode($seg0); // kona3lib_parseURI と同じデコード
-            if (!isset($segs[1]) || $segs[1] === 'show') {
+            if (!isset($segs[1]) || $segs[1] === '' || $segs[1] === 'show') {
                 return ['page' => $page, 'external' => false];
             }
             return null; // edit, search, plugin などはタブに載せない
@@ -424,7 +439,7 @@ function kona3extractNavLinks($html)
         return [];
     }
     foreach ($matches as $m) {
-        if (!preg_match('/\bhref\s*=\s*("([^"]*)"|\'([^\']*)\'|([^\s>]+))/i', $m[1], $hm)) {
+        if (!preg_match('/(?<![\w-])href\s*=\s*("([^"]*)"|\'([^\']*)\'|([^\s>]+))/i', $m[1], $hm)) {
             continue;
         }
         if (isset($hm[4]) && $hm[4] !== '') {
@@ -448,8 +463,14 @@ function kona3extractNavLinks($html)
             }
             $label = $info['page'];
         }
-        // 重複 (フラグメントを除いた href) は最初の 1 件だけ
-        $key = explode('#', $href, 2)[0];
+        // 重複は最初の 1 件だけ (内部ページは正規化したページ名で判定する)
+        if (is_string($info['page'])) {
+            $key = 'page:' . $info['page'];
+        } else if ($info['external']) {
+            $key = 'ext:' . explode('#', $href, 2)[0];
+        } else {
+            $key = 'href:' . explode('#', $href, 2)[0];
+        }
         if (isset($seen[$key])) {
             continue;
         }
@@ -460,6 +481,9 @@ function kona3extractNavLinks($html)
             'page' => $info['page'],
             'external' => $info['external'],
         ];
+        if (count($links) >= 100) {
+            break; // ナビ用途の上限 (異常に多いリンクから守る)
+        }
     }
     return $links;
 }
@@ -467,11 +491,13 @@ function kona3extractNavLinks($html)
 // サイトナビ: GlobalBar のリンク一覧 (ヘッダーとフッターで使うためリクエスト内でキャッシュする)
 function kona3getSiteNavLinks($refresh = false)
 {
-    static $cache = null;
-    if ($refresh || $cache === null) {
-        $cache = kona3extractNavLinks(kona3getWikiPage('GlobalBar', ''));
+    static $cache = [];
+    // href の形式が変わる静的モードの有無をキーに含める
+    $key = !empty($GLOBALS['kona3conf']['static_mode']) ? 'static' : 'dynamic';
+    if ($refresh || !isset($cache[$key])) {
+        $cache[$key] = kona3extractNavLinks(kona3getWikiPage('GlobalBar', ''));
     }
-    return $cache;
+    return $cache[$key];
 }
 
 // サイトナビ: 現在ページ (とその祖先) に一致するリンクを最大 1 件 active にする

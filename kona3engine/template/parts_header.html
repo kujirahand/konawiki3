@@ -84,7 +84,7 @@
     </div>
   </header>
   <!-- tabs: GlobalBar にリンクが無ければ何も出力されない -->
-  {{e: echo kona3getSiteNavHTML('tabs', $page ?? $FrontPage) }}
+  {{e: echo kona3getSiteNavHTML('tabs', !empty($page) ? $page : $FrontPage) }}
   <!-- breadcrumb (既存のまま) -->
   <div id="kona3_layout_title">
     <div class="kona3_header_pad">
