@@ -28,7 +28,7 @@ test_assert(__LINE__, strpos($kona3def_content, 'text-decoration: underline') !=
 test_assert(__LINE__, strpos($kona3def_content, '.resmark') !== false, "kona3def.css contains .resmark inside print styles");
 test_assert(__LINE__, strpos($kona3def_content, 'color: #111') !== false, "kona3def.css contains color: #111 for printing");
 test_assert(__LINE__, strpos($kona3def_content, '.error_box') !== false, "kona3def.css contains .error_box");
-test_assert(__LINE__, strpos($kona3def_content, 'background-color: #fde8e8') !== false, "kona3def.css contains dark red background for error_box");
+test_assert(__LINE__, strpos($kona3def_content, 'var(--k3-color-danger-bg, #fde8e8)') !== false, "kona3def.css contains dark red background for error_box (via --k3-color-danger-bg token, #340)");
 
 
 

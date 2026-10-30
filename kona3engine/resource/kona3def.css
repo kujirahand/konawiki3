@@ -1,18 +1,18 @@
 /** kona3_layout */
 #kona3_layout_header {
-  background-color: #f0f0f0;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
+  border-bottom: 1px solid var(--k3-color-border, #e4e7eb);
   text-align: left;
 }
 #kona3_layout_title {
   margin: 0 auto;
-  max-width: 768px;
+  max-width: var(--k3-width-layout, 64rem);
 }
 #kona3_layout_show {
   font-size: 1em;
   line-height: 1.7em;
   margin: 0 auto;
-  max-width: 768px;
+  max-width: var(--k3-width-layout, 64rem);
 }
 
 /** kona3_header */
@@ -25,7 +25,7 @@
 }
 #kona3_header_title a {
   text-decoration: none;
-  color: #0366d6;
+  color: var(--k3-color-accent, #1f5fbf);
 }
 #kona3_header_title .pagename {
   font-size:0.8em;
@@ -40,8 +40,8 @@
 }
 #kona3_main h1
 {
-  background-color: #f0f0ff;
-  border-bottom: solid 1px silver;
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
+  border-bottom: solid 1px var(--k3-color-border-strong, #cbd2d9);
   font-size: 1.3em;
   font-weight: bold;
   margin: 20px 0 15px;
@@ -51,9 +51,9 @@
 #kona3_main h2
 {
   border: none;
-  border-left: 5px solid #3b82f6;
-  background-color: #f8fafc;
-  color: #1e293b;
+  border-left: 5px solid var(--k3-color-accent, #1f5fbf);
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
+  color: var(--k3-color-heading, #102a43);
   font-size: 1.2em;
   font-weight: 700;
   margin: 1.8em 0 1em;
@@ -63,8 +63,8 @@
 #kona3_main h3
 {
   border: none;
-  border-bottom: 2px solid #e2e8f0;
-  color: #334155;
+  border-bottom: 2px solid var(--k3-color-border, #e4e7eb);
+  color: var(--k3-color-text, #1f2933);
   font-size: 1.15em;
   font-weight: 700;
   margin: 1.6em 0 0.8em;
@@ -73,7 +73,7 @@
 
 #kona3_main h4,#kona3_main h5
 {
-  border-bottom:solid 1px #F0F0F0;
+  border-bottom:solid 1px var(--k3-color-border, #e4e7eb);
   font-size:16px;
   font-weight:700;
   margin:30px 0 15px;
@@ -82,7 +82,7 @@
 
 #kona3_main h6
 {
-  border-bottom:solid 1px #F0F0F0;
+  border-bottom:solid 1px var(--k3-color-border, #e4e7eb);
   font-size:16px;
   font-weight:700;
   margin:30px 0 15px;
@@ -103,7 +103,7 @@
 
 #kona3_show_data_dir
 {
-  color:#9090ff;
+  color:var(--k3-color-text-muted, #616e7c);
   font-size:9px;
   padding-right:10px;
   text-align:right;
@@ -111,8 +111,8 @@
 
 #kona3_show_data_dir input
 {
-  background-color:#f9f9f9;
-  color:#9090ff;
+  background-color:var(--k3-color-bg-subtle, #f5f7fa);
+  color:var(--k3-color-text-muted, #616e7c);
   padding:6px;
   width:50%;
 }
@@ -120,20 +120,20 @@
 
 #kona3_main .conflictadd
 {
-  background-color:#F88;
-  color:#FFF;
+  background-color:var(--k3-color-danger-border, #e53e3e);
+  color:var(--k3-color-on-accent, #ffffff);
 }
 
 #kona3_main .conflictsub
 {
-  background-color:#88F;
-  color:#FFF;
+  background-color:var(--k3-color-accent, #1f5fbf);
+  color:var(--k3-color-on-accent, #ffffff);
 }
 
 #kona3_main .contents .blognavi
 {
-  background-color:#FFFFC9;
-  color:#fc7819;
+  background-color:var(--k3-color-warn-bg, #fff8e6);
+  color:var(--k3-color-warn-text, #7a4d00);
   font-size:12px;
   margin-bottom:0;
   text-align:center;
@@ -142,19 +142,19 @@
 
 #kona3_main .date
 {
-  color:#333;
+  color:var(--k3-color-text, #1f2933);
   font-size:0.7em;
 }
 
 #kona3_main .error
 {
-  color:red;
+  color:var(--k3-color-danger-text, #9b1c1c);
   margin:8px;
 }
 
 #kona3_main .imagecaption
 {
-  background-color:#FFF;
+  background-color:var(--k3-color-bg, #ffffff);
   font-size:11px;
   text-align:center;
   width:100%;
@@ -162,7 +162,7 @@
 
 #kona3_main .message
 {
-  background-color:#fff0f0;
+  background-color:var(--k3-color-danger-bg, #fde8e8);
   float:left;
   left:0;
   margin:16px;
@@ -172,14 +172,14 @@
 
 #kona3_main .new
 {
-  color:red;
+  color:var(--k3-color-danger-text, #9b1c1c);
   font-size:0.7em;
 }
 
 #kona3_main .none
 {
-  background-color:#FFC;
-  color:#999;
+  background-color:var(--k3-color-warn-bg, #fff8e6);
+  color:var(--k3-color-text-muted, #616e7c);
   padding:2px;
 }
 
@@ -187,9 +187,9 @@
 {
   margin: 1em 0 1em 1em;
   padding: 0.6em 1.2em;
-  border-left: 4px solid #cbd5e1;
-  background-color: #f8fafc;
-  color: #475569;
+  border-left: 4px solid var(--k3-color-border-strong, #cbd2d9);
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
+  color: var(--k3-color-text-muted, #616e7c);
   border-radius: 0 4px 4px 0;
 }
 
@@ -202,30 +202,30 @@
 
 #kona3_main .todo
 {
-  background-color:#F0FFF0;
-  color:#494;
+  background-color:var(--k3-color-success-bg, #eefbf3);
+  color:var(--k3-color-success-text, #146c2e);
   padding:2px;
 }
 
 #kona3_main a:hover
 {
-  background-color:#ffa;
-  color:#00f;
+  background-color:var(--k3-color-accent-subtle, #e8f0fb);
+  color:var(--k3-color-accent, #1f5fbf);
 }
 
 #kona3_main a:link,#kona3_main a:active,pre.code span.tag,pre.code span.keyword
 {
-  color:#00f;
+  color:var(--k3-color-accent, #1f5fbf);
 }
 
 #kona3_main a:visited
 {
-  color:#006;
+  color:var(--k3-color-accent-hover, #174a96);
 }
 
 #kona3_main div.date
 {
-  color:#666;
+  color:var(--k3-color-text-muted, #616e7c);
   font-size:12px;
 }
 
@@ -240,7 +240,7 @@
 
 #kona3_main img
 {
-  border:solid 1px gray;
+  border:solid 1px var(--k3-color-border-strong, #cbd2d9);
 }
 
 #kona3_main ol
@@ -273,23 +273,23 @@
   border-collapse:collapse;
   margin:4px 0;
   border: 0;
-  color: #333;
+  color: var(--k3-color-text, #1f2933);
   padding: 4px 8px 4px 0;
   text-align: left;
   font-size: 0.9em;
 }
 
 #kona3_main table tbody {
-  border-left: 1px solid #A0A0A0;
-  border-top: 1px solid #A0A0A0;
+  border-left: 1px solid var(--k3-color-border-strong, #cbd2d9);
+  border-top: 1px solid var(--k3-color-border-strong, #cbd2d9);
 }
 
 #kona3_main table th {
-  background-color: #f0f0f0;
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
   border-collapse: collapse;
-  border-bottom: 1px solid #A0A0A0;
-  border-right: 1px solid #A0A0A0;
-  color: #004;
+  border-bottom: 1px solid var(--k3-color-border-strong, #cbd2d9);
+  border-right: 1px solid var(--k3-color-border-strong, #cbd2d9);
+  color: var(--k3-color-heading, #102a43);
   font-weight: 700;
   padding: 4px 8px;
   text-align: center;
@@ -297,11 +297,11 @@
 
 #kona3_main table td
 {
-  background-color:#f9f9ff;
-  border-bottom:1px solid #A0A0A0;
+  background-color:var(--k3-color-bg, #ffffff);
+  border-bottom:1px solid var(--k3-color-border-strong, #cbd2d9);
   border-collapse:collapse;
-  border-right:1px solid #A0A0A0;
-  color:#333;
+  border-right:1px solid var(--k3-color-border-strong, #cbd2d9);
+  color:var(--k3-color-text, #1f2933);
   padding:6px 8px;
 }
 
@@ -329,7 +329,7 @@
 {
   height:auto;
   border-left: none;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--k3-color-border, #e4e7eb);
   margin-top: 2em;
   padding-top: 1.5em;
 }
@@ -352,7 +352,7 @@
 {
   display:block;
   padding: 2px 6px;
-  color: #0366d6;
+  color: var(--k3-color-accent, #1f5fbf);
   text-decoration: none;
   font-size: 0.9em;
   border-radius: 4px;
@@ -361,8 +361,8 @@
 
 #kona3_menubar ul li a:hover
 {
-  background-color: #f0f4f8;
-  color: #0056b3;
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
+  color: var(--k3-color-accent-hover, #174a96);
   text-decoration: none;
 }
 
@@ -373,7 +373,7 @@
   font-size:1em;
   margin: 18px 0px 0px 0px;
   padding: 8px;
-  border-bottom: dotted 1px silver;
+  border-bottom: dotted 1px var(--k3-color-border, #e4e7eb);
 }
 
 /* PC等、広い画面でのレイアウト */
@@ -381,7 +381,7 @@
   #kona3_menubar {
     height: 100%;
     border-top: none;
-    border-left: 1px solid #e2e8f0;
+    border-left: 1px solid var(--k3-color-border, #e4e7eb);
     margin-top: 0;
     padding-top: 0;
     padding-left: 1em;
@@ -391,7 +391,7 @@
 
 #kona3_menubar .date {
   font-size: 0.8em;
-  color: gray;
+  color: var(--k3-color-text-muted, #616e7c);
 }
 
 #wikimessage
@@ -403,13 +403,13 @@
 
 #wikimessage .bodypad
 {
-  background-color:#fcfcfc;
+  background-color:var(--k3-color-bg-subtle, #f5f7fa);
   padding:16px;
 }
 
 #wikimessage .box
 {
-  background-color:#f0f0ff;
+  background-color:var(--k3-color-bg-subtle, #f5f7fa);
   margin:1em;
   padding:1.5em;
 }
@@ -421,7 +421,7 @@
 
 #wikimessage .box_border
 {
-  border: 1px solid silver;
+  border: 1px solid var(--k3-color-border, #e4e7eb);
   padding: 8px;
   margin: 8px;
 }
@@ -433,7 +433,7 @@
 
 #wikimessage h3
 {
-  border-bottom: 1px solid silver;
+  border-bottom: 1px solid var(--k3-color-border, #e4e7eb);
   padding: 6px;
 }
 
@@ -444,15 +444,15 @@
 
 #wikimessage h4
 {
-  background-color:#e0f0ff;
-  border-bottom:1px solid #ce0e0e;
+  background-color:var(--k3-color-info-bg, #eef4fc);
+  border-bottom:1px solid var(--k3-color-info-border, #b6cdf0);
   margin-bottom:12px;
   padding:8px;
 }
 
 #wikimessage h5,h6
 {
-  border-bottom:1px solid #9090f0;
+  border-bottom:1px solid var(--k3-color-border-strong, #cbd2d9);
   font-size:1.1em;
   font-weight:700;
   margin-bottom:12px;
@@ -500,20 +500,20 @@
 
 #wikinavi .date,#wikisidebar .date
 {
-  color:#888;
+  color:var(--k3-color-text-muted, #616e7c);
   font-size:0.8em;
 }
 
 #wikinavi .memo,#wikisidebar .memo
 {
-  color:#aaa;
+  color:var(--k3-color-text-muted, #616e7c);
   font-size:0.6em;
 }
 
 #wikinavi .navipad
 {
   -webkit-border-radius:12px;
-  background-color:#f0f0fa;
+  background-color:var(--k3-color-bg-subtle, #f5f7fa);
   border-radius:12px;
   font-size:12px;
   line-height:15px;
@@ -523,14 +523,14 @@
 
 #wikinavi .new,#wikisidebar .new,#wikifooter .new
 {
-  color:red;
+  color:var(--k3-color-danger-text, #9b1c1c);
   font-size:0.8em;
 }
 
 #wikinavi h1,#wikinavi h2,#wikinavi h3,#wikinavi h4,#wikinavi h5,#wikinavi h6
 {
-  background-color:#E0e0FF;
-  color:#000;
+  background-color:var(--k3-color-bg-subtle, #f5f7fa);
+  color:var(--k3-color-text, #1f2933);
   font-size:1em;
   font-weight:400;
   margin:12px 0 4px;
@@ -546,7 +546,7 @@
 
 #wikinavi ul
 {
-  color:gray;
+  color:var(--k3-color-text-muted, #616e7c);
   line-height:1.4em;
   list-style-type:square;
   margin:4px 4px 4px 8px;
@@ -570,7 +570,7 @@
 #wikisidebar h1,#wikisidebar h2,#wikisidebar h3,#wikisidebar h4,#wikisidebar h5,#wikisidebar h6
 {
   -webkit-border-raduis:10px;
-  background-color:#E0e0FF;
+  background-color:var(--k3-color-bg-subtle, #f5f7fa);
   border-radius:10px;
   font-size:1em;
   font-weight:400;
@@ -586,7 +586,7 @@
 
 #wikisidebar ul
 {
-  color:gray;
+  color:var(--k3-color-text-muted, #616e7c);
   list-style-type:square;
   margin:4px 0 4px 8px;
   padding:4px 4px 4px 12px;
@@ -601,13 +601,13 @@
 
 .block
 {
-  border:1px solid orange;
+  border:1px solid var(--k3-color-warn-border, #f0c36d);
   padding:5px;
 }
 
 .block2
 {
-  border: 1px solid silver;
+  border: 1px solid var(--k3-color-border, #e4e7eb);
     padding: 5px;
 }
 
@@ -626,28 +626,28 @@
 {
   font-size:0.7em;
   margin:4px auto;
-  max-width:768px;
+  max-width:var(--k3-width-layout, 64rem);
   text-align:right;
 }
 
 .error_box {
-  background-color: #fde8e8;
-  border: 1px solid #e53e3e;
-  color: #9b1c1c;
+  background-color: var(--k3-color-danger-bg, #fde8e8);
+  border: 1px solid var(--k3-color-danger-border, #e53e3e);
+  color: var(--k3-color-danger-text, #9b1c1c);
   padding: 1em;
   border-radius: 4px;
 }
 .error_box .error {
-  color: #9b1c1c;
+  color: var(--k3-color-danger-text, #9b1c1c);
 }
 .error_box a {
-  color: #771d1d;
+  color: var(--k3-color-danger-text, #9b1c1c);
   text-decoration: underline;
 }
 
 .error,.red
 {
-  color:red;
+  color:var(--k3-color-danger-text, #9b1c1c);
   font-weight:700;
 }
 
@@ -659,14 +659,14 @@
 
 .filecode
 {
-  border:1px solid #eee;
+  border:1px solid var(--k3-color-border, #e4e7eb);
   padding:0;
 }
 
 .filename
 {
-  background-color:#fcfcfc;
-  color:#000;
+  background-color:var(--k3-color-bg-subtle, #f5f7fa);
+  color:var(--k3-color-text, #1f2933);
   font-size:0.8em;
   margin:0;
   padding:4px;
@@ -679,9 +679,9 @@
 
 .mathjax
 {
-  background-color:#FFF;
-  border:solid 1px #B0C4DE;
-  color:#333;
+  background-color:var(--k3-color-bg-subtle, #f5f7fa);
+  border:solid 1px var(--k3-color-border-strong, #cbd2d9);
+  color:var(--k3-color-text, #1f2933);
   font-family:monospace;
   font-size:15px;
   letter-spacing:0;
@@ -692,7 +692,7 @@
 
 .memo
 {
-  color:navy;
+  color:var(--k3-color-info-text, #174a96);
   font-size:0.8em;
 }
 
@@ -714,7 +714,7 @@
 .menublock_top
 {
   background:url(img/menu-top.gif) no-repeat top left;
-  border-bottom:1px solid #ffb96f;
+  border-bottom:1px solid var(--k3-color-warn-border, #f0c36d);
   font-size:12px;
   height:20px;
   margin:0;
@@ -723,8 +723,8 @@
 
 .navibar
 {
-  border-top:1px solid #c0c0cc;
-  color:#909090;
+  border-top:1px solid var(--k3-color-border, #e4e7eb);
+  color:var(--k3-color-text-muted, #616e7c);
   font-size:0.8em;
   margin:0 auto 4px;
   padding:3px;
@@ -745,7 +745,7 @@
 
 .pager
 {
-  background-color:#ffe;
+  background-color:var(--k3-color-warn-bg, #fff8e6);
   font-size:0.7em;
   margin:0;
   padding:4px;
@@ -759,24 +759,24 @@
 
 .plugin_comment .plugin_title
 {
-  background-color: #eef;
+  background-color: var(--k3-color-accent-subtle, #e8f0fb);
   padding: 8px;
 }
 
 .plugin_comment .comment_close_bar
 {
-  background-color:#eee;
-  border-left:1px solid silver;
-  border-top:1px solid silver;
-  color:#666;
+  background-color:var(--k3-color-border, #e4e7eb);
+  border-left:1px solid var(--k3-color-border, #e4e7eb);
+  border-top:1px solid var(--k3-color-border, #e4e7eb);
+  color:var(--k3-color-text-muted, #616e7c);
   text-align:right;
 }
 
 .plugin_comment .comment_log
 {
-  border-top: 1px dotted silver;
-  border-left:4px solid silver;
-  border-bottom: 1px solid silver;
+  border-top: 1px dotted var(--k3-color-border, #e4e7eb);
+  border-left:4px solid var(--k3-color-border, #e4e7eb);
+  border-bottom: 1px solid var(--k3-color-border, #e4e7eb);
   margin:8px 8px 8px 2em;
   padding:12px;
 }
@@ -789,31 +789,31 @@
 
 .plugin_comment .comment_log .comment_title
 {
-  border-bottom:1px dotted silver;
+  border-bottom:1px dotted var(--k3-color-border, #e4e7eb);
   font-size:0.8em;
   padding:4px;
-  color: gray;
+  color: var(--k3-color-text-muted, #616e7c);
 }
 
 .plugin_comment .memo
 {
-  color:#666;
+  color:var(--k3-color-text-muted, #616e7c);
 }
 
 .plugin_comment form
 {
-  border-bottom:1px solid silver;
-  border-left:1px solid silver;
+  border-bottom:1px solid var(--k3-color-border, #e4e7eb);
+  border-left:1px solid var(--k3-color-border, #e4e7eb);
   padding:8px;
 }
 
 .plugin_comment .todo {
-  background-color :yellow;
-  color: black;
+  background-color :var(--k3-color-warn-bg, #fff8e6);
+  color: var(--k3-color-text, #1f2933);
   cursor: pointer;
 }
 .plugin_comment .done {
-  background-color :#efe;
+  background-color :var(--k3-color-success-bg, #eefbf3);
   cursor: pointer;
 }
 
@@ -823,8 +823,8 @@
 
 .resmark_q
 {
-  background-color:#fafaff;
-  border-left:4px solid #9040ff;
+  background-color:var(--k3-color-bg-subtle, #f5f7fa);
+  border-left:4px solid var(--k3-color-accent, #1f5fbf);
   margin:8px 0 8px 14px;
   padding:1em;
   width:90%;
@@ -860,7 +860,7 @@
 
 .tagpagelist .title
 {
-  background-color:#fff0f0;
+  background-color:var(--k3-color-danger-bg, #fde8e8);
   margin-top:20px;
   padding:8px;
 }
@@ -880,9 +880,9 @@
 
 .topnavipagename
 {
-  border-bottom:solid 1px #000;
-  border-top:solid 1px #000;
-  color:#000;
+  border-bottom:solid 1px var(--k3-color-border-strong, #cbd2d9);
+  border-top:solid 1px var(--k3-color-border-strong, #cbd2d9);
+  color:var(--k3-color-text, #1f2933);
   font-size:16px;
   font-weight:700;
   margin-bottom:20px;
@@ -903,16 +903,16 @@ a img
 
 body
 {
-  background-color:#FFF;
-  color:#000;
+  background-color:var(--k3-color-bg, #ffffff);
+  color:var(--k3-color-text, #1f2933);
   width:100%;
 }
 
 .beta
 {
-  background-color: #fafaf7;
-  border:solid 1px #B0C4EE;
-  color: black;
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
+  border:solid 1px var(--k3-color-border-strong, #cbd2d9);
+  color: var(--k3-color-text, #1f2933);
   font-family: monospace;
   letter-spacing: 0;
   margin: 0;
@@ -923,9 +923,9 @@ body
 
 .code
 {
-  background-color: #fafaf7;
-  border:solid 1px #B0C4DE;
-  color: black;
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
+  border:solid 1px var(--k3-color-border-strong, #cbd2d9);
+  color: var(--k3-color-text, #1f2933);
   font-family:monospace;
   letter-spacing:0;
   margin:0;
@@ -935,7 +935,7 @@ body
 
 div.underline
 {
-  border-bottom:solid 2px #E0e0FF;
+  border-bottom:solid 2px var(--k3-color-border, #e4e7eb);
   margin:0 8px 8px 0;
   width:100%;
 }
@@ -968,9 +968,9 @@ li.navi_right
 
 pre
 {
-  background-color:#fffff0;
-  border:solid 1px #B0C4DE;
-  color:#333;
+  background-color:var(--k3-color-bg-subtle, #f5f7fa);
+  border:solid 1px var(--k3-color-border-strong, #cbd2d9);
+  color:var(--k3-color-text, #1f2933);
   font-size:15px;
   margin:4px 0;
   overflow:auto;
@@ -981,8 +981,8 @@ span.code
 {
   font-family: "Menlo", "monospace", "Courier", "ＭＳ ゴシック";
   letter-spacing:0;
-  border: 1px solid #B0C4DE;
-  background-color: #fffff0;
+  border: 1px solid var(--k3-color-border-strong, #cbd2d9);
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
   padding: 4px;
 }
 
@@ -1050,7 +1050,7 @@ pre.code span.value
 
 span.konawiki3copyright a
 {
-  color:#9AB;
+  color:var(--k3-color-text-muted, #616e7c);
   font-size:0.6em;
   text-decoration:none;
 }
@@ -1073,8 +1073,8 @@ strong.strong2
 
 ul.topnavi
 {
-  background-color:#fffefe;
-  color:#000;
+  background-color:var(--k3-color-bg, #ffffff);
+  color:var(--k3-color-text, #1f2933);
   font-size:10px;
   margin:0;
   padding:0;
@@ -1083,7 +1083,7 @@ ul.topnavi
 
 ul.topnavi a
 {
-  color:#88f;
+  color:var(--k3-color-accent, #1f5fbf);
   text-decoration:none;
 }
 
@@ -1094,18 +1094,18 @@ ul.topnavi a
 .coutner_month
 {
   font-size: 0.8em;
-  color: gray;
+  color: var(--k3-color-text-muted, #616e7c);
 }
 
 .popular_info
 {
   font-size: 0.8em;
-  color: gray;
+  color: var(--k3-color-text-muted, #616e7c);
 }
 
 .allpage_footer
 {
-  border-top: 1px dotted silver;
+  border-top: 1px dotted var(--k3-color-border, #e4e7eb);
   padding: 10px;
   margin-top: 1.5em;
 }
@@ -1119,8 +1119,8 @@ ul.topnavi a
 
 #wikicommand h6
 {
-  border-bottom:solid 1px #e0e0e0;
-  border-top:solid 3px #a0a0a0;
+  border-bottom:solid 1px var(--k3-color-border, #e4e7eb);
+  border-top:solid 3px var(--k3-color-border-strong, #cbd2d9);
   font-size:1em;
   margin-bottom:8px;
   margin-top:24px;
@@ -1147,7 +1147,7 @@ ul.topnavi a
 
 #wikieditorbody .desc
 {
-  color:#339;
+  color:var(--k3-color-info-text, #174a96);
   font-size:12px;
   margin:0;
   padding:4px;
@@ -1155,7 +1155,7 @@ ul.topnavi a
 
 #wikieditorbody .difftext
 {
-  background-color:#e0e0e0;
+  background-color:var(--k3-color-border, #e4e7eb);
   font-family:"Menlo", "Courier", "monospace", "ＭＳ ゴシック";
   font-size:14px;
   line-height:16px;
@@ -1165,14 +1165,14 @@ ul.topnavi a
 
 #wikieditorbody .error
 {
-  color:red;
+  color:var(--k3-color-danger-text, #9b1c1c);
   font-size:14px;
   padding:8px;
 }
 
 #wikieditorbody .maintext
 {
-  background-color:#f6f6ff;
+  background-color:var(--k3-color-bg-subtle, #f5f7fa);
   font-family:"Menlo", "Courier", "monospace", "ＭＳ ゴシック";
   font-size:14px;
   line-height:17px;
@@ -1182,7 +1182,7 @@ ul.topnavi a
 
 #wikieditortitle
 {
-  background-color:#f0f0ff;
+  background-color:var(--k3-color-bg-subtle, #f5f7fa);
   float:left;
   font-size:12px;
   height:100%;
@@ -1199,9 +1199,9 @@ ul.topnavi a
 
 #wikifooter
 {
-  border-top:solid 1px #E0e0FF;
+  border-top:solid 1px var(--k3-color-border, #e4e7eb);
   margin:0 auto;
-  max-width:768px;
+  max-width:var(--k3-width-layout, 64rem);
   padding:12px;
   text-align:center;
 }
@@ -1236,13 +1236,13 @@ ul.topnavi a
 
 #wikifooter .footer_menu > span
 {
-  background-color:#f0f0f0;
+  background-color:var(--k3-color-bg-subtle, #f5f7fa);
   padding:12px;
 }
 
 #wikifooter .info > a
 {
-  color:gray;
+  color:var(--k3-color-text-muted, #616e7c);
   font-size:0.6em;
   text-decoration:none;
 }
@@ -1276,25 +1276,25 @@ ul.topnavi a
 {
   margin: 1em 0 1em 1em;
   padding: 1.2em;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-left: 4px solid #3b82f6;
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
+  border: 1px solid var(--k3-color-border, #e4e7eb);
+  border-left: 4px solid var(--k3-color-accent, #1f5fbf);
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .column.summary
 {
-  background-color: #fafdfb;
-  border-left-color: #10b981;
-  border-color: #e6f4ea;
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
+  border-left-color: var(--k3-color-summary, #10b981);
+  border-color: var(--k3-color-success-border, #a7e8c0);
 }
 
 #kona3_main .column h2 {
   border: none;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid var(--k3-color-border, #e4e7eb);
   background-color: transparent;
-  color: #1e293b;
+  color: var(--k3-color-heading, #102a43);
   font-size: 1.2em;
   font-weight: 700;
   margin: 0.5em 0 0.8em 0;
@@ -1304,42 +1304,42 @@ ul.topnavi a
 #kona3_main .column h3 {
   margin: 0 0 0.8em 0;
   padding: 0.2em 0 0.5em 0;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--k3-color-border, #e4e7eb);
 }
 
 .mojisu {
   margin: 4px;
   padding: 4px;
   font-size: 0.8em;
-  color: gray;
+  color: var(--k3-color-text-muted, #616e7c);
   text-align: right;
 }
 
 #wikimessagebox .white_box {
-  background-color: white;
+  background-color: var(--k3-color-bg, #ffffff);
   margin: 1em;
   padding:1.5em;
 }
 
 .kona3count {
   font-size: 1em;
-  background-color: #f9f9f0;
-  color: black;
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
+  color: var(--k3-color-text, #1f2933);
   text-align: left;
-  border: 1px solid #e0e0ff;
+  border: 1px solid var(--k3-color-border, #e4e7eb);
   padding: 0.8em;
 }
 
 .kona3count-foot {
   font-size: 0.8em;
   text-align: right;
-  border-top: 1px dotted silver;
+  border-top: 1px dotted var(--k3-color-border, #e4e7eb);
   padding: 0.3em;
-  color: silver;
+  color: var(--k3-color-text-muted, #616e7c);
 }
 
 .kona3qrcode {
-  border: 1px dotted silver;
+  border: 1px dotted var(--k3-color-border, #e4e7eb);
   padding: 0.3em;
   margin: 0.3em;
 }
@@ -1348,18 +1348,18 @@ ul.topnavi a
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  background-color: white;
+  background-color: var(--k3-color-bg, #ffffff);
   padding: 0px;
   margin: 0px;
 }
 
 .kona3_login_bar a {
-  color: #00f;
+  color: var(--k3-color-accent, #1f5fbf);
   text-decoration: none;
 }
 
 .login_bar1 {
-  border-bottom: 1px dotted silver;
+  border-bottom: 1px dotted var(--k3-color-border, #e4e7eb);
   padding: 4px;
 }
 
@@ -1369,7 +1369,7 @@ ul.topnavi a
 }
 
 .plugin_warn {
-  background-color: #fff0f0;
+  background-color: var(--k3-color-warn-bg, #fff8e6);
 }
 
 #wikimessage input[type="submit"] {
@@ -1378,11 +1378,11 @@ ul.topnavi a
 
 .footnote {
   font-size: 0.8em;
-  color: gray;
+  color: var(--k3-color-text-muted, #616e7c);
   margin: 1em 1em 1em 2em;
   padding: 1em 1em 1em 1em;
-  background-color: #fcfcfc;
-  border: 1px solid #c0e4ee;
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
+  border: 1px solid var(--k3-color-info-border, #b6cdf0);
 }
 
 /** Tag System */
@@ -1390,14 +1390,14 @@ ul.topnavi a
   display: inline-block;
   margin: 0 4px 4px 0;
   padding: 4px 8px;
-  background-color: #f1f8ff;
-  border: 1px solid #c8e1ff;
+  background-color: var(--k3-color-accent-subtle, #e8f0fb);
+  border: 1px solid var(--k3-color-info-border, #b6cdf0);
   border-radius: 4px;
   font-size: 0.9em;
 }
 
 .kona3-tag a {
-  color: #0366d6;
+  color: var(--k3-color-accent, #1f5fbf);
   text-decoration: none;
 }
 
@@ -1442,27 +1442,40 @@ ul.topnavi a
 .kona3-taglist .tag-item {
   margin: 0 8px 8px 0;
   padding: 4px 6px;
-  background-color: #f6f8fa;
-  border: 1px solid #d1d5da;
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
+  border: 1px solid var(--k3-color-border, #e4e7eb);
   border-radius: 4px;
 }
 
 .kona3-taglist .tag-cloud a {
-  color: #0366d6;
+  color: var(--k3-color-accent, #1f5fbf);
   text-decoration: none;
 }
 
 .kona3-taglist .tag-cloud a:hover {
-  background-color: #f6f8ff;
+  background-color: var(--k3-color-accent-subtle, #e8f0fb);
 }
 
 .kona3-taglist .tag-count {
-  color: #6a737d;
+  color: var(--k3-color-text-muted, #616e7c);
   font-size: 0.9em;
 }
 
 .mermaid {
-  background-color: white;
+  background-color: var(--k3-color-bg, #ffffff);
+}
+
+/* 共通パネル (検索・管理画面などで使う、Issue #340) */
+.kona3_bordered_box
+{
+  border: 1px solid var(--k3-color-border, #e4e7eb);
+  padding: 0.5em;
+}
+.kona3_highlight_box
+{
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
+  border: 1px dotted var(--k3-color-border-strong, #cbd2d9);
+  padding: 1em;
 }
 
 /* For printing: convert highlights to underline since backgrounds are not printed clearly */

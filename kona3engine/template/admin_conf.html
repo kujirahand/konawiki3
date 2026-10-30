@@ -8,24 +8,24 @@
       padding: 0.3em;
     }
     #wikimessage .box {
-      background-color: #fafaff;
+      background-color: var(--k3-color-bg-subtle, #f5f7fa);
     }
     #wikimessage h2 {
       font-size: 1.6em;
       margin: 1.5em 0em 1.5em 0em;
       padding: 0.4em;
-      border-top: 1px solid silver;
-      border-bottom: 1px solid gray;
-      border-left: 8px solid silver;
-      background-color: #f0f0ff;
+      border-top: 1px solid var(--k3-color-border, #e4e7eb);
+      border-bottom: 1px solid var(--k3-color-border-strong, #cbd2d9);
+      border-left: 8px solid var(--k3-color-border, #e4e7eb);
+      background-color: var(--k3-color-bg-subtle, #f5f7fa);
     }
     #wikimessage h3 {
       font-size: 1.3em;
       margin: 1.5em 0em 1.5em 0em;
       padding: 0.4em;
-      border-top: 1px solid gray;
-      border-bottom: 1px dotted silver;
-      background-color: #f0f0ff;
+      border-top: 1px solid var(--k3-color-border-strong, #cbd2d9);
+      border-bottom: 1px dotted var(--k3-color-border, #e4e7eb);
+      background-color: var(--k3-color-bg-subtle, #f5f7fa);
     }
     #wikimessage input[type='text'],
     #wikimessage input[type='number'],
@@ -69,7 +69,7 @@
     <input type='hidden' name='q' value='save'>
     <div>
       <h2>{{ 'Setup Konwiki' | lang }}</h2>
-      <div class="box" style="background-color: #f0f0ff; border: 1px dotted gray; padding: 1.0em;">
+      <div class="box kona3_highlight_box">
         {{ 'Please review the settings.' | lang }}<br>
         <input type='button' value='Save' onclick='document.forms[0].submit();'>
       </div>
@@ -92,7 +92,7 @@
       {{ endfor }}
 
       <h3>{{'Admin password'|lang}}</h3>
-      <div style="border: 1px solid silver; padding: 0.6em;">
+      <div class="kona3_bordered_box">
         Password: ({{'If unchanged, leave blank.' | lang}})<br>
         <input type='password' name='admin_pw1' value=''><br>
         Password (confirm):<br>
