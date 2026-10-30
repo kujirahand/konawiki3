@@ -27,8 +27,14 @@ function kona3plugins_counter_execute($args)
     // 同時アクセスでも数え落ちや一意制約エラーが起きないよう、
     // 行の作成はINSERT OR IGNORE、加算はSQL側(value=value+1)で行う
     // また、DBが混み合っていてもページ表示は続けられるようにする
+    // ただし編集画面のプレビュー描画 (issue #153) では加算せず、
+    // 現在値を読み取るだけにする (入力のたびに水増しされるのを防ぐ)
     try {
-        list($value, $mvalue) = kona3plugins_counter_countUp($page_id);
+        if (!empty($kona3conf['preview_mode'])) {
+            list($value, $mvalue) = kona3plugins_counter_getValue($page_id);
+        } else {
+            list($value, $mvalue) = kona3plugins_counter_countUp($page_id);
+        }
     } catch (Exception $e) {
         return "<div class='counter'>-</div>";
     }
@@ -42,6 +48,25 @@ function kona3plugins_counter_execute($args)
         "<div class='counter'>" .
         $html .
         "</div>";
+}
+
+// 現在のカウンター値を [合計, 今月] で読み取る (加算しない、プレビュー用)
+function kona3plugins_counter_getValue($page_id)
+{
+    $r = subdb_get1(
+        "SELECT value FROM counter WHERE page_id=?",
+        [$page_id]
+    );
+    $value = isset($r['value']) ? intval($r['value']) : 0;
+    $year  = intval(date('Y'));
+    $month = intval(date('n'));
+    $r = subdb_get1(
+        "SELECT value FROM counter_month " .
+            "WHERE (page_id=?)AND(year=?)AND(month=?) LIMIT 1",
+        [$page_id, $year, $month]
+    );
+    $mvalue = isset($r['value']) ? intval($r['value']) : 0;
+    return [$value, $mvalue];
 }
 
 // カウンターを1つ増やして [合計, 今月] を返す

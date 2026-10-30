@@ -3,7 +3,11 @@ qq(function(){
   const btn = qq('#hamburger_icon');
   const win = qq("#drawer_background");
   const nav = qq("nav.menuitems");
-  
+
+  // ページによってはハンバーガーメニューが存在しない (編集画面は issue #153 で
+  // 共通ヘッダーを出さない)。qq() は要素がないと null を返すため、ここで終了する。
+  if (!btn || !win || !nav) { return; }
+
   function toggleMenu() {
     if (btn.hasClass("open")) {
       closeMenu();

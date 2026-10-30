@@ -14,8 +14,6 @@ const KEEPALIVE_TICK = 1000 * 15 // 15sec
 const KEEPALIVE_RETRY_INTERVAL = 1000 * 20 // 20sec while session is lost
 
 // var
-var outline_mode = false
-var outline_lines = []
 var isChanged = false
 var timerIdAutosave = 0
 var timerIdKeepalive = 0
@@ -54,7 +52,6 @@ function edit_init() {
 
   // set button event
   qq('#temporarily_save_btn').click(clickTempSaveButton)
-  // qq('#outline_btn').click(change_outline);
   const git_save_btn = qs('#git_save_btn')
   if (git_save_btn) {
     qq(git_save_btn).click(git_save)
@@ -77,6 +74,21 @@ function edit_init() {
   }
   loadAutoSave()
   startKeepalive()
+
+  // Esc closes the tool drawer (issue #153). Ignore Esc while an IME
+  // composition is in progress, and do nothing when it is already closed.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || e.isComposing) { return }
+    const drawer = qs('#edit_drawer')
+    if (drawer && drawer.classList.contains('open')) { closeEditDrawer() }
+  })
+  // Keep the preview layout in sync with the window width (issue #153):
+  // split on wide screens, full-width preview on narrow screens.
+  window.addEventListener('resize', () => {
+    if (previewMode === 'off') { return }
+    const desired = window.innerWidth < 800 ? 'full' : 'split'
+    if (desired !== previewMode) { setPreviewMode(desired) }
+  })
 
   // フォーム送信時にも本文を localStorage へ退避する (issue #64)。
   // サーバー側の退避 (セッション) と合わせて、送信に失敗しても
@@ -160,16 +172,26 @@ function normalizeShortcutKey(key) {
 function handleChange(changed, reason) {
   elog(`changed: ${changed} - ${reason}`)
   isChanged = changed
-  // set #change-info
+  // set #change-info and the topbar save state (issue #153)
+  const saveState = qs('#edit_save_state')
   if (isChanged) {
-    qq('#change-info').html('[c]')
+    qq('#change-info').html('未保存')
+    if (saveState) {
+      saveState.textContent = '未保存の変更があります'
+      saveState.classList.add('dirty')
+    }
     use_beforeunload(true)
     setButtonsDisabled(false)
   } else {
-    qq('#change-info').html('-')
+    qq('#change-info').html('保存済み')
+    if (saveState) {
+      saveState.textContent = '保存済み'
+      saveState.classList.remove('dirty')
+    }
     use_beforeunload(false)
     setButtonsDisabled(true)
   }
+  schedulePreview()
 }
 
 // edit_txt.onkeydown
@@ -442,8 +464,10 @@ function ajaxProc(a_mode, source) {
       info.css('backgroundColor', '#ffffc0')
       info.css('color', 'green')
       setTimeout(function () {
-        info.css('backgroundColor', '#f0f0ff')
-        info.css('color', 'silver')
+        // reset to the stylesheet values (an inline white would break
+        // the dark theme, agy review on PR #341)
+        info.css('backgroundColor', '')
+        info.css('color', '')
       }, 700)
     })
     .fail(function (error) {
@@ -513,64 +537,10 @@ function edit_recover() {
   edit_txt.value = localStorage[STORAGE_KEY]
 }
 
-function change_outline() {
-  outline_mode = !outline_mode
-  if (outline_mode == false) {
-    outline_to_text()
-    qq('#edit_txt').show()
-    qq('#outline_btn').val('Outline')
-    qq('#outline_div').html('')
-  } else {
-    qq('#edit_txt').hide()
-    qq('#outline_btn').val('Text')
-    outline_build()
-  }
-}
-
-function outline_build() {
-  // alert('実装中のテスト機能です。');
-  outline_lines = []
-  var txt = qq('#edit_txt').val()
-  var lines = txt.split("\n")
-  var root = document.createElement('div')
-  for (var i = 0; i < lines.length; i++) {
-    var line = document.createElement('div')
-    var cmd = lines[i]
-    line.innerHTML = text2html(lines[i])
-    line.contentEditable = true
-    var ch = cmd.substr(0, 1)
-    if (ch == "-") {
-      var l = cmd.match(/^\-+/)
-      var px = l[0].length * 20
-      line.style.marginLeft = px + "px"
-    }
-    root.appendChild(document.createElement('a'))
-    root.appendChild(line)
-    outline_lines.push(line)
-  }
-  qs('#outline_div').appendChild(root)
-}
-
-function outline_to_text() {
-  if (outline_lines.length == 0) return
-  var text = []
-  for (var i = 0; i < outline_lines.length; i++) {
-    text.push(html2text(outline_lines[i].innerHTML))
-  }
-  qq('#edit_txt').val(text.join("\n"))
-  outline_lines = []
-}
-
 function text2html(s) {
   s = s.replace(/\&/g, '&amp;')
   s = s.replace(/\</g, '&lt;')
   s = s.replace(/\>/g, '&gt;')
-  return s
-}
-function html2text(s) {
-  s = s.replace(/\&gt\;/g, '>')
-  s = s.replace(/\&lt\;/g, '<')
-  s = s.replace(/\&amp\;/g, '&')
   return s
 }
 
@@ -598,23 +568,162 @@ function showDisplay(query) {
   }
 }
 
+// edit drawer (issue #153): all tool panels live in one drawer and
+// only one panel is open at a time.
+function toggleEditDrawer() {
+  const drawer = qs('#edit_drawer')
+  if (drawer && drawer.classList.contains('open')) {
+    closeEditDrawer()
+  } else {
+    openEditDrawer()
+  }
+}
+
+function openEditDrawer() {
+  qq('#edit_drawer').addClass('open')
+  qq('#edit_drawer_scrim').addClass('open')
+}
+
+function closeEditDrawer() {
+  qq('#edit_drawer').removeClass('open')
+  qq('#edit_drawer_scrim').removeClass('open')
+}
+
+// Live preview (issue #153): 'off' | 'split' (side by side) | 'full'
+// (preview replaces the editor on narrow screens)
+let previewMode = 'off'
+let previewTimer = null
+let previewSeq = 0
+
+function togglePreview() {
+  closeEditDrawer()
+  if (previewMode !== 'off') {
+    setPreviewMode('off')
+    return
+  }
+  setPreviewMode(window.innerWidth < 800 ? 'full' : 'split')
+}
+
+function setPreviewMode(mode) {
+  previewMode = mode
+  const main = qs('#edit_main')
+  const pane = qs('#edit_preview')
+  if (!main || !pane) {
+    return
+  }
+  main.classList.remove('preview-split')
+  main.classList.remove('preview-full')
+  if (mode === 'off') {
+    pane.style.display = 'none'
+    // drop any pending/in-flight preview update
+    previewSeq++
+    if (previewTimer) {
+      clearTimeout(previewTimer)
+      previewTimer = null
+    }
+    return
+  }
+  pane.style.display = ''
+  main.classList.add(mode === 'full' ? 'preview-full' : 'preview-split')
+  refreshPreview()
+}
+
+function refreshPreview() {
+  if (previewMode === 'off') {
+    return
+  }
+  const body = qs('#edit_preview .edit_preview_body')
+  if (!body) {
+    return
+  }
+  const seq = ++previewSeq
+  const action = qq('#wikiedit form').attr('action')
+  qq().post(action, {
+    'i_mode': 'ajax',
+    'q': 'preview',
+    'edit_token': qq('#edit_token').val(),
+    'edit_txt': edit_txt.value,
+    'page_mode': qs('#page_mode') ? qs('#page_mode').value : '',
+  }).done(function (obj) {
+    // ignore stale responses and responses arriving after the preview
+    // was turned off (review follow-up for PR #341)
+    if (seq !== previewSeq || previewMode === 'off') {
+      return
+    }
+    if (obj && obj['result'] === 'ok') {
+      body.innerHTML = obj['html']
+      return
+    }
+    const msg = (obj && (obj['reason'] || obj['message'])) || 'プレビューを更新できませんでした'
+    body.textContent = msg
+  }).fail(function () {
+    if (seq !== previewSeq || previewMode === 'off') {
+      return
+    }
+    body.textContent = 'プレビューを更新できませんでした'
+  })
+}
+
+function schedulePreview() {
+  if (previewMode === 'off') {
+    return
+  }
+  if (previewTimer) {
+    clearTimeout(previewTimer)
+  }
+  previewTimer = setTimeout(refreshPreview, 700)
+}
+
+// Show only the given panel in the drawer. If it is already visible,
+// hide it instead (toggle), unless forceShow is set. Returns the shown
+// panel or null.
+function showOnlyPanel(selector, forceShow) {
+  const target = qs(selector)
+  if (!target) {
+    return null
+  }
+  const isVisible = target.style.display !== 'none'
+  const panels = ['#help_div', '#tags_div', '#replace_div', '#history_div', '#misc_div', '#ai_div']
+  panels.forEach(function (panelSelector) {
+    if (qs(panelSelector)) {
+      qq(panelSelector).hide()
+    }
+  })
+  if (isVisible && !forceShow) {
+    return null
+  }
+  qq(selector).show()
+  return target
+}
+
+// Open the drawer and show the given tool panel. When the drawer was
+// closed, the panel is always shown: a panel left visible inside the
+// closed drawer must not be toggled off (Copilot review on PR #341).
+function openToolPanel(selector) {
+  const drawer = qs('#edit_drawer')
+  const wasOpen = drawer && drawer.classList.contains('open')
+  openEditDrawer()
+  showOnlyPanel(selector, !wasOpen)
+}
+
 function historyOnClick() {
-  toggleDisplay('#history_div')
+  openToolPanel('#history_div')
 }
 
 function helpOnClick() {
-  toggleDisplay('#help_div')
+  openToolPanel('#help_div')
 }
 
 function tagsOnClick() {
-  toggleDisplay('#tags_div')
+  openToolPanel('#tags_div')
 }
 
 function aiOnClick() {
-  toggleDisplay('#ai_div')
+  openToolPanel('#ai_div')
 }
 
 function aiSpellCheckOnClick() {
+  openToolPanel('#ai_div')
   const selectBox = document.getElementById('ai_template_select')
   if (!selectBox) { return }
   showDisplay('#ai_div')
@@ -1057,13 +1166,11 @@ function copyToClipboard(text) {
 }
 
 function replaceOnClick() {
-  const replace_div = qq('#replace_div')
-  replace_div.toggle()
+  openToolPanel('#replace_div')
 }
 
 function miscOnClick() {
-  const misc_div = qq('#misc_div')
-  misc_div.toggle()
+  openToolPanel('#misc_div')
 }
 
 function convertToMarkdownClick() {

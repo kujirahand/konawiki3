@@ -440,8 +440,7 @@ body.dark-theme textarea#edit_txt {
 body.dark-theme #wikiedit input[type="submit"],
 body.dark-theme #wikiedit input[type="button"],
 body.dark-theme #wikiedit button,
-body.dark-theme #recover_div a,
-body.dark-theme #wikiedit input#outline_btn {
+body.dark-theme #recover_div a {
   background-color: var(--k3d-button-bg);
   color: var(--k3d-field-fg);
   border: 1px solid var(--k3d-field-border);
@@ -450,10 +449,34 @@ body.dark-theme #wikiedit input#outline_btn {
 body.dark-theme #wikiedit input[type="submit"]:hover,
 body.dark-theme #wikiedit input[type="button"]:hover,
 body.dark-theme #wikiedit button:hover,
-body.dark-theme #recover_div a:hover,
-body.dark-theme #wikiedit input#outline_btn:hover {
+body.dark-theme #recover_div a:hover {
   background-color: var(--k3d-button-hover-bg);
   color: var(--k3d-button-hover-fg);
+}
+
+/* renewed edit screen parts (issue #153) */
+body.dark-theme #edit_topbar {
+  background-color: var(--k3d-edit-bg);
+  border-bottom: 1px solid var(--k3d-field-border);
+}
+
+body.dark-theme #edit_drawer {
+  background-color: var(--k3d-edit-bg);
+  color: var(--k3d-text);
+  border-left: 1px solid var(--k3d-field-border);
+}
+
+body.dark-theme #edit_statusbar {
+  color: var(--k3d-sub-fg);
+}
+
+body.dark-theme .edit_back {
+  color: var(--k3d-text);
+}
+
+body.dark-theme #edit_preview {
+  background-color: var(--k3d-edit-bg);
+  border: 1px solid var(--k3d-field-border);
 }
 
 body.dark-theme #wikiedit input[disabled="true"],
