@@ -28,9 +28,27 @@ foreach (['computeSearchMatches', 'findSearchTarget', 'updateSearchCount', 'sear
 }
 test_assert(__LINE__, strpos($edit_js, "'#search_div'") !== false, 'search: panel list includes #search_div (#153)');
 test_assert(__LINE__, strpos($edit_js, "openToolPanel('#search_div')") !== false, 'search: searchOnClick uses openToolPanel (#153)');
-test_assert(__LINE__, strpos($edit_js, "e.key === 'f'") !== false, 'search: Ctrl+F shortcut is registered (#153)');
-test_assert(__LINE__, strpos($edit_js, 'e.ctrlKey || e.metaKey') !== false, 'search: shortcut covers Cmd+F (#153)');
+test_assert(__LINE__, strpos($edit_js, "e.key !== 'f' && e.key !== 'F'") !== false, 'search: Ctrl+F shortcut is registered (#153)');
+test_assert(__LINE__, strpos($edit_js, 'e.metaKey && !e.ctrlKey') !== false, 'search: shortcut covers Cmd+F on Mac (#153)');
 test_assert(__LINE__, strpos($edit_js, "addEventListener('input', updateSearchCount)") !== false, 'search: count updates while typing the query (#153)');
 
 // --- CSS ---
 test_assert(__LINE__, strpos($edit_css, '#search_count') !== false, 'search: edit.css styles #search_count (#153)');
+
+// --- レビュー第1ラウンドのフォローアップ (Copilot/agy, PR #345) ---
+// Enter 連打で本文に改行が入らないよう、フォーカスは検索入力欄に残す
+test_assert(__LINE__, strpos($edit_js, 'function searchSyncState(') !== false, 'search: state sync resets the position on text/query change (#345 review)');
+test_assert(__LINE__, strpos($edit_js, 'e.keyCode === 229') !== false, 'search: IME composition Enter is ignored (#345 review)');
+test_assert(__LINE__, strpos($edit_js, 'searchOnClick(true)') !== false, 'search: Ctrl+F forces the panel open (#345 review)');
+test_assert(__LINE__, strpos($edit_js, 'function searchOnClick(forceShow)') !== false, 'search: searchOnClick takes forceShow (#345 review)');
+test_assert(__LINE__, strpos($edit_js, 'navigator.platform') !== false, 'search: shortcut modifier follows the platform (#345 review)');
+test_assert(__LINE__, strpos($edit_js, 'matchesShortcut(e, getShortcutValue(id))') !== false, 'search: shortcut does not steal user-bound shortcut keys (#345 review)');
+test_assert(__LINE__, strpos($edit_js, 'hay.length !== text.length') !== false, 'search: lowercase length guard exists (#345 review)');
+// i18n / a11y
+test_assert(__LINE__, strpos($edit_html, "'Prev'|lang") !== false, 'search: prev button uses lang (#345 review)');
+test_assert(__LINE__, strpos($edit_html, "'Next'|lang") !== false, 'search: next button uses lang (#345 review)');
+test_assert(__LINE__, strpos($edit_html, 'aria-live="polite"') !== false, 'search: count is aria-live (#345 review)');
+$lang_ja = file_get_contents($root . '/lang/ja.inc.php');
+$lang_en = file_get_contents($root . '/lang/en.inc.php');
+test_assert(__LINE__, strpos($lang_ja, "'Prev' => '前へ'") !== false, 'search: ja lang has Prev (#345 review)');
+test_assert(__LINE__, strpos($lang_en, "'Next' => 'Next'") !== false, 'search: en lang has Next (#345 review)');

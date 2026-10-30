@@ -105,10 +105,10 @@
       <div id="search_div" class="desc" style="display: none;">
         <div>
           <b>{{'Search'|lang}}</b>:<br>
-          <input type="text" id="search_key" class="info" style="width: 50%;" value="" placeholder="Keyword">
-          <button type="button" onclick="searchPrev()">前へ</button>
-          <button type="button" onclick="searchNext()">次へ</button>
-          <span id="search_count" class="info"></span>
+          <input type="text" id="search_key" class="info" style="width: 50%;" value="" placeholder="Keyword" aria-label="{{'Search'|lang}}">
+          <button type="button" onclick="searchPrev()">{{'Prev'|lang}}</button>
+          <button type="button" onclick="searchNext()">{{'Next'|lang}}</button>
+          <span id="search_count" class="info" aria-live="polite"></span>
         </div>
       </div>
 
