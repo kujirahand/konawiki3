@@ -118,6 +118,8 @@ function edit_init() {
     const drawer = qs('#edit_drawer')
     if (drawer && drawer.classList.contains('open')) { closeEditDrawer() }
   })
+  // Heading sync between the editor and the preview (issue #153).
+  initHeadingSync()
   // Keep the preview layout in sync with the window width (issue #153):
   // split on wide screens, full-width preview on narrow screens.
   window.addEventListener('resize', () => {
@@ -687,11 +689,12 @@ function refreshPreview() {
   }
   const seq = ++previewSeq
   const action = qq('#wikiedit form').attr('action')
+  const sentText = edit_txt.value
   qq().post(action, {
     'i_mode': 'ajax',
     'q': 'preview',
     'edit_token': qq('#edit_token').val(),
-    'edit_txt': edit_txt.value,
+    'edit_txt': sentText,
     'page_mode': qs('#page_mode') ? qs('#page_mode').value : '',
   }).done(function (obj) {
     // ignore stale responses and responses arriving after the preview
@@ -700,15 +703,21 @@ function refreshPreview() {
       return
     }
     if (obj && obj['result'] === 'ok') {
+      // Replacing the content can clamp the pane and fire scroll
+      // events; guard so the editor is not pulled while typing.
+      guardHeadingSync()
       body.innerHTML = obj['html']
+      buildHeadingSync(body, sentText)
       return
     }
+    headingPairs = []
     const msg = (obj && (obj['reason'] || obj['message'])) || 'プレビューを更新できませんでした'
     body.textContent = msg
   }).fail(function () {
     if (seq !== previewSeq || previewMode === 'off') {
       return
     }
+    headingPairs = []
     body.textContent = 'プレビューを更新できませんでした'
   })
 }
@@ -721,6 +730,360 @@ function schedulePreview() {
     clearTimeout(previewTimer)
   }
   previewTimer = setTimeout(refreshPreview, 700)
+}
+
+// --- Heading sync between the editor and the preview (issue #153) ---
+// Pairs are built by matching heading texts, and each heading's pixel
+// offset in the textarea is measured with a mirror element, so wrapped
+// lines are accounted for. Scrolling either side moves the other to the
+// current heading (split mode only); clicking a preview heading jumps
+// the editor to that line.
+let headingPairs = [] // {line, level, srcIndex, el, top}
+let headingSyncGuard = false
+let headingGuardTimer = 0
+let headingPendingDir = '' // a scroll dropped while the guard was on
+let headingSyncRaf = 0
+let lastCurrentPair = null
+let headingMirror = null
+let headingResizeTimer = 0
+
+function findSourceHeadings(text, mode) {
+  const out = []
+  const lines = String(text).split('\n')
+  let inFence = false
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i]
+    if (mode === 'Markdown') {
+      if (/^\s*(```|~~~)/.test(raw)) { inFence = !inFence; continue }
+      if (inFence) { continue }
+      const m = raw.match(/^(#{1,6})\s+(.+?)\s*$/)
+      if (m) {
+        out.push({ line: i, level: m[1].length, text: m[2].replace(/\s+#+\s*$/, '') })
+      }
+    } else {
+      // KonaNotation (parser: line parser). A run of '*' at the line
+      // start is a heading; the symbol headings are single glyphs.
+      const stars = raw.match(/^(\*+)(?=\s|[^*]|$)/)
+      if (stars && stars[1].length <= 6 && /^\*+\s*\S/.test(raw)) {
+        const t = raw.replace(/^\*+\s*/, '')
+        if (t) { out.push({ line: i, level: stars[1].length, text: t }) }
+        continue
+      }
+      const sym = raw.match(/^([■□●○▲△▼▽])\s*(.+)$/)
+      if (sym) {
+        const level = ('■□'.indexOf(sym[1]) >= 0) ? 1 :
+          (('●○'.indexOf(sym[1]) >= 0) ? 2 :
+            (('▲△'.indexOf(sym[1]) >= 0) ? 3 : 4))
+        out.push({ line: i, level: level, text: sym[2] })
+      }
+    }
+  }
+  return out
+}
+
+function headingTextKey(s) {
+  s = String(s).trim()
+  // Links keep only their label: [text](url), [[text>url]], [[text|url]]
+  s = s.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+  s = s.replace(/\[\[([^\]>|]+)[^\]]*\]\]/g, '$1')
+  s = s.replace(/\[\[|\]\]/g, '')
+  // Inline emphasis markers
+  s = s.replace(/\*\*([^*]+)\*\*/g, '$1')
+  s = s.replace(/__([^_]+)__/g, '$1')
+  s = s.replace(/\*([^*]+)\*/g, '$1')
+  s = s.replace(/`([^`]+)`/g, '$1')
+  s = s.replace(/''/g, '')
+  s = s.replace(/\s+/g, ' ').trim()
+  // The rendered heading ends with the anchor '*' (KonaNotation)
+  s = s.replace(/\*$/, '').trim()
+  return s
+}
+
+function headingTextsMatch(a, b) {
+  const ka = headingTextKey(a)
+  const kb = headingTextKey(b)
+  if (!ka || !kb) { return false }
+  return ka === kb || ka.indexOf(kb) === 0 || kb.indexOf(ka) === 0
+}
+
+function pairHeadings(sourceHeadings, previewHeadings) {
+  // In-order matching. An exact key match later in the source wins over
+  // a prefix match earlier, so a source-only heading (e.g. produced by a
+  // plugin from a shorter title) cannot steal a pair.
+  const pairs = []
+  const used = {}
+  let si = 0
+  for (const ph of previewHeadings) {
+    let found = -1
+    for (let j = si; j < sourceHeadings.length; j++) {
+      if (!used[j] &&
+        headingTextKey(sourceHeadings[j].text) === headingTextKey(ph.text)) {
+        found = j; break
+      }
+    }
+    if (found < 0) {
+      for (let j = si; j < sourceHeadings.length; j++) {
+        if (!used[j] && headingTextsMatch(sourceHeadings[j].text, ph.text)) {
+          found = j; break
+        }
+      }
+    }
+    if (found >= 0) {
+      used[found] = true
+      si = found + 1
+      pairs.push({
+        line: sourceHeadings[found].line,
+        level: sourceHeadings[found].level,
+        srcIndex: found,
+        el: ph.el,
+      })
+    }
+  }
+  return pairs
+}
+
+function escapeHeadingHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+// Measure the pixel offset of every source heading inside the textarea
+// with a mirror element that copies its layout (font, padding, width
+// and soft wrapping). Returns an array indexed like srcHeadings, or
+// null when measurement is not possible.
+function measureHeadingTops(ta, text, srcHeadings) {
+  try {
+    if (!headingMirror) {
+      headingMirror = document.createElement('div')
+      headingMirror.setAttribute('aria-hidden', 'true')
+    }
+    const m = headingMirror
+    const cs = getComputedStyle(ta)
+    const st = m.style
+    st.position = 'absolute'
+    st.visibility = 'hidden'
+    st.top = '0'
+    st.left = '-9999px'
+    st.whiteSpace = 'pre-wrap'
+    st.overflowWrap = 'break-word'
+    st.fontFamily = cs.fontFamily
+    st.fontSize = cs.fontSize
+    st.fontWeight = cs.fontWeight
+    st.fontStyle = cs.fontStyle
+    st.lineHeight = cs.lineHeight
+    st.letterSpacing = cs.letterSpacing
+    st.padding = cs.padding
+    st.borderWidth = cs.borderWidth
+    st.borderStyle = 'solid'
+    st.borderColor = 'transparent'
+    st.boxSizing = 'border-box'
+    st.width = ta.clientWidth + 'px'
+    const byLine = {}
+    srcHeadings.forEach(function (h, idx) { byLine[h.line] = idx })
+    const lines = String(text).split('\n')
+    let html = ''
+    for (let i = 0; i < lines.length; i++) {
+      if (byLine[i] !== undefined) {
+        html += '<span data-h="' + byLine[i] + '"></span>'
+      }
+      html += escapeHeadingHtml(lines[i]) + '\n'
+    }
+    m.innerHTML = html
+    if (!m.parentNode) { document.body.appendChild(m) }
+    const tops = []
+    const spans = m.querySelectorAll('span[data-h]')
+    for (let i = 0; i < spans.length; i++) {
+      tops[Number(spans[i].getAttribute('data-h'))] = spans[i].offsetTop
+    }
+    for (let i = 0; i < srcHeadings.length; i++) {
+      if (typeof tops[i] !== 'number') { return null }
+    }
+    return tops
+  } catch (e) {
+    return null
+  }
+}
+
+function buildHeadingSync(body, text) {
+  headingPairs = []
+  lastCurrentPair = null
+  if (!body) { return }
+  const ta = qs('#edit_txt')
+  if (!ta) { return }
+  const els = body.querySelectorAll('h1, h2, h3, h4, h5, h6')
+  if (!els.length) { return }
+  const modeEl = qs('#page_mode')
+  const mode = modeEl ? modeEl.value : ''
+  const srcText = (typeof text === 'string') ? text : ta.value
+  const src = findSourceHeadings(srcText, mode)
+  if (!src.length) { return }
+  const phs = []
+  els.forEach(function (el) { phs.push({ text: el.textContent, el: el }) })
+  headingPairs = pairHeadings(src, phs)
+  const tops = measureHeadingTops(ta, srcText, src)
+  const cs = getComputedStyle(ta)
+  const lh = parseFloat(cs.lineHeight)
+  const lineHeight = isNaN(lh) ? 27.2 : lh
+  const padTop = parseFloat(cs.paddingTop) || 0
+  headingPairs.forEach(function (p) {
+    p.top = (tops && typeof tops[p.srcIndex] === 'number')
+      ? tops[p.srcIndex]
+      : p.line * lineHeight + padTop
+    p.el.classList.add('sync-linked')
+  })
+}
+
+function guardHeadingSync() {
+  // While the guard is on, incoming scroll events are remembered (not
+  // lost): the latest direction is replayed once when it clears, so a
+  // continuous scroll still settles both sides at the final position.
+  headingSyncGuard = true
+  if (headingGuardTimer) { clearTimeout(headingGuardTimer) }
+  headingGuardTimer = setTimeout(function () {
+    headingSyncGuard = false
+    headingGuardTimer = 0
+    if (headingPendingDir) {
+      const dir = headingPendingDir
+      headingPendingDir = ''
+      if (dir === 'editor') { syncPreviewFromEditor() } else { syncEditorFromPreview() }
+    }
+  }, 120)
+}
+
+function onHeadingSyncScroll(which) {
+  if (previewMode !== 'split') { return }
+  if (headingSyncGuard) { headingPendingDir = which; return }
+  if (headingSyncRaf) { return }
+  headingSyncRaf = requestAnimationFrame(function () {
+    headingSyncRaf = 0
+    if (which === 'editor') { syncPreviewFromEditor() } else { syncEditorFromPreview() }
+  })
+}
+
+function setCurrentHeading(pair) {
+  if (lastCurrentPair === pair) { return }
+  if (lastCurrentPair) { lastCurrentPair.el.classList.remove('sync-current') }
+  lastCurrentPair = pair
+  if (pair) { pair.el.classList.add('sync-current') }
+}
+
+function syncPreviewFromEditor() {
+  if (previewMode !== 'split' || !headingPairs.length) { return }
+  if (headingSyncGuard) { headingPendingDir = 'editor'; return }
+  const ta = qs('#edit_txt')
+  const pane = qs('#edit_preview')
+  if (!ta || !pane) { return }
+  let current = null
+  if (ta.scrollTop + ta.clientHeight >= ta.scrollHeight - 2) {
+    current = headingPairs[headingPairs.length - 1]
+  } else {
+    for (const p of headingPairs) {
+      if (p.top <= ta.scrollTop + 12) { current = p } else { break }
+    }
+  }
+  if (!current) {
+    // Above the first heading: bring the preview back to the very top.
+    if (pane.scrollTop !== 0) {
+      guardHeadingSync()
+      pane.scrollTop = 0
+    }
+    setCurrentHeading(null)
+    return
+  }
+  const paneRect = pane.getBoundingClientRect()
+  const elRect = current.el.getBoundingClientRect()
+  const target = pane.scrollTop + (elRect.top - paneRect.top) - 8
+  if (Math.abs(target - pane.scrollTop) > 2) {
+    guardHeadingSync()
+    pane.scrollTop = target
+  }
+  setCurrentHeading(current)
+}
+
+function syncEditorFromPreview() {
+  if (previewMode !== 'split' || !headingPairs.length) { return }
+  if (headingSyncGuard) { headingPendingDir = 'preview'; return }
+  const ta = qs('#edit_txt')
+  const pane = qs('#edit_preview')
+  if (!ta || !pane) { return }
+  let current = null
+  if (pane.scrollTop + pane.clientHeight >= pane.scrollHeight - 2) {
+    current = headingPairs[headingPairs.length - 1]
+  } else {
+    const paneRect = pane.getBoundingClientRect()
+    for (const p of headingPairs) {
+      const rel = p.el.getBoundingClientRect().top - paneRect.top
+      if (rel <= 12) { current = p } else { break }
+    }
+  }
+  if (!current) {
+    if (ta.scrollTop !== 0) {
+      guardHeadingSync()
+      ta.scrollTop = 0
+    }
+    setCurrentHeading(null)
+    return
+  }
+  const maxTop = Math.max(0, ta.scrollHeight - ta.clientHeight)
+  const target = Math.min(Math.max(0, current.top - 8), maxTop)
+  if (Math.abs(target - ta.scrollTop) > 2) {
+    guardHeadingSync()
+    ta.scrollTop = target
+  }
+  setCurrentHeading(current)
+}
+
+function jumpToHeading(pair) {
+  if (previewMode === 'full') { setPreviewMode('split') }
+  if (previewMode !== 'split') { return }
+  const ta = qs('#edit_txt')
+  if (!ta) { return }
+  const lines = ta.value.split('\n')
+  let pos = 0
+  for (let i = 0; i < pair.line && i < lines.length; i++) {
+    pos += lines[i].length + 1
+  }
+  try {
+    ta.focus({ preventScroll: true })
+  } catch (e) {
+    ta.focus()
+  }
+  ta.setSelectionRange(pos, pos)
+  guardHeadingSync()
+  ta.scrollTop = Math.max(0, pair.top - 8)
+  setCurrentHeading(pair)
+  // Align the preview after the editor settles (the scroll handler's
+  // pending replay does this once the guard clears).
+  headingPendingDir = 'editor'
+}
+
+function initHeadingSync() {
+  const ta = qs('#edit_txt')
+  const pane = qs('#edit_preview')
+  const body = qs('#edit_preview .edit_preview_body')
+  if (!ta || !pane || !body) { return }
+  ta.addEventListener('scroll', function () { onHeadingSyncScroll('editor') })
+  pane.addEventListener('scroll', function () { onHeadingSyncScroll('preview') })
+  body.addEventListener('click', function (e) {
+    const sel = window.getSelection ? String(window.getSelection()) : ''
+    if (sel) { return } // text selection in progress: do not jump
+    const h = e.target.closest ? e.target.closest('h1, h2, h3, h4, h5, h6') : null
+    if (!h) { return }
+    const pair = headingPairs.find(function (p) { return p.el === h })
+    if (!pair) { return }
+    // A link inside the heading (the KonaNotation anchor '*', or an
+    // inline link) must not navigate away from the editor.
+    if (e.target.closest && e.target.closest('a')) { e.preventDefault() }
+    jumpToHeading(pair)
+  })
+  window.addEventListener('resize', function () {
+    // The wrap points change with the width: re-measure the offsets.
+    if (headingResizeTimer) { clearTimeout(headingResizeTimer) }
+    headingResizeTimer = setTimeout(function () {
+      headingResizeTimer = 0
+      const b = qs('#edit_preview .edit_preview_body')
+      if (b && headingPairs.length) { buildHeadingSync(b) }
+    }, 200)
+  })
 }
 
 // Show only the given panel in the drawer. If it is already visible,

@@ -15,6 +15,11 @@
 /* ==========================================
    Dark palette (CSS variables)
    ========================================== */
+/* Preview pane of the editor (edit.css also applies in dark mode) */
+body.dark-theme .edit_preview_body .sync-current {
+  background-color: rgba(88, 166, 255, 0.25);
+}
+
 body.dark-theme {
   --k3d-bg: var(--k3-color-bg, #121212);
   --k3d-text: var(--k3-color-text, #e0e0e0);
