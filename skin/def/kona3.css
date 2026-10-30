@@ -286,13 +286,16 @@ body {
 #kona3_main .contents a:hover {
   text-decoration-thickness: 2px;
 }
-/* 見出しアンカー(*)とボタン状のリンクには下線を付けない */
+/* 見出しアンカー(*)とボタン状のリンク、画像だけのリンクには下線を付けない */
 #kona3_main .contents a.anchor_super:link,
 #kona3_main .contents a.anchor_super:visited,
 #kona3_main .contents a.anchor_super:hover,
 #kona3_main .contents a.pure-button:link,
 #kona3_main .contents a.pure-button:visited,
-#kona3_main .contents a.pure-button:hover {
+#kona3_main .contents a.pure-button:hover,
+#kona3_main .contents a:has(> img):link,
+#kona3_main .contents a:has(> img):visited,
+#kona3_main .contents a:has(> img):hover {
   text-decoration: none;
 }
 
@@ -713,6 +716,13 @@ body #ai_output_area {
     overflow: visible;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
+  }
+  /* filecode 内のコードは kona3def.css の詳細度の高いルール
+     (.filecode .filecode-body > pre.code { width: max-content; white-space: pre })
+     が印刷でも勝つため、同じ詳細度で折り返しを指定する */
+  .filecode .filecode-body > pre.code {
+    width: auto;
+    white-space: pre-wrap;
   }
 }
 

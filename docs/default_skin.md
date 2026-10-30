@@ -245,7 +245,8 @@ body.dark-theme {
   - 紙は行長が用紙で決まるため、印刷時は `--k3-measure: none` で行長の制限を外します。
   - `#kona3_main` に `orphans: 3` / `widows: 3` を指定します。見出しの直後では改ページしません(`break-after: avoid`)。
   - 表は全体ではなく行(`tr`)単位で分割を避け(長い表で大きな空白を作らない)、`thead` を各ページに繰り返します。
-  - `pre` は `break-inside: avoid` で短いものを1ページにまとめ、`overflow: visible` + `white-space: pre-wrap` で長い行を折り返します。1ページを超える長いコードは分割されます。
+  - `pre` は `break-inside: avoid` で短いものを1ページにまとめ、`overflow: visible` + `white-space: pre-wrap` で長い行を折り返します。1ページを超える長いコードは分割されます。filecode 内のコードも同じ詳細度で上書きして折り返します。
+  - 余白(`--k3-space-*`)は `rem` 基準のため、印刷時は本文だけが 10.5pt になり、余白は画面表示の比率のまま広めになります(仕様として許容しています)。
 - 印刷モード(`?print`)ではダークモードが適用されません。ダークモードのままブラウザから印刷した場合もライトの配色で出力されるよう、ダーク用の変数の再定義は `@media screen` の中に置きます。`darkmode.css` も全体が `@media screen` 限定のため、印刷時にダークの配色が残ることはありません。
 
 ---

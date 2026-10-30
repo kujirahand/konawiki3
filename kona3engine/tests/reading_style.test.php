@@ -183,6 +183,13 @@ foreach (['show.html', 'print.html'] as $tpl) {
 }
 test_assert(__LINE__, strpos(konawiki_parser_convert("abc"), '<div class="contents">') === 0, "konawiki parser wraps body with div.contents");
 test_assert(__LINE__, strpos(kona3markdown_parser_convert("abc"), '<div class="contents">') === 0, "markdown parser wraps body with div.contents");
+// measure の前提: 段落とリストが .contents の直下に出ること (直下でないと max-width が効かない)
+$kona_html = konawiki_parser_convert("段落のテキストです。\n\n・項目1\n・項目2");
+test_assert(__LINE__, strpos($kona_html, "<div class=\"contents\">\n<p>") === 0, "konawiki parser: p is a direct child of .contents");
+test_assert(__LINE__, preg_match('/\n<ul>\n<li>/', $kona_html) === 1, "konawiki parser: ul is a direct child of .contents");
+$md_html = kona3markdown_parser_convert("段落のテキストです。\n\n- 項目1\n- 項目2");
+test_assert(__LINE__, strpos($md_html, "<div class=\"contents\">\n<p>") === 0, "markdown parser: p is a direct child of .contents");
+test_assert(__LINE__, preg_match('/\n<ul>\n<li>/', $md_html) === 1, "markdown parser: ul is a direct child of .contents");
 foreach (glob(dirname(__DIR__) . '/template/*.html') as $tpl) {
     $name = basename($tpl);
     if ($name === 'show.html' || $name === 'print.html') {
@@ -206,7 +213,7 @@ foreach (['#kona3_main .contents a:link', '#kona3_main .contents a:visited'] as 
     test_assert(__LINE__, reading_has($d, 'text-decoration-thickness', '1px'), "$sel underline thickness 1px");
     test_assert(__LINE__, reading_has($d, 'text-underline-offset', '0.2em'), "$sel underline offset 0.2em");
 }
-foreach (['#kona3_main .contents a.anchor_super:link', '#kona3_main .contents a.pure-button:link'] as $sel) {
+foreach (['#kona3_main .contents a.anchor_super:link', '#kona3_main .contents a.pure-button:link', '#kona3_main .contents a:has(> img):link'] as $sel) {
     test_assert(__LINE__, reading_has(reading_decls($rest, $sel), 'text-decoration', 'none'), "$sel has no underline");
 }
 test_assert(__LINE__, reading_has(reading_decls($rest, '#kona3_main a:link'), 'text-decoration', 'none'), "#kona3_main a:link (outside .contents) has no underline");
@@ -245,6 +252,9 @@ $ppre = reading_decls($print, 'pre.code');
 test_assert(__LINE__, reading_has($ppre, 'break-inside', 'avoid'), "print: pre break-inside: avoid");
 test_assert(__LINE__, reading_has($ppre, 'overflow', 'visible'), "print: pre overflow: visible");
 test_assert(__LINE__, reading_has($ppre, 'white-space', 'pre-wrap'), "print: pre white-space: pre-wrap");
+$pfc = reading_decls($print, '.filecode .filecode-body > pre.code');
+test_assert(__LINE__, reading_has($pfc, 'white-space', 'pre-wrap'), "print: filecode pre white-space: pre-wrap (overrides kona3def.css by same specificity)");
+test_assert(__LINE__, reading_has($pfc, 'width', 'auto'), "print: filecode pre width: auto");
 $bg_rules = [];
 foreach (reading_rules($print) as $rule) {
     if (preg_match('#(^|[;\s])background(-color)?\s*:#', $rule[1])) {
