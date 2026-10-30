@@ -47,6 +47,9 @@ function kona3_action_edit()
     } else if ($q == 'keepalive') {
         // 編集中のセッション維持 (issue #64, 案3)
         return kona3edit_keepalive($page);
+    } else if ($q == 'preview') {
+        // プレビュー並行表示用に本文を描画する (issue #153)
+        return kona3edit_preview_ajax($page);
     }
 
     // generate edit_token
@@ -827,6 +830,35 @@ function kona3_trygit(&$txt, &$a_hash, $i_mode)
     header("location:$jump");
     echo "ok, saved.";
     return TRUE;
+}
+
+// プレビュー用に本文を HTML へ変換する (issue #153)
+function kona3edit_render_preview($txt, $page_mode)
+{
+    if ($page_mode === 'Markdown') {
+        require_once dirname(__DIR__) . '/kona3parser_md.inc.php';
+        return kona3markdown_parser_convert($txt);
+    }
+    return konawiki_parser_convert($txt);
+}
+
+function kona3edit_preview_ajax($page)
+{
+    // kona3edit_ai_ajax と同様、この時点で権限チェックを通過している
+    if (!kona3edit_checkEditToken($page, 'ajax')) {
+        return;
+    }
+    header('Content-Type: application/json');
+    global $kona3conf;
+    $txt = kona3param('edit_txt', '');
+    $page_mode = kona3param('page_mode', '');
+    $max = isset($kona3conf['max_edit_size']) ? intval($kona3conf['max_edit_size']) : 0;
+    if ($max > 0 && strlen($txt) > $max) {
+        echo json_encode(array('result' => 'ng', 'message' => 'Text is too large.'));
+        return;
+    }
+    $html = kona3edit_render_preview($txt, $page_mode);
+    echo json_encode(array('result' => 'ok', 'html' => $html));
 }
 
 function kona3edit_ai_ajax($page)

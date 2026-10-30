@@ -267,3 +267,39 @@ textarea#ai_input_text {
     height: 0;
   }
 }
+
+/* live preview (issue #153) */
+#edit_main.preview-split {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+#edit_main.preview-split .editor {
+  flex: 1 1 50%;
+  min-width: 0;
+}
+
+#edit_preview {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  padding: 8px 12px;
+  box-sizing: border-box;
+}
+
+#edit_main.preview-split #edit_preview {
+  flex: 1 1 50%;
+  min-width: 0;
+  max-height: calc(100vh - 240px);
+  overflow: auto;
+}
+
+#edit_main.preview-full .editor {
+  display: none;
+}
+
+#edit_main.preview-full #edit_preview {
+  max-height: calc(100vh - 240px);
+  overflow: auto;
+}

@@ -474,6 +474,11 @@ body.dark-theme .edit_back {
   color: var(--k3d-text);
 }
 
+body.dark-theme #edit_preview {
+  background-color: var(--k3d-edit-bg);
+  border: 1px solid var(--k3d-field-border);
+}
+
 body.dark-theme #wikiedit input[disabled="true"],
 body.dark-theme #wikiedit button:disabled {
   background-color: var(--k3d-field-bg);

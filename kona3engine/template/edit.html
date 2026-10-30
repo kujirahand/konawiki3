@@ -32,8 +32,13 @@
         <button type="button" id="tools_btn" onclick="toggleEditDrawer()">ツール</button>
       </div>
 
-      <div class="editor">
-        <textarea id="edit_txt" name="edit_txt">{{$edit_txt}}</textarea>
+      <div id="edit_main">
+        <div class="editor">
+          <textarea id="edit_txt" name="edit_txt">{{$edit_txt}}</textarea>
+        </div>
+        <div id="edit_preview" style="display:none;">
+          <div class="edit_preview_body page_body"></div>
+        </div>
       </div>
 
       <div id="edit_statusbar">
@@ -47,6 +52,7 @@
           <option value="Markdown"{{ if $page_mode == 'Markdown' }} selected {{ endif }}>Markdown</option>
         </select>
         <span id="change-info">保存済み</span>
+        <button type="button" id="preview_btn" onclick="togglePreview()">プレビュー</button>
       </div>
     </form>
 
@@ -68,6 +74,7 @@
         </span>
         {{ endif }}
         <button onclick="helpOnClick()">?</button>
+        <button type="button" onclick="togglePreview()">プレビュー並行表示</button>
       </nav>
 
       <div id="help_div" class="block2" style="display: none;">

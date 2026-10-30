@@ -184,6 +184,7 @@ function handleChange(changed, reason) {
     use_beforeunload(false)
     setButtonsDisabled(true)
   }
+  schedulePreview()
 }
 
 // edit_txt.onkeydown
@@ -577,6 +578,70 @@ function openEditDrawer() {
 function closeEditDrawer() {
   qq('#edit_drawer').removeClass('open')
   qq('#edit_drawer_scrim').removeClass('open')
+}
+
+// Live preview (issue #153): 'off' | 'split' (side by side) | 'full'
+// (preview replaces the editor on narrow screens)
+let previewMode = 'off'
+let previewTimer = null
+
+function togglePreview() {
+  closeEditDrawer()
+  if (previewMode !== 'off') {
+    setPreviewMode('off')
+    return
+  }
+  setPreviewMode(window.innerWidth < 800 ? 'full' : 'split')
+}
+
+function setPreviewMode(mode) {
+  previewMode = mode
+  const main = qs('#edit_main')
+  const pane = qs('#edit_preview')
+  if (!main || !pane) {
+    return
+  }
+  main.classList.remove('preview-split')
+  main.classList.remove('preview-full')
+  if (mode === 'off') {
+    pane.style.display = 'none'
+    return
+  }
+  pane.style.display = ''
+  main.classList.add(mode === 'full' ? 'preview-full' : 'preview-split')
+  refreshPreview()
+}
+
+function refreshPreview() {
+  if (previewMode === 'off') {
+    return
+  }
+  const body = qs('#edit_preview .edit_preview_body')
+  if (!body) {
+    return
+  }
+  const action = qq('#wikiedit form').attr('action')
+  qq().post(action, {
+    'i_mode': 'ajax',
+    'q': 'preview',
+    'edit_token': qq('#edit_token').val(),
+    'edit_txt': edit_txt.value,
+    'page_mode': qs('#page_mode') ? qs('#page_mode').value : '',
+  }).done(function (obj) {
+    if (obj && obj['result'] === 'ok') {
+      body.innerHTML = obj['html']
+    }
+  })
+}
+
+function schedulePreview() {
+  if (previewMode === 'off') {
+    return
+  }
+  if (previewTimer) {
+    clearTimeout(previewTimer)
+  }
+  previewTimer = setTimeout(refreshPreview, 700)
 }
 
 // Show only the given panel in the drawer. If it is already visible,
