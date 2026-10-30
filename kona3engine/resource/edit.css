@@ -303,3 +303,7 @@ textarea#ai_input_text {
   max-height: calc(100vh - 240px);
   overflow: auto;
 }
+
+#search_count {
+  margin-left: 0.5em;
+}

@@ -63,6 +63,7 @@
         <button type="button" onclick="closeEditDrawer()">×</button>
       </div>
       <nav class="edit_drawer_nav">
+        <button onclick="searchOnClick()">{{'Search' | lang}}</button>
         <button onclick="replaceOnClick()">{{'Replace' | lang}}</button>
         <button onclick="tagsOnClick()">{{'Tags' | lang}}</button>
         <button onclick="historyOnClick()">{{'History' | lang}}</button>
@@ -98,6 +99,16 @@
           <b style="width:5em;">{{'Tags'|lang}}</b>:
           <input type="text" id="tags_visible" class="info" style="width: 50%;" value="{{ $tags }}"
             placeholder="tag1/tag2/tag3/..." onchange="syncTagsToHidden()">
+        </div>
+      </div>
+
+      <div id="search_div" class="desc" style="display: none;">
+        <div>
+          <b>{{'Search'|lang}}</b>:<br>
+          <input type="text" id="search_key" class="info" style="width: 50%;" value="" placeholder="Keyword">
+          <button type="button" onclick="searchPrev()">前へ</button>
+          <button type="button" onclick="searchNext()">次へ</button>
+          <span id="search_count" class="info"></span>
         </div>
       </div>
 

@@ -64,6 +64,23 @@ function edit_init() {
       handleChange(true, 'page_mode')
     })
   }
+  const search_key_el = qs('#search_key')
+  if (search_key_el) {
+    search_key_el.addEventListener('input', updateSearchCount)
+    search_key_el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        if (e.shiftKey) { searchPrev() } else { searchNext() }
+      }
+    })
+  }
+  // Ctrl+F / Cmd+F opens the drawer search panel (issue #153)
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'F')) {
+      e.preventDefault()
+      searchOnClick()
+    }
+  })
   const ai_ask_btn = qs('#ai_ask_btn')
   if (ai_ask_btn) {
     qq(ai_ask_btn).click(aiAskClickHandler)
@@ -683,7 +700,7 @@ function showOnlyPanel(selector, forceShow) {
     return null
   }
   const isVisible = target.style.display !== 'none'
-  const panels = ['#help_div', '#tags_div', '#replace_div', '#history_div', '#misc_div', '#ai_div']
+  const panels = ['#help_div', '#tags_div', '#replace_div', '#history_div', '#misc_div', '#ai_div', '#search_div']
   panels.forEach(function (panelSelector) {
     if (qs(panelSelector)) {
       qq(panelSelector).hide()
@@ -699,6 +716,129 @@ function showOnlyPanel(selector, forceShow) {
 // Open the drawer and show the given tool panel. When the drawer was
 // closed, the panel is always shown: a panel left visible inside the
 // closed drawer must not be toggled off (Copilot review on PR #341).
+// In-editor text search (issue #153)
+let searchIndex = -1
+let searchQuery = ''
+
+// All match offsets of query in text (case-insensitive, non-overlapping).
+function computeSearchMatches(text, query) {
+  const matches = []
+  if (!query) {
+    return matches
+  }
+  const hay = text.toLowerCase()
+  const needle = query.toLowerCase()
+  let pos = 0
+  while (true) {
+    const i = hay.indexOf(needle, pos)
+    if (i < 0) {
+      break
+    }
+    matches.push(i)
+    pos = i + Math.max(1, needle.length)
+  }
+  return matches
+}
+
+// Index of the match to jump to from currentPos: the first match at or
+// after currentPos for dir=1, the last match before currentPos for
+// dir=-1, wrapping around. -1 when there are no matches.
+function findSearchTarget(matches, currentPos, dir) {
+  if (matches.length === 0) {
+    return -1
+  }
+  if (dir > 0) {
+    for (let i = 0; i < matches.length; i++) {
+      if (matches[i] >= currentPos) {
+        return i
+      }
+    }
+    return 0
+  }
+  for (let i = matches.length - 1; i >= 0; i--) {
+    if (matches[i] < currentPos) {
+      return i
+    }
+  }
+  return matches.length - 1
+}
+
+function updateSearchCount() {
+  const input = qs('#search_key')
+  const countEl = qs('#search_count')
+  if (!input || !countEl) {
+    return
+  }
+  const query = input.value
+  if (query !== searchQuery) {
+    searchQuery = query
+    searchIndex = -1
+  }
+  const matches = computeSearchMatches(edit_txt.value, query)
+  if (!query) {
+    countEl.textContent = ''
+  } else if (matches.length === 0) {
+    countEl.textContent = '見つかりません'
+  } else if (searchIndex >= 0) {
+    countEl.textContent = (searchIndex + 1) + ' / ' + matches.length
+  } else {
+    countEl.textContent = matches.length + ' 件'
+  }
+}
+
+function searchMove(dir) {
+  const input = qs('#search_key')
+  const query = input ? input.value : ''
+  const matches = computeSearchMatches(edit_txt.value, query)
+  if (query !== searchQuery) {
+    searchQuery = query
+    searchIndex = -1
+  }
+  if (searchIndex >= matches.length) {
+    searchIndex = matches.length - 1
+  }
+  const from = dir > 0
+    ? (searchIndex >= 0 ? matches[searchIndex] + 1 : (edit_txt.selectionStart || 0))
+    : (searchIndex >= 0 ? matches[searchIndex] : (edit_txt.selectionStart || 0))
+  const idx = findSearchTarget(matches, from, dir)
+  if (idx < 0) {
+    updateSearchCount()
+    return
+  }
+  searchIndex = idx
+  const start = matches[idx]
+  edit_txt.focus()
+  edit_txt.setSelectionRange(start, start + query.length)
+  scrollEditorToPos(start)
+  updateSearchCount()
+}
+
+function searchNext() {
+  searchMove(1)
+}
+
+function searchPrev() {
+  searchMove(-1)
+}
+
+// Scroll the textarea so that the given offset is roughly in view.
+function scrollEditorToPos(pos) {
+  const before = edit_txt.value.substring(0, pos)
+  const lines = before.split('\n').length - 1
+  const style = window.getComputedStyle(edit_txt)
+  const lineHeight = parseInt(style.lineHeight, 10) || 20
+  edit_txt.scrollTop = Math.max(0, lines * lineHeight - edit_txt.clientHeight / 3)
+}
+
+function searchOnClick() {
+  openToolPanel('#search_div')
+  const input = qs('#search_key')
+  if (input) {
+    input.focus()
+    input.select()
+  }
+}
+
 function openToolPanel(selector) {
   const drawer = qs('#edit_drawer')
   const wasOpen = drawer && drawer.classList.contains('open')
