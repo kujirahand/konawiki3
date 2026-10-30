@@ -522,6 +522,36 @@ textarea#ai_input_text:focus {
   overflow: auto;
 }
 
+/* プレビュー本文の組版は表示画面に合わせる (#153)。
+   表示側のスタイルは #kona3_layout_show / #kona3_main 配下に書かれており
+   編集画面には届かないため、共有トークンで同じリズム (行間・段落・見出し) を
+   ここで再現する。利用者の文字サイズ・行間設定は .edit_preview_body にも
+   注入される (parts_header / drawer.js)。 */
+.edit_preview_body {
+  line-height: var(--k3-line-height-body, 1.7);
+}
+
+.edit_preview_body p {
+  margin: 0 0 var(--k3-space-3, 12px);
+}
+
+.edit_preview_body h1,
+.edit_preview_body h2,
+.edit_preview_body h3,
+.edit_preview_body h4,
+.edit_preview_body h5,
+.edit_preview_body h6 {
+  color: var(--k3-color-heading, #102a43);
+  font-weight: 700;
+  line-height: var(--k3-line-height-tight, 1.35);
+  margin: var(--k3-space-5, 20px) 0 var(--k3-space-3, 12px);
+}
+
+.edit_preview_body ul,
+.edit_preview_body ol {
+  margin: 0 0 var(--k3-space-3, 12px);
+}
+
 #search_count {
   margin-left: 0.5em;
 }

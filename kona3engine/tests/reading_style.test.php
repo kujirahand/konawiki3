@@ -126,9 +126,9 @@ foreach (reading_rules($css) as $rule) {
     }
 }
 test_assert(__LINE__, preg_match('#line-height\s*:\s*1\.75\b#', $css) === 0, "literal line-height: 1.75 is removed");
-$inject = '#kona3_layout_show, #wikibody { line-height: ';
-test_assert(__LINE__, strpos(file_get_contents(dirname(__DIR__) . '/template/parts_header.html'), $inject) !== false, "parts_header.html injects user line-height into #kona3_layout_show");
-test_assert(__LINE__, strpos(file_get_contents(dirname(__DIR__) . '/resource/drawer.js'), $inject) !== false, "drawer.js injects user line-height into #kona3_layout_show");
+$inject = '#kona3_layout_show, #wikibody, .edit_preview_body { line-height: ';
+test_assert(__LINE__, strpos(file_get_contents(dirname(__DIR__) . '/template/parts_header.html'), $inject) !== false, "parts_header.html injects user line-height into #kona3_layout_show (and the edit preview)");
+test_assert(__LINE__, strpos(file_get_contents(dirname(__DIR__) . '/resource/drawer.js'), $inject) !== false, "drawer.js injects user line-height into #kona3_layout_show (and the edit preview)");
 
 // ---------- C. 見出し ----------
 $h_all = reading_decls($rest, '#kona3_main h6');

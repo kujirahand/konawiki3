@@ -180,7 +180,7 @@ qq(function(){
     let css = '';
     // デフォルト値と異なる場合のみCSSを適用
     if (Math.abs(currentFontSize - DEFAULT_FONT_SIZE) > 0.01) {
-      css += '#kona3_layout_show, #wikibody { font-size: ' + currentFontSize.toFixed(1) + 'em !important; }\n';
+      css += '#kona3_layout_show, #wikibody, .edit_preview_body { font-size: ' + currentFontSize.toFixed(1) + 'em !important; }\n';
       try {
         localStorage.setItem('kona3_font_size', currentFontSize.toFixed(1));
       } catch (err) {
@@ -195,7 +195,7 @@ qq(function(){
     }
     
     if (Math.abs(currentLineHeight - DEFAULT_LINE_HEIGHT) > 0.01) {
-      css += '#kona3_layout_show, #wikibody { line-height: ' + currentLineHeight.toFixed(1) + ' !important; }\n';
+      css += '#kona3_layout_show, #wikibody, .edit_preview_body { line-height: ' + currentLineHeight.toFixed(1) + ' !important; }\n';
       try {
         localStorage.setItem('kona3_line_height', currentLineHeight.toFixed(1));
       } catch (err) {
