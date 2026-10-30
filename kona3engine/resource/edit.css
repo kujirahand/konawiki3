@@ -12,6 +12,13 @@ body {
   color: var(--k3-color-text, #1f2933);
 }
 
+/* プレビュー表示中は2ペインになるため、幅キャップを外して画面幅いっぱいに広げる (#153)。
+   :has() 非対応のブラウザでは 1500px キャップのままになる (段階的な劣化)。 */
+#wikiedit:has(#edit_main.preview-split),
+#wikiedit:has(#edit_main.preview-full) {
+  max-width: none;
+}
+
 #edit_topbar {
   display: flex;
   align-items: center;
