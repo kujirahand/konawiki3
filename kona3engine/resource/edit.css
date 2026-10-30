@@ -7,11 +7,10 @@ body {
   box-sizing: border-box;
   max-width: 1120px;
   margin: 24px auto;
-  padding: 20px;
+  padding: 24px;
   border: 1px solid var(--k3-color-border, #e4e7eb);
-  border-radius: 12px;
+  border-radius: 16px;
   background: var(--k3-color-bg, #ffffff);
-  box-shadow: 0 8px 24px rgba(16, 42, 67, 0.08);
   color: var(--k3-color-text, #1f2933);
 }
 
@@ -24,7 +23,7 @@ body {
   z-index: 20;
   padding: 8px 4px;
   background: var(--k3-color-bg, #ffffff);
-  border-bottom: 2px solid var(--k3-color-accent, #1f5fbf);
+  border-bottom: 1px solid var(--k3-color-border, #e4e7eb);
 }
 
 .edit_back {
@@ -34,8 +33,8 @@ body {
   flex: 0 0 32px;
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  color: var(--k3-color-text, #1f2933);
+  border-radius: 8px;
+  color: var(--k3-color-text-muted, #616e7c);
   font-size: 1.5em;
   line-height: 1;
   text-decoration: none;
@@ -43,8 +42,8 @@ body {
 }
 
 .edit_back:hover {
-  background: var(--k3-color-accent-subtle, #e8f0fb);
-  color: var(--k3-color-accent, #1f5fbf);
+  background: var(--k3-color-bg-subtle, #f5f7fa);
+  color: var(--k3-color-text, #1f2933);
 }
 
 .edit_back:focus-visible {
@@ -68,17 +67,23 @@ body {
 .edit_save_state {
   padding: 2px 12px;
   border-radius: 999px;
-  background: var(--k3-color-success-bg, #eefbf3);
+  background: transparent;
   color: var(--k3-color-success-text, #146c2e);
   font-size: 0.85em;
   white-space: nowrap;
-  transition: background-color 0.15s, color 0.15s;
+  transition: color 0.15s;
+}
+
+.edit_save_state::before {
+  content: "●";
+  margin-right: 0.45em;
+  font-size: 0.75em;
 }
 
 .edit_save_state.dirty {
-  background: var(--k3-color-warn-bg, #fff8e6);
+  background: transparent;
   color: var(--k3-color-warn-text, #7a4d00);
-  font-weight: bold;
+  font-weight: normal;
 }
 
 textarea#edit_txt {
@@ -89,7 +94,7 @@ textarea#edit_txt {
   margin: 0;
   padding: 14px 16px;
   border: 1px solid var(--k3-color-border-strong, #cbd2d9);
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--k3-color-bg, #ffffff);
   color: var(--k3-color-text, #1f2933);
   caret-color: var(--k3-color-accent, #1f5fbf);
@@ -109,11 +114,12 @@ textarea#edit_txt:focus {
 #wikiedit input[type="button"],
 #wikiedit button {
   padding: 8px 14px;
-  border: 1px solid var(--k3-color-border-strong, #cbd2d9);
+  border: 1px solid var(--k3-color-border, #e4e7eb);
   border-radius: 8px;
   background-color: var(--k3-color-bg, #ffffff);
   color: var(--k3-color-text, #1f2933);
   font-size: 0.9em;
+  font-weight: normal;
   text-decoration: none;
   cursor: pointer;
   transition: background-color 0.15s, border-color 0.15s;
@@ -123,13 +129,13 @@ textarea#edit_txt:focus {
 #wikiedit input[type="button"]:hover,
 #wikiedit button:hover {
   background-color: var(--k3-color-bg-subtle, #f5f7fa);
-  border-color: var(--k3-color-border-strong, #cbd2d9);
+  border-color: var(--k3-color-border, #e4e7eb);
 }
 
 #wikiedit input[type="submit"]:active,
 #wikiedit input[type="button"]:active,
 #wikiedit button:active {
-  background-color: var(--k3-color-accent-subtle, #e8f0fb);
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
 }
 
 #wikiedit input[type="submit"]:focus-visible,
@@ -161,10 +167,10 @@ textarea#edit_txt:focus {
 }
 
 #wikiedit #tools_btn {
-  border-color: var(--k3-color-accent-subtle, #e8f0fb);
-  border-radius: 999px;
-  background: var(--k3-color-accent-subtle, #e8f0fb);
-  color: var(--k3-color-accent, #1f5fbf);
+  border-color: var(--k3-color-border, #e4e7eb);
+  border-radius: 8px;
+  background: var(--k3-color-bg, #ffffff);
+  color: var(--k3-color-text, #1f2933);
 }
 
 #wikiedit .button-short {
@@ -186,7 +192,7 @@ textarea#edit_txt:focus {
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
-  padding: 8px 4px;
+  padding: 12px 4px;
   border-top: 1px solid var(--k3-color-border, #e4e7eb);
   color: var(--k3-color-text-muted, #616e7c);
   font-size: 0.85em;
@@ -197,8 +203,8 @@ textarea#edit_txt:focus {
 #edit_statusbar input[type="search"],
 #edit_statusbar input[type="number"] {
   padding: 5px 8px;
-  border: 1px solid var(--k3-color-border-strong, #cbd2d9);
-  border-radius: 6px;
+  border: 1px solid var(--k3-color-border, #e4e7eb);
+  border-radius: 8px;
   background: var(--k3-color-bg, #ffffff);
   color: var(--k3-color-text, #1f2933);
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -215,8 +221,8 @@ textarea#edit_txt:focus {
 
 #wikiedit #preview_btn {
   padding: 5px 10px;
-  border-radius: 999px;
-  background: var(--k3-color-bg-subtle, #f5f7fa);
+  border-radius: 8px;
+  background: var(--k3-color-bg, #ffffff);
   color: var(--k3-color-text, #1f2933);
 }
 
@@ -255,9 +261,8 @@ textarea#edit_txt:focus {
   height: 100vh;
   padding: 14px;
   overflow-y: auto;
-  border-left: 1px solid var(--k3-color-border-strong, #cbd2d9);
+  border-left: 1px solid var(--k3-color-border, #e4e7eb);
   background: var(--k3-color-bg, #ffffff);
-  box-shadow: -4px 0 16px rgba(16, 42, 67, 0.15);
   transform: translateX(105%);
   /* visibility keeps the closed drawer out of the tab order */
   visibility: hidden;
@@ -274,10 +279,10 @@ textarea#edit_txt:focus {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
-  padding-bottom: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--k3-color-border, #e4e7eb);
-  color: var(--k3-color-accent, #1f5fbf);
+  color: var(--k3-color-heading, #102a43);
   font-size: 1.1em;
   font-weight: bold;
 }
@@ -286,19 +291,19 @@ textarea#edit_txt:focus {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 
 #edit_drawer .edit_drawer_nav button {
   border-color: var(--k3-color-border, #e4e7eb);
-  border-radius: 999px;
-  background: var(--k3-color-bg-subtle, #f5f7fa);
+  border-radius: 8px;
+  background: var(--k3-color-bg, #ffffff);
 }
 
 #edit_drawer .edit_drawer_nav button:hover {
-  border-color: var(--k3-color-accent-subtle, #e8f0fb);
+  border-color: var(--k3-color-border, #e4e7eb);
   background: var(--k3-color-accent-subtle, #e8f0fb);
-  color: var(--k3-color-accent, #1f5fbf);
+  color: var(--k3-color-text, #1f2933);
 }
 
 #ai_buttons {
@@ -310,11 +315,11 @@ textarea#edit_txt:focus {
 #edit_drawer #replace_div,
 #edit_drawer #misc_div,
 #edit_drawer .desc {
-  margin: 12px 0;
-  padding: 12px;
-  border: 1px solid var(--k3-color-border, #e4e7eb);
-  border-radius: 10px;
-  background: var(--k3-color-bg, #ffffff);
+  margin: 16px 0;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  background: var(--k3-color-bg-subtle, #f5f7fa);
 }
 
 #edit_drawer input[type="text"],
@@ -326,8 +331,8 @@ textarea#edit_txt:focus {
   box-sizing: border-box;
   max-width: 100%;
   padding: 6px 8px;
-  border: 1px solid var(--k3-color-border-strong, #cbd2d9);
-  border-radius: 6px;
+  border: 1px solid var(--k3-color-border, #e4e7eb);
+  border-radius: 8px;
   background: var(--k3-color-bg, #ffffff);
   color: var(--k3-color-text, #1f2933);
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -346,16 +351,16 @@ textarea#edit_txt:focus {
 
 #func_area {
   margin-top: 24px;
-  padding: 12px;
-  border: 1px dashed var(--k3-color-border-strong, #cbd2d9);
-  border-radius: 10px;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
   background: var(--k3-color-bg-subtle, #f5f7fa);
 }
 
 #recover_div a {
   display: inline-block;
   padding: 8px;
-  border: 1px solid var(--k3-color-border-strong, #cbd2d9);
+  border: 1px solid var(--k3-color-border, #e4e7eb);
   border-radius: 8px;
   background-color: var(--k3-color-bg, #ffffff);
   color: var(--k3-color-text, #1f2933);
@@ -366,7 +371,7 @@ textarea#edit_txt:focus {
 
 #recover_div a:hover {
   background-color: var(--k3-color-bg-subtle, #f5f7fa);
-  border-color: var(--k3-color-accent, #1f5fbf);
+  border-color: var(--k3-color-border, #e4e7eb);
 }
 
 #auto_save_label {
@@ -399,9 +404,10 @@ textarea#ai_input_text:focus {
 #ai_output_area {
   margin-top: 1em;
   margin-bottom: 1em;
-  padding: 0.1em;
-  border-radius: 10px;
-  background-color: var(--k3-color-accent-subtle, #e8f0fb);
+  padding: 0.5em;
+  border: 1px solid var(--k3-color-border, #e4e7eb);
+  border-radius: 12px;
+  background-color: var(--k3-color-bg, #ffffff);
 }
 
 #ai_output_area button {
@@ -411,9 +417,9 @@ textarea#ai_input_text:focus {
 #ai_output_area .ai_block {
   margin: 0.5em 0.3em 0.3em;
   padding: 0.5em;
-  border: 1px solid var(--k3-color-border, #e4e7eb);
+  border: none;
   border-radius: 8px;
-  background-color: var(--k3-color-bg, #ffffff);
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
   color: var(--k3-color-text, #1f2933);
   font-size: 1.1em;
   line-height: 1.8em;
@@ -435,7 +441,7 @@ textarea#ai_input_text:focus {
 }
 
 .ai-ok {
-  color: var(--k3-color-accent, #1f5fbf);
+  color: var(--k3-color-success-text, #146c2e);
   font-weight: bold;
 }
 
@@ -443,7 +449,7 @@ textarea#ai_input_text:focus {
   #wikiedit {
     margin: 12px auto;
     padding: 12px;
-    border-radius: 10px;
+    border-radius: 16px;
   }
 
   #edit_topbar {
@@ -480,9 +486,9 @@ textarea#ai_input_text:focus {
 
 #edit_preview {
   box-sizing: border-box;
-  padding: 8px 12px;
+  padding: 12px 16px;
   border: 1px solid var(--k3-color-border, #e4e7eb);
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--k3-color-bg, #ffffff);
   color: var(--k3-color-text, #1f2933);
 }
@@ -510,7 +516,7 @@ textarea#ai_input_text:focus {
 /* edit conflict panel and form notice (issue #153) */
 #conflict_nav {
   border-color: var(--k3-color-danger-bg, #fde8e8);
-  border-radius: 999px;
+  border-radius: 8px;
   background: var(--k3-color-danger-bg, #fde8e8);
   color: var(--k3-color-danger-text, #9b1c1c);
   font-weight: bold;
@@ -564,7 +570,7 @@ textarea#ai_input_text:focus {
   padding: 8px 12px;
   border: 1px solid var(--k3-color-warn-border, #f0c36d);
   border-radius: 8px;
-  background-color: var(--k3-color-warn-bg, #fff8e6);
+  background-color: var(--k3-color-bg, #ffffff);
   color: var(--k3-color-warn-text, #7a4d00);
 }
 

@@ -18,3 +18,9 @@ test_assert(__LINE__, strpos($edit_css, 'box-shadow: 0 0 0 3px') !== false, 'des
 test_assert(__LINE__, strpos($edit_css, 'border: 1px solid gray') === false, 'design: no flat gray button borders remain (#153)');
 test_assert(__LINE__, strpos($dark_css, 'body.dark-theme #wikiedit #save_btn') !== false, 'design: dark mode styles the primary save button (#153)');
 test_assert(__LINE__, strpos($dark_css, 'body.dark-theme .edit_save_state') !== false, 'design: dark mode styles the save-state pill (#153)');
+
+// --- スッキリ方向への調整 (デザイン第2ラウンド) ---
+test_assert(__LINE__, strpos($edit_css, 'box-shadow: 0 8px 24px') === false, 'design: the sheet has no drop shadow (#153 clean)');
+test_assert(__LINE__, strpos($edit_css, 'border-radius: 16px') !== false, 'design: the sheet radius is unified at 16px (#153 clean)');
+test_assert(__LINE__, strpos($edit_css, '.edit_save_state::before') !== false, 'design: save state is a dot plus text, not a filled pill (#153 clean)');
+test_assert(__LINE__, strpos($edit_css, 'border-bottom: 2px solid var(--k3-color-accent') === false, 'design: topbar has no accent rule line (#153 clean)');
