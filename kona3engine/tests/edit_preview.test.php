@@ -109,3 +109,10 @@ $parts_header = file_get_contents($root . '/template/parts_header.html');
 test_assert(__LINE__, strpos($parts_header, '.edit_preview_body { line-height') !== false, 'preview: user line-height setting also applies to the preview (#153 typography)');
 $drawer_js_src = file_get_contents($root . '/resource/drawer.js');
 test_assert(__LINE__, strpos($drawer_js_src, '.edit_preview_body { line-height') !== false, 'preview: drawer.js text-style injection covers the preview (#153 typography)');
+
+// --- 見出し同期 (見出しだけをアンカーにしたスクロール同期) ---
+foreach (['findSourceHeadings', 'pairHeadings', 'buildHeadingSync', 'syncPreviewFromEditor', 'syncEditorFromPreview', 'jumpToHeading', 'initHeadingSync'] as $fn) {
+    test_assert(__LINE__, strpos($edit_js, 'function ' . $fn . '(') !== false, "preview: edit.js has {$fn}() (#153 heading sync)");
+}
+test_assert(__LINE__, strpos($edit_js, 'buildHeadingSync(body)') !== false, 'preview: heading pairs are rebuilt after each refresh (#153 heading sync)');
+test_assert(__LINE__, strpos($edit_css, '.sync-current') !== false, 'preview: edit.css marks the current heading (#153 heading sync)');

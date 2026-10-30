@@ -118,6 +118,8 @@ function edit_init() {
     const drawer = qs('#edit_drawer')
     if (drawer && drawer.classList.contains('open')) { closeEditDrawer() }
   })
+  // Heading sync between the editor and the preview (issue #153).
+  initHeadingSync()
   // Keep the preview layout in sync with the window width (issue #153):
   // split on wide screens, full-width preview on narrow screens.
   window.addEventListener('resize', () => {
@@ -701,6 +703,7 @@ function refreshPreview() {
     }
     if (obj && obj['result'] === 'ok') {
       body.innerHTML = obj['html']
+      buildHeadingSync(body)
       return
     }
     const msg = (obj && (obj['reason'] || obj['message'])) || 'プレビューを更新できませんでした'
@@ -721,6 +724,202 @@ function schedulePreview() {
     clearTimeout(previewTimer)
   }
   previewTimer = setTimeout(refreshPreview, 700)
+}
+
+// --- Heading sync between the editor and the preview (issue #153) ---
+// Only headings act as anchors: source heading lines are paired with the
+// rendered heading elements by their text, in order. Scrolling one side
+// moves the other to the nearest heading at the top, and clicking a
+// preview heading jumps the editor to that heading's line.
+
+let headingPairs = []
+let headingSyncGuard = false
+let headingSyncRaf = 0
+
+// Find heading lines in the source text.
+// Returns [{line, level, text}] with 0-based line numbers.
+function findSourceHeadings(text, mode) {
+  const lines = String(text).split('\n')
+  const out = []
+  const isMd = mode === 'Markdown'
+  let inFence = false
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    if (isMd) {
+      if (/^\s*```/.test(line)) { inFence = !inFence; continue }
+      if (inFence) { continue }
+      const m = line.match(/^(#{1,6})(?:\s+(.*?))?\s*$/)
+      if (m) {
+        out.push({ line: i, level: m[1].length, text: m[2] || '' })
+      }
+      continue
+    }
+    // KonaNotation: the parser treats a line starting with '*' or one of
+    // the symbol marks as a heading (see kona3parser.inc.php).
+    let m = line.match(/^(\*+)\s*(.*)$/)
+    if (m) {
+      out.push({ line: i, level: m[1].length, text: m[2] })
+      continue
+    }
+    m = line.match(/^([■□●○▲△▼▽])\s*(.*)$/)
+    if (m) {
+      const level = { '■': 1, '□': 1, '●': 2, '○': 2, '▲': 3, '△': 3, '▼': 4, '▽': 4 }[m[1]]
+      out.push({ line: i, level: level, text: m[2] })
+    }
+  }
+  return out
+}
+
+// Loose heading-text comparison key: the rendered heading carries an
+// anchor '*' suffix and inline markup is already resolved, while the
+// source line still contains wiki markup.
+function headingTextKey(s) {
+  return String(s)
+    .replace(/\[\[|\]\]/g, '')
+    .replace(/''/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s*\*$/, '')
+    .trim()
+}
+
+function headingTextsMatch(sourceText, previewText) {
+  const a = headingTextKey(sourceText)
+  const b = headingTextKey(previewText)
+  if (a === b) { return true }
+  if (a === '' || b === '') { return false }
+  return a.indexOf(b) === 0 || b.indexOf(a) === 0
+}
+
+// Pair source headings with preview heading elements, matching texts in
+// order. Unmatched candidates on either side are skipped, so a heading
+// hidden inside a plugin or a code block does not break the pairing.
+// previewHeadings: [{text, el}] in document order.
+function pairHeadings(sourceHeadings, previewHeadings) {
+  const pairs = []
+  let si = 0
+  for (const ph of previewHeadings) {
+    for (let j = si; j < sourceHeadings.length; j++) {
+      if (headingTextsMatch(sourceHeadings[j].text, ph.text)) {
+        pairs.push({ line: sourceHeadings[j].line, level: sourceHeadings[j].level, el: ph.el })
+        si = j + 1
+        break
+      }
+    }
+  }
+  return pairs
+}
+
+function buildHeadingSync(body) {
+  headingPairs = []
+  if (!body) { return }
+  const els = body.querySelectorAll('h1, h2, h3, h4, h5, h6')
+  if (!els.length) { return }
+  const mode = qs('#page_mode') ? qs('#page_mode').value : ''
+  const src = findSourceHeadings(edit_txt.value, mode)
+  const phs = []
+  els.forEach(function (el) { phs.push({ text: el.textContent, el: el }) })
+  headingPairs = pairHeadings(src, phs)
+}
+
+function headingLineTop(ta, line) {
+  const cs = getComputedStyle(ta)
+  const lh = parseFloat(cs.lineHeight)
+  const pt = parseFloat(cs.paddingTop) || 0
+  return line * (isNaN(lh) ? 27.2 : lh) + pt
+}
+
+function guardHeadingSync() {
+  headingSyncGuard = true
+  setTimeout(function () { headingSyncGuard = false }, 120)
+}
+
+function markCurrentHeading(pair) {
+  headingPairs.forEach(function (p) {
+    p.el.classList.toggle('sync-current', p === pair)
+  })
+}
+
+// Editor scrolled: bring the preview to the heading at the editor's top.
+function syncPreviewFromEditor() {
+  if (previewMode !== 'split' || headingSyncGuard || !headingPairs.length) { return }
+  const ta = qs('#edit_txt')
+  const pane = qs('#edit_preview')
+  if (!ta || !pane) { return }
+  const top = ta.scrollTop
+  let current = null
+  for (const p of headingPairs) {
+    if (headingLineTop(ta, p.line) <= top + 4) { current = p } else { break }
+  }
+  if (!current) { return }
+  const paneRect = pane.getBoundingClientRect()
+  const elRect = current.el.getBoundingClientRect()
+  const target = pane.scrollTop + (elRect.top - paneRect.top) - 8
+  if (Math.abs(target - pane.scrollTop) > 2) {
+    guardHeadingSync()
+    pane.scrollTop = target
+  }
+  markCurrentHeading(current)
+}
+
+// Preview scrolled: bring the editor to the heading at the preview's top.
+function syncEditorFromPreview() {
+  if (previewMode !== 'split' || headingSyncGuard || !headingPairs.length) { return }
+  const ta = qs('#edit_txt')
+  const pane = qs('#edit_preview')
+  if (!ta || !pane) { return }
+  const paneRect = pane.getBoundingClientRect()
+  let current = null
+  for (const p of headingPairs) {
+    const rel = p.el.getBoundingClientRect().top - paneRect.top
+    if (rel <= 12) { current = p } else { break }
+  }
+  if (!current) { return }
+  const target = Math.max(0, headingLineTop(ta, current.line) - 8)
+  if (Math.abs(target - ta.scrollTop) > 2) {
+    guardHeadingSync()
+    ta.scrollTop = target
+  }
+  markCurrentHeading(current)
+}
+
+function onHeadingSyncScroll(which) {
+  if (headingSyncRaf) { return }
+  headingSyncRaf = requestAnimationFrame(function () {
+    headingSyncRaf = 0
+    if (which === 'editor') { syncPreviewFromEditor() } else { syncEditorFromPreview() }
+  })
+}
+
+// Jump the editor to a paired heading (preview heading click).
+function jumpToHeading(pair) {
+  const ta = qs('#edit_txt')
+  if (!ta) { return }
+  if (previewMode === 'full') { setPreviewMode('split') }
+  const lines = ta.value.split('\n')
+  let offset = 0
+  for (let i = 0; i < pair.line && i < lines.length; i++) {
+    offset += lines[i].length + 1
+  }
+  ta.focus()
+  ta.setSelectionRange(offset, offset)
+  guardHeadingSync()
+  ta.scrollTop = Math.max(0, headingLineTop(ta, pair.line) - 8)
+  markCurrentHeading(pair)
+}
+
+function initHeadingSync() {
+  const ta = qs('#edit_txt')
+  const pane = qs('#edit_preview')
+  const body = qs('#edit_preview .edit_preview_body')
+  if (!ta || !pane || !body) { return }
+  ta.addEventListener('scroll', function () { onHeadingSyncScroll('editor') })
+  pane.addEventListener('scroll', function () { onHeadingSyncScroll('preview') })
+  body.addEventListener('click', function (e) {
+    const h = e.target.closest ? e.target.closest('h1, h2, h3, h4, h5, h6') : null
+    if (!h) { return }
+    const pair = headingPairs.find(function (p) { return p.el === h })
+    if (pair) { jumpToHeading(pair) }
+  })
 }
 
 // Show only the given panel in the drawer. If it is already visible,

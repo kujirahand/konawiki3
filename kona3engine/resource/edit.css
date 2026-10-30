@@ -552,6 +552,22 @@ textarea#ai_input_text:focus {
   margin: 0 0 var(--k3-space-3, 12px);
 }
 
+/* 見出し同期 (#153): プレビューの見出しはクリックで編集側の見出し行へ
+   ジャンプできる。編集中に先頭にある見出しは sync-current で示す。 */
+.edit_preview_body h1,
+.edit_preview_body h2,
+.edit_preview_body h3,
+.edit_preview_body h4,
+.edit_preview_body h5,
+.edit_preview_body h6 {
+  cursor: pointer;
+}
+
+.edit_preview_body .sync-current {
+  background-color: var(--k3-color-accent-subtle, #e8f0fb);
+  border-radius: 4px;
+}
+
 #search_count {
   margin-left: 0.5em;
 }
