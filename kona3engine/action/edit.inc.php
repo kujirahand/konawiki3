@@ -925,6 +925,19 @@ function kona3edit_render_preview($txt, $page_mode)
     }
 }
 
+// max_edit_size (単位: MB、0なら無制限) を本文が超えているかを返す。
+// 読み込み側 (kona3edit_load) と同じくバイト換算で比較すること。
+// MB の数値とバイト長を直接比べると数バイトで常に超過になる。
+function kona3edit_is_too_large($txt)
+{
+    global $kona3conf;
+    $max = isset($kona3conf['max_edit_size']) ? intval($kona3conf['max_edit_size']) : 0;
+    if ($max <= 0) {
+        return false;
+    }
+    return strlen($txt) > $max * 1024 * 1024;
+}
+
 function kona3edit_preview_ajax($page)
 {
     // kona3edit_ai_ajax と同様、この時点で権限チェックを通過している
@@ -935,8 +948,7 @@ function kona3edit_preview_ajax($page)
     global $kona3conf;
     $txt = kona3param('edit_txt', '');
     $page_mode = kona3param('page_mode', '');
-    $max = isset($kona3conf['max_edit_size']) ? intval($kona3conf['max_edit_size']) : 0;
-    if ($max > 0 && strlen($txt) > $max) {
+    if (kona3edit_is_too_large($txt)) {
         kona3_edit_err('Text is too large.', 'ajax');
         return;
     }

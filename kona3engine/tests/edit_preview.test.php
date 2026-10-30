@@ -83,3 +83,21 @@ test_eq(__LINE__, intval($cmr['value']), 7, 'preview: monthly counter is not inc
 test_assert(__LINE__, strpos($chtml, '>5<') !== false, 'preview: counter shows the current value (#341 review)');
 test_assert(__LINE__, empty($kona3conf['preview_mode']), 'preview: preview_mode flag is restored after rendering (#341 review)');
 $kona3conf['page'] = $orig_page;
+
+// --- max_edit_size の単位 (MB) の回帰テスト ---
+// プレビューが常に 'Text is too large' になっていた不具合: MB の数値と
+// バイト長を直接比較していた。読み込み側と同じバイト換算で判定する。
+test_assert(__LINE__, function_exists('kona3edit_is_too_large'), 'preview: size-check helper exists (#153)');
+$orig_max = isset($kona3conf['max_edit_size']) ? $kona3conf['max_edit_size'] : null;
+$kona3conf['max_edit_size'] = 3; // 既定値 (3MB)
+test_assert(__LINE__, kona3edit_is_too_large("短い本文です") === false, 'preview: a short text is not too large at 3MB (#153)');
+test_assert(__LINE__, kona3edit_is_too_large(str_repeat('a', 1024 * 1024)) === false, 'preview: 1MB of text is not too large at 3MB (#153)');
+test_assert(__LINE__, kona3edit_is_too_large(str_repeat('a', 3 * 1024 * 1024 + 1)) === true, 'preview: over 3MB is too large at 3MB (#153)');
+$kona3conf['max_edit_size'] = 0; // 0 = 無制限
+test_assert(__LINE__, kona3edit_is_too_large(str_repeat('a', 5 * 1024 * 1024)) === false, 'preview: max_edit_size=0 means no limit (#153)');
+if ($orig_max === null) {
+    unset($kona3conf['max_edit_size']);
+    test_assert(__LINE__, kona3edit_is_too_large("短い本文です") === false, 'preview: an unset max_edit_size means no limit (#153)');
+} else {
+    $kona3conf['max_edit_size'] = $orig_max;
+}
