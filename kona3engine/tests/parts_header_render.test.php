@@ -8,8 +8,7 @@ require_once __DIR__ . '/test_common.inc.php';
 // (PR #333 で混入した問題の回帰テスト)
 
 global $kona3conf;
-$saved_page = $kona3conf['page'] ?? null;
-$saved_show = $kona3conf['show_page_list'] ?? null;
+$backup = $kona3conf; // prepare が書き込む分も含め、丸ごと復元する
 $kona3conf['page'] = 'FrontPage';
 $kona3conf['show_page_list'] = true; // ページ一覧ダイアログを有効化
 
@@ -18,19 +17,21 @@ set_error_handler(function ($errno, $errstr) use (&$warnings) {
     $warnings[] = $errstr;
     return true;
 });
-ob_start();
-kona3template('parts_header.html', ['page_title' => 'FrontPage']);
-$out = ob_get_clean();
-restore_error_handler();
+try {
+    ob_start();
+    kona3template('parts_header.html', ['page_title' => 'FrontPage']);
+    $out = ob_get_clean();
+} finally {
+    restore_error_handler();
+    $kona3conf = $backup;
+}
 
-$kona3conf['page'] = $saved_page;
-$kona3conf['show_page_list'] = $saved_show;
-
-$kona3conf_warnings = array_filter($warnings, function ($w) {
-    return strpos($w, 'kona3conf') !== false;
+$bad_warnings = array_filter($warnings, function ($w) {
+    return strpos($w, 'kona3conf') !== false
+        || strpos($w, 'array offset on null') !== false;
 });
-test_assert(__LINE__, count($kona3conf_warnings) === 0,
-    'parts_header 描画で $kona3conf の警告が出ない: ' . implode(' / ', $kona3conf_warnings));
+test_assert(__LINE__, count($bad_warnings) === 0,
+    'parts_header 描画で $kona3conf 系の警告が出ない: ' . implode(' / ', $bad_warnings));
 test_assert(__LINE__, strpos($out, 'drawer_wrapper') !== false, 'ドロワーが描画される');
 test_assert(__LINE__, strpos($out, 'id="pagelist_open"') !== false,
     'ページ一覧がダイアログ用リンク (pagelist_open) になる');

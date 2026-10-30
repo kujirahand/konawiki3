@@ -94,7 +94,7 @@
       <ul>
         {{ e:
           $ctrlMenu = kona3getCtrlMenuArray('list');
-          $pagelist_href = kona3getPageURL($page, 'pagelist');
+          $pagelist_href = kona3getPageURL($page ?? 'FrontPage', 'pagelist');
           $show_page_list_dialog = empty($static_mode) && kona3getConf('show_page_list');
           foreach ($ctrlMenu as $it) {
             $label = $it[0];
