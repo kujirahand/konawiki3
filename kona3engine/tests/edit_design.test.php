@@ -21,6 +21,7 @@ test_assert(__LINE__, strpos($dark_css, 'body.dark-theme .edit_save_state') !== 
 
 // --- スッキリ方向への調整 (デザイン第2ラウンド) ---
 test_assert(__LINE__, strpos($edit_css, 'box-shadow: 0 8px 24px') === false, 'design: the sheet has no drop shadow (#153 clean)');
-test_assert(__LINE__, strpos($edit_css, 'border-radius: 16px') !== false, 'design: the sheet radius is unified at 16px (#153 clean)');
+test_assert(__LINE__, strpos($edit_css, 'max-width: 1120px') === false, 'design: the editor is full width like the Zen Drawer blueprint (#153 wide)');
+test_assert(__LINE__, strpos($edit_css, 'padding: 8px 26px 24px') !== false, 'design: the editor keeps the blueprint side padding (#153 wide)');
 test_assert(__LINE__, strpos($edit_css, '.edit_save_state::before') !== false, 'design: save state is a dot plus text, not a filled pill (#153 clean)');
 test_assert(__LINE__, strpos($edit_css, 'border-bottom: 2px solid var(--k3-color-accent') === false, 'design: topbar has no accent rule line (#153 clean)');
