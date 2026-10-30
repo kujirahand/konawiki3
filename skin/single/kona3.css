@@ -22,6 +22,7 @@
   --k3-color-accent-hover: #2a3a99;
   --k3-color-on-accent: #ffffff;
   --k3-color-summary: #10b981;
+  --k3-color-accent-subtle: #e6e9fa;
   /* 1 カラムなので、本文が読みやすい幅に絞る */
   --k3-width-layout: 52rem;
 }
@@ -37,6 +38,7 @@ body.dark-theme {
   --k3-color-border: #2e2e44;
   --k3-color-border-strong: #4c4c70;
   --k3-color-accent: #9aa8ff;
+  --k3-color-accent-subtle: #252545;
   --k3-color-accent-hover: #c3cbff;
   --k3-color-on-accent: #14141c;
   --k3-color-summary: #34d399;

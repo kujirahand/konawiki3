@@ -20,6 +20,20 @@
   --k3-color-accent-hover: #174a96;
   --k3-color-on-accent: #ffffff;
   --k3-color-summary: #10b981;
+  --k3-color-accent-subtle: #e8f0fb;
+  --k3-color-info-bg: #eef4fc;
+  --k3-color-info-border: #b6cdf0;
+  --k3-color-info-text: #174a96;
+  --k3-color-success-bg: #eefbf3;
+  --k3-color-success-border: #a7e8c0;
+  --k3-color-success-text: #146c2e;
+  --k3-color-warn-bg: #fff8e6;
+  --k3-color-warn-border: #f0c36d;
+  --k3-color-warn-text: #7a4d00;
+  --k3-color-danger-bg: #fde8e8;
+  --k3-color-danger-border: #e53e3e;
+  --k3-color-danger-text: #9b1c1c;
+  --k3-color-overlay: rgba(16, 42, 67, 0.45);
   /* space */
   --k3-space-1: 0.25em;
   --k3-space-2: 0.5em;
@@ -50,6 +64,20 @@ body.dark-theme {
   --k3-color-accent-hover: #a8ccff;
   --k3-color-on-accent: #15191e;
   --k3-color-summary: #34d399;
+  --k3-color-accent-subtle: #1e3a5f;
+  --k3-color-info-bg: #16283f;
+  --k3-color-info-border: #33507a;
+  --k3-color-info-text: #a8ccff;
+  --k3-color-success-bg: #14301f;
+  --k3-color-success-border: #1f6c3d;
+  --k3-color-success-text: #7ee2a8;
+  --k3-color-warn-bg: #33290d;
+  --k3-color-warn-border: #8a6d1f;
+  --k3-color-warn-text: #f0c36d;
+  --k3-color-danger-bg: #3a1a1a;
+  --k3-color-danger-border: #a33333;
+  --k3-color-danger-text: #f1b5b5;
+  --k3-color-overlay: rgba(0, 0, 0, 0.6);
   /* darkmode.css(#294) の変数のうち、def のデザインに合わせるもの。
      見出しに背景を付けない、罫線は通常の太さにする、など */
   --k3d-h1-bg: transparent;

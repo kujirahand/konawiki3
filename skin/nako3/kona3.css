@@ -22,6 +22,7 @@
   --k3-color-accent-hover: #8c3028;
   --k3-color-on-accent: #ffffff;
   --k3-color-summary: #10b981;
+  --k3-color-accent-subtle: #fae9e6;
   /* nako3 固有 */
   --nako3-header-bg: #fff0f0;
   --nako3-h1-bg: #fff0f0;
@@ -41,6 +42,7 @@ body.dark-theme {
   --k3-color-border: #3a2828;
   --k3-color-border-strong: #8c5858;
   --k3-color-accent: #ff9e94;
+  --k3-color-accent-subtle: #3a2320;
   --k3-color-accent-hover: #ffc2bb;
   --k3-color-on-accent: #181212;
   --k3-color-summary: #34d399;

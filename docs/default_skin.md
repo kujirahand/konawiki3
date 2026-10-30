@@ -44,6 +44,8 @@ KonaWiki3 のデフォルトスキン `def` のデザイン方針をまとめた
 - **デザインの変更は `skin/def/kona3.css` に書きます。**
 - `skin/def/kona3.css` は、aqua・nako3・single など **派生スキンの土台** でもあります。派生スキンは `def` の変数(`--k3-*`)を上書きし、そのスキン固有の装飾だけを足しています。そのため、`def` の変更は派生スキンにも反映されます。`def` を変えたら、派生スキンの表示も確認してください。
 - `kona3engine/resource/kona3def.css` は全スキン共通の、さらに下の土台です。`def` の見た目を変える目的で `kona3def.css` を編集してはいけません。全スキンに共通するバグ修正だけを `kona3def.css` で行います。
+- Issue #340 以降、`kona3def.css` と `drawer.css` も `--k3-*` トークンをフォールバック付きで参照する。印刷用スタイル・filecode の構文パレットなど、固定色が妥当な箇所はリテラルのまま残す。
+- 派生スキンへの注意: `info` / `success` / `warn` / `danger` の状態トークンは意味色として全スキン共通を基本とするが、`--k3-color-accent-subtle` はスキンのアクセントに連動する色なので、派生スキンでも `:root` と `body.dark-theme` の両方で上書きすること(aqua / nako3 / single は対応済み)。なお `kona3def.css` のレイアウト幅も `--k3-width-layout` に統一したため、トークンを持たない独自スキンでは従来の 768px ではなくフォールバックの 64rem が効く。
 - `darkmode.css` には手を入れず、`def` 固有のダーク配色は `skin/def/kona3.css` の中で定義します(「5. ダークモード」を参照)。
 
 ---
@@ -71,9 +73,24 @@ KonaWiki3 のデフォルトスキン `def` のデザイン方針をまとめた
 | `--k3-color-accent-hover` | リンクのホバー | `#174a96` | `#a8ccff` |
 | `--k3-color-on-accent` | アクセント色の上に置く文字(主ボタン) | `#ffffff` | `#15191e` |
 | `--k3-color-summary` | まとめ枠(`.column.summary`)の左線 | `#10b981` | `#34d399` |
+| `--k3-color-accent-subtle` | リンクホバー等の薄いアクセント背景 | `#e8f0fb` | `#1e3a5f` |
+| `--k3-color-info-bg` | 情報表示の背景 | `#eef4fc` | `#16283f` |
+| `--k3-color-info-border` | 情報表示の罫線 | `#b6cdf0` | `#33507a` |
+| `--k3-color-info-text` | 情報表示の文字 | `#174a96` | `#a8ccff` |
+| `--k3-color-success-bg` | 成功表示の背景 | `#eefbf3` | `#14301f` |
+| `--k3-color-success-border` | 成功表示の罫線 | `#a7e8c0` | `#1f6c3d` |
+| `--k3-color-success-text` | 成功表示の文字 | `#146c2e` | `#7ee2a8` |
+| `--k3-color-warn-bg` | 警告表示の背景 | `#fff8e6` | `#33290d` |
+| `--k3-color-warn-border` | 警告表示の罫線 | `#f0c36d` | `#8a6d1f` |
+| `--k3-color-warn-text` | 警告表示の文字 | `#7a4d00` | `#f0c36d` |
+| `--k3-color-danger-bg` | エラー表示の背景 | `#fde8e8` | `#3a1a1a` |
+| `--k3-color-danger-border` | エラー表示の罫線 | `#e53e3e` | `#a33333` |
+| `--k3-color-danger-text` | エラー表示の文字 | `#9b1c1c` | `#f1b5b5` |
+| `--k3-color-overlay` | ドロワー・ダイアログの背面 | `rgba(16, 42, 67, 0.45)` | `rgba(0, 0, 0, 0.6)` |
 
 - 初期値は目安です。実装時に調整してかまいませんが、本文の文字と背景のコントラスト比は **4.5:1 以上**(WCAG AA)を保ちます。
 - 色の役割を増やすときは、新しい変数を追加してから使います。
+- `--k3-color-summary` は白背景に対するコントラスト比が約2.5:1しかないため、文字色には使わず、線やアイコン等の装飾専用とします。
 
 ### 余白
 

@@ -7,7 +7,8 @@
     width: 300px;
     height: 100%;
     padding: 50px 12px;
-    background:#333;
+    background: var(--k3-color-bg, #ffffff);
+    border-left: 1px solid var(--k3-color-border, #e4e7eb);
     font-size: 14px;
     box-sizing: border-box;
     z-index: 98;
@@ -22,15 +23,17 @@
 #drawer_wrapper nav.menuitems ul li {
     display:block;
     padding: 8px 16px;
-    border-bottom: 1px dotted #555;
-    background-color: #444;
-    color: silver;
+    border-bottom: 1px dotted var(--k3-color-border, #e4e7eb);
+    color: var(--k3-color-text-muted, #616e7c);
 }
 #drawer_wrapper nav.menuitems ul li a {
     text-decoration: none;
-    color: #ddd;
+    color: var(--k3-color-text, #1f2933);
     width: 99%;
     display:block;
+}
+#drawer_wrapper nav.menuitems ul li a:hover {
+    background-color: var(--k3-color-bg-subtle, #f5f7fa);
 }
 #drawer_wrapper #hamburger_icon {
     position: fixed;
@@ -48,7 +51,7 @@
     position: absolute;
     width: 30px;
     height: 4px;
-    background: #666;
+    background: var(--k3-color-text-muted, #616e7c);
     border-radius: 10px;
     -webkit-transition: all 400ms;
     transition: all 400ms
@@ -63,7 +66,7 @@
     top: 20px;
 }
 #drawer_wrapper #hamburger_icon.open span {
-    background: #fff;
+    background: var(--k3-color-text, #1f2933);
 }
 #drawer_wrapper #hamburger_icon.open span {
     width: 24px;;
@@ -74,7 +77,7 @@
     width: 30%;
     line-height: 1.4;
     font-size: 20px;
-    color: #fff;
+    color: var(--k3-color-text, #1f2933);
 }
 #drawer_wrapper .contents section:nth-child(odd) p {
     left: 10%
@@ -85,7 +88,7 @@
 #drawer_background {
     z-index: 97;
     position: fixed;
-    background-color: rgba(0,0,0,0.5);
+    background-color: var(--k3-color-overlay, rgba(16, 42, 67, 0.45));
     display: none;
 }
 
@@ -98,24 +101,24 @@
 #drawer_wrapper nav.menuitems ul li.menu-separator {
     padding: 0;
     height: 12px;
-    background-color: #333 !important;
+    background-color: var(--k3-color-bg, #ffffff) !important;
     border: none !important;
 }
 
 /* settings dialogs in hamburger menu (#330) */
 .kona3-settings-dialog {
     /* 配色は変数にまとめる (ダークモードは darkmode.css で変数を上書きする) */
-    --kd-bg: #fff;
-    --kd-fg: #222;
-    --kd-muted: #666;
-    --kd-border: #888;
-    --kd-btn-bg: #f0f0f0;
-    --kd-btn-hover: #e2e2e2;
-    --kd-accent: #2b6cd4;
-    --kd-track: #d4d8df;
-    --kd-thumb: #fff;
-    --kd-ring: rgba(43, 108, 212, 0.35);
-    --kd-preview-bg: #f7f7f4;
+    --kd-bg: var(--k3-color-bg, #ffffff);
+    --kd-fg: var(--k3-color-text, #1f2933);
+    --kd-muted: var(--k3-color-text-muted, #616e7c);
+    --kd-border: var(--k3-color-border-strong, #cbd2d9);
+    --kd-btn-bg: var(--k3-color-bg-subtle, #f5f7fa);
+    --kd-btn-hover: var(--k3-color-accent-subtle, #e8f0fb);
+    --kd-accent: var(--k3-color-accent, #1f5fbf);
+    --kd-track: var(--k3-color-border, #e4e7eb);
+    --kd-thumb: var(--k3-color-bg, #ffffff);
+    --kd-ring: rgba(31, 95, 191, 0.35);
+    --kd-preview-bg: var(--k3-color-bg-subtle, #f5f7fa);
     --kd-thumb-size: 24px;
     --kd-track-h: 6px;
 
@@ -171,7 +174,7 @@
     height: 16px;
 }
 .kona3-settings-dialog::backdrop {
-    background: rgba(0,0,0,0.5);
+    background: var(--k3-color-overlay, rgba(16, 42, 67, 0.45));
 }
 .kona3-settings-dialog h3 {
     margin: 4px 0 20px;
