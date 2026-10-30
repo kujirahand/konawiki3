@@ -1,12 +1,6 @@
 /** kona3_layout */
 #kona3_layout_header {
-  background-color: var(--k3-color-bg-subtle, #f5f7fa);
-  border-bottom: 1px solid var(--k3-color-border, #e4e7eb);
   text-align: left;
-}
-#kona3_layout_title {
-  margin: 0 auto;
-  max-width: var(--k3-width-layout, 64rem);
 }
 #kona3_layout_show {
   font-size: 1em;
@@ -15,21 +9,20 @@
   max-width: var(--k3-width-layout, 64rem);
 }
 
-/** kona3_header */
-.kona3_header_pad {
-  padding: 8px;
-}
-
+/** kona3_header (マストヘッド行の中のページ名) */
 #kona3_header_title {
-  font-size: 1.5em;
-}
-#kona3_header_title a {
-  text-decoration: none;
-  color: var(--k3-color-accent, #1f5fbf);
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--k3-color-text-muted, #616e7c);
+  font-size: 1rem;
+  font-weight: 400;
 }
 #kona3_header_title .pagename {
-  font-size:0.8em;
-  font-weight:400;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /** kona3_main */
