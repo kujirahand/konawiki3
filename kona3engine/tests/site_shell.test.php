@@ -217,7 +217,7 @@ try {
     $r = $render('Docs');
     test_assert(__LINE__, strpos($r['header'], 'kona3_sitenav') === false, 'GlobalBar が無ければタブ列は出力されない');
     test_assert(__LINE__, strpos($r['header'], 'id="kona3_masthead"') !== false, 'GlobalBar が無くてもマストヘッドは出る');
-    test_assert(__LINE__, strpos($r['header'], 'id="kona3_header_title"') !== false, 'GlobalBar が無くてもパンくずは出る');
+    test_assert(__LINE__, strpos($r['header'], 'id="kona3_header_title"') !== false, 'GlobalBar が無くてもページ名は出る');
     test_assert(__LINE__, strpos($r['footer'], 'class="kona3-footer-site"') !== false, 'GlobalBar が無くてもフッターのサイト行は出る');
     test_assert(__LINE__, strpos($r['footer'], 'class="kona3-footer-sitename"') !== false, 'GlobalBar が無くてもサイト名は出る');
     test_assert(__LINE__, strpos($r['footer'], 'kona3-footer-nav') === false, 'GlobalBar が無ければ kona3-footer-nav は出ない');
@@ -285,8 +285,9 @@ try {
     $p_mast = strpos($h, 'kona3_masthead');
     $p_nav = strpos($h, 'kona3_sitenav');
     $p_title = strpos($h, 'kona3_header_title');
-    test_assert(__LINE__, $p_mast !== false && $p_nav !== false && $p_title !== false && $p_mast < $p_nav && $p_nav < $p_title,
-        'マストヘッド → タブ列 → パンくず の順');
+    test_assert(__LINE__, $p_mast !== false && $p_nav !== false && $p_title !== false && $p_mast < $p_title && $p_title < $p_nav,
+        'マストヘッド (ページ名を含む) → タブ列 の順');
+    test_assert(__LINE__, strpos($h, 'id="kona3_layout_title"') === false, '二段目のタイトル行は出力されない');
     test_assert(__LINE__, strpos($h, 'class="pagename"') !== false, '.pagename が残っている');
     test_eq(__LINE__, substr_count($h, 'aria-current="page"'), 1, 'aria-current は 1 回');
     test_eq(__LINE__, preg_match('/<li class="is-active"><a href="[^"]*" aria-current="page">Docs<\/a><\/li>/', $h), 1, '現在ページ Docs のタブに aria-current');
