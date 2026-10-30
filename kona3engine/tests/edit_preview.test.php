@@ -101,3 +101,11 @@ if ($orig_max === null) {
 } else {
     $kona3conf['max_edit_size'] = $orig_max;
 }
+
+// --- プレビュー本文の組版 (表示画面のスタイルは #kona3_main 配下で届かない) ---
+test_assert(__LINE__, strpos($edit_css, '.edit_preview_body') !== false, 'preview: edit.css styles the preview body (#153 typography)');
+test_assert(__LINE__, strpos($edit_css, 'line-height: var(--k3-line-height-body') !== false, 'preview: preview body uses the body line-height token (#153 typography)');
+$parts_header = file_get_contents($root . '/template/parts_header.html');
+test_assert(__LINE__, strpos($parts_header, '.edit_preview_body { line-height') !== false, 'preview: user line-height setting also applies to the preview (#153 typography)');
+$drawer_js_src = file_get_contents($root . '/resource/drawer.js');
+test_assert(__LINE__, strpos($drawer_js_src, '.edit_preview_body { line-height') !== false, 'preview: drawer.js text-style injection covers the preview (#153 typography)');

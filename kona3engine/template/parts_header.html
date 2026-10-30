@@ -51,10 +51,10 @@
       var css = '';
       var numRegex = /^[0-9]+(\.[0-9]+)?$/;
       if (fontSize && numRegex.test(fontSize)) {
-        css += '#kona3_layout_show, #wikibody { font-size: ' + fontSize + 'em !important; }\n';
+        css += '#kona3_layout_show, #wikibody, .edit_preview_body { font-size: ' + fontSize + 'em !important; }\n';
       }
       if (lineHeight && numRegex.test(lineHeight)) {
-        css += '#kona3_layout_show, #wikibody { line-height: ' + lineHeight + ' !important; }\n';
+        css += '#kona3_layout_show, #wikibody, .edit_preview_body { line-height: ' + lineHeight + ' !important; }\n';
       }
       if (css) {
         var style = document.createElement('style');
