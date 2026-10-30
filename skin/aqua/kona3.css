@@ -22,6 +22,7 @@
   --k3-color-accent-hover: #00838f;
   --k3-color-on-accent: #ffffff;
   --k3-color-summary: #10b981;
+  --k3-color-accent-subtle: #e0f2f8;
   /* aqua 固有 */
   --aqua-page-bg: radial-gradient(circle at 50% -20%, #e0f4ff 0%, transparent 50%);
   --aqua-header-bg: linear-gradient(135deg, #0077cc 0%, #00bcd4 100%);
@@ -47,6 +48,7 @@ body.dark-theme {
   --k3-color-border: #0c3e60;
   --k3-color-border-strong: #0e7490;
   --k3-color-accent: #38bdf8;
+  --k3-color-accent-subtle: #0a2e42;
   --k3-color-accent-hover: #7dd3fc;
   --k3-color-on-accent: #030a16;
   --k3-color-summary: #34d399;

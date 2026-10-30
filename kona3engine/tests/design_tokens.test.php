@@ -68,6 +68,26 @@ test_eq(__LINE__, stripos($admin_html, '#f0f0ff'), false, "admin_conf.html has n
 test_assert(__LINE__, strpos($def_nc, '.kona3_bordered_box') !== false, "kona3def.css defines .kona3_bordered_box");
 test_assert(__LINE__, strpos($def_nc, '.kona3_highlight_box') !== false, "kona3def.css defines .kona3_highlight_box");
 
+// 7. フォールバック値が def の :root の定義値と一致すること (Copilot レビュー指摘)
+//    var(--k3-x, rgba(...)) のように入れ子の括弧を含む値にも対応する
+preg_match('#:root\s*\{([^}]*)\}#', $skin_nc, $m);
+preg_match_all('#(--k3-[a-z0-9\-]+)\s*:\s*([^;]+);#', $m[1] ?? '', $mm);
+$def_root_values = [];
+foreach ($mm[1] as $i => $name) {
+    $def_root_values[$name] = strtolower(preg_replace('/\s+/', '', $mm[2][$i]));
+}
+foreach (['kona3def.css' => $def_nc, 'drawer.css' => $drawer_nc] as $name => $css) {
+    preg_match_all('/var\(\s*(--k3-[a-z0-9\-]+)\s*,\s*((?:[^()]|\([^()]*\))+)\)/', $css, $vm, PREG_SET_ORDER);
+    foreach ($vm as $v) {
+        $token = $v[1];
+        $fallback = strtolower(preg_replace('/\s+/', '', $v[2]));
+        test_assert(__LINE__, isset($def_root_values[$token]), "$name: token $token is defined in def :root");
+        if (isset($def_root_values[$token])) {
+            test_eq(__LINE__, $fallback, $def_root_values[$token], "$name: fallback of $token matches def :root");
+        }
+    }
+}
+
 // 6. 波括弧の対応が取れていること
 test_eq(__LINE__, substr_count($def_nc, '{'), substr_count($def_nc, '}'), "kona3def.css braces are balanced");
 test_eq(__LINE__, substr_count($drawer_nc, '{'), substr_count($drawer_nc, '}'), "drawer.css braces are balanced");

@@ -45,6 +45,7 @@ KonaWiki3 のデフォルトスキン `def` のデザイン方針をまとめた
 - `skin/def/kona3.css` は、aqua・nako3・single など **派生スキンの土台** でもあります。派生スキンは `def` の変数(`--k3-*`)を上書きし、そのスキン固有の装飾だけを足しています。そのため、`def` の変更は派生スキンにも反映されます。`def` を変えたら、派生スキンの表示も確認してください。
 - `kona3engine/resource/kona3def.css` は全スキン共通の、さらに下の土台です。`def` の見た目を変える目的で `kona3def.css` を編集してはいけません。全スキンに共通するバグ修正だけを `kona3def.css` で行います。
 - Issue #340 以降、`kona3def.css` と `drawer.css` も `--k3-*` トークンをフォールバック付きで参照する。印刷用スタイル・filecode の構文パレットなど、固定色が妥当な箇所はリテラルのまま残す。
+- 派生スキンへの注意: `info` / `success` / `warn` / `danger` の状態トークンは意味色として全スキン共通を基本とするが、`--k3-color-accent-subtle` はスキンのアクセントに連動する色なので、派生スキンでも `:root` と `body.dark-theme` の両方で上書きすること(aqua / nako3 / single は対応済み)。なお `kona3def.css` のレイアウト幅も `--k3-width-layout` に統一したため、トークンを持たない独自スキンでは従来の 768px ではなくフォールバックの 64rem が効く。
 - `darkmode.css` には手を入れず、`def` 固有のダーク配色は `skin/def/kona3.css` の中で定義します(「5. ダークモード」を参照)。
 
 ---

@@ -120,8 +120,8 @@
 
 #kona3_main .conflictadd
 {
-  background-color:var(--k3-color-danger-border, #e53e3e);
-  color:var(--k3-color-on-accent, #ffffff);
+  background-color:var(--k3-color-danger-bg, #fde8e8);
+  color:var(--k3-color-danger-text, #9b1c1c);
 }
 
 #kona3_main .conflictsub
@@ -765,7 +765,7 @@
 
 .plugin_comment .comment_close_bar
 {
-  background-color:var(--k3-color-border, #e4e7eb);
+  background-color:var(--k3-color-bg-subtle, #f5f7fa);
   border-left:1px solid var(--k3-color-border, #e4e7eb);
   border-top:1px solid var(--k3-color-border, #e4e7eb);
   color:var(--k3-color-text-muted, #616e7c);
@@ -1382,7 +1382,7 @@ ul.topnavi a
   margin: 1em 1em 1em 2em;
   padding: 1em 1em 1em 1em;
   background-color: var(--k3-color-bg-subtle, #f5f7fa);
-  border: 1px solid var(--k3-color-info-border, #b6cdf0);
+  border: 1px solid var(--k3-color-border, #e4e7eb);
 }
 
 /** Tag System */
@@ -1391,7 +1391,7 @@ ul.topnavi a
   margin: 0 4px 4px 0;
   padding: 4px 8px;
   background-color: var(--k3-color-accent-subtle, #e8f0fb);
-  border: 1px solid var(--k3-color-info-border, #b6cdf0);
+  border: 1px solid var(--k3-color-border, #e4e7eb);
   border-radius: 4px;
   font-size: 0.9em;
 }
