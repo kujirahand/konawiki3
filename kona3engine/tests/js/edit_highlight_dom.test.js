@@ -25,6 +25,7 @@ class FakeElement {
         this.innerHTML = '';
         this.textContent = '';
         this.scrollTop = 0;
+        this.scrollHeight = 0;
         this.scrollLeft = 0;
         this.offsetWidth = 600;
         this.clientWidth = 583;
@@ -88,11 +89,11 @@ const store = {};
 let rafQueue = [];
 let current = null;
 
-function makeEditor() {
+function makeEditor(initialText) {
     const editor = new FakeElement('div');
     const ta = new FakeTextArea();
     ta.id = 'edit_txt';
-    ta._value = '* 見出し\n本文';
+    ta._value = initialText === undefined ? '* 見出し\n本文' : initialText;
     editor.appendChild(ta);
     const modeSelect = new FakeElement('select');
     modeSelect.id = 'page_mode';
@@ -109,6 +110,7 @@ documentStub.getElementById = function (id) {
     return null;
 };
 documentStub.createElement = function (tag) { return new FakeElement(tag); };
+documentStub.fonts = { ready: Promise.resolve() };
 
 const resourceDir = path.join(__dirname, '..', '..', 'resource');
 const core = require(path.join(resourceDir, 'edit_highlight_core.js'));
@@ -207,4 +209,86 @@ assert.strictEqual(hl2.isEnabled(), true);
 assert.strictEqual(store['kona3_edit_highlight'], '1', 'enable persists the opt-in');
 hl2.disable();
 
-console.log('edit_highlight_dom.test.js: all tests passed');
+// --- Phase C: IME composition keeps rendering -------------------------------
+// The backdrop is a separate element and the textarea text is
+// transparent, so rendering must NOT pause during composition,
+// otherwise the composing glyphs would be invisible.
+delete store['kona3_edit_highlight'];
+current = makeEditor();
+const hl3 = loadLayer();
+assert.strictEqual(hl3.isEnabled(), true);
+const wrap3 = current.ta.parentNode;
+const content3 = wrap3.children.find((c) => c.classList.contains('k3hl-backdrop')).children[0];
+current.ta.dispatch('compositionstart');
+current.ta._value = '** 変換中';
+current.ta.dispatch('input');
+flushRaf();
+assert.ok(content3.innerHTML.includes('k3hl-h2'), 'rendering continues during composition');
+current.ta.dispatch('compositionend');
+assert.ok(content3.innerHTML.includes('k3hl-h2'), 'compositionend keeps the render');
+hl3.disable();
+
+// --- Phase D: oversized documents auto-disable ------------------------------
+delete store['kona3_edit_highlight'];
+current = makeEditor();
+const hl4 = loadLayer();
+assert.strictEqual(hl4.isEnabled(), true);
+current.ta.value = 'あ'.repeat(200001);
+flushRaf();
+assert.strictEqual(hl4.isEnabled(), false, 'oversized text auto-disables');
+assert.strictEqual(current.ta.parentNode, current.editor, 'unwrapped after auto-disable');
+assert.strictEqual(store['kona3_edit_highlight'], undefined,
+    'auto-disable does not persist an opt-out');
+
+// Boundary: exactly MAX_CHARS stays enabled.
+delete store['kona3_edit_highlight'];
+current = makeEditor();
+const hl4b = loadLayer();
+current.ta.value = 'あ'.repeat(200000);
+flushRaf();
+assert.strictEqual(hl4b.isEnabled(), true, 'exactly 200000 chars stays enabled');
+hl4b.disable();
+
+// Initially oversized: never wrapped in the first place.
+delete store['kona3_edit_highlight'];
+current = makeEditor('あ'.repeat(200001));
+const hl4c = loadLayer();
+assert.strictEqual(hl4c.isEnabled(), false, 'initially oversized document is not enabled');
+assert.strictEqual(current.ta.parentNode, current.editor, 'never wrapped when oversized');
+
+// --- Phase E: misalignment self-check (two consecutive failures) ------------
+async function phaseE() {
+    delete store['kona3_edit_highlight'];
+    current = makeEditor();
+    const hl5 = loadLayer();
+    assert.strictEqual(hl5.isEnabled(), true);
+    const wrap5 = current.ta.parentNode;
+    const backdrop5 = wrap5.children.find((c) => c.classList.contains('k3hl-backdrop'));
+    current.ta.scrollHeight = 1000;
+    backdrop5.scrollHeight = 500;
+    flushRaf();
+    assert.strictEqual(hl5.isEnabled(), true, 'a single mismatch does not disable yet');
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.strictEqual(hl5.isEnabled(), false, 'a second consecutive mismatch disables');
+    assert.strictEqual(current.ta.parentNode, current.editor, 'unwrapped after self-check failure');
+
+    // Within one line of difference: stays enabled.
+    delete store['kona3_edit_highlight'];
+    current = makeEditor();
+    const hl6 = loadLayer();
+    const wrap6 = current.ta.parentNode;
+    const backdrop6 = wrap6.children.find((c) => c.classList.contains('k3hl-backdrop'));
+    current.ta.scrollHeight = 1000;
+    backdrop6.scrollHeight = 1010;
+    flushRaf();
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.strictEqual(hl6.isEnabled(), true, 'a within-line difference stays enabled');
+    hl6.disable();
+}
+
+phaseE().then(() => {
+    console.log('edit_highlight_dom.test.js: all tests passed');
+}).catch((error) => {
+    console.error(error);
+    process.exit(1);
+});

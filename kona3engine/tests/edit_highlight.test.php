@@ -44,6 +44,12 @@ test_assert(__LINE__, $hl_pos !== false && strpos(substr($edit_css, $hl_pos, 200
 test_assert(__LINE__, strpos(file_get_contents($root . '/resource/edit_highlight.js'), 'snapshotView') !== false && strpos(file_get_contents($root . '/resource/edit_highlight.js'), 'restoreView') !== false,
     'highlight: layer preserves view state across enable/disable (#360 review)');
 
+// --- PR3: IME handling, size guard, self-verification ---
+$layer_src = file_get_contents($root . '/resource/edit_highlight.js');
+foreach (['compositionend', 'MAX_CHARS = 200000', 'verifyAlignment', 'autoDisable'] as $needle) {
+    test_assert(__LINE__, strpos($layer_src, $needle) !== false, "highlight: layer has {$needle} (#360 PR3)");
+}
+
 // --- PR2: backdrop layer wiring ---
 $layer_path = $root . '/resource/edit_highlight.js';
 test_assert(__LINE__, file_exists($layer_path), 'highlight: layer file exists (#360 PR2)');

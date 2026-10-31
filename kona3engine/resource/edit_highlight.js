@@ -12,6 +12,9 @@
     var resizeObserver = null;
     var renderFrame = null;
     var renderFrameIsTimeout = false;
+    var MAX_CHARS = 200000;
+    var verifyFailures = 0;
+    var verifyScheduled = false;
     var enabled = false;
     var lastValue = null;
     var lastHtml = null;
@@ -48,6 +51,28 @@
         disable();
     }
 
+    // Automatic (non-user) disabling: tell the user in the status bar
+    // info field and fall back to the plain textarea. This never
+    // persists an opt-out; re-enabling from the drawer is possible.
+    function autoDisable(message) {
+        try {
+            var info = document.getElementById('edit_info');
+            if (info) {
+                info.textContent = message;
+            }
+            var toggle = document.getElementById('k3hl_toggle');
+            if (toggle) {
+                toggle.checked = false;
+            }
+            if (window.console && typeof window.console.info === 'function') {
+                window.console.info('KonaWiki3 edit highlighting: ' + message);
+            }
+        } catch (error) {
+            // Notification is best-effort.
+        }
+        disable();
+    }
+
     function syncScroll() {
         if (!enabled || !ta || !backdrop) {
             return;
@@ -80,8 +105,19 @@
             return;
         }
 
+        // Rendering continues during IME composition on purpose: the
+        // textarea text is transparent, so if the backdrop stopped
+        // updating, the composing glyphs (which live only in the
+        // textarea until they are committed) would be invisible. The
+        // backdrop is a separate element, so updating it cannot disturb
+        // the composition, and the value already contains the
+        // composing text in current browsers.
         try {
             var value = ta.value;
+            if (value.length > MAX_CHARS) {
+                autoDisable('本文が大きいため、シンタックスハイライトを無効化しました');
+                return;
+            }
             var html = window.k3hlRender(value, currentMode());
 
             lastValue = value;
@@ -170,6 +206,12 @@
         handlers.focus = safetyCheck;
         handlers.selectionchange = safetyCheck;
         handlers.modeChange = render;
+        // Some browsers only report the value at compositionend;
+        // render once more there. There is no composition state to
+        // track: rendering is never suspended (see render()).
+        handlers.compositionEnd = function () {
+            render();
+        };
         handlers.resize = function () {
             updateGutter();
             scheduleRender();
@@ -179,6 +221,7 @@
         ta.addEventListener('scroll', handlers.scroll, { passive: true });
         ta.addEventListener('keyup', handlers.keyup);
         ta.addEventListener('focus', handlers.focus);
+        ta.addEventListener('compositionend', handlers.compositionEnd);
         document.addEventListener(
             'selectionchange',
             handlers.selectionchange
@@ -190,7 +233,12 @@
         }
 
         if (typeof window.ResizeObserver === 'function') {
-            resizeObserver = new window.ResizeObserver(updateGutter);
+            resizeObserver = new window.ResizeObserver(function () {
+                updateGutter();
+                // Zoom and font swaps change the textarea size; a
+                // healthy pair of layers stays aligned through them.
+                scheduleVerify();
+            });
             resizeObserver.observe(ta);
         }
     }
@@ -208,6 +256,9 @@
             }
             if (handlers.focus) {
                 ta.removeEventListener('focus', handlers.focus);
+            }
+            if (handlers.compositionEnd) {
+                ta.removeEventListener('compositionend', handlers.compositionEnd);
             }
         }
 
@@ -237,6 +288,13 @@
             ta = null;
             return;
         }
+
+        if (ta.value && ta.value.length > MAX_CHARS) {
+            autoDisable('本文が大きいため、シンタックスハイライトを無効化しました');
+            ta = null;
+            return;
+        }
+        verifyFailures = 0;
 
         var viewSnapshot = snapshotView(ta);
 
@@ -268,6 +326,7 @@
             addListeners();
             render();
             restoreView(ta, viewSnapshot);
+            scheduleVerify();
         } catch (error) {
             warnAndDisable(error);
         }
@@ -331,6 +390,7 @@
 
         if (ta) {
             restoreView(ta, viewSnapshot);
+            scheduleVerify();
         }
 
         wrap = null;
@@ -341,6 +401,58 @@
         lastHtml = null;
         valuePrototypeDescriptor = null;
         setRangeTextPrototype = null;
+    }
+
+    // Self-verification: if the backdrop's content height disagrees
+    // with the textarea's by more than one line, the two layers cannot
+    // be aligned in this environment (font, zoom, extension), so turn
+    // the highlight off instead of showing shifted text.
+    function verifyAlignment() {
+        if (!enabled || !ta || !backdrop) {
+            return;
+        }
+        try {
+            var backdropHeight = backdrop.scrollHeight || 0;
+            var textareaHeight = ta.scrollHeight || 0;
+            if (!backdropHeight || !textareaHeight) {
+                return;
+            }
+            var style = window.getComputedStyle(ta);
+            var lineHeight = parseFloat(style.lineHeight) ||
+                (parseFloat(style.fontSize) * 1.7) || 27.2;
+            if (Math.abs(backdropHeight - textareaHeight) > lineHeight) {
+                verifyFailures += 1;
+                if (verifyFailures >= 2) {
+                    autoDisable('シンタックスハイライトの位置合わせに失敗したため無効化しました');
+                }
+            } else {
+                verifyFailures = 0;
+            }
+        } catch (error) {
+            // Verification is best-effort.
+        }
+    }
+
+    function scheduleVerify() {
+        if (verifyScheduled) {
+            return;
+        }
+        verifyScheduled = true;
+        var run = function () {
+            verifyScheduled = false;
+            verifyAlignment();
+        };
+        if (typeof window.requestAnimationFrame === 'function') {
+            window.requestAnimationFrame(run);
+        } else {
+            window.setTimeout(run, 0);
+        }
+        if (document.fonts && document.fonts.ready &&
+                typeof document.fonts.ready.then === 'function') {
+            document.fonts.ready.then(function () {
+                verifyAlignment();
+            });
+        }
     }
 
     // Moving a textarea in the DOM can reset its scroll position,
