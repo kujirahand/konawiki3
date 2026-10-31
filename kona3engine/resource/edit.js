@@ -871,6 +871,8 @@ function measureHeadingTops(ta, text, srcHeadings) {
     st.fontStyle = cs.fontStyle
     st.lineHeight = cs.lineHeight
     st.letterSpacing = cs.letterSpacing
+    if (cs.fontKerning) { st.fontKerning = cs.fontKerning }
+    if (cs.fontVariantLigatures) { st.fontVariantLigatures = cs.fontVariantLigatures }
     st.padding = cs.padding
     st.borderWidth = cs.borderWidth
     st.borderStyle = 'solid'

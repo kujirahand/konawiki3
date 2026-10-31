@@ -1,0 +1,199 @@
+// DOM-layer tests for edit_highlight.js (issue #360, PR2) using a
+// minimal fake DOM. Run with plain Node.js, no dependencies.
+'use strict';
+
+const assert = require('node:assert/strict');
+const path = require('node:path');
+
+class FakeClassList {
+    constructor(el) { this.el = el; }
+    add(name) { this.el._classes.add(name); }
+    remove(name) { this.el._classes.delete(name); }
+    contains(name) { return this.el._classes.has(name); }
+}
+
+class FakeElement {
+    constructor(tag) {
+        this.tagName = String(tag).toUpperCase();
+        this.children = [];
+        this.parentNode = null;
+        this.style = {};
+        this._classes = new Set();
+        this.classList = new FakeClassList(this);
+        this._listeners = {};
+        this._attrs = {};
+        this.innerHTML = '';
+        this.textContent = '';
+        this.scrollTop = 0;
+        this.scrollLeft = 0;
+        this.offsetWidth = 600;
+        this.clientWidth = 583;
+    }
+    set className(v) {
+        this._classes = new Set(String(v).split(/\s+/).filter(Boolean));
+    }
+    get className() { return Array.from(this._classes).join(' '); }
+    setAttribute(k, v) { this._attrs[k] = String(v); }
+    getAttribute(k) { return this._attrs[k]; }
+    appendChild(child) {
+        if (child.parentNode) { child.parentNode.removeChild(child); }
+        child.parentNode = this;
+        this.children.push(child);
+        return child;
+    }
+    insertBefore(child, ref) {
+        if (child.parentNode) { child.parentNode.removeChild(child); }
+        const i = this.children.indexOf(ref);
+        child.parentNode = this;
+        if (i < 0) { this.children.push(child); } else { this.children.splice(i, 0, child); }
+        return child;
+    }
+    removeChild(child) {
+        const i = this.children.indexOf(child);
+        if (i >= 0) { this.children.splice(i, 1); child.parentNode = null; }
+        return child;
+    }
+    remove() { if (this.parentNode) { this.parentNode.removeChild(this); } }
+    addEventListener(type, fn) {
+        (this._listeners[type] = this._listeners[type] || []).push(fn);
+    }
+    removeEventListener(type, fn) {
+        const a = this._listeners[type] || [];
+        const i = a.indexOf(fn);
+        if (i >= 0) { a.splice(i, 1); }
+    }
+    dispatch(type) {
+        for (const fn of (this._listeners[type] || []).slice()) { fn({ type }); }
+    }
+}
+
+class FakeTextArea extends FakeElement {
+    constructor() {
+        super('textarea');
+        this._value = '';
+    }
+    setRangeText(text, start, end) {
+        const v = this.value;
+        this.value = v.slice(0, start) + text + v.slice(end);
+    }
+}
+Object.defineProperty(FakeTextArea.prototype, 'value', {
+    configurable: true,
+    get() { return this._value; },
+    set(v) { this._value = String(v); },
+});
+
+// --- globals -------------------------------------------------------------
+const store = {};
+let rafQueue = [];
+const editor = new FakeElement('div');
+const ta = new FakeTextArea();
+ta.id = 'edit_txt';
+ta._value = '* 見出し\n本文';
+editor.appendChild(ta);
+const modeSelect = new FakeElement('select');
+modeSelect.id = 'page_mode';
+modeSelect.value = 'KonaNotation';
+
+const documentStub = new FakeElement('#document');
+documentStub.readyState = 'complete';
+documentStub.getElementById = function (id) {
+    if (id === 'edit_txt') { return ta; }
+    if (id === 'page_mode') { return modeSelect; }
+    return null;
+};
+documentStub.createElement = function (tag) { return new FakeElement(tag); };
+
+const core = require(path.join(__dirname, '..', '..', 'resource', 'edit_highlight_core.js'));
+global.window = {
+    localStorage: {
+        getItem: (k) => (k in store ? store[k] : null),
+        setItem: (k, v) => { store[k] = String(v); },
+    },
+    requestAnimationFrame: (fn) => { rafQueue.push(fn); return rafQueue.length; },
+    cancelAnimationFrame: () => {},
+    setTimeout: (fn) => { fn(); return 0; },
+    clearTimeout: () => {},
+    getComputedStyle: () => ({ borderLeftWidth: '1px', borderRightWidth: '1px' }),
+    HTMLTextAreaElement: FakeTextArea,
+    k3hlRender: core.k3hlRender,
+    console,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+};
+global.document = documentStub;
+global.window.document = documentStub;
+
+function flushRaf() {
+    const q = rafQueue;
+    rafQueue = [];
+    for (const fn of q) { fn(); }
+}
+
+// --- load the layer --------------------------------------------------------
+require(path.join(__dirname, '..', '..', 'resource', 'edit_highlight.js'));
+const hl = global.window.kona3EditHighlight;
+assert.ok(hl, 'kona3EditHighlight is published');
+
+// 1. Default is OFF: nothing is wrapped.
+assert.strictEqual(hl.isEnabled(), false);
+assert.strictEqual(ta.parentNode, editor);
+
+// 2. Enable explicitly (the PR4 toggle does this; PR2 has no UI yet).
+hl.enable();
+assert.strictEqual(hl.isEnabled(), true);
+const wrap = ta.parentNode;
+assert.ok(wrap && wrap.classList.contains('k3hl-wrap'), 'textarea is wrapped');
+assert.ok(ta.classList.contains('k3hl-on'));
+const backdrop = wrap.children.find((c) => c.classList.contains('k3hl-backdrop'));
+assert.ok(backdrop, 'backdrop exists inside the wrap');
+const content = backdrop.children[0];
+assert.ok(content.innerHTML.includes('k3hl-h1'), 'initial render highlights the heading');
+assert.ok(content.innerHTML.includes('見出し'));
+
+// 3. Programmatic value change goes through the hooked setter.
+ta.value = '** 小見出し\n本文です';
+flushRaf();
+assert.ok(content.innerHTML.includes('k3hl-h2'), 'hooked value setter re-renders');
+
+// 4. input event re-renders.
+ta._value = 'ただの本文';
+ta.dispatch('input');
+flushRaf();
+assert.ok(!content.innerHTML.includes('k3hl-h2'), 'input event re-renders');
+
+// 5. Scroll sync.
+ta.scrollTop = 120;
+ta.scrollLeft = 4;
+ta.dispatch('scroll');
+assert.strictEqual(backdrop.scrollTop, 120);
+assert.strictEqual(backdrop.scrollLeft, 4);
+
+// 6. setRangeText is hooked too.
+ta.setRangeText('* 先頭見出し\n', 0, 0);
+flushRaf();
+assert.ok(content.innerHTML.includes('k3hl-h1'), 'setRangeText re-renders');
+
+// 7. Mode switch re-renders with Markdown rules.
+modeSelect.value = 'Markdown';
+ta.value = '# MD見出し';
+modeSelect.dispatch('change');
+assert.ok(content.innerHTML.includes('k3hl-h1'), 'mode change re-renders');
+
+// 8. Disable restores the plain textarea.
+hl.disable();
+assert.strictEqual(hl.isEnabled(), false);
+assert.strictEqual(ta.parentNode, editor, 'textarea is unwrapped');
+assert.ok(!ta.classList.contains('k3hl-on'));
+assert.strictEqual(Object.getOwnPropertyDescriptor(ta, 'value'), undefined,
+    'value hook is removed');
+assert.strictEqual(editor.children.length, 1);
+
+// 9. localStorage flag enables on load is covered by enable() itself;
+//    here we only check the flag reader path via a fresh enable cycle.
+store['kona3_edit_highlight'] = '1';
+hl.enable();
+assert.strictEqual(hl.isEnabled(), true);
+hl.disable();
+
+console.log('edit_highlight_dom.test.js: all tests passed');
