@@ -12,6 +12,8 @@
     var resizeObserver = null;
     var renderFrame = null;
     var renderFrameIsTimeout = false;
+    var isComposing = false;
+    var MAX_CHARS = 200000;
     var enabled = false;
     var lastValue = null;
     var lastHtml = null;
@@ -48,6 +50,24 @@
         disable();
     }
 
+    // Automatic (non-user) disabling: tell the user in the status bar
+    // info field and fall back to the plain textarea. This never
+    // persists an opt-out; re-enabling from the drawer is possible.
+    function autoDisable(message) {
+        try {
+            var info = document.getElementById('edit_info');
+            if (info) {
+                info.textContent = message;
+            }
+            if (window.console && typeof window.console.info === 'function') {
+                window.console.info('KonaWiki3 edit highlighting: ' + message);
+            }
+        } catch (error) {
+            // Notification is best-effort.
+        }
+        disable();
+    }
+
     function syncScroll() {
         if (!enabled || !ta || !backdrop) {
             return;
@@ -80,8 +100,18 @@
             return;
         }
 
+        if (isComposing) {
+            // Do not touch the backdrop during IME composition; the
+            // compositionend handler renders the committed text.
+            return;
+        }
+
         try {
             var value = ta.value;
+            if (value.length > MAX_CHARS) {
+                autoDisable('本文が大きいため、シンタックスハイライトを無効化しました');
+                return;
+            }
             var html = window.k3hlRender(value, currentMode());
 
             lastValue = value;
@@ -118,7 +148,7 @@
     }
 
     function safetyCheck() {
-        if (enabled && ta && ta.value !== lastValue) {
+        if (enabled && !isComposing && ta && ta.value !== lastValue) {
             scheduleRender();
         }
     }
@@ -170,6 +200,13 @@
         handlers.focus = safetyCheck;
         handlers.selectionchange = safetyCheck;
         handlers.modeChange = render;
+        handlers.compositionStart = function () {
+            isComposing = true;
+        };
+        handlers.compositionEnd = function () {
+            isComposing = false;
+            render();
+        };
         handlers.resize = function () {
             updateGutter();
             scheduleRender();
@@ -179,6 +216,8 @@
         ta.addEventListener('scroll', handlers.scroll, { passive: true });
         ta.addEventListener('keyup', handlers.keyup);
         ta.addEventListener('focus', handlers.focus);
+        ta.addEventListener('compositionstart', handlers.compositionStart);
+        ta.addEventListener('compositionend', handlers.compositionEnd);
         document.addEventListener(
             'selectionchange',
             handlers.selectionchange
@@ -208,6 +247,12 @@
             }
             if (handlers.focus) {
                 ta.removeEventListener('focus', handlers.focus);
+            }
+            if (handlers.compositionStart) {
+                ta.removeEventListener('compositionstart', handlers.compositionStart);
+            }
+            if (handlers.compositionEnd) {
+                ta.removeEventListener('compositionend', handlers.compositionEnd);
             }
         }
 
@@ -268,6 +313,7 @@
             addListeners();
             render();
             restoreView(ta, viewSnapshot);
+            scheduleVerify();
         } catch (error) {
             warnAndDisable(error);
         }
@@ -276,6 +322,7 @@
     function disable() {
         var viewSnapshot = ta ? snapshotView(ta) : null;
         enabled = false;
+        isComposing = false;
 
         if (renderFrame !== null) {
             if (renderFrameIsTimeout) {
@@ -331,6 +378,7 @@
 
         if (ta) {
             restoreView(ta, viewSnapshot);
+            scheduleVerify();
         }
 
         wrap = null;
@@ -341,6 +389,46 @@
         lastHtml = null;
         valuePrototypeDescriptor = null;
         setRangeTextPrototype = null;
+    }
+
+    // Self-verification: if the backdrop's content height disagrees
+    // with the textarea's by more than one line, the two layers cannot
+    // be aligned in this environment (font, zoom, extension), so turn
+    // the highlight off instead of showing shifted text.
+    function verifyAlignment() {
+        if (!enabled || !ta || !backdrop) {
+            return;
+        }
+        try {
+            var backdropHeight = backdrop.scrollHeight || 0;
+            var textareaHeight = ta.scrollHeight || 0;
+            if (!backdropHeight || !textareaHeight) {
+                return;
+            }
+            var lineHeight = parseFloat(window.getComputedStyle(ta).lineHeight) || 27.2;
+            if (Math.abs(backdropHeight - textareaHeight) > lineHeight) {
+                autoDisable('シンタックスハイライトの位置合わせに失敗したため無効化しました');
+            }
+        } catch (error) {
+            // Verification is best-effort.
+        }
+    }
+
+    function scheduleVerify() {
+        var run = function () {
+            verifyAlignment();
+        };
+        if (typeof window.requestAnimationFrame === 'function') {
+            window.requestAnimationFrame(run);
+        } else {
+            window.setTimeout(run, 0);
+        }
+        if (document.fonts && document.fonts.ready &&
+                typeof document.fonts.ready.then === 'function') {
+            document.fonts.ready.then(function () {
+                verifyAlignment();
+            });
+        }
     }
 
     // Moving a textarea in the DOM can reset its scroll position,

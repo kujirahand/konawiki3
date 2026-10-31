@@ -25,6 +25,7 @@ class FakeElement {
         this.innerHTML = '';
         this.textContent = '';
         this.scrollTop = 0;
+        this.scrollHeight = 0;
         this.scrollLeft = 0;
         this.offsetWidth = 600;
         this.clientWidth = 583;
@@ -206,5 +207,45 @@ hl2.enable();
 assert.strictEqual(hl2.isEnabled(), true);
 assert.strictEqual(store['kona3_edit_highlight'], '1', 'enable persists the opt-in');
 hl2.disable();
+
+// --- Phase C: IME composition defers rendering ------------------------------
+delete store['kona3_edit_highlight'];
+current = makeEditor();
+const hl3 = loadLayer();
+assert.strictEqual(hl3.isEnabled(), true);
+const wrap3 = current.ta.parentNode;
+const content3 = wrap3.children.find((c) => c.classList.contains('k3hl-backdrop')).children[0];
+const beforeCompose = content3.innerHTML;
+current.ta.dispatch('compositionstart');
+current.ta._value = '** 変換中';
+current.ta.dispatch('input');
+flushRaf();
+assert.strictEqual(content3.innerHTML, beforeCompose, 'no re-render during composition');
+current.ta.dispatch('compositionend');
+assert.ok(content3.innerHTML.includes('k3hl-h2'), 'compositionend renders the committed text');
+hl3.disable();
+
+// --- Phase D: oversized documents auto-disable ------------------------------
+delete store['kona3_edit_highlight'];
+current = makeEditor();
+const hl4 = loadLayer();
+assert.strictEqual(hl4.isEnabled(), true);
+current.ta.value = 'あ'.repeat(200001);
+flushRaf();
+assert.strictEqual(hl4.isEnabled(), false, 'oversized text auto-disables');
+assert.strictEqual(current.ta.parentNode, current.editor, 'unwrapped after auto-disable');
+
+// --- Phase E: misalignment self-check auto-disables -------------------------
+delete store['kona3_edit_highlight'];
+current = makeEditor();
+const hl5 = loadLayer();
+assert.strictEqual(hl5.isEnabled(), true);
+const wrap5 = current.ta.parentNode;
+const backdrop5 = wrap5.children.find((c) => c.classList.contains('k3hl-backdrop'));
+current.ta.scrollHeight = 1000;
+backdrop5.scrollHeight = 500;
+flushRaf();
+assert.strictEqual(hl5.isEnabled(), false, 'height mismatch auto-disables');
+assert.strictEqual(current.ta.parentNode, current.editor, 'unwrapped after self-check failure');
 
 console.log('edit_highlight_dom.test.js: all tests passed');
