@@ -703,3 +703,45 @@ body.dark-theme a:hover .date {
 }
 
 }
+
+/* syntax highlight layer in dark mode (issue #360): the dark field
+   background must not cover the backdrop, and the fixed token colors
+   get lighter variants. */
+body.dark-theme #edit_txt.k3hl-on {
+  background: transparent;
+}
+body.dark-theme .k3hl-backdrop {
+  background: var(--k3d-field-bg);
+  color: var(--k3d-field-fg);
+}
+body.dark-theme .k3hl-h1,
+body.dark-theme .k3hl-h2,
+body.dark-theme .k3hl-h3,
+body.dark-theme .k3hl-h4,
+body.dark-theme .k3hl-h5,
+body.dark-theme .k3hl-h6,
+body.dark-theme .k3hl-strong2 {
+  color: #93c5fd;
+}
+body.dark-theme .k3hl-h1 {
+  background: rgba(147, 197, 253, 0.12);
+}
+body.dark-theme .k3hl-red {
+  color: #f87171;
+}
+body.dark-theme .k3hl-link {
+  color: #93c5fd;
+}
+body.dark-theme .k3hl-url {
+  color: #22d3ee;
+}
+body.dark-theme .k3hl-code {
+  color: #fdba74;
+  background: rgba(255, 255, 255, 0.08);
+}
+body.dark-theme .k3hl-quote {
+  color: #a3e635;
+}
+body.dark-theme .k3hl-plugin {
+  color: #c084fc;
+}

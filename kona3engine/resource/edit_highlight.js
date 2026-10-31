@@ -11,6 +11,7 @@
     var content = null;
     var resizeObserver = null;
     var renderFrame = null;
+    var renderFrameIsTimeout = false;
     var enabled = false;
     var lastValue = null;
     var lastHtml = null;
@@ -102,11 +103,13 @@
         }
 
         if (typeof window.requestAnimationFrame === 'function') {
+            renderFrameIsTimeout = false;
             renderFrame = window.requestAnimationFrame(function () {
                 renderFrame = null;
                 render();
             });
         } else {
+            renderFrameIsTimeout = true;
             renderFrame = window.setTimeout(function () {
                 renderFrame = null;
                 render();
@@ -235,6 +238,8 @@
             return;
         }
 
+        var viewSnapshot = snapshotView(ta);
+
         try {
             modeSelect = document.getElementById('page_mode');
 
@@ -262,19 +267,22 @@
             installHooks();
             addListeners();
             render();
+            restoreView(ta, viewSnapshot);
         } catch (error) {
             warnAndDisable(error);
         }
     }
 
     function disable() {
+        var viewSnapshot = ta ? snapshotView(ta) : null;
         enabled = false;
 
         if (renderFrame !== null) {
-            if (typeof window.cancelAnimationFrame === 'function') {
+            if (renderFrameIsTimeout) {
+                window.clearTimeout(renderFrame);
+            } else if (typeof window.cancelAnimationFrame === 'function') {
                 window.cancelAnimationFrame(renderFrame);
             }
-            window.clearTimeout(renderFrame);
             renderFrame = null;
         }
 
@@ -321,6 +329,10 @@
             }
         }
 
+        if (ta) {
+            restoreView(ta, viewSnapshot);
+        }
+
         wrap = null;
         backdrop = null;
         content = null;
@@ -329,6 +341,45 @@
         lastHtml = null;
         valuePrototypeDescriptor = null;
         setRangeTextPrototype = null;
+    }
+
+    // Moving a textarea in the DOM can reset its scroll position,
+    // selection and focus in some browsers; snapshot and restore them
+    // around enable/disable.
+    function snapshotView(el) {
+        var snap = null;
+        try {
+            snap = {
+                scrollTop: el.scrollTop,
+                scrollLeft: el.scrollLeft,
+                selectionStart: el.selectionStart,
+                selectionEnd: el.selectionEnd,
+                height: el.style ? el.style.height : ''
+            };
+        } catch (error) {
+            snap = null;
+        }
+        return snap;
+    }
+
+    function restoreView(el, snap) {
+        if (!el || !snap) {
+            return;
+        }
+        try {
+            if (snap.height) {
+                el.style.height = snap.height;
+            }
+            el.scrollTop = snap.scrollTop;
+            el.scrollLeft = snap.scrollLeft;
+            if (typeof snap.selectionStart === 'number' &&
+                    typeof el.setSelectionRange === 'function' &&
+                    document.activeElement === el) {
+                el.setSelectionRange(snap.selectionStart, snap.selectionEnd);
+            }
+        } catch (error) {
+            // View state is best-effort.
+        }
     }
 
     function isEnabled() {

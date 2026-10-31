@@ -88,5 +88,6 @@ test_assert(__LINE__, strpos($edit_css, 'visibility: visible;') !== false, 'open
 test_assert(__LINE__, strpos($dark_css, 'body.dark-theme #edit_topbar') !== false, 'dark mode covers #edit_topbar (#341 review)');
 test_assert(__LINE__, strpos($dark_css, 'body.dark-theme #edit_drawer') !== false, 'dark mode covers #edit_drawer (#341 review)');
 test_assert(__LINE__, strpos($dark_css, '#outline_btn') === false, 'dark mode has no #outline_btn leftover (#341 review)');
-// change-info の初期表示は保存状態と矛盾しない
-test_assert(__LINE__, strpos($edit_html, '<span id="change-info">保存済み</span>') !== false, 'change-info initial text matches the save state (#341 review)');
+// 保存状態は上部バーの edit_save_state のみで表示する (下部の重複表示は廃止)
+test_assert(__LINE__, strpos($edit_html, 'id="change-info"') === false, 'change-info is removed; the top bar shows the save state (#360)');
+test_assert(__LINE__, strpos($edit_html, 'id="edit_save_state"') !== false, 'edit_save_state still shows the save state in the top bar (#360)');

@@ -679,6 +679,7 @@ textarea#ai_input_text:focus {
 }
 
 #edit_txt.k3hl-on {
+    display: block;
     position: relative;
     z-index: 1;
     background: transparent;
@@ -777,4 +778,57 @@ textarea#ai_input_text:focus {
         -webkit-text-fill-color: currentColor;
         background: var(--k3-color-bg, #ffffff);
     }
+}
+
+/* tool drawer settings rows and the highlight toggle switch (#360) */
+.edit_setting_row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+}
+.k3hl-switch {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 24px;
+  flex: none;
+}
+.k3hl-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+.k3hl-slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--k3-color-border, #d1d5db);
+  transition: background 0.15s ease;
+  pointer-events: none;
+}
+.k3hl-slider::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: transform 0.15s ease;
+}
+.k3hl-switch input:checked + .k3hl-slider {
+  background: var(--k3-color-accent, #1f5fbf);
+}
+.k3hl-switch input:checked + .k3hl-slider::before {
+  transform: translateX(18px);
+}
+.k3hl-switch input:focus-visible + .k3hl-slider {
+  outline: 2px solid var(--k3-color-accent, #1f5fbf);
+  outline-offset: 2px;
 }

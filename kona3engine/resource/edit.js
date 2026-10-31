@@ -58,6 +58,22 @@ function edit_init() {
   }
   qq('#ls_load_btn').click(loadTextFromLS)
   qq('#autosave').click(autoSaveClickHandler)
+  const k3hl_toggle = qs('#k3hl_toggle')
+  if (k3hl_toggle) {
+    const hl_api = window.kona3EditHighlight
+    k3hl_toggle.checked = !!(hl_api && hl_api.isEnabled())
+    k3hl_toggle.addEventListener('change', () => {
+      const api = window.kona3EditHighlight
+      if (!api) {
+        return
+      }
+      if (k3hl_toggle.checked) {
+        api.enable()
+      } else {
+        api.disable()
+      }
+    })
+  }
   const page_mode_el = qs('#page_mode')
   if (page_mode_el) {
     page_mode_el.addEventListener('change', () => {
@@ -210,10 +226,9 @@ function normalizeShortcutKey(key) {
 function handleChange(changed, reason) {
   elog(`changed: ${changed} - ${reason}`)
   isChanged = changed
-  // set #change-info and the topbar save state (issue #153)
+  // set the topbar save state (issue #153)
   const saveState = qs('#edit_save_state')
   if (isChanged) {
-    qq('#change-info').html('未保存')
     if (saveState) {
       saveState.textContent = '未保存の変更があります'
       saveState.classList.add('dirty')
@@ -221,7 +236,6 @@ function handleChange(changed, reason) {
     use_beforeunload(true)
     setButtonsDisabled(false)
   } else {
-    qq('#change-info').html('保存済み')
     if (saveState) {
       saveState.textContent = '保存済み'
       saveState.classList.remove('dirty')
@@ -1097,7 +1111,7 @@ function showOnlyPanel(selector, forceShow) {
     return null
   }
   const isVisible = target.style.display !== 'none'
-  const panels = ['#help_div', '#tags_div', '#replace_div', '#history_div', '#misc_div', '#ai_div', '#search_div', '#conflict_div']
+  const panels = ['#help_div', '#tags_div', '#replace_div', '#history_div', '#misc_div', '#ai_div', '#search_div', '#conflict_div', '#settings_div']
   panels.forEach(function (panelSelector) {
     if (qs(panelSelector)) {
       qq(panelSelector).hide()
@@ -1953,6 +1967,17 @@ function replaceOnClick() {
 
 function miscOnClick() {
   openToolPanel('#misc_div')
+}
+
+function settingsOnClick() {
+  openToolPanel('#settings_div')
+  // The layer may have auto-disabled itself after an error; keep the
+  // toggle in sync with the real state whenever the panel opens.
+  const toggle = qs('#k3hl_toggle')
+  const api = window.kona3EditHighlight
+  if (toggle && api) {
+    toggle.checked = api.isEnabled()
+  }
 }
 
 function convertToMarkdownClick() {

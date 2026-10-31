@@ -19,6 +19,31 @@ foreach (['k3hlEscape', 'k3hlInitialState', 'k3hlTokenizeLine', 'k3hlRender'] as
 test_assert(__LINE__, strpos($core, 'document.') === false, 'highlight: core does not touch the DOM (#360)');
 test_assert(__LINE__, strpos($core, 'module.exports') !== false, 'highlight: core exports for Node tests (#360)');
 
+// --- PR2 follow-up: tool drawer settings (toggle + moved autosave) ---
+$edit_html = file_get_contents($root . '/template/edit.html');
+foreach (['id="settings_div"', 'id="k3hl_toggle"', 'settingsOnClick()'] as $needle) {
+    test_assert(__LINE__, strpos($edit_html, $needle) !== false, "highlight: edit.html has {$needle} (#360)");
+}
+test_assert(__LINE__, substr_count($edit_html, 'id="autosave"') === 1, 'highlight: exactly one autosave checkbox (#360)');
+test_assert(__LINE__, strpos($edit_html, 'id="autosave"') > strpos($edit_html, 'id="settings_div"'),
+    'highlight: autosave lives in the settings panel, not the status bar (#360)');
+$edit_js = file_get_contents($root . '/resource/edit.js');
+foreach (['#settings_div', 'k3hl_toggle', 'settingsOnClick'] as $needle) {
+    test_assert(__LINE__, strpos($edit_js, $needle) !== false, "highlight: edit.js has {$needle} (#360)");
+}
+
+// --- PR2 Copilot review fixes ---
+$dark_css = file_get_contents($root . '/resource/darkmode.css');
+test_assert(__LINE__, strpos($dark_css, 'body.dark-theme #edit_txt.k3hl-on') !== false,
+    'highlight: dark mode keeps the highlighted textarea transparent (#360 review)');
+test_assert(__LINE__, strpos($dark_css, 'body.dark-theme .k3hl-backdrop') !== false,
+    'highlight: dark mode has backdrop colors (#360 review)');
+$hl_pos = strpos($edit_css, '#edit_txt.k3hl-on {');
+test_assert(__LINE__, $hl_pos !== false && strpos(substr($edit_css, $hl_pos, 200), 'display: block') !== false,
+    'highlight: highlighted textarea is display:block (no baseline gap) (#360 review)');
+test_assert(__LINE__, strpos(file_get_contents($root . '/resource/edit_highlight.js'), 'snapshotView') !== false && strpos(file_get_contents($root . '/resource/edit_highlight.js'), 'restoreView') !== false,
+    'highlight: layer preserves view state across enable/disable (#360 review)');
+
 // --- PR2: backdrop layer wiring ---
 $layer_path = $root . '/resource/edit_highlight.js';
 test_assert(__LINE__, file_exists($layer_path), 'highlight: layer file exists (#360 PR2)');
