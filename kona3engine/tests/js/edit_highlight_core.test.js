@@ -34,7 +34,8 @@ const cases = [
     [
         'KonaNotation',
         '*',
-        '*'
+        // The parser produces a (empty) heading token for a lone '*'.
+        lineSpan('k3hl-h1', span('k3hl-mark', '*'))
     ],
     [
         'KonaNotation',
@@ -89,7 +90,8 @@ const cases = [
     [
         'KonaNotation',
         '// comment',
-        span('k3hl-comment', '// comment')
+        // KonaNotation has no '//' comment syntax in the parser: plain text.
+        '// comment'
     ],
     [
         'KonaNotation',
@@ -100,17 +102,18 @@ const cases = [
     ],
     [
         'KonaNotation',
-        "[[表示>https://example.com]]",
+        "[[表示:https://example.com]]",
         span('k3hl-mark', '[[') +
             span('k3hl-link', '表示') +
-            span('k3hl-mark', '&gt;') +
+            span('k3hl-mark', ':') +
             span('k3hl-url', 'https://example.com') +
             span('k3hl-mark', ']]')
     ],
     [
         'KonaNotation',
         '[[未完',
-        '[[未完'
+        // Unclosed: the parser takes the rest as the link name.
+        span('k3hl-mark', '[[') + span('k3hl-link', '未完')
     ],
     [
         'KonaNotation',
@@ -119,8 +122,7 @@ const cases = [
             span('k3hl-plugin', 'note') +
             span('k3hl-mark', '(') +
             "a(''b'')" +
-            span('k3hl-mark', ')') +
-            span('k3hl-mark', ';') +
+            span('k3hl-mark', ');') +
             ';'
     ],
     [
@@ -169,21 +171,22 @@ const cases = [
     [
         'KonaNotation',
         "''未完",
-        "''未完"
+        // Unclosed: the parser takes the rest of the text as the content.
+        span('k3hl-mark', "''") + span('k3hl-strong', '未完')
     ],
     [
         'KonaNotation',
         '{{{#code\n*見出しではない\n}}}\n*見出し',
         lineSpan(
             'k3hl-code',
-            span('k3hl-fence', '{{{#code')
+            span('k3hl-fence', '{{{') + span('k3hl-code', '#code')
         ) +
             '\n' +
             lineSpan('k3hl-code', '*見出しではない') +
             '\n' +
             lineSpan(
                 'k3hl-code',
-                span('k3hl-fence', '}}}')
+                span('k3hl-code', '') + span('k3hl-fence', '}}}')
             ) +
             '\n' +
             lineSpan(
@@ -417,18 +420,20 @@ assert.strictEqual(
 
 assert.deepStrictEqual(
     k3hlInitialState(),
-    { fence: null, konaBlock: false }
+    { fence: null, konaBlock: 0, mdComment: false }
 );
 
 const originalState = k3hlInitialState();
 const opened = k3hlTokenizeLine('```', 'Markdown', originalState);
 assert.deepStrictEqual(originalState, {
     fence: null,
-    konaBlock: false
+    konaBlock: 0,
+    mdComment: false
 });
 assert.deepStrictEqual(opened.state, {
     fence: { ch: '`', len: 3 },
-    konaBlock: false
+    konaBlock: 0,
+    mdComment: false
 });
 
 function decodeAndStrip(html) {
@@ -539,6 +544,57 @@ for (const input of noThrowInputs) {
         k3hlRender(input, 'KonaNotation');
         k3hlRender(input, 'Markdown');
     });
+}
+
+// --- Copilot review follow-ups (parser-verified behaviours) ---
+// Kona links split at the first ':' (makeWikiLink), not '>'.
+assert.ok(k3hlRender('[[表示:FrontPage]]', 'KonaNotation').includes(
+    span('k3hl-link', '表示') + span('k3hl-mark', ':') + span('k3hl-link', 'FrontPage')));
+// A scheme before ':' makes the whole inner text a URL.
+assert.ok(k3hlRender('[[https://example.com]]', 'KonaNotation').includes(
+    span('k3hl-url', 'https://example.com')));
+// Triple brackets.
+assert.ok(k3hlRender('[[[FrontPage]]]', 'KonaNotation').includes(span('k3hl-mark', '[[[')));
+// {{{ blocks: same-line close, brace count, unclosed to EOF.
+assert.ok(!k3hlRender('{{{ code }}}\n* 見出し', 'KonaNotation').includes('k3hl-code">* 見出し'));
+assert.ok(k3hlRender('{{{ code }}}\n* 見出し', 'KonaNotation').includes('k3hl-h1'));
+assert.ok(k3hlRender('{{{{\n}}}\ninside\n}}}}\nout', 'KonaNotation').includes('k3hl-code">inside'));
+assertInvariant('{{{\n* not a heading', 'KonaNotation');
+// mailto and the '>>>' conflict line and the '≫' list mark.
+assert.ok(k3hlRender('連絡は mailto:a@example.com まで', 'KonaNotation').includes('k3hl-url'));
+assert.ok(k3hlRender('>>> コンフリクト', 'KonaNotation').includes('k3hl-quote'));
+assert.ok(k3hlRender('≫ 項目', 'KonaNotation').includes('k3hl-list'));
+// Unclosed %% runs to the end of the line.
+assert.ok(k3hlRender('%%赤字のまま', 'KonaNotation').includes(span('k3hl-red', '赤字のまま')));
+// Markdown: hr wins over list for marker-only lines; no em between spaces.
+assert.ok(!k3hlRender('* * *', 'Markdown').includes('k3hl-list'));
+assert.strictEqual(k3hlRender('a * b * c', 'Markdown'), 'a * b * c');
+// Code span closing run must match the opening length exactly.
+assert.ok(k3hlRender('`a``b` c', 'Markdown').includes('k3hl-code'));
+assertInvariant('``a`b``', 'Markdown');
+// !!plugin extension and HTML comment blocks.
+assert.ok(k3hlRender('!!br(1)', 'Markdown').includes(span('k3hl-plugin', 'br')));
+assert.ok(k3hlRender('<!-- 注釈\n本文ではない\n-->\n# 見出し', 'Markdown').includes('k3hl-comment'));
+assert.ok(k3hlRender('<!-- 注釈\n本文ではない\n-->\n# 見出し', 'Markdown').includes('k3hl-h1'));
+// A closing fence with an info string does not close the fence.
+assert.ok(k3hlRender('```\ncode\n``` js\nstill code\n```', 'Markdown').includes('k3hl-code">still code'));
+// Emoji, surrogate pairs, CRLF and deep nesting keep the invariant.
+assertInvariant("😀 ''強調'' 😀", 'KonaNotation');
+assertInvariant('日本語\r\n* 見出し\r\n', 'KonaNotation');
+assertInvariant("''a''".repeat(1) + "''".repeat(11), 'KonaNotation');
+// Performance guards: pathological lines must stay fast.
+for (const [mode, input] of [
+    ['Markdown', '`'.repeat(50000)],
+    ['Markdown', '['.repeat(50000)],
+    ['KonaNotation', '['.repeat(50000)],
+    ['Markdown', '*a '.repeat(20000)],
+    ['Markdown', '# a' + ' '.repeat(50000) + 'x'],
+    ['KonaNotation', "'".repeat(50000)],
+]) {
+    const t0 = Date.now();
+    assertInvariant(input, mode);
+    const elapsed = Date.now() - t0;
+    assert.ok(elapsed < 1500, `perf ${mode} ${input.slice(0, 8)}... took ${elapsed}ms`);
 }
 
 // --- Fence length rules (a shorter fence does not close a longer one) ---

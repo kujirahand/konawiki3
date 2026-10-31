@@ -25,6 +25,10 @@ $node = trim((string) shell_exec('command -v node 2>/dev/null'));
 if ($node !== '') {
     $out = [];
     $code = 0;
+    $cout = [];
+    $ccode = 0;
+    exec(escapeshellarg($node) . ' --check ' . escapeshellarg($core_path) . ' 2>&1', $cout, $ccode);
+    test_assert(__LINE__, $ccode === 0, 'highlight: core is syntactically valid JS (#360)');
     exec(escapeshellarg($node) . ' ' . escapeshellarg($js_test_path) . ' 2>&1', $out, $code);
     test_assert(__LINE__, $code === 0, 'highlight: node behaviour tests pass (#360): ' . implode(' ', array_slice($out, -2)));
 } else {
