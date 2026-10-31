@@ -46,7 +46,7 @@ test_assert(__LINE__, strpos(file_get_contents($root . '/resource/edit_highlight
 
 // --- PR3: IME handling, size guard, self-verification ---
 $layer_src = file_get_contents($root . '/resource/edit_highlight.js');
-foreach (['compositionstart', 'compositionend', 'MAX_CHARS = 200000', 'verifyAlignment', 'autoDisable'] as $needle) {
+foreach (['compositionend', 'MAX_CHARS = 200000', 'verifyAlignment', 'autoDisable'] as $needle) {
     test_assert(__LINE__, strpos($layer_src, $needle) !== false, "highlight: layer has {$needle} (#360 PR3)");
 }
 

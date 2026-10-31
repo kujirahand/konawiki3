@@ -12,8 +12,9 @@
     var resizeObserver = null;
     var renderFrame = null;
     var renderFrameIsTimeout = false;
-    var isComposing = false;
     var MAX_CHARS = 200000;
+    var verifyFailures = 0;
+    var verifyScheduled = false;
     var enabled = false;
     var lastValue = null;
     var lastHtml = null;
@@ -59,6 +60,10 @@
             if (info) {
                 info.textContent = message;
             }
+            var toggle = document.getElementById('k3hl_toggle');
+            if (toggle) {
+                toggle.checked = false;
+            }
             if (window.console && typeof window.console.info === 'function') {
                 window.console.info('KonaWiki3 edit highlighting: ' + message);
             }
@@ -100,12 +105,13 @@
             return;
         }
 
-        if (isComposing) {
-            // Do not touch the backdrop during IME composition; the
-            // compositionend handler renders the committed text.
-            return;
-        }
-
+        // Rendering continues during IME composition on purpose: the
+        // textarea text is transparent, so if the backdrop stopped
+        // updating, the composing glyphs (which live only in the
+        // textarea until they are committed) would be invisible. The
+        // backdrop is a separate element, so updating it cannot disturb
+        // the composition, and the value already contains the
+        // composing text in current browsers.
         try {
             var value = ta.value;
             if (value.length > MAX_CHARS) {
@@ -148,7 +154,7 @@
     }
 
     function safetyCheck() {
-        if (enabled && !isComposing && ta && ta.value !== lastValue) {
+        if (enabled && ta && ta.value !== lastValue) {
             scheduleRender();
         }
     }
@@ -200,11 +206,10 @@
         handlers.focus = safetyCheck;
         handlers.selectionchange = safetyCheck;
         handlers.modeChange = render;
-        handlers.compositionStart = function () {
-            isComposing = true;
-        };
+        // Some browsers only report the value at compositionend;
+        // render once more there. There is no composition state to
+        // track: rendering is never suspended (see render()).
         handlers.compositionEnd = function () {
-            isComposing = false;
             render();
         };
         handlers.resize = function () {
@@ -216,7 +221,6 @@
         ta.addEventListener('scroll', handlers.scroll, { passive: true });
         ta.addEventListener('keyup', handlers.keyup);
         ta.addEventListener('focus', handlers.focus);
-        ta.addEventListener('compositionstart', handlers.compositionStart);
         ta.addEventListener('compositionend', handlers.compositionEnd);
         document.addEventListener(
             'selectionchange',
@@ -229,7 +233,12 @@
         }
 
         if (typeof window.ResizeObserver === 'function') {
-            resizeObserver = new window.ResizeObserver(updateGutter);
+            resizeObserver = new window.ResizeObserver(function () {
+                updateGutter();
+                // Zoom and font swaps change the textarea size; a
+                // healthy pair of layers stays aligned through them.
+                scheduleVerify();
+            });
             resizeObserver.observe(ta);
         }
     }
@@ -247,9 +256,6 @@
             }
             if (handlers.focus) {
                 ta.removeEventListener('focus', handlers.focus);
-            }
-            if (handlers.compositionStart) {
-                ta.removeEventListener('compositionstart', handlers.compositionStart);
             }
             if (handlers.compositionEnd) {
                 ta.removeEventListener('compositionend', handlers.compositionEnd);
@@ -282,6 +288,13 @@
             ta = null;
             return;
         }
+
+        if (ta.value && ta.value.length > MAX_CHARS) {
+            autoDisable('本文が大きいため、シンタックスハイライトを無効化しました');
+            ta = null;
+            return;
+        }
+        verifyFailures = 0;
 
         var viewSnapshot = snapshotView(ta);
 
@@ -322,7 +335,6 @@
     function disable() {
         var viewSnapshot = ta ? snapshotView(ta) : null;
         enabled = false;
-        isComposing = false;
 
         if (renderFrame !== null) {
             if (renderFrameIsTimeout) {
@@ -405,9 +417,16 @@
             if (!backdropHeight || !textareaHeight) {
                 return;
             }
-            var lineHeight = parseFloat(window.getComputedStyle(ta).lineHeight) || 27.2;
+            var style = window.getComputedStyle(ta);
+            var lineHeight = parseFloat(style.lineHeight) ||
+                (parseFloat(style.fontSize) * 1.7) || 27.2;
             if (Math.abs(backdropHeight - textareaHeight) > lineHeight) {
-                autoDisable('シンタックスハイライトの位置合わせに失敗したため無効化しました');
+                verifyFailures += 1;
+                if (verifyFailures >= 2) {
+                    autoDisable('シンタックスハイライトの位置合わせに失敗したため無効化しました');
+                }
+            } else {
+                verifyFailures = 0;
             }
         } catch (error) {
             // Verification is best-effort.
@@ -415,7 +434,12 @@
     }
 
     function scheduleVerify() {
+        if (verifyScheduled) {
+            return;
+        }
+        verifyScheduled = true;
         var run = function () {
+            verifyScheduled = false;
             verifyAlignment();
         };
         if (typeof window.requestAnimationFrame === 'function') {
