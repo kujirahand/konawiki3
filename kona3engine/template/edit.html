@@ -53,14 +53,11 @@
       <div id="edit_statusbar">
         <span id="edit_counter" class="info"></span>
         <span id="edit_info" class="info"></span>
-        <input type="checkbox" id="autosave" class="info" style="width:2em;" name="autosave" value="yes" checked>
-        <label for="autosave"> Auto save </label>
         <label for="page_mode" style="margin-left:1.5em;">Format:</label>
         <select name="page_mode" id="page_mode" class="info" style="padding:2px;">
           <option value="KonaNotation"{{ if $page_mode == 'KonaNotation' }} selected {{ endif }}>KonaNotation</option>
           <option value="Markdown"{{ if $page_mode == 'Markdown' }} selected {{ endif }}>Markdown</option>
         </select>
-        <span id="change-info">保存済み</span>
         <button type="button" id="preview_btn" onclick="togglePreview()">プレビュー</button>
       </div>
     </form>
@@ -78,6 +75,7 @@
         <button onclick="tagsOnClick()">{{'Tags' | lang}}</button>
         <button onclick="historyOnClick()">{{'History' | lang}}</button>
         <button onclick="miscOnClick()">{{'Misc' | lang}}</button>
+        <button onclick="settingsOnClick()">設定</button>
         {{ if $ai_enabled }}
         <span id="ai_buttons">
           <button onclick="aiOnClick()">{{'AI Assitant' | lang}}</button>
@@ -174,6 +172,17 @@
       <div id="misc_div" class="desc" class="block2" style="display: none;">
         <div>
           <button onclick="convertToMarkdownClick()">Convert KonaWikiNotation to Markdown</button>
+        </div>
+      </div>
+
+      <div id="settings_div" class="desc block2" style="display: none;">
+        <div class="edit_setting_row">
+          <span>シンタックスハイライト</span>
+          <span class="k3hl-switch"><input type="checkbox" id="k3hl_toggle" role="switch" aria-label="シンタックスハイライト"><span class="k3hl-slider"></span></span>
+        </div>
+        <div class="edit_setting_row">
+          <span><label for="autosave">Auto save</label></span>
+          <input type="checkbox" id="autosave" class="info" style="width:2em;" name="autosave" value="yes" checked>
         </div>
       </div>
 

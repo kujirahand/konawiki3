@@ -637,3 +637,198 @@ textarea#ai_input_text:focus {
   font-size: 12px;
   white-space: pre-wrap;
 }
+
+
+/*
+ * ハイライト用クラス (.k3hl-*) には
+ * font-size / line-height / padding / margin / border-width / display: block
+ * を指定してはいけない (背面層とずれる)。
+ * textarea と backdrop のレイアウト指定はこの節で一元管理する。
+ */
+#edit_txt.k3hl-on,
+.k3hl-backdrop {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 14px 16px;
+    border: 1px solid transparent;
+    font-family: monospace, monospace;
+    font-size: 1em;
+    line-height: 1.7em;
+    letter-spacing: normal;
+    tab-size: 8;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: normal;
+    font-kerning: none;
+    font-variant-ligatures: none;
+}
+
+.k3hl-wrap {
+    position: relative;
+}
+
+.k3hl-backdrop {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+    border-radius: 8px;
+    background: var(--k3-color-bg, #ffffff);
+    color: var(--k3-color-text, #1f2933);
+}
+
+#edit_txt.k3hl-on {
+    display: block;
+    position: relative;
+    z-index: 1;
+    background: transparent;
+    -webkit-text-fill-color: transparent;
+}
+
+#edit_txt.k3hl-on::selection {
+    background: rgba(31, 95, 191, 0.30);
+    -webkit-text-fill-color: transparent;
+}
+
+#edit_txt.k3hl-on.k3hl-debug {
+    -webkit-text-fill-color: rgba(255, 0, 0, 0.45);
+}
+
+.k3hl-mark {
+    opacity: 0.45;
+}
+
+.k3hl-fence {
+    opacity: 0.55;
+}
+
+.k3hl-h1,
+.k3hl-h2,
+.k3hl-h3,
+.k3hl-h4,
+.k3hl-h5,
+.k3hl-h6 {
+    color: var(--k3-color-heading, #14346b);
+    text-shadow: 0.35px 0 0 currentColor;
+}
+
+.k3hl-h1 {
+    background: var(--k3-color-accent-subtle, #e8f0fb);
+}
+
+.k3hl-strong {
+    text-shadow: 0.35px 0 0 currentColor;
+}
+
+.k3hl-strong2 {
+    color: var(--k3-color-heading, #14346b);
+    text-shadow: 0.7px 0 0 currentColor;
+}
+
+.k3hl-em {
+    font-style: italic;
+}
+
+.k3hl-del {
+    text-decoration: line-through;
+}
+
+.k3hl-u {
+    text-decoration: underline;
+}
+
+.k3hl-red {
+    color: #c0272d;
+}
+
+.k3hl-link {
+    color: var(--k3-color-accent, #1f5fbf);
+    text-decoration: underline;
+}
+
+.k3hl-url {
+    color: #0e7490;
+}
+
+.k3hl-code {
+    color: #7c2d12;
+    background: var(--k3-color-bg-subtle, #f3f4f6);
+}
+
+.k3hl-comment {
+    color: var(--k3-color-text-muted, #6b7280);
+    font-style: italic;
+}
+
+.k3hl-quote {
+    color: #4d7c0f;
+}
+
+.k3hl-plugin {
+    color: #7e22ce;
+}
+
+@media (forced-colors: active) {
+    .k3hl-backdrop {
+        display: none;
+    }
+
+    #edit_txt.k3hl-on {
+        -webkit-text-fill-color: currentColor;
+        background: var(--k3-color-bg, #ffffff);
+    }
+}
+
+/* tool drawer settings rows and the highlight toggle switch (#360) */
+.edit_setting_row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+}
+.k3hl-switch {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 24px;
+  flex: none;
+}
+.k3hl-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+.k3hl-slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--k3-color-border, #d1d5db);
+  transition: background 0.15s ease;
+  pointer-events: none;
+}
+.k3hl-slider::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: transform 0.15s ease;
+}
+.k3hl-switch input:checked + .k3hl-slider {
+  background: var(--k3-color-accent, #1f5fbf);
+}
+.k3hl-switch input:checked + .k3hl-slider::before {
+  transform: translateX(18px);
+}
+.k3hl-switch input:focus-visible + .k3hl-slider {
+  outline: 2px solid var(--k3-color-accent, #1f5fbf);
+  outline-offset: 2px;
+}

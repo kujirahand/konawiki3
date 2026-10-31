@@ -128,7 +128,9 @@ function kona3_action_edit()
     // Ajaxならテンプレート出力しない
     if ($i_mode == 'ajax') return;
 
-    // include script
+    // include script (highlight core/layer must load before edit.js)
+    $kona3conf['js'][] = kona3getResourceURL('edit_highlight_core.js', TRUE);
+    $kona3conf['js'][] = kona3getResourceURL('edit_highlight.js', TRUE);
     $kona3conf['js'][] = kona3getResourceURL('edit.js', TRUE);
     $kona3conf['css'][] = kona3getResourceURL('edit.css', TRUE);
 
