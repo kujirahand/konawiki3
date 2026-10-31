@@ -86,25 +86,32 @@ Object.defineProperty(FakeTextArea.prototype, 'value', {
 // --- globals -------------------------------------------------------------
 const store = {};
 let rafQueue = [];
-const editor = new FakeElement('div');
-const ta = new FakeTextArea();
-ta.id = 'edit_txt';
-ta._value = '* 見出し\n本文';
-editor.appendChild(ta);
-const modeSelect = new FakeElement('select');
-modeSelect.id = 'page_mode';
-modeSelect.value = 'KonaNotation';
+let current = null;
+
+function makeEditor() {
+    const editor = new FakeElement('div');
+    const ta = new FakeTextArea();
+    ta.id = 'edit_txt';
+    ta._value = '* 見出し\n本文';
+    editor.appendChild(ta);
+    const modeSelect = new FakeElement('select');
+    modeSelect.id = 'page_mode';
+    modeSelect.value = 'KonaNotation';
+    return { editor, ta, modeSelect };
+}
 
 const documentStub = new FakeElement('#document');
 documentStub.readyState = 'complete';
 documentStub.getElementById = function (id) {
-    if (id === 'edit_txt') { return ta; }
-    if (id === 'page_mode') { return modeSelect; }
+    if (!current) { return null; }
+    if (id === 'edit_txt') { return current.ta; }
+    if (id === 'page_mode') { return current.modeSelect; }
     return null;
 };
 documentStub.createElement = function (tag) { return new FakeElement(tag); };
 
-const core = require(path.join(__dirname, '..', '..', 'resource', 'edit_highlight_core.js'));
+const resourceDir = path.join(__dirname, '..', '..', 'resource');
+const core = require(path.join(resourceDir, 'edit_highlight_core.js'));
 global.window = {
     localStorage: {
         getItem: (k) => (k in store ? store[k] : null),
@@ -130,18 +137,19 @@ function flushRaf() {
     for (const fn of q) { fn(); }
 }
 
-// --- load the layer --------------------------------------------------------
-require(path.join(__dirname, '..', '..', 'resource', 'edit_highlight.js'));
-const hl = global.window.kona3EditHighlight;
+const layerPath = require.resolve(path.join(resourceDir, 'edit_highlight.js'));
+function loadLayer() {
+    delete require.cache[layerPath];
+    require(layerPath);
+    return global.window.kona3EditHighlight;
+}
+
+// --- Phase A: on by default ------------------------------------------------
+current = makeEditor();
+const { editor, ta, modeSelect } = current;
+const hl = loadLayer();
 assert.ok(hl, 'kona3EditHighlight is published');
-
-// 1. Default is OFF: nothing is wrapped.
-assert.strictEqual(hl.isEnabled(), false);
-assert.strictEqual(ta.parentNode, editor);
-
-// 2. Enable explicitly (the PR4 toggle does this; PR2 has no UI yet).
-hl.enable();
-assert.strictEqual(hl.isEnabled(), true);
+assert.strictEqual(hl.isEnabled(), true, 'highlight is ON by default');
 const wrap = ta.parentNode;
 assert.ok(wrap && wrap.classList.contains('k3hl-wrap'), 'textarea is wrapped');
 assert.ok(ta.classList.contains('k3hl-on'));
@@ -149,38 +157,37 @@ const backdrop = wrap.children.find((c) => c.classList.contains('k3hl-backdrop')
 assert.ok(backdrop, 'backdrop exists inside the wrap');
 const content = backdrop.children[0];
 assert.ok(content.innerHTML.includes('k3hl-h1'), 'initial render highlights the heading');
-assert.ok(content.innerHTML.includes('見出し'));
 
-// 3. Programmatic value change goes through the hooked setter.
+// Programmatic value change goes through the hooked setter.
 ta.value = '** 小見出し\n本文です';
 flushRaf();
 assert.ok(content.innerHTML.includes('k3hl-h2'), 'hooked value setter re-renders');
 
-// 4. input event re-renders.
+// input event re-renders.
 ta._value = 'ただの本文';
 ta.dispatch('input');
 flushRaf();
 assert.ok(!content.innerHTML.includes('k3hl-h2'), 'input event re-renders');
 
-// 5. Scroll sync.
+// Scroll sync.
 ta.scrollTop = 120;
 ta.scrollLeft = 4;
 ta.dispatch('scroll');
 assert.strictEqual(backdrop.scrollTop, 120);
 assert.strictEqual(backdrop.scrollLeft, 4);
 
-// 6. setRangeText is hooked too.
+// setRangeText is hooked too.
 ta.setRangeText('* 先頭見出し\n', 0, 0);
 flushRaf();
 assert.ok(content.innerHTML.includes('k3hl-h1'), 'setRangeText re-renders');
 
-// 7. Mode switch re-renders with Markdown rules.
+// Mode switch re-renders with Markdown rules.
 modeSelect.value = 'Markdown';
 ta.value = '# MD見出し';
 modeSelect.dispatch('change');
 assert.ok(content.innerHTML.includes('k3hl-h1'), 'mode change re-renders');
 
-// 8. Disable restores the plain textarea.
+// Disable restores the plain textarea and persists the opt-out.
 hl.disable();
 assert.strictEqual(hl.isEnabled(), false);
 assert.strictEqual(ta.parentNode, editor, 'textarea is unwrapped');
@@ -188,12 +195,16 @@ assert.ok(!ta.classList.contains('k3hl-on'));
 assert.strictEqual(Object.getOwnPropertyDescriptor(ta, 'value'), undefined,
     'value hook is removed');
 assert.strictEqual(editor.children.length, 1);
+assert.strictEqual(store['kona3_edit_highlight'], '0', 'disable persists the opt-out');
 
-// 9. localStorage flag enables on load is covered by enable() itself;
-//    here we only check the flag reader path via a fresh enable cycle.
-store['kona3_edit_highlight'] = '1';
-hl.enable();
-assert.strictEqual(hl.isEnabled(), true);
-hl.disable();
+// --- Phase B: the stored opt-out is respected on the next load -------------
+current = makeEditor();
+const hl2 = loadLayer();
+assert.strictEqual(hl2.isEnabled(), false, 'stored opt-out keeps it off');
+assert.strictEqual(current.ta.parentNode, current.editor, 'not wrapped when opted out');
+hl2.enable();
+assert.strictEqual(hl2.isEnabled(), true);
+assert.strictEqual(store['kona3_edit_highlight'], '1', 'enable persists the opt-in');
+hl2.disable();
 
 console.log('edit_highlight_dom.test.js: all tests passed');

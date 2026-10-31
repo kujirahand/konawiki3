@@ -26,6 +26,14 @@
         }
     }
 
+    function writeStorage(key, value) {
+        try {
+            window.localStorage.setItem(key, value);
+        } catch (error) {
+            // Storage may be unavailable; the runtime state still changes.
+        }
+    }
+
     function currentMode() {
         return modeSelect && modeSelect.value === 'Markdown'
             ? 'Markdown'
@@ -337,14 +345,24 @@
             return;
         }
 
-        if (readStorage(STORAGE_KEY) === '1') {
+        // On by default; only an explicit opt-out ('0') keeps it off.
+        if (readStorage(STORAGE_KEY) !== '0') {
             enable();
         }
     }
 
+    // The public API persists the choice; the internal enable/disable
+    // (also used for error recovery) must not, so a transient failure
+    // never turns the feature off for good.
     window.kona3EditHighlight = {
-        enable: enable,
-        disable: disable,
+        enable: function () {
+            writeStorage(STORAGE_KEY, '1');
+            enable();
+        },
+        disable: function () {
+            writeStorage(STORAGE_KEY, '0');
+            disable();
+        },
         isEnabled: isEnabled,
         renderNow: renderNow
     };
