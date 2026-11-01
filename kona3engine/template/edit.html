@@ -23,13 +23,13 @@
         <span id="edit_page_name">{{$page_title}}</span>
         <span id="edit_save_state" class="edit_save_state">保存済み</span>
         <span class="edit_topbar_spacer"></span>
-        <input id="temporarily_save_btn" class="pure-button button-long" disabled="true" type="button"
-          value="{{'Save temp'|lang}}">
+        <button type="button" id="temporarily_save_btn" class="pure-button edit_icon_btn" disabled="true"
+          title="{{'Save temp'|lang}}" aria-label="{{'Save temp'|lang}}">💾</button>
         <input id="save_btn" class="pure-button button-short" type="submit" value="{{'Save &amp; Show'|lang}}">
-        <input id="git_save_btn" type="button"
-          class="pure-button button-short" value="{{'Save to Repo'|lang}}"
-          {{ if !$git_enabled }} style="display: none;" {{ endif }}>
-        <button type="button" id="tools_btn" onclick="toggleEditDrawer()">ツール</button>
+        <button type="button" id="git_save_btn" class="pure-button edit_icon_btn"
+          title="{{'Save to Repo'|lang}}" aria-label="{{'Save to Repo'|lang}}"
+          {{ if !$git_enabled }} style="display: none;" {{ endif }}><svg class="edit_icon_svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></button>
+        <button type="button" id="tools_btn" class="edit_icon_btn" onclick="toggleEditDrawer()" title="ツール" aria-label="ツール">🔧</button>
       </div>
 
       {{ if $conflict_diff }}
