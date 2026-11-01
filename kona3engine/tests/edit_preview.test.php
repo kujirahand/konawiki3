@@ -32,7 +32,7 @@ test_assert(__LINE__, strpos($html_xss, '<script>alert(1)</script>') === false, 
 test_assert(__LINE__, strpos($edit_html, 'id="edit_main"') !== false, 'preview: edit.html has #edit_main (#153)');
 test_assert(__LINE__, strpos($edit_html, 'id="edit_preview"') !== false, 'preview: edit.html has #edit_preview (#153)');
 test_assert(__LINE__, strpos($edit_html, 'edit_preview_body page_body') !== false, 'preview: pane uses the page_body typography (#153)');
-test_assert(__LINE__, strpos($edit_html, 'id="preview_btn"') !== false, 'preview: statusbar has #preview_btn (#153)');
+test_assert(__LINE__, strpos($edit_html, 'id="preview_btn"') > strpos($edit_html, 'id="edit_drawer"'), 'preview: drawer has #preview_btn (#153, #365)');
 test_assert(__LINE__, strpos($edit_html, 'プレビュー並行表示') !== false, 'preview: drawer has the side-by-side item (#153)');
 
 // --- JS ---

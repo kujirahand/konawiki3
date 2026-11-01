@@ -3,6 +3,11 @@ body {
   background: var(--k3-color-bg-subtle, #f5f7fa);
 }
 
+/* 編集画面は画面一杯の高さを使うため body の余白を消す (#365) */
+body:has(#wikimessage.edit_screen) {
+  margin: 0;
+}
+
 /* 編集画面では #wikimessage の 760px カラム (kona3def.css) を外す (#153)。
    基底ルールは login/message/admin など他画面の読みやすいカラムとして残し、
    編集画面でのみ幅の制御を #wikiedit 側 (1500px / プレビュー時は全幅) に任せる。
@@ -10,15 +15,41 @@ body {
 #wikimessage.edit_screen,
 #wikimessage:has(> #wikiedit) {
   max-width: none;
+  height: 100vh;
+  height: 100dvh;
 }
 
 #wikiedit {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
   max-width: 1500px;
   margin: 0 auto;
   padding: 8px 26px 24px;
   background: var(--k3-color-bg, #ffffff);
   color: var(--k3-color-text, #1f2933);
+}
+
+#wikiedit form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+#edit_main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#edit_main .editor {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 /* プレビュー表示中は2ペインになるため、幅キャップを外して画面幅いっぱいに広げる (#153)。
@@ -107,7 +138,8 @@ body {
 textarea#edit_txt {
   box-sizing: border-box;
   width: 100%;
-  height: calc(100vh - 240px);
+  height: 100%;
+  flex: 1 1 auto;
   min-height: 320px;
   margin: 0;
   padding: 14px 16px;
@@ -118,7 +150,7 @@ textarea#edit_txt {
   caret-color: var(--k3-color-accent, #1f5fbf);
   font-size: 1em;
   line-height: 1.7em;
-  resize: vertical;
+  resize: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
@@ -258,13 +290,6 @@ textarea#edit_txt:focus {
   box-shadow: 0 0 0 2px var(--k3-color-accent-subtle, #e8f0fb);
 }
 
-#wikiedit #preview_btn {
-  padding: 5px 10px;
-  border-radius: 8px;
-  background: var(--k3-color-bg, #ffffff);
-  color: var(--k3-color-text, #1f2933);
-}
-
 #wikiedit #edit_counter,
 #wikiedit #edit_info {
   padding: 0.5%;
@@ -342,6 +367,14 @@ textarea#edit_txt:focus {
 #edit_drawer .edit_drawer_nav button:hover {
   border-color: var(--k3-color-border, #e4e7eb);
   background: var(--k3-color-accent-subtle, #e8f0fb);
+  color: var(--k3-color-text, #1f2933);
+}
+
+#edit_drawer select {
+  padding: 6px 8px;
+  border: 1px solid var(--k3-color-border, #e4e7eb);
+  border-radius: 8px;
+  background: var(--k3-color-bg, #ffffff);
   color: var(--k3-color-text, #1f2933);
 }
 
@@ -495,7 +528,12 @@ textarea#ai_input_text:focus {
   }
 
   textarea#edit_txt {
-    height: 52vh;
+    height: 100%;
+    min-height: 180px;
+  }
+
+  .k3hl-wrap {
+    min-height: 180px;
   }
 
   #edit_topbar input[type="submit"],
@@ -524,8 +562,9 @@ textarea#ai_input_text:focus {
 /* live preview (issue #153) */
 #edit_main.preview-split {
   display: flex;
+  flex-direction: row;
   gap: 12px;
-  align-items: flex-start;
+  align-items: stretch;
 }
 
 #edit_main.preview-split .editor {
@@ -545,7 +584,6 @@ textarea#ai_input_text:focus {
 #edit_main.preview-split #edit_preview {
   flex: 1 1 50%;
   min-width: 0;
-  max-height: calc(100vh - 240px);
   overflow: auto;
 }
 
@@ -554,7 +592,8 @@ textarea#ai_input_text:focus {
 }
 
 #edit_main.preview-full #edit_preview {
-  max-height: calc(100vh - 240px);
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: auto;
 }
 
@@ -701,6 +740,10 @@ textarea#ai_input_text:focus {
 
 .k3hl-wrap {
     position: relative;
+    flex: 1 1 auto;
+    /* textarea の min-height と揃え、背面層がはみ出しでずれないようにする */
+    min-height: 320px;
+    height: 100%;
 }
 
 .k3hl-backdrop {
