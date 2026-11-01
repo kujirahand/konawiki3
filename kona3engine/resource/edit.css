@@ -30,6 +30,7 @@ body {
 
 #edit_topbar {
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 10px;
   position: sticky;
@@ -66,6 +67,8 @@ body {
 }
 
 #edit_page_name {
+  flex: 0 1 auto;
+  min-width: 0;
   overflow: hidden;
   color: var(--k3-color-heading, #102a43);
   font-size: 1.05em;
@@ -79,6 +82,7 @@ body {
 }
 
 .edit_save_state {
+  flex: 0 0 auto;
   padding: 2px 12px;
   border-radius: 999px;
   background: transparent;
@@ -169,6 +173,7 @@ textarea#edit_txt:focus {
 }
 
 #wikiedit #save_btn {
+  width: auto;
   border-color: var(--k3-color-accent, #1f5fbf);
   background: var(--k3-color-accent, #1f5fbf);
   color: var(--k3-color-on-accent, #ffffff);
@@ -191,8 +196,28 @@ textarea#edit_txt:focus {
   width: 10em;
 }
 
-#wikiedit .button-long {
-  width: 16em;
+#edit_topbar input[type="submit"],
+#edit_topbar input[type="button"],
+#edit_topbar button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+#edit_topbar .edit_icon_btn {
+  flex: 0 0 auto;
+  width: 40px;
+  min-width: 40px;
+  padding: 8px 0;
+  text-align: center;
+  font-size: 1.05em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.edit_icon_btn .edit_icon_svg {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
 }
 
 #wikiedit .info {
@@ -466,7 +491,7 @@ textarea#ai_input_text:focus {
   }
 
   #edit_topbar {
-    flex-wrap: wrap;
+    gap: 6px;
   }
 
   textarea#edit_txt {
@@ -479,9 +504,20 @@ textarea#ai_input_text:focus {
     padding: 10px 12px;
   }
 
-  .edit_topbar_spacer {
-    flex-basis: 100%;
-    height: 0;
+  #edit_topbar .edit_icon_btn {
+    width: 40px;
+    padding: 8px 0;
+  }
+
+  /* 狭幅では保存状態は色ドットだけにする (未保存=警告色はそのまま伝わる) */
+  .edit_save_state {
+    font-size: 0;
+    padding: 2px 4px;
+  }
+
+  .edit_save_state::before {
+    font-size: 14px;
+    margin-right: 0;
   }
 }
 
