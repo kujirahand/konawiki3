@@ -84,7 +84,7 @@ test_assert(__LINE__, strpos($edit_template, '{{$ai_edit_conf_url}}') !== FALSE,
 test_assert(__LINE__, strpos($edit_template, '{{\'Edit AI Config\' | lang}}') !== FALSE, "AI編集画面: AI設定編集リンクの文言が翻訳キーを使う");
 test_assert(__LINE__, strpos($edit_template, 'https://kujirahand.com/konawiki3/index.php?AI') !== FALSE, "AI編集画面: AIヘルプリンクが表示される");
 test_assert(__LINE__, strpos($edit_template, 'target="_blank"') !== FALSE, "AI編集画面: AIヘルプリンクは新規ウィンドウで開く");
-test_assert(__LINE__, strpos($edit_template, '>？</a>') !== FALSE, "AI編集画面: AIヘルプリンクは疑問符で表示される");
+test_assert(__LINE__, strpos($edit_template, '>?</a>') !== FALSE, "AI編集画面: AIヘルプリンクは疑問符で表示される");
 test_assert(__LINE__, strpos($edit_template, 'id="editor_shortcut_temp_save"') !== FALSE, "編集画面: 一時保存ショートカット設定をJSへ渡す");
 test_assert(__LINE__, strpos($edit_template, 'id="editor_shortcut_new"') !== FALSE, "編集画面: 新規ショートカット設定をJSへ渡す");
 test_assert(__LINE__, strpos($edit_template, '{{$editor_shortcut_temp_save}}') !== FALSE, "編集画面: 一時保存ショートカットをヘルプに表示する");

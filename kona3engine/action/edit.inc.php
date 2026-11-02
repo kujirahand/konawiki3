@@ -154,8 +154,16 @@ function kona3_action_edit()
     $ai_edit_template_url = kona3getPageURL($page, "edit", "", "q=ai_edit_template&edit_token=$edit_token");
     $ai_edit_conf_url = kona3getPageURL($page, "editConf") . "#conf_category_AI";
     $ai_actions = [];
+    $ai_actions_doc = []; // 本文全体・カーソル位置が対象
+    $ai_actions_sel = []; // 選択範囲が対象 (#378)
     foreach (kona3edit_ai_get_actions() as $ai_action_id => $ai_action_def) {
-        $ai_actions[] = ['id' => $ai_action_id, 'label' => lang($ai_action_def['label'])];
+        $item = ['id' => $ai_action_id, 'label' => lang($ai_action_def['label'])];
+        $ai_actions[] = $item;
+        if ($ai_action_def['input'] === 'selected') {
+            $ai_actions_sel[] = $item;
+        } else {
+            $ai_actions_doc[] = $item;
+        }
     }
     $ai_user_prompts = [];
     $ai_user_file = KONA3_DIR_DATA . "/ai_prompt.md";
@@ -209,6 +217,8 @@ function kona3_action_edit()
         "ai_edit_template_url" => $ai_edit_template_url,
         "ai_edit_conf_url" => $ai_edit_conf_url,
         "ai_actions" => $ai_actions,
+        "ai_actions_doc" => $ai_actions_doc,
+        "ai_actions_sel" => $ai_actions_sel,
         "ai_user_prompts" => $ai_user_prompts,
         "editor_shortcut_temp_save" => kona3getConf('editor_shortcut_temp_save', 'Ctrl+S'),
         "editor_shortcut_new" => kona3getConf('editor_shortcut_new', 'Ctrl+Alt+N'),

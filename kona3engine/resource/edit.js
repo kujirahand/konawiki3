@@ -1560,14 +1560,6 @@ function aiButtonEnabeld(enbaled) {
     if (loaderTimerId > 0) {
       clearInterval(loaderTimerId)
     }
-    loaderCount = 0
-    loaderTimerId = setInterval(() => {
-      loaderCount++
-      const tmp = '=========='
-      let s = tmp.substring(0, loaderCount % 10) + 'abcdeABCDE'
-      s = s.substring(0, 10)
-      qq('#ai_loader').text(s)
-    }, 100)
   } else {
     qq('#ai_loader').hide()
     if (loaderTimerId > 0) {
@@ -1879,16 +1871,16 @@ function aiItemBlock(row, type, ctx) {
     html = '<div><b>' + text2html('' + (row && row['point'] ? row['point'] : '')) + '</b></div>' +
       '<div>' + text2html('' + (row && row['detail'] ? row['detail'] : '')).replace(/\n/g, '<br>') + '</div>'
     if (ng !== '' && ok !== '' && ng !== ok) {
-      html += '<div><span class="ai-ng">[?] ' + text2html(ng) + '</span><br>' +
-        '<span class="ai-ok">[v] ' + text2html(ok) + '</span></div>'
+      html += '<div class="ai_diff"><span class="ai-ng">' + text2html(ng) + '</span>' +
+        '<span class="ai-ok">' + text2html(ok) + '</span></div>'
     }
   } else {
     const data = aiNormalizeJsonRow(row)
     if (!data) { return '' }
     ng = data['ng']
     ok = data['ok']
-    html = '<div><span class="ai-ng">[?] ' + text2html(ng) + '</span><br>' +
-      '<span class="ai-ok">[v] ' + text2html(ok) + '</span></div>' +
+    html = '<div class="ai_diff"><span class="ai-ng">' + text2html(ng) + '</span>' +
+      '<span class="ai-ok">' + text2html(ok) + '</span></div>' +
       '<div>' + text2html(data['desc']) + '</div>'
   }
   aiBlockItems[id] = { kind: 'replace', ng: ng, ok: ok, group: ctx.group, done: false }

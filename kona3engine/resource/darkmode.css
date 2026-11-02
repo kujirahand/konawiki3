@@ -567,7 +567,71 @@ body.dark-theme #wikiedit #edit_info {
 }
 
 body.dark-theme #ai_output_area {
+  background-color: transparent;
+}
+
+/* AI支援パネル (#378) */
+body.dark-theme .ai_pane,
+body.dark-theme #ai_preset_dialog {
   background-color: var(--k3d-edit-bg);
+  color: var(--k3d-field-fg);
+  border-color: var(--k3d-field-border);
+}
+
+body.dark-theme .ai_pane_head {
+  background-color: var(--k3d-field-bg);
+  border-color: var(--k3d-field-border);
+}
+
+body.dark-theme .ai_result,
+body.dark-theme .ai_results_head,
+body.dark-theme .ai_dialog_head,
+body.dark-theme #ai_output:empty::before {
+  border-color: var(--k3d-field-border);
+}
+
+body.dark-theme #wikiedit .ai_tool_btn:hover {
+  background-color: var(--k3d-edit-bg);
+  border-color: var(--k3d-field-border);
+}
+
+body.dark-theme .ai_section_title,
+body.dark-theme .ai_status,
+body.dark-theme #wikiedit .ai_tool_btn,
+body.dark-theme #wikiedit .ai_text_btn {
+  color: var(--k3d-sub-fg);
+}
+
+body.dark-theme #wikiedit .ai_tool_btn,
+body.dark-theme #wikiedit .ai_text_btn,
+body.dark-theme #wikiedit #ai_preset_list button {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+body.dark-theme #wikiedit .ai_text_btn:hover {
+  background-color: transparent;
+  color: var(--k3d-link);
+}
+
+body.dark-theme #wikiedit #ai_preset_list button:hover {
+  background-color: var(--k3d-button-hover-bg);
+  color: var(--k3d-button-hover-fg);
+}
+
+body.dark-theme .ai_result_head .ai_result_title {
+  color: var(--k3d-field-fg);
+}
+
+body.dark-theme .ai_action_btn::before {
+  background-color: rgba(88, 166, 255, 0.18);
+  color: var(--k3d-link);
+}
+
+body.dark-theme #ai_rephrase_instruction {
+  background-color: var(--k3d-field-bg);
+  color: var(--k3d-field-fg);
+  border-color: var(--k3d-field-border);
 }
 
 body.dark-theme #ai_output_area .ai_block {

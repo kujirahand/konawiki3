@@ -43,7 +43,7 @@ $main_pos = strpos($edit_html, 'id="edit_main"');
 $ai_pos = strpos($edit_html, 'id="ai_div"');
 test_assert(__LINE__, $ai_pos !== false && $ai_pos > $main_pos && $ai_pos < $drawer_pos, 'panel #ai_div is inside #edit_main, outside the drawer (#378)');
 test_assert(__LINE__, strpos($edit_html, 'id="ai_close_btn"') !== false, 'AI pane has a close button (#378)');
-test_assert(__LINE__, strpos($edit_html, '<button type="button" id="ai_output_clear_btn">') !== false, 'AI clear button does not submit the form (#378)');
+test_assert(__LINE__, strpos($edit_html, '<button type="button" id="ai_output_clear_btn"') !== false, 'AI clear button does not submit the form (#378)');
 test_assert(__LINE__, strpos($edit_css, '#edit_main.ai-open') !== false, 'edit.css has the AI split layout (#378)');
 test_assert(__LINE__, strpos($edit_css, '.ai_pane') !== false, 'edit.css styles .ai_pane (#378)');
 test_assert(__LINE__, strpos($edit_js, "'#ai_div'") !== false && strpos($edit_js, "'#misc_div', '#ai_div'") === false, 'AI pane is not a toggled drawer panel (#378)');
@@ -112,3 +112,15 @@ test_assert(__LINE__, strpos($edit_html, "AI preset readable") !== false, 'prese
 test_assert(__LINE__, strpos($lang_ja, '箇条書きをやめて読みやすく') !== false, 'ja: readable preset label (#378)');
 test_assert(__LINE__, strpos($edit_js, 'function aiPresetOpen(') !== false, 'edit.js has aiPresetOpen() (#378)');
 test_assert(__LINE__, strpos($edit_html, 'class="ai_links"') < strpos($edit_html, 'id="ai_actions"'), 'template/config edit links are at the top of the AI pane (#378)');
+
+// --- AI支援パネルのレイアウト整理 (#378) ---
+$edit_src = file_get_contents($root . '/action/edit.inc.php');
+test_assert(__LINE__, strpos($edit_src, '"ai_actions_doc" => $ai_actions_doc') !== false, 'edit.inc.php passes document-scope AI actions (#378)');
+test_assert(__LINE__, strpos($edit_src, '"ai_actions_sel" => $ai_actions_sel') !== false, 'edit.inc.php passes selection-scope AI actions (#378)');
+test_assert(__LINE__, strpos($edit_html, 'class="ai_pane_head"') !== false && strpos($edit_html, 'class="ai_pane_body"') !== false, 'AI pane has a fixed header and a scrollable body (#378)');
+$sel_pos = strpos($edit_html, '{{ for $ai_actions_sel as $a }}');
+test_assert(__LINE__, $sel_pos !== false && $sel_pos > strpos($edit_html, 'id="ai_rephrase_opts"'), 'rephrase button sits under its instruction field (#378)');
+test_assert(__LINE__, strpos($edit_html, 'class="ai_spinner"') !== false, 'AI loader uses a CSS spinner (#378)');
+test_assert(__LINE__, strpos($edit_html, 'data-empty=') !== false && strpos($edit_css, '#ai_output:empty::before') !== false, 'AI results show an empty state (#378)');
+test_assert(__LINE__, strpos($edit_js, '[?] ') === false && strpos($edit_js, 'class="ai_diff"') !== false, 'AI diff shows before -> after instead of [?]/[v] (#378)');
+test_assert(__LINE__, strpos($edit_js, "abcdeABCDE") === false, 'old text loader animation removed (#378)');
