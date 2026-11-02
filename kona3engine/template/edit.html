@@ -189,19 +189,38 @@
 
       {{ if $ai_enabled }}
       <div id="ai_div" class="block2" style="display: none;">
-        <div>
-          <select id="ai_template_select"><option>{{ 'Select actions' | lang }}</option></select>
+        <div id="ai_actions">
+          {{ for $ai_actions as $a }}
+          <button type="button" data-ai-action="{{$a.id}}" onclick="aiRunAction('{{$a.id}}')">{{$a.label}}</button>
+          {{ endfor }}
+        </div>
+        <div id="ai_rephrase_opts">
+          <input type="text" id="ai_rephrase_instruction" list="ai_rephrase_presets" maxlength="200"
+            placeholder="{{'AI rephrase placeholder' | lang}}" aria-label="{{'AI Rephrase' | lang}}">
+          <datalist id="ai_rephrase_presets">
+            <option value="{{'AI rephrase default' | lang}}"></option>
+            <option value="{{'AI preset polite' | lang}}"></option>
+            <option value="{{'AI preset concise' | lang}}"></option>
+            <option value="{{'AI preset soft' | lang}}"></option>
+            <option value="{{'AI preset bullets' | lang}}"></option>
+          </datalist>
+        </div>
+        {{ if $ai_user_prompts }}
+        <div id="ai_user_actions">
+          {{ for $ai_user_prompts as $name }}
+          <button type="button" data-name="{{$name}}" onclick="aiRunUserPrompt(this.dataset.name)">{{$name}}</button>
+          {{ endfor }}
+        </div>
+        {{ endif }}
+        <div class="ai_links">
           <a href="{{$ai_edit_template_url}}" target="_new">{{'Edit AI Template' | lang}}</a>
           <a href="{{$ai_edit_conf_url}}" target="_new">{{'Edit AI Config' | lang}}</a>
           <a href="https://kujirahand.com/konawiki3/index.php?AI" target="_blank" rel="noopener">？</a>
         </div>
-        <div id="ai_input">
-          <textarea id="ai_input_text"></textarea>
-        </div>
         <div>
-          <button id="ai_ask_btn" class="pure-button button-short">{{'Ask to AI' | lang}}</button>
           <span id="ai_loader" style="display: none;"></span>
           <span id="ai_ask_cost" style="color: gray"></span>
+          <button type="button" id="ai_undo_btn" disabled>{{'AI Undo' | lang}}</button>
         </div>
         <div id="ai_output_area">
           <div id="ai_output"></div>
@@ -221,6 +240,13 @@
   <p id="locale__find">{{'Find' | lang}}</p>
   <p id="locale__copy">{{'Copy' | lang}}</p>
   <p id="locale__cancel">{{'Cancel' | lang}}</p>
+  <p id="locale__apply_all">{{'Apply all' | lang}}</p>
+  <p id="locale__insert">{{'Insert' | lang}}</p>
+  <p id="locale__select_range">{{'AI select range' | lang}}</p>
+  <p id="locale__applied_n">{{'AI applied n' | lang}}</p>
+  <p id="locale__not_found_n">{{'AI not found n' | lang}}</p>
+  <p id="locale__good_points">{{'AI Good points' | lang}}</p>
+  <p id="locale__bad_points">{{'AI Bad points' | lang}}</p>
 </div>
 
 <script src="index.php?edit_wiki.js&resource"></script>

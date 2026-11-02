@@ -102,10 +102,11 @@ test_assert(__LINE__, strpos($edit_action, '# USER_PROMPT1') !== FALSE, "AIひ�
 test_assert(__LINE__, strpos($edit_action, '# USER_PROMPT2') !== FALSE, "AIひな形新規作成: USER_PROMPT2を含める");
 
 $edit_js = file_get_contents(KONA3_DIR_ENGINE . '/resource/edit.js');
-test_assert(__LINE__, strpos($edit_js, 'function aiNormalizeJsonRow') !== FALSE, "AI結果表示: JSONキー正規化関数がある");
-test_assert(__LINE__, strpos($edit_js, "'ErrorLocation'") !== FALSE, "AI結果表示: ErrorLocationキーをngとして扱う");
-test_assert(__LINE__, strpos($edit_js, "'Correction'") !== FALSE, "AI結果表示: Correctionキーをokとして扱う");
-test_assert(__LINE__, strpos($edit_js, "'Reason'") !== FALSE, "AI結果表示: Reasonキーをdescとして扱う");
+$edit_ai_core_js = file_get_contents(KONA3_DIR_ENGINE . '/resource/edit_ai_core.js');
+test_assert(__LINE__, strpos($edit_ai_core_js, 'function aiNormalizeJsonRow') !== FALSE, "AI結果表示: JSONキー正規化関数がある");
+test_assert(__LINE__, strpos($edit_ai_core_js, "'ErrorLocation'") !== FALSE, "AI結果表示: ErrorLocationキーをngとして扱う");
+test_assert(__LINE__, strpos($edit_ai_core_js, "'Correction'") !== FALSE, "AI結果表示: Correctionキーをokとして扱う");
+test_assert(__LINE__, strpos($edit_ai_core_js, "'Reason'") !== FALSE, "AI結果表示: Reasonキーをdescとして扱う");
 test_assert(__LINE__, strpos($edit_js, "getShortcutValue('editor_shortcut_temp_save')") !== FALSE, "編集ショートカット: 一時保存は設定値を使う");
 test_assert(__LINE__, strpos($edit_js, "getShortcutValue('editor_shortcut_new')") !== FALSE, "編集ショートカット: 新規は設定値を使う");
 test_assert(__LINE__, strpos($edit_js, "Boolean(e.altKey) !== wantsAlt") !== FALSE, "AIショートカット: 余分なAltキーを許可しない");
@@ -113,11 +114,9 @@ test_assert(__LINE__, strpos($edit_js, "Boolean(e.shiftKey) !== wantsShift") !==
 test_assert(__LINE__, strpos($edit_js, "if (wantsCtrl && wantsMeta)") !== FALSE, "AIショートカット: CtrlとMetaの同時指定は無効にする");
 test_assert(__LINE__, strpos($edit_js, "if (e.ctrlKey && e.metaKey)") !== FALSE, "AIショートカット: Ctrl代替のCmdとCtrlの同時押しは許可しない");
 
-$ja_ai_prompt = file_get_contents(KONA3_DIR_ENGINE . '/lang/ja-ai_prompt.md');
-test_assert(__LINE__, strpos($ja_ai_prompt, '# 言い換え(置換候補)') !== FALSE, "AI標準ひな形: 言い換え置換候補がある");
-test_assert(__LINE__, strpos($ja_ai_prompt, '"ng": "…ここに言い換え前の文章…"') !== FALSE, "AI標準ひな形: 言い換え置換候補はngキーを使う");
-test_assert(__LINE__, strpos($ja_ai_prompt, '"ok": "…ここに言い換え後の文章…"') !== FALSE, "AI標準ひな形: 言い換え置換候補はokキーを使う");
-test_assert(__LINE__, strpos($ja_ai_prompt, '"desc": "…ここに言い換えの理由…"') !== FALSE, "AI標準ひな形: 言い換え置換候補はdescキーを使う");
+$ja_rephrase_prompt = file_get_contents(KONA3_DIR_ENGINE . '/template/prompt/ja/rephrase.md');
+test_assert(__LINE__, strpos($ja_rephrase_prompt, '__INSTRUCTION__') !== FALSE, "AI標準プロンプト: 言い換えは指示の差し込み変数を持つ");
+test_assert(__LINE__, strpos($ja_rephrase_prompt, '__TEXT__') !== FALSE, "AI標準プロンプト: 言い換えは対象テキストの差し込み変数を持つ");
 
 if ($old_provider === null) {
     unset($kona3conf['openai_provider']);
