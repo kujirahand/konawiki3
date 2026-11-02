@@ -118,6 +118,13 @@ $ja_rephrase_prompt = file_get_contents(KONA3_DIR_ENGINE . '/template/prompt/ja/
 test_assert(__LINE__, strpos($ja_rephrase_prompt, '__INSTRUCTION__') !== FALSE, "AI標準プロンプト: 言い換えは指示の差し込み変数を持つ");
 test_assert(__LINE__, strpos($ja_rephrase_prompt, '__TEXT__') !== FALSE, "AI標準プロンプト: 言い換えは対象テキストの差し込み変数を持つ");
 
+$ai_post_start = strpos($edit_js, 'function aiPost');
+$ai_post_end = strpos($edit_js, 'function aiInsertDirect');
+$ai_post_body = ($ai_post_start !== FALSE && $ai_post_end !== FALSE) ? substr($edit_js, $ai_post_start, $ai_post_end - $ai_post_start) : '';
+test_assert(__LINE__, $ai_post_body !== '', "AI実行: aiPost関数の範囲を取得できる (#364)");
+test_assert(__LINE__, strpos($ai_post_body, "showOnlyPanel('#ai_div', true)") !== FALSE, "AI実行: 結果表示時にAIパネルを強制表示する (#364)");
+test_assert(__LINE__, strpos($ai_post_body, "openToolPanel('#ai_div')") === FALSE, "AI実行: トグル動作のopenToolPanelでパネルを閉じない (#364)");
+
 if ($old_provider === null) {
     unset($kona3conf['openai_provider']);
 } else {
