@@ -1513,9 +1513,15 @@ function aiOnClick() {
   openToolPanel('#ai_div')
 }
 
+// AIパネルを(トグルせず)必ず表示する
+function aiShowPanel() {
+  openEditDrawer()
+  showOnlyPanel('#ai_div', true)
+}
+
 function aiSpellCheckOnClick() {
   if (!qs('#ai_actions')) { return }
-  openToolPanel('#ai_div')
+  aiShowPanel()
   aiRunAction('proofread')
 }
 
@@ -1664,7 +1670,7 @@ function aiPost(params, ctx) {
   }
   Object.keys(params).forEach(function (k) { post[k] = params[k] })
   // make the result area visible even when the panel is not open yet
-  if (!ctx.direct) { openToolPanel('#ai_div') }
+  if (!ctx.direct) { aiShowPanel() }
   aiButtonEnabeld(false)
   qq().post(qq(form).attr('action'), post)
     .done(function (obj) {

@@ -172,6 +172,11 @@ foreach (['function aiRunAction(', 'function aiApplyAll(', 'function aiSetEditor
 foreach (["'load_template'", 'getSpellCheckPrompt', '### 指示'] as $needle) {
     test_assert(__LINE__, strpos($js, $needle) === false, "edit.js に {$needle} が無い");
 }
+// AIパネルが実行直後に閉じない (#375)
+test_assert(__LINE__, strpos($js, 'function aiShowPanel(') !== false, "edit.js に function aiShowPanel(");
+test_assert(__LINE__, strpos($js, "showOnlyPanel('#ai_div', true)") !== false, "edit.js に showOnlyPanel('#ai_div', true)");
+test_assert(__LINE__, strpos($js, 'if (!ctx.direct) { aiShowPanel() }') !== false, "aiPost は aiShowPanel() を呼ぶ");
+test_eq(__LINE__, substr_count($js, "openToolPanel('#ai_div')"), 1, "openToolPanel('#ai_div') は aiOnClick の1回のみ");
 $core_file = KONA3_DIR_ENGINE . '/resource/edit_ai_core.js';
 test_assert(__LINE__, file_exists($core_file), "edit_ai_core.js が存在する");
 $core = file_exists($core_file) ? file_get_contents($core_file) : '';
