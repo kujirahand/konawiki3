@@ -131,6 +131,7 @@ function kona3_action_edit()
     // include script (highlight core/layer must load before edit.js)
     $kona3conf['js'][] = kona3getResourceURL('edit_highlight_core.js', TRUE);
     $kona3conf['js'][] = kona3getResourceURL('edit_highlight.js', TRUE);
+    $kona3conf['js'][] = kona3getResourceURL('edit_ai_core.js', TRUE);
     $kona3conf['js'][] = kona3getResourceURL('edit.js', TRUE);
     $kona3conf['css'][] = kona3getResourceURL('edit.css', TRUE);
 
@@ -152,6 +153,15 @@ function kona3_action_edit()
     $ai_enabled = $ai_settings['enabled'];
     $ai_edit_template_url = kona3getPageURL($page, "edit", "", "q=ai_edit_template&edit_token=$edit_token");
     $ai_edit_conf_url = kona3getPageURL($page, "editConf") . "#conf_category_AI";
+    $ai_actions = [];
+    foreach (kona3edit_ai_get_actions() as $ai_action_id => $ai_action_def) {
+        $ai_actions[] = ['id' => $ai_action_id, 'label' => lang($ai_action_def['label'])];
+    }
+    $ai_user_prompts = [];
+    $ai_user_file = KONA3_DIR_DATA . "/ai_prompt.md";
+    if (file_exists($ai_user_file)) {
+        $ai_user_prompts = array_keys(kona3edit_ai_parse_user_prompts((string)@file_get_contents($ai_user_file)));
+    }
 
     // page_mode
     $page_mode = (is_array($meta) && isset($meta['mode'])) ? $meta['mode'] : '';
@@ -198,6 +208,8 @@ function kona3_action_edit()
         "ai_provider" => $ai_provider,
         "ai_edit_template_url" => $ai_edit_template_url,
         "ai_edit_conf_url" => $ai_edit_conf_url,
+        "ai_actions" => $ai_actions,
+        "ai_user_prompts" => $ai_user_prompts,
         "editor_shortcut_temp_save" => kona3getConf('editor_shortcut_temp_save', 'Ctrl+S'),
         "editor_shortcut_new" => kona3getConf('editor_shortcut_new', 'Ctrl+Alt+N'),
         "editor_highlight_default" => kona3getConf('editor_highlight_default', TRUE) ? '1' : '0',
@@ -981,14 +993,13 @@ function kona3edit_ai_ajax($page)
         return;
     }
     $a_mode = kona3param('a_mode', '');
-    // ask mode
-    if ($a_mode == 'ask') {
-        kona3edit_ai_ask($apikey, $ai_provider);
-        return;
-    }
-    // load_template
-    if ($a_mode == 'load_template') {
-        kona3edit_ai_load_template();
+    // run mode (プロンプトはサーバー側で組み立てる)
+    if ($a_mode == 'run') {
+        $params = [];
+        foreach (['ai_action', 'ai_text', 'ai_selected', 'ai_before', 'ai_instruction', 'ai_user_prompt', 'ai_model'] as $key) {
+            $params[$key] = (string)kona3param($key, '');
+        }
+        echo json_encode(kona3edit_ai_run($apikey, $ai_provider, $params));
         return;
     }
     // invalid mode
@@ -998,26 +1009,295 @@ function kona3edit_ai_ajax($page)
     ));
 }
 
-function kona3edit_ai_load_template()
+// AI機能の定義 (ホワイトリスト)。キーが機能ID = プロンプトファイル名
+function kona3edit_ai_get_actions()
 {
-    // read wiki data (ai_prompt)
-    // read user defined
-    $prompt_file = KONA3_DIR_DATA . "/ai_prompt.md";
-    $prompt = file_exists($prompt_file) ? @file_get_contents($prompt_file) : '';
-    // read system defined
-    $lang = kona3getLangCode();
-    $prompt_file = KONA3_DIR_ENGINE . "/lang/{$lang}-ai_prompt.md";
-    if (file_exists($prompt_file)) {
-        $promptSys = file_get_contents($prompt_file);
-        if ($promptSys != '') {
-            $prompt .= $promptSys;
+    return [
+        'proofread' => ['label' => 'AI Proofread', 'input' => 'all',      'output' => 'replace_list'],
+        'rephrase'  => ['label' => 'AI Rephrase',  'input' => 'selected', 'output' => 'candidates'],
+        'append'    => ['label' => 'AI Append',    'input' => 'before',   'output' => 'text'],
+        'quality'   => ['label' => 'AI Quality',   'input' => 'all',      'output' => 'quality'],
+        'improve'   => ['label' => 'AI Improve',   'input' => 'all',      'output' => 'suggestions'],
+    ];
+}
+
+// template/prompt/{lang}/{action}.md を読み込む。無い言語は en → ja にフォールバック
+function kona3edit_ai_load_prompt($action, $lang)
+{
+    if (!is_string($action) || !preg_match('/^[a-z_]+$/', $action)) {
+        return FALSE;
+    }
+    if (!array_key_exists($action, kona3edit_ai_get_actions())) {
+        return FALSE;
+    }
+    if (!is_string($lang) || !preg_match('/^[a-z]+$/', $lang)) {
+        $lang = 'en';
+    }
+    foreach (array_unique([$lang, 'en', 'ja']) as $code) {
+        $file = KONA3_DIR_ENGINE . "/template/prompt/{$code}/{$action}.md";
+        if (!is_file($file)) {
+            continue;
+        }
+        $prompt = @file_get_contents($file);
+        if ($prompt !== FALSE && trim($prompt) !== '') {
+            return $prompt;
         }
     }
-    //
-    echo json_encode([
-        'result' => 'ok',
-        'message' => $prompt,
+    return FALSE;
+}
+
+// プロンプトの置換変数を展開する
+// $vars のキー: text, text_selected, text_before, instruction
+function kona3edit_ai_build_prompt($template, $vars)
+{
+    $fence = function ($s) {
+        $s = str_replace('```', '\\`\\`\\`', (string)$s);
+        return "```\n" . $s . "\n```";
+    };
+    $get = function ($key) use ($vars) {
+        return isset($vars[$key]) ? (string)$vars[$key] : '';
+    };
+    $instruction = trim(preg_replace('/\s*[\r\n]+\s*/u', ' ', $get('instruction')));
+    $instruction = trim(mb_substr($instruction, 0, 200));
+    if ($instruction === '') {
+        $instruction = lang('AI rephrase default');
+    }
+    // strtr は1回の走査で置換するので、本文中の __TEXT__ 等が再展開されることはない
+    return strtr($template, [
+        '__TEXT_SELECTED__' => $fence($get('text_selected')),
+        '__TEXT_BEFORE__' => $fence($get('text_before')),
+        '__TEXT__' => $fence($get('text')),
+        '__INSTRUCTION__' => $instruction,
     ]);
+}
+
+// data/ai_prompt.md を解析する ('# 名前' 〜 '-----')。['名前' => '本文', ...]
+function kona3edit_ai_parse_user_prompts($text)
+{
+    $text = str_replace(["\r\n", "\r"], "\n", (string)$text);
+    $result = [];
+    foreach (preg_split('/^-{5,}[ \t]*$/m', $text) as $chunk) {
+        $chunk = trim($chunk, "\n");
+        if (!preg_match('/^#[ \t]+(.+?)[ \t]*(?:\n|$)/', ltrim($chunk, "\n"), $m)) {
+            continue;
+        }
+        $name = $m[1];
+        $body = trim(substr(ltrim($chunk, "\n"), strlen($m[0])));
+        if ($body === '' || isset($result[$name])) {
+            continue;
+        }
+        $result[$name] = $body;
+    }
+    return $result;
+}
+
+// AIの応答からJSON(配列/オブジェクト)を取り出す。失敗時は null
+function kona3edit_ai_extract_json($msg)
+{
+    $msg = trim((string)$msg);
+    $candidates = [];
+    if (preg_match('/```[ \t]*(?:json)?[ \t]*\n?(.*?)```/si', $msg, $m)) {
+        $candidates[] = trim($m[1]);
+    }
+    $candidates[] = $msg;
+    if (preg_match('/(\[.*\]|\{.*\})/s', $msg, $m)) {
+        $candidates[] = $m[1];
+    }
+    foreach ($candidates as $code) {
+        if ($code === '') {
+            continue;
+        }
+        $data = json_decode($code, TRUE);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($data)) {
+            return $data;
+        }
+    }
+    return null;
+}
+
+// 行の別名キーを ng/ok/desc に正規化する (edit_ai_core.js の aiNormalizeJsonRow と同じ別名)
+// 空の判定は呼び出し側で行う。配列でなければ null
+function kona3edit_ai_normalize_row($row)
+{
+    if (!is_array($row)) {
+        return null;
+    }
+    $pick = function ($keys) use ($row) {
+        foreach ($keys as $key) {
+            if (isset($row[$key]) && !is_array($row[$key])) {
+                return (string)$row[$key];
+            }
+        }
+        return '';
+    };
+    return [
+        'ng' => $pick(['ng', 'before', 'old', 'original', 'source', 'ErrorLocation', 'error', '誤り', '修正前', '対象']),
+        'ok' => $pick(['ok', 'after', 'new', 'replacement', 'Correction', 'correction', '修正', '修正後', '言い換え']),
+        'desc' => $pick(['desc', 'description', 'Reason', 'reason', '理由', '説明']),
+    ];
+}
+
+// 文字列配列へ正規化
+function kona3edit_ai_to_string_list($v)
+{
+    if (is_string($v)) {
+        $v = trim($v) === '' ? [] : [$v];
+    }
+    if (!is_array($v)) {
+        return [];
+    }
+    $list = [];
+    foreach ($v as $item) {
+        if (is_scalar($item) && trim((string)$item) !== '') {
+            $list[] = (string)$item;
+        }
+    }
+    return $list;
+}
+
+// AIの応答を出力契約 (type + items|text|quality) へ正規化する
+// $output: replace_list / candidates / text / quality / suggestions / user
+function kona3edit_ai_parse_result($output, $msg)
+{
+    $text_result = ['type' => 'text', 'text' => trim((string)$msg)];
+    if ($output === 'text') {
+        return $text_result;
+    }
+    $data = kona3edit_ai_extract_json($msg);
+    if ($data === null) {
+        return $text_result;
+    }
+    if ($output === 'quality') {
+        if (array_values($data) === $data) { // オブジェクトではない
+            return $text_result;
+        }
+        $score = isset($data['score']) && is_numeric($data['score']) ? intval($data['score']) : 0;
+        return ['type' => 'quality', 'quality' => [
+            'score' => max(0, min(100, $score)),
+            'summary' => isset($data['summary']) && is_scalar($data['summary']) ? trim((string)$data['summary']) : '',
+            'good' => kona3edit_ai_to_string_list(isset($data['good']) ? $data['good'] : []),
+            'bad' => kona3edit_ai_to_string_list(isset($data['bad']) ? $data['bad'] : []),
+        ]];
+    }
+    // 以降は行の配列。単一オブジェクトなら1行として扱う
+    $rows = (array_values($data) === $data) ? $data : [$data];
+    $items = [];
+    if ($output === 'suggestions') {
+        foreach ($rows as $row) {
+            $n = kona3edit_ai_normalize_row($row);
+            if ($n === null) {
+                continue;
+            }
+            $point = '';
+            foreach (['point', 'title', 'suggestion', '改善点'] as $key) {
+                if (isset($row[$key]) && is_scalar($row[$key])) {
+                    $point = (string)$row[$key];
+                    break;
+                }
+            }
+            $detail = '';
+            foreach (['detail', 'details', 'desc', 'description', 'reason', '詳細', '説明'] as $key) {
+                if (isset($row[$key]) && is_scalar($row[$key])) {
+                    $detail = (string)$row[$key];
+                    break;
+                }
+            }
+            if ($point === '' && $detail === '') {
+                continue;
+            }
+            $items[] = ['point' => $point, 'detail' => $detail, 'ng' => $n['ng'], 'ok' => $n['ok']];
+        }
+        return ['type' => 'suggestions', 'items' => $items];
+    }
+    if ($output === 'candidates') {
+        foreach ($rows as $row) {
+            $n = kona3edit_ai_normalize_row($row);
+            if ($n === null || $n['ok'] === '') {
+                continue;
+            }
+            $items[] = ['ok' => $n['ok'], 'desc' => $n['desc']];
+        }
+        return ['type' => 'candidates', 'items' => array_slice($items, 0, 3)];
+    }
+    // replace_list / user
+    foreach ($rows as $row) {
+        $n = kona3edit_ai_normalize_row($row);
+        if ($n === null || $n['ng'] === '' || $n['ok'] === '' || $n['ng'] === $n['ok']) {
+            continue;
+        }
+        $items[] = $n;
+    }
+    if ($output === 'user' && count($items) === 0) {
+        return $text_result;
+    }
+    return ['type' => 'replace_list', 'items' => $items];
+}
+
+// AI機能を実行して結果配列を返す (echo しない)。プロンプト本文は結果に含めない
+function kona3edit_ai_run($apikey, $provider, $params, $asker = 'chatgpt_ask')
+{
+    $ng = function ($message) {
+        return ['result' => 'ng', 'message' => $message, 'token' => 0];
+    };
+    $p = function ($key) use ($params) {
+        return isset($params[$key]) ? (string)$params[$key] : '';
+    };
+    $action = $p('ai_action');
+    $text = $p('ai_text');
+    $selected = $p('ai_selected');
+    $before = $p('ai_before');
+    if (kona3edit_is_too_large($text) || kona3edit_is_too_large($selected)) {
+        return $ng('Text is too large.');
+    }
+    $before = mb_strlen($before) > 4000 ? mb_substr($before, -4000) : $before;
+    $vars = [
+        'text' => $text,
+        'text_selected' => $selected,
+        'text_before' => $before,
+        'instruction' => $p('ai_instruction'),
+    ];
+    $output = 'user';
+    if ($action === 'user') {
+        $name = $p('ai_user_prompt');
+        $user_file = KONA3_DIR_DATA . "/ai_prompt.md";
+        $user_prompts = file_exists($user_file)
+            ? kona3edit_ai_parse_user_prompts((string)@file_get_contents($user_file)) : [];
+        if ($name === '' || !isset($user_prompts[$name])) {
+            return $ng('AI template not found: ' . $name);
+        }
+        $template = $user_prompts[$name];
+        if (trim($text) === '' && trim($selected) === '') {
+            return $ng('Input text is empty.');
+        }
+        if ($vars['text_selected'] === '') {
+            $vars['text_selected'] = $text;
+        }
+    } else {
+        $actions = kona3edit_ai_get_actions();
+        if (!array_key_exists($action, $actions)) {
+            return $ng('Invalid AI action.');
+        }
+        $output = $actions[$action]['output'];
+        $input = $actions[$action]['input'];
+        $target = ($input === 'before') ? $before : $text;
+        if (trim($target) === '') {
+            return $ng('Input text is empty.');
+        }
+        $template = kona3edit_ai_load_prompt($action, kona3getLangCode());
+        if ($template === FALSE) {
+            return $ng('AI prompt not found.');
+        }
+    }
+    $prompt = kona3edit_ai_build_prompt($template, $vars);
+    $model = kona3edit_ai_get_validated_model($p('ai_model'), $provider);
+    $basic_instruction = kona3getConf('openai_api_basic_instruction', 'You are helpful AI assitant.');
+    $messages = chatgpt_messages_init($basic_instruction, $prompt);
+    list($msg, $token) = $asker($messages, $apikey, $model, 0, [], $provider, 90);
+    if ($token === 0 && strpos((string)$msg, 'Error:') === 0) {
+        return $ng($msg);
+    }
+    $result = kona3edit_ai_parse_result($output, $msg);
+    return ['result' => 'ok', 'action' => $action, 'token' => $token] + $result;
 }
 
 function kona3ai_edit_template()
@@ -1036,6 +1316,18 @@ __TEXT__
 # prompt name2
 ### Instruction:
 (prompt here)
+### Input:
+__TEXT__
+-----
+# 英語に翻訳
+### Instruction:
+Translate the following text into English. Output only the translation.
+### Input:
+__TEXT_SELECTED__
+-----
+# 要約
+### Instruction:
+Summarize the following text in a few sentences, in the same language as the text.
 ### Input:
 __TEXT__
 -----
@@ -1103,35 +1395,6 @@ function kona3edit_ai_get_validated_model($ai_model, $provider)
         }
     }
     return $ai_model;
-}
-
-function kona3edit_ai_ask($apikey, $provider = "OpenAI")
-{
-    // get input text
-    $ai_input_text = kona3param('ai_input_text', '');
-    $ai_model = kona3param('ai_model', '');
-    $ai_model = kona3edit_ai_get_validated_model($ai_model, $provider);
-    if ($ai_input_text == '') {
-        echo json_encode(array(
-            'result' => 'ng',
-            'message' => 'Input text is empty.',
-            'token' => 0,
-        ));
-        return;
-    }
-    // send to chatgpt
-    $basic_instruction = kona3getConf('openai_api_basic_instruction', 'You are helpful AI assitant.');
-    $messages = chatgpt_messages_init(
-        $basic_instruction,
-        $ai_input_text
-    );
-    list($msg, $token) = chatgpt_ask($messages, $apikey, $ai_model, 0, [], $provider);
-    // todo : tokenを数えて報告する
-    echo json_encode(array(
-        'result' => 'ok',
-        'message' => $msg,
-        'token' => $token,
-    ));
 }
 
 /**

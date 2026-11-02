@@ -116,13 +116,8 @@ function edit_init() {
     e.preventDefault()
     searchOnClick(true)
   })
-  const ai_ask_btn = qs('#ai_ask_btn')
-  if (ai_ask_btn) {
-    qq(ai_ask_btn).click(aiAskClickHandler)
-    qq('#ai_output_clear_btn').click(() => {
-      qq('#ai_output').html('')
-    })
-    loadAITemplate()
+  if (qs('#ai_actions')) {
+    aiInitPanel()
   }
   loadAutoSave()
   startKeepalive()
@@ -167,19 +162,19 @@ function edit_init() {
       e.preventDefault()
     }
     if (matchesShortcut(e, getShortcutValue('ai_shortcut_complete'))) {
-      aiCompleteAtCursor()
+      aiRunAction('append', { direct: true })
       e.preventDefault()
     }
     if (matchesShortcut(e, getShortcutValue('ai_shortcut_spellcheck'))) {
-      aiRunSpellCheckShortcut()
+      aiSpellCheckOnClick()
       e.preventDefault()
     }
     if (matchesShortcut(e, getShortcutValue('ai_shortcut_user_prompt1'))) {
-      aiRunTemplateShortcut('# USER_PROMPT1')
+      aiRunUserPrompt('USER_PROMPT1')
       e.preventDefault()
     }
     if (matchesShortcut(e, getShortcutValue('ai_shortcut_user_prompt2'))) {
-      aiRunTemplateShortcut('# USER_PROMPT2')
+      aiRunUserPrompt('USER_PROMPT2')
       e.preventDefault()
     }
   })
@@ -1519,70 +1514,20 @@ function aiOnClick() {
 }
 
 function aiSpellCheckOnClick() {
+  if (!qs('#ai_actions')) { return }
   openToolPanel('#ai_div')
-  const selectBox = document.getElementById('ai_template_select')
-  if (!selectBox) { return }
-  showDisplay('#ai_div')
-  selectOptionByValue(selectBox, '# 誤字脱字をチェック') // ja
-  selectOptionByValue(selectBox, '# Check for Typos') // en
-  // document.getElementById('ai_ask_btn')?.click();
-}
-
-function aiRunSpellCheckShortcut() {
-  aiSpellCheckOnClick()
-  const btn = document.getElementById('ai_ask_btn')
-  const input = document.getElementById('ai_input_text')
-  if (input && input.value.trim() === '') {
-    input.value = getSpellCheckPrompt()
-  }
-  if (btn && !btn.disabled) {
-    btn.click()
-  }
-}
-
-function aiRunTemplateShortcut(templateName) {
-  const selectBox = document.getElementById('ai_template_select')
-  if (!selectBox) { return }
-  showDisplay('#ai_div')
-  if (!selectOptionByValue(selectBox, templateName)) {
-    qq('#edit_info').html('AI template not found: ' + templateName)
-    return
-  }
-  const btn = document.getElementById('ai_ask_btn')
-  if (btn && !btn.disabled) {
-    btn.click()
-  }
-}
-
-function getSpellCheckPrompt() {
-  return "### 指示:\n" +
-    "あなたは文章校正の達人です。以下の入力に対して誤字脱字を指摘してください。\n" +
-    "次のJSON形式で指摘してください。\n" +
-    "```json\n" +
-    "[{\"ng\":\"…ここに誤字脱字…\",\"ok\":\"…ここに修正した内容…\",\"desc\":\"…ここに間違いの理由…\"}]\n" +
-    "```\n" +
-    "### 入力:\n" +
-    "__TEXT__\n"
-}
-
-function selectOptionByValue(selectElement, value) {
-  console.log('selectOptionByValue', selectElement, value)
-  const options = selectElement.options
-  for (let i = 0; i < options.length; i++) {
-    if (options[i].value === value) {
-      selectElement.selectedIndex = i
-      selectElement.dispatchEvent(new Event('change'))
-      return true
-    }
-  }
-  return false
+  aiRunAction('proofread')
 }
 
 var loaderTimerId = 0
 var loaderCount = 0
+var aiBusy = false
 function aiButtonEnabeld(enbaled) {
-  // button
-  qq('#ai_ask_btn').prop('disabled', !enbaled)
+  aiBusy = !enbaled
+  // buttons (prevent double execution)
+  document.querySelectorAll('#ai_actions button, #ai_user_actions button').forEach(function (b) {
+    b.disabled = !enbaled
+  })
   // loader
   if (!enbaled) {
     qq('#ai_loader').show()
@@ -1605,291 +1550,455 @@ function aiButtonEnabeld(enbaled) {
   }
 }
 
-function aiReplaceText(text) {
-  // body
-  const edit_txt = qs('#edit_txt')
-  let body = edit_txt.value
-  // seltext
-  const ai_seltext_chk = qs('#ai_seltext_chk')
-  const sel_start = edit_txt.selectionStart
-  const sel_end = edit_txt.selectionEnd
-  let body_sel = body.substring(sel_start, sel_end) // selected text
-  // replace
-  body = body.replace(/\`{3}/g, '\\`\\`\\`')
-  body_sel = body_sel.replace(/\`{3}/g, '\\`\\`\\`')
-  text = text.replace(/__TEXT__/g, '```' + body + '```')
-  text = text.replace(/__TEXT_SELECTED__/g, '```' + body_sel + '```')
-  return text
+// ---------------------------------------------------------------
+// AI panel (issue #364)
+// The prompts are built on the server; the client only sends the
+// action id and the text. DOM-independent helpers (aiApplyReplacements,
+// aiReplaceAt, ...) live in edit_ai_core.js.
+// ---------------------------------------------------------------
+const LS_KEY_AI_REPHRASE = 'kona3_ai_rephrase_instruction'
+let aiUndoBuffer = null
+
+function aiInfo(html) {
+  qq('#edit_info').html(html)
 }
 
-function aiAskClickHandler() {
-  // get prompt
-  const ai_input_text = qs('#ai_input_text')
-  let text = ai_input_text.value
-  // replace
-  text = aiReplaceText(text)
-  // trim
-  text = text.replace(/^\s/, '').replace(/\s$/, '')
-  if (text == '') {
-    aiInsertText('---')
-    return
-  }
-  // test case
-  if (text.substring(0, 3) === '@@@') {
-    aiInsertText(text.substring(3))
-    return
-  }
-  // get model
-  const ai_model_el = qs('#ai_model')
-  const ai_model = ai_model_el ? ai_model_el.value : ''
-
-  // ajax
-  aiButtonEnabeld(false)
-  var action = qq('#wikiedit form').attr('action')
-  qq().post(action,
-    {
-      'i_mode': 'ajax',
-      'edit_token': qq('#edit_token').val(),
-      'q': 'ai',
-      'ai_input_text': text,
-      'a_mode': 'ask',
-      'a_hash': qq('#a_hash').val(),
-      'ai_model': ai_model,
-    })
-    .done(function (obj) {
-      aiButtonEnabeld(true)
-      if (typeof obj !== 'object' || obj === null) {
-        aiInsertText('Error: Invalid response from server. ' + obj)
-        return
-      }
-      const msg = obj['message']
-      console.log('@@@', obj)
-      aiInsertText('' + msg)
-      const token = (obj['token'] !== undefined) ? obj['token'] : 0
-      qq('#ai_ask_cost').html(token + 'token')
-    })
-    .fail(function (error) {
-      console.error(error)
-      qq('#edit_info').html("Sorry AI request failed." + error)
-      aiButtonEnabeld(true)
-    })
+function aiLangN(id, n) {
+  return lang(id).replace('{n}', '' + n)
 }
 
-function aiCompleteAtCursor() {
+function aiInitPanel() {
+  const clearBtn = qs('#ai_output_clear_btn')
+  if (clearBtn) {
+    qq(clearBtn).click(() => {
+      qq('#ai_output').html('')
+    })
+  }
+  const undoBtn = qs('#ai_undo_btn')
+  if (undoBtn) {
+    undoBtn.addEventListener('click', aiUndo)
+  }
+  const instruction = qs('#ai_rephrase_instruction')
+  if (instruction) {
+    try {
+      instruction.value = localStorage.getItem(LS_KEY_AI_REPHRASE) || ''
+    } catch (e) { /* storage unavailable */ }
+    instruction.addEventListener('change', () => {
+      try {
+        localStorage.setItem(LS_KEY_AI_REPHRASE, instruction.value)
+      } catch (e) { /* storage unavailable */ }
+    })
+  }
+}
+
+// Run a standard AI action. opts.direct (append only): insert the result
+// at the cursor without showing it in the result area (Ctrl+Shift+H).
+function aiRunAction(action, opts) {
+  opts = opts || {}
   const edit_txt = qs('#edit_txt')
-  if (!edit_txt || !qs('#ai_ask_btn')) { return }
-  const start = edit_txt.selectionStart
-  const end = edit_txt.selectionEnd
-  const before = edit_txt.value.substring(0, start)
-  const after = edit_txt.value.substring(end)
-  const context = before.slice(-4000)
-  let prompt = "### 指示:\n"
-  prompt += "以下の入力文の続きを、文体と内容に合わせて1文だけ作成してください。\n"
-  prompt += "説明や前置きは不要です。続きを本文だけで出力してください。\n"
-  prompt += "### 入力:\n"
-  prompt += "```" + context.replace(/\`{3}/g, '\\`\\`\\`') + "```\n"
-  aiAskRaw(prompt, function (msg, token) {
-    const insertText = ('' + msg).replace(/^\s+|\s+$/g, '')
-    edit_txt.value = before + insertText + after
-    const pos = before.length + insertText.length
-    edit_txt.focus()
-    edit_txt.selectionStart = pos
-    edit_txt.selectionEnd = pos
-    handleChange(true, 'ai_complete')
-    qq('#ai_ask_cost').html(token + 'token')
+  if (!edit_txt || !qs('#ai_actions') || aiBusy) { return }
+  const body = edit_txt.value
+  const selStart = edit_txt.selectionStart
+  const selEnd = edit_txt.selectionEnd
+  const selText = body.substring(selStart, selEnd)
+  const params = { 'ai_action': action }
+  if (action === 'rephrase') {
+    if (selText === '') {
+      aiInfo(lang('locale__select_range'))
+      return
+    }
+    params['ai_text'] = selText
+    const instruction = qs('#ai_rephrase_instruction')
+    params['ai_instruction'] = instruction ? instruction.value : ''
+  } else if (action === 'append') {
+    params['ai_before'] = body.substring(0, selEnd).slice(-4000)
+  } else {
+    params['ai_text'] = body
+  }
+  const btn = document.querySelector('#ai_actions button[data-ai-action="' + action + '"]')
+  const ctx = {
+    action: action,
+    label: btn ? btn.textContent : action,
+    selStart: selStart,
+    selEnd: selEnd,
+    selText: selText,
+    direct: !!opts.direct
+  }
+  aiPost(params, ctx)
+}
+
+// Run a user defined template (data/ai_prompt.md) by name.
+function aiRunUserPrompt(name) {
+  const edit_txt = qs('#edit_txt')
+  if (!edit_txt || !qs('#ai_actions') || aiBusy) { return }
+  const body = edit_txt.value
+  const selStart = edit_txt.selectionStart
+  const selEnd = edit_txt.selectionEnd
+  const selText = body.substring(selStart, selEnd)
+  aiPost({
+    'ai_action': 'user',
+    'ai_user_prompt': name,
+    'ai_text': body,
+    'ai_selected': selText
+  }, {
+    action: 'user',
+    label: name,
+    selStart: selStart,
+    selEnd: selEnd,
+    selText: selText,
+    direct: false
   })
 }
 
-function aiAskRaw(text, callback) {
+function aiPost(params, ctx) {
   const ai_model_el = qs('#ai_model')
-  const ai_model = ai_model_el ? ai_model_el.value : ''
+  const form = qs('#wikiedit form')
+  if (!form) { return }
+  const post = {
+    'i_mode': 'ajax',
+    'edit_token': qq('#edit_token').val(),
+    'q': 'ai',
+    'a_mode': 'run',
+    'a_hash': qq('#a_hash').val(),
+    'ai_model': ai_model_el ? ai_model_el.value : ''
+  }
+  Object.keys(params).forEach(function (k) { post[k] = params[k] })
+  // make the result area visible even when the panel is not open yet
+  if (!ctx.direct) { openToolPanel('#ai_div') }
   aiButtonEnabeld(false)
-  var action = qq('#wikiedit form').attr('action')
-  qq().post(action,
-    {
-      'i_mode': 'ajax',
-      'edit_token': qq('#edit_token').val(),
-      'q': 'ai',
-      'ai_input_text': text,
-      'a_mode': 'ask',
-      'a_hash': qq('#a_hash').val(),
-      'ai_model': ai_model,
-    })
+  qq().post(qq(form).attr('action'), post)
     .done(function (obj) {
       aiButtonEnabeld(true)
       if (typeof obj !== 'object' || obj === null) {
-        aiInsertText('Error: Invalid response from server. ' + obj)
+        aiRenderResult({ result: 'ng', message: 'Error: Invalid response from server.' }, ctx)
         return
       }
-      if (obj['result'] !== 'ok') {
-        aiInsertText('' + obj['message'])
-        return
-      }
-      const msg = obj['message']
       const token = (obj['token'] !== undefined) ? obj['token'] : 0
-      callback(msg, token)
+      qq('#ai_ask_cost').html(token + 'token')
+      if (ctx.direct && obj['result'] === 'ok' && obj['type'] === 'text') {
+        aiInsertDirect(obj['text'], ctx)
+        return
+      }
+      aiRenderResult(obj, ctx)
     })
     .fail(function (error) {
       console.error(error)
-      qq('#edit_info').html("Sorry AI request failed." + error)
+      aiInfo("Sorry AI request failed." + error)
       aiButtonEnabeld(true)
     })
 }
 
+// Insert generated text right after the captured selection / cursor.
+function aiInsertDirect(text, ctx) {
+  const edit_txt = qs('#edit_txt')
+  const body = edit_txt.value
+  const insertText = ('' + text).replace(/^\s+|\s+$/g, '')
+  let pos = aiLocateRange(body, ctx.selStart, ctx.selEnd, ctx.selText)
+  if (pos < 0) {
+    pos = edit_txt.selectionEnd
+  } else {
+    pos += ctx.selText.length
+  }
+  const newText = body.substring(0, pos) + insertText + body.substring(pos)
+  const caret = pos + insertText.length
+  aiSetEditorText(newText, 'ai_append', caret, caret)
+  ctx.selStart = ctx.selEnd = caret
+  ctx.selText = ''
+}
+
+// The only way the AI changes the editor body. Keeps one undo step
+// (assigning textarea.value drops the browser's own undo history) and
+// notifies the highlight layer / preview / unsaved state.
+function aiSetEditorText(newText, reason, selStart, selEnd) {
+  const edit_txt = qs('#edit_txt')
+  if (!edit_txt) { return }
+  aiUndoBuffer = edit_txt.value
+  const undoBtn = qs('#ai_undo_btn')
+  if (undoBtn) { undoBtn.disabled = false }
+  aiWriteEditor(newText, reason, selStart, selEnd)
+}
+
+function aiWriteEditor(newText, reason, selStart, selEnd) {
+  const edit_txt = qs('#edit_txt')
+  edit_txt.value = newText
+  edit_txt.focus()
+  if (selStart !== undefined) {
+    edit_txt.setSelectionRange(selStart, selEnd === undefined ? selStart : selEnd)
+  }
+  const api = window.kona3EditHighlight
+  if (api && api.renderNow) { api.renderNow() }
+  updateSearchCount()
+  handleChange(true, reason)
+}
+
+function aiUndo() {
+  if (aiUndoBuffer === null) { return }
+  const edit_txt = qs('#edit_txt')
+  const current = edit_txt.value
+  const prev = aiUndoBuffer
+  aiUndoBuffer = current // allows redo by pressing again
+  aiWriteEditor(prev, 'ai_undo')
+}
+
+let aiGroupId = 0
 let aiBlockId = 0
 const aiBlockItems = []
-function _aiInsertText(data, isJSON = false) {
-  let old = qq('#ai_output').html()
-  let btn = ''
-  let text = ''
-  if (isJSON) {
-    // locale strings
-    const locale_replace = lang('locale__replace')
-    const lcoale_find = lang('locale__find')
-    const lcoale_copy = lang('locale__copy')
-    const lcoale_cancel = lang('locale__cancel')
-    const originalData = data
-    data = aiNormalizeJsonRow(data)
-    if (!data) {
-      _aiInsertText(JSON.stringify(originalData, null, 2), false)
-      return
-    }
-    // set block items
-    aiBlockItems[aiBlockId] = data
-    const ng = text2html(data['ng'])
-    const ok = text2html(data['ok'])
-    const desc = text2html(data['desc'])
-    text = `<div><span class="ai-ng">[?] ${ng}</span><br>` +
-      `<span class="ai-ok">[v] ${ok}</span></div>` +
-      `<div>${desc}</div>`
-    btn += `<button onclick="aiBlockReplace(${aiBlockId})">${locale_replace}</button> `
-    btn += `<button onclick="aiBlockRemove(${aiBlockId})">${lcoale_cancel}</button>`
-    btn += ' - '
-    btn += `<button onclick="aiBlockFind(${aiBlockId})">${lcoale_find}</button> `
-    btn += `<button onclick="aiBlockCopy(${aiBlockId})">${lcoale_copy}</button>`
+
+// Render one AI response as a result group at the top of #ai_output.
+function aiRenderResult(res, ctx) {
+  const out = qs('#ai_output')
+  if (!out) { return }
+  const gid = aiGroupId++
+  const group = document.createElement('div')
+  group.className = 'ai_result'
+  group.id = 'aiGroup' + gid
+  group.dataset.group = '' + gid
+  ctx.group = gid
+  const now = new Date()
+  const hh = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2)
+  let head = '<span class="ai_result_title">' + text2html('' + ctx.label) + '</span>' +
+    '<span>' + hh + '</span>'
+  let body = ''
+  let applyAll = false
+  if (!res || res['result'] !== 'ok') {
+    body = aiTextBlock('' + (res && res['message'] ? res['message'] : 'Error'))
   } else {
-    text = text2html('' + data)
-    text = text.replace(/\n/g, '<br>')
-    btn += `<button onclick="aiBlockAdd(${aiBlockId})">Add</button>`
-    btn += `<button onclick="aiBlockCopy(${aiBlockId})">Copy</button>`
-  }
-  const div =
-    `<div id="aiBlockDiv${aiBlockId}" class="ai_block">\n` +
-    `<span id="aiBlock${aiBlockId}">${text}</span>\n` +
-    `<div id="aiReplaceButtons">${btn}</div></div>\n`
-  qq('#ai_output').html(old + div)
-  aiBlockId++
-}
-
-function aiNormalizeJsonRow(row) {
-  if (typeof row !== 'object' || row === null) {
-    return null
-  }
-  const normalized = {
-    ng: aiPickJsonValue(row, ['ng', 'before', 'old', 'original', 'source', 'ErrorLocation', 'error', '誤り', '修正前', '対象']),
-    ok: aiPickJsonValue(row, ['ok', 'after', 'new', 'replacement', 'Correction', 'correction', '修正', '修正後', '言い換え']),
-    desc: aiPickJsonValue(row, ['desc', 'description', 'Reason', 'reason', '理由', '説明'])
-  }
-  if (normalized.ng === '' || normalized.ok === '') {
-    return null
-  }
-  return normalized
-}
-
-function aiPickJsonValue(row, keys) {
-  for (const key of keys) {
-    if (row[key] !== undefined && row[key] !== null) {
-      return '' + row[key]
+    if (res['token'] !== undefined) {
+      head += '<span>' + text2html(res['token'] + 'token') + '</span>'
+    }
+    const type = res['type']
+    if (type === 'replace_list' || type === 'suggestions') {
+      const items = res['items'] || []
+      let n = 0
+      items.forEach(function (row) {
+        const html = aiItemBlock(row, type, ctx)
+        if (html) {
+          body += html
+          n++
+        }
+      })
+      if (n === 0) { body = aiTextBlock(type === 'replace_list' ? '---' : '') }
+      applyAll = (type === 'replace_list' && n >= 2)
+    } else if (type === 'candidates') {
+      const items = res['items'] || []
+      items.forEach(function (row) {
+        body += aiCandidateBlock(row, ctx)
+      })
+      if (!body) { body = aiTextBlock('---') }
+    } else if (type === 'quality') {
+      body = aiQualityBlock(res['quality'] || {})
+    } else {
+      body = aiInsertBlock('' + (res['text'] !== undefined ? res['text'] : res['message']), ctx)
     }
   }
-  return ''
+  if (applyAll) {
+    head += '<button type="button" class="ai_apply_all" onclick="aiApplyAll(' + gid + ')">' +
+      text2html(lang('locale__apply_all')) + '</button>'
+  }
+  group.innerHTML = '<div class="ai_result_head">' + head + '</div>' + body
+  out.insertBefore(group, out.firstChild)
 }
 
-function aiInsertText(text) {
-  // 戻り値がJSONの場合
-  if (text.indexOf('```') >= 0) {
-    text = text.replace('```json', '```')
-    const code = text.split('```')[1]
-    try {
-      const data = JSON.parse(code)
-      for (let row of data) {
-        _aiInsertText(row, true)
-      }
-      return
-    } catch (err) {
-      console.error('aiInsertText: JSON parse error', err)
+function aiTextBlock(text) {
+  return '<div class="ai_block"><span>' + text2html(text).replace(/\n/g, '<br>') + '</span></div>\n'
+}
+
+function aiButton(fn, id, label) {
+  return '<button type="button" onclick="' + fn + '(' + id + ')">' + label + '</button> '
+}
+
+// replace_list / suggestions row
+function aiItemBlock(row, type, ctx) {
+  let ng = ''
+  let ok = ''
+  let html = ''
+  let btn = ''
+  const id = aiBlockId++
+  if (type === 'suggestions') {
+    ng = row && row['ng'] ? '' + row['ng'] : ''
+    ok = row && row['ok'] ? '' + row['ok'] : ''
+    html = '<div><b>' + text2html('' + (row && row['point'] ? row['point'] : '')) + '</b></div>' +
+      '<div>' + text2html('' + (row && row['detail'] ? row['detail'] : '')).replace(/\n/g, '<br>') + '</div>'
+    if (ng !== '' && ok !== '' && ng !== ok) {
+      html += '<div><span class="ai-ng">[?] ' + text2html(ng) + '</span><br>' +
+        '<span class="ai-ok">[v] ' + text2html(ok) + '</span></div>'
     }
+  } else {
+    const data = aiNormalizeJsonRow(row)
+    if (!data) { return '' }
+    ng = data['ng']
+    ok = data['ok']
+    html = '<div><span class="ai-ng">[?] ' + text2html(ng) + '</span><br>' +
+      '<span class="ai-ok">[v] ' + text2html(ok) + '</span></div>' +
+      '<div>' + text2html(data['desc']) + '</div>'
   }
-  // テキストの場合
-  _aiInsertText(text, false)
+  aiBlockItems[id] = { kind: 'replace', ng: ng, ok: ok, group: ctx.group, done: false }
+  if (ng !== '' && ok !== '' && ng !== ok) {
+    btn += aiButton('aiBlockReplace', id, lang('locale__replace'))
+    btn += aiButton('aiBlockRemove', id, lang('locale__cancel'))
+    btn += ' - '
+    btn += aiButton('aiBlockFind', id, lang('locale__find'))
+    btn += aiButton('aiBlockCopy', id, lang('locale__copy'))
+  } else {
+    aiBlockItems[id].done = true
+  }
+  return '<div id="aiBlockDiv' + id + '" class="ai_block" data-id="' + id + '">\n' +
+    '<span id="aiBlock' + id + '">' + html + '</span>\n' +
+    (btn ? '<div class="aiReplaceButtons">' + btn + '</div>' : '') + '</div>\n'
+}
+
+// rephrase candidate: replaces the captured selection
+function aiCandidateBlock(row, ctx) {
+  const data = aiNormalizeJsonRow({ ng: ctx.selText, ok: row && row['ok'], desc: row && row['desc'] })
+  if (!data) { return '' }
+  const id = aiBlockId++
+  aiBlockItems[id] = { kind: 'candidate', ng: ctx.selText, ok: data['ok'], ctx: ctx, group: ctx.group, done: false }
+  let btn = aiButton('aiBlockReplace', id, lang('locale__replace'))
+  btn += aiButton('aiBlockCopy', id, lang('locale__copy'))
+  return '<div id="aiBlockDiv' + id + '" class="ai_block" data-id="' + id + '">\n' +
+    '<div id="aiBlock' + id + '"><span class="ai-ok">' + text2html(data['ok']).replace(/\n/g, '<br>') + '</span></div>' +
+    '<div>' + text2html(data['desc']) + '</div>\n' +
+    '<div class="aiReplaceButtons">' + btn + '</div></div>\n'
+}
+
+// append result: insert right after the captured selection
+function aiInsertBlock(text, ctx) {
+  const id = aiBlockId++
+  const t = text.replace(/^\s+|\s+$/g, '')
+  aiBlockItems[id] = { kind: 'insert', ok: t, ctx: ctx, group: ctx.group, done: false }
+  let btn = ''
+  if (ctx.action === 'append') {
+    btn += aiButton('aiBlockInsert', id, lang('locale__insert'))
+  } else {
+    btn += aiButton('aiBlockAdd', id, lang('locale__insert'))
+  }
+  btn += aiButton('aiBlockCopy', id, lang('locale__copy'))
+  return '<div id="aiBlockDiv' + id + '" class="ai_block" data-id="' + id + '">\n' +
+    '<span id="aiBlock' + id + '">' + text2html(t).replace(/\n/g, '<br>') + '</span>\n' +
+    '<div class="aiReplaceButtons">' + btn + '</div></div>\n'
+}
+
+function aiQualityBlock(q) {
+  const score = parseInt(q['score'], 10)
+  const list = function (arr) {
+    if (!Array.isArray(arr) || arr.length === 0) { return '' }
+    return '<ul class="ai_quality_list">' + arr.map(function (s) {
+      return '<li>' + text2html('' + s) + '</li>'
+    }).join('') + '</ul>'
+  }
+  let html = '<div class="ai_block">'
+  html += '<div class="ai_quality_score">' + (isNaN(score) ? '-' : score) + ' / 100</div>'
+  html += '<div>' + text2html('' + (q['summary'] || '')).replace(/\n/g, '<br>') + '</div>'
+  const good = list(q['good'])
+  const bad = list(q['bad'])
+  if (good) { html += '<div><b>' + text2html(lang('locale__good_points')) + '</b>' + good + '</div>' }
+  if (bad) { html += '<div><b>' + text2html(lang('locale__bad_points')) + '</b>' + bad + '</div>' }
+  return html + '</div>\n'
+}
+
+// Apply every remaining candidate of a result group at once.
+function aiApplyAll(gid) {
+  const targets = []
+  aiBlockItems.forEach(function (it, id) {
+    if (it && it.kind === 'replace' && it.group === gid && !it.done) {
+      targets.push(id)
+    }
+  })
+  if (targets.length === 0) { return }
+  const edit_txt = qs('#edit_txt')
+  const body = edit_txt.value
+  const items = targets.map(function (id) { return aiBlockItems[id] })
+  const r = aiApplyReplacements(body, items)
+  if (r.applied.length > 0) {
+    aiSetEditorText(r.text, 'ai_apply_all')
+  }
+  r.applied.forEach(function (i) {
+    const id = targets[i]
+    aiBlockItems[id].done = true
+    const block = qs('#aiBlockDiv' + id)
+    if (block) { block.remove() }
+  })
+  r.notFound.forEach(function (i) {
+    const block = qs('#aiBlockDiv' + targets[i])
+    if (block) { block.classList.add('not_found') }
+  })
+  aiInfo(aiLangN('locale__applied_n', r.applied.length) + ' / ' +
+    aiLangN('locale__not_found_n', r.notFound.length))
+  if (r.notFound.length === 0) {
+    const btn = document.querySelector('#aiGroup' + gid + ' .ai_apply_all')
+    if (btn) { btn.remove() }
+  }
 }
 
 function aiBlockAdd(id) {
-  const text = qq('#aiBlock' + id).text()
+  const it = aiBlockItems[id]
+  if (!it) { return }
   const edit_txt = qs('#edit_txt')
+  const body = edit_txt.value
   const start = edit_txt.selectionStart
   const end = edit_txt.selectionEnd
-  edit_txt.value = edit_txt.value.substring(0, start) + text + edit_txt.value.substring(end)
-  const pos = start + text.length
-  edit_txt.focus()
-  edit_txt.selectionStart = pos
-  edit_txt.selectionEnd = pos
-  handleChange(true, 'ai_block_add')
+  const pos = start + it.ok.length
+  aiSetEditorText(body.substring(0, start) + it.ok + body.substring(end), 'ai_block_add', pos, pos)
+}
+
+function aiBlockInsert(id) {
+  const it = aiBlockItems[id]
+  if (!it) { return }
+  aiInsertDirect(it.ok, it.ctx)
 }
 
 function aiBlockCopy(id) {
-  const text = qq('#aiBlock' + id).text()
-  copyToClipboard(text)
+  const it = aiBlockItems[id]
+  copyToClipboard(it ? it.ok : qq('#aiBlock' + id).text())
 }
 
 function aiBlockFind(id) {
-  const obj = aiBlockItems[id]
-  const ng = obj['ng']
-  const ok = obj['ok']
-  if (ng === undefined || ok === undefined) {
-    console.error('aiBlockReplace: ng or ok is undefined')
-    return
-  }
-  const edit_txt = qq('#edit_txt').val()
-  const start = edit_txt.indexOf(ng)
-  const end = start + ng.length
-  qq('#edit_txt').focus()
+  const it = aiBlockItems[id]
+  if (!it || !it.ng) { return }
+  const edit_txt = qs('#edit_txt')
+  const start = edit_txt.value.indexOf(it.ng)
+  edit_txt.focus()
   if (start >= 0) {
-    qq('#edit_txt').prop('selectionStart', start).prop('selectionEnd', end)
+    edit_txt.setSelectionRange(start, start + it.ng.length)
+  } else {
+    aiMarkNotFound(id)
   }
+}
+
+function aiMarkNotFound(id) {
+  const block = qs('#aiBlockDiv' + id)
+  if (block) { block.classList.add('not_found') }
+  aiInfo(lang('locale__not_found') + ' ' + text2html(aiBlockItems[id].ng))
 }
 
 function aiBlockReplace(id) {
-  const obj = aiBlockItems[id]
-  const ng = obj['ng']
-  const ok = obj['ok']
-  if (ng === undefined || ok === undefined) {
-    console.error('aiBlockReplace: ng or ok is undefined')
+  const it = aiBlockItems[id]
+  if (!it || it.ok === undefined) { return }
+  const edit_txt = qs('#edit_txt')
+  const body = edit_txt.value
+  if (it.kind === 'candidate') {
+    // the captured selection (kept up to date so candidates can be swapped)
+    const c = it.ctx
+    const newText = aiReplaceAt(body, c.selStart, c.selEnd, c.selText, it.ok)
+    if (newText === null) { aiMarkNotFound(id); return }
+    const pos = aiLocateRange(body, c.selStart, c.selEnd, c.selText)
+    aiSetEditorText(newText, 'ai_block_replace', pos, pos + it.ok.length)
+    c.selStart = pos
+    c.selEnd = pos + it.ok.length
+    c.selText = it.ok
     return
   }
-  let edit_txt = qq('#edit_txt').val()
-  // edit_txt = edit_txt.split(ng).join(ok);
-  const start = edit_txt.indexOf(ng)
-  const old_text = edit_txt
-  edit_txt = edit_txt.replace(ng, ok) // 一度だけ置換
-  const end = start + ok.length
-  qq('#edit_txt').val(edit_txt)
-  qq('#edit_txt').focus()
-  if (start >= 0) {
-    qq('#edit_txt').prop('selectionStart', start).prop('selectionEnd', end)
-  }
-  if (old_text === edit_txt) {
-    alert(lang('locale__not_found') + `『${ng}』`)
-  } else {
-    // close block
-    const block = qs('#aiBlockDiv' + id)
-    if (block) {
-      block.remove()
-    }
-  }
+  const start = body.indexOf(it.ng)
+  if (start < 0) { aiMarkNotFound(id); return }
+  const newText = body.substring(0, start) + it.ok + body.substring(start + it.ng.length)
+  aiSetEditorText(newText, 'ai_block_replace', start, start + it.ok.length)
+  it.done = true
+  const block = qs('#aiBlockDiv' + id)
+  if (block) { block.remove() }
 }
 
 function aiBlockRemove(id) {
+  if (aiBlockItems[id]) { aiBlockItems[id].done = true }
   const block = qs('#aiBlockDiv' + id)
   if (block) {
     block.remove()
@@ -1902,53 +2011,6 @@ function lang(id) {
     return e.innerHTML
   }
   return id
-}
-
-function loadAITemplate() {
-  const action = qq('#wikiedit form').attr('action')
-  let params = {
-    'i_mode': 'ajax',
-    'edit_token': qq('#edit_token').val(),
-    'q': 'ai',
-    'a_mode': 'load_template',
-    'a_hash': qq('#a_hash').val(),
-  }
-  qq().post(action, params)
-    .done(function (obj) {
-      const messageStr = obj['message']
-      const selectBox = qq('#ai_template_select')
-      const messages = messageStr.split("\r").join("").split("\n")
-      const templateData = {}
-      let key = ''
-      messages.forEach(function (message) {
-        if (message.substring(0, 2) == '# ') {
-          key = message
-          const option = document.createElement("option")
-          option.text = message
-          selectBox.append(option)
-          templateData[key] = ''
-          return
-        }
-        if (message.substring(0, 5) == '-----') {
-          key = ''
-          return
-        }
-        templateData[key] += message + "\n"
-      })
-      selectBox.change(() => {
-        const key = selectBox.val()
-        if (key == '') { return }
-        const input = qq('#ai_input_text')
-        const val = templateData[key]
-        if (val) {
-          input.val(val)
-        }
-      })
-    })
-    .fail(function (error) {
-      qq('#edit_info').html("Sorry AI request failed." + error)
-      aiButtonEnabeld(true)
-    })
 }
 
 function copyToClipboard(text) {
