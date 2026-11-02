@@ -467,12 +467,39 @@ textarea#edit_txt:focus {
 }
 
 #ai_rephrase_opts {
+  display: flex;
+  gap: 6px;
+  align-items: center;
   margin-bottom: 8px;
 }
 
 #ai_rephrase_instruction {
-  box-sizing: border-box;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+#ai_preset_dialog {
+  max-width: 90vw;
+  border: 1px solid var(--k3-color-border, #e4e7eb);
+  border-radius: 12px;
+  background: var(--k3-color-bg, #ffffff);
+  color: var(--k3-color-text, #1f2933);
+}
+
+#ai_preset_list {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+}
+
+#ai_preset_list button {
   width: 100%;
+  margin-bottom: 4px;
+  text-align: left;
+}
+
+#ai_rephrase_instruction {
+  box-sizing: border-box;
   padding: 6px 8px;
   border: 1px solid var(--k3-color-border-strong, #cbd2d9);
   border-radius: 8px;
@@ -493,8 +520,14 @@ textarea#edit_txt:focus {
   margin-bottom: 8px;
 }
 
+.ai_links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .ai_links a {
-  margin-right: 0.6em;
+  text-decoration: none;
 }
 
 #ai_undo_btn:disabled {
@@ -977,4 +1010,59 @@ textarea#edit_txt:focus {
 .k3hl-switch input:focus-visible + .k3hl-slider {
   outline: 2px solid var(--k3-color-accent, #1f5fbf);
   outline-offset: 2px;
+}
+
+/* AI支援パネル: エディタ右側の縦分割ペイン (#378) */
+#wikiedit:has(#edit_main.ai-open) {
+  max-width: none;
+}
+
+#edit_main.ai-open {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: stretch;
+}
+
+#edit_main.ai-open .editor {
+  flex: 1 1 50%;
+  min-width: 0;
+}
+
+#edit_main.ai-open #edit_preview {
+  flex: 1 1 30%;
+  min-width: 0;
+  overflow: auto;
+}
+
+.ai_pane {
+  box-sizing: border-box;
+  flex: 1 1 50%;
+  min-width: 0;
+  overflow: auto;
+  padding: 8px 12px;
+  border: 1px solid var(--k3-color-border, #e4e7eb);
+  border-radius: 12px;
+  background: var(--k3-color-bg, #ffffff);
+  color: var(--k3-color-text, #1f2933);
+}
+
+.ai_pane_head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+/* 狭い画面では上下分割にフォールバックする */
+@media (max-width: 800px) {
+  #edit_main.ai-open {
+    flex-direction: column;
+  }
+  #edit_main.ai-open .editor {
+    flex: 1 1 45%;
+  }
+  .ai_pane {
+    flex: 1 1 45%;
+  }
 }

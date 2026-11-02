@@ -49,6 +49,56 @@
         <div id="edit_preview" style="display:none;">
           <div class="edit_preview_body page_body"></div>
         </div>
+        {{ if $ai_enabled }}
+        <div id="ai_div" class="ai_pane" style="display: none;">
+          <div class="ai_pane_head"><strong>{{'AI Assitant' | lang}}</strong>
+            <button type="button" id="ai_close_btn" onclick="aiPaneClose()" aria-label="Close">×</button></div>
+          <div class="ai_links">
+            <a class="pure-button" href="{{$ai_edit_template_url}}" target="_new">{{'Edit AI Template' | lang}}</a>
+            <a class="pure-button" href="{{$ai_edit_conf_url}}" target="_new">{{'Edit AI Config' | lang}}</a>
+            <a class="pure-button" href="https://kujirahand.com/konawiki3/index.php?AI" target="_blank" rel="noopener">？</a>
+          </div>
+          <div id="ai_actions">
+            {{ for $ai_actions as $a }}
+            <button type="button" data-ai-action="{{$a.id}}" onclick="aiRunAction('{{$a.id}}')">{{$a.label}}</button>
+            {{ endfor }}
+          </div>
+          <div id="ai_rephrase_opts">
+            <input type="text" id="ai_rephrase_instruction" maxlength="200"
+              placeholder="{{'AI rephrase placeholder' | lang}}" aria-label="{{'AI Rephrase' | lang}}">
+            <button type="button" id="ai_preset_btn" class="pure-button" onclick="aiPresetOpen()"
+              title="{{'AI preset list' | lang}}" aria-label="{{'AI preset list' | lang}}">...</button>
+          </div>
+          <dialog id="ai_preset_dialog">
+            <strong>{{'AI preset list' | lang}}</strong>
+            <ul id="ai_preset_list">
+              <li><button type="button" class="pure-button" data-preset="{{'AI rephrase default' | lang}}">{{'AI rephrase default' | lang}}</button></li>
+              <li><button type="button" class="pure-button" data-preset="{{'AI preset polite' | lang}}">{{'AI preset polite' | lang}}</button></li>
+              <li><button type="button" class="pure-button" data-preset="{{'AI preset concise' | lang}}">{{'AI preset concise' | lang}}</button></li>
+              <li><button type="button" class="pure-button" data-preset="{{'AI preset soft' | lang}}">{{'AI preset soft' | lang}}</button></li>
+              <li><button type="button" class="pure-button" data-preset="{{'AI preset bullets' | lang}}">{{'AI preset bullets' | lang}}</button></li>
+              <li><button type="button" class="pure-button" data-preset="{{'AI preset readable' | lang}}">{{'AI preset readable' | lang}}</button></li>
+            </ul>
+            <div style="text-align: right;"><button type="button" class="pure-button" onclick="aiPresetClose()">{{'Cancel' | lang}}</button></div>
+          </dialog>
+          {{ if $ai_user_prompts }}
+          <div id="ai_user_actions">
+            {{ for $ai_user_prompts as $name }}
+            <button type="button" data-name="{{$name}}" onclick="aiRunUserPrompt(this.dataset.name)">{{$name}}</button>
+            {{ endfor }}
+          </div>
+          {{ endif }}
+          <div>
+            <span id="ai_loader" style="display: none;"></span>
+            <span id="ai_ask_cost" style="color: gray"></span>
+            <button type="button" id="ai_undo_btn" disabled>{{'AI Undo' | lang}}</button>
+          </div>
+          <div id="ai_output_area">
+            <div id="ai_output"></div>
+            <div style="text-align: right;"><button type="button" id="ai_output_clear_btn">{{'Clear Logs'|lang}}</button></div>
+          </div>
+        </div><!-- end of $ai_div -->
+        {{ endif }}
       </div>
 
       <div id="edit_statusbar">
@@ -188,47 +238,6 @@
         </div>
       </div>
 
-      {{ if $ai_enabled }}
-      <div id="ai_div" class="block2" style="display: none;">
-        <div id="ai_actions">
-          {{ for $ai_actions as $a }}
-          <button type="button" data-ai-action="{{$a.id}}" onclick="aiRunAction('{{$a.id}}')">{{$a.label}}</button>
-          {{ endfor }}
-        </div>
-        <div id="ai_rephrase_opts">
-          <input type="text" id="ai_rephrase_instruction" list="ai_rephrase_presets" maxlength="200"
-            placeholder="{{'AI rephrase placeholder' | lang}}" aria-label="{{'AI Rephrase' | lang}}">
-          <datalist id="ai_rephrase_presets">
-            <option value="{{'AI rephrase default' | lang}}"></option>
-            <option value="{{'AI preset polite' | lang}}"></option>
-            <option value="{{'AI preset concise' | lang}}"></option>
-            <option value="{{'AI preset soft' | lang}}"></option>
-            <option value="{{'AI preset bullets' | lang}}"></option>
-          </datalist>
-        </div>
-        {{ if $ai_user_prompts }}
-        <div id="ai_user_actions">
-          {{ for $ai_user_prompts as $name }}
-          <button type="button" data-name="{{$name}}" onclick="aiRunUserPrompt(this.dataset.name)">{{$name}}</button>
-          {{ endfor }}
-        </div>
-        {{ endif }}
-        <div class="ai_links">
-          <a href="{{$ai_edit_template_url}}" target="_new">{{'Edit AI Template' | lang}}</a>
-          <a href="{{$ai_edit_conf_url}}" target="_new">{{'Edit AI Config' | lang}}</a>
-          <a href="https://kujirahand.com/konawiki3/index.php?AI" target="_blank" rel="noopener">？</a>
-        </div>
-        <div>
-          <span id="ai_loader" style="display: none;"></span>
-          <span id="ai_ask_cost" style="color: gray"></span>
-          <button type="button" id="ai_undo_btn" disabled>{{'AI Undo' | lang}}</button>
-        </div>
-        <div id="ai_output_area">
-          <div id="ai_output"></div>
-          <div style="text-align: right;"><button id="ai_output_clear_btn">{{'Clear Logs'|lang}}</button></div>
-        </div>
-      </div><!-- end of $ai_div -->
-      {{ endif }}
     </aside>
   </div>
 </div>
