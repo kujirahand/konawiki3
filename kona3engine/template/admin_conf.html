@@ -2,8 +2,8 @@
 
 <style>
     h1 {
-      background-color: blue;
-      color: white;
+      background-color: var(--k3-color-accent, blue);
+      color: var(--k3-color-on-accent, white);
       margin: 0;
       padding: 0.3em;
     }
@@ -38,13 +38,13 @@
     #wikimessage .conf-item {
       margin: 0.8em 0;
       padding: 0.7em 0.9em;
-      border: 1px solid #d8d8e8;
-      border-left: 4px solid #9aa5d8;
+      border: 1px solid var(--k3-color-border, #d8d8e8);
+      border-left: 4px solid var(--k3-color-accent, #9aa5d8);
       border-radius: 4px;
-      background-color: #fff;
+      background-color: var(--k3-color-bg, #fff);
     }
     #wikimessage .conf-item:hover {
-      background-color: #fafaff;
+      background-color: var(--k3-color-bg-subtle, #fafaff);
     }
     #wikimessage .conf-item label {
       display: block;
@@ -52,12 +52,12 @@
       margin-bottom: 0.25em;
     }
     #wikimessage .conf-desc {
-      color: #444;
+      color: var(--k3-color-text-muted, #444);
       font-size: 0.9em;
       margin: 0 0 0.35em 0;
     }
     #wikimessage .conf-note {
-      color: #555;
+      color: var(--k3-color-text-muted, #555);
       font-size: 0.9em;
       margin-left: 0.4em;
     }
