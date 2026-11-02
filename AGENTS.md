@@ -305,7 +305,9 @@ KonaWiki3の実行に必要な静的アセットのうち、いくつかのフ�
 $response = kona3ai_chat($system_prompt, $user_prompt);
 ```
 
-言語別プロンプトは `kona3engine/lang/ja-ai_prompt.md` などに記載されています。
+編集画面のAI機能(文書校正・言い換え・続きを追加・品質チェック・改善提案)のプロンプトは
+`kona3engine/template/prompt/{ja,en}/{機能ID}.md` に置かれ、サーバー側(`kona3edit_ai_run()`)だけで組み立てます。
+プロンプト本文はクライアントへ返しません。形式と置換変数は `kona3engine/template/prompt/README.md` を参照してください。
 
 ## コーディング規約
 
