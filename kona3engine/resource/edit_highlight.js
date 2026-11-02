@@ -502,14 +502,21 @@
         render();
     }
 
+    function serverDefaultEnabled() {
+        // Keep the historical default when the input is unavailable.
+        var input = document.getElementById('editor_highlight_default');
+        return !input || input.value !== '0';
+    }
+
     function init() {
         var textarea = document.getElementById('edit_txt');
         if (!textarea || typeof window.k3hlRender !== 'function') {
             return;
         }
 
-        // On by default; only an explicit opt-out ('0') keeps it off.
-        if (readStorage(STORAGE_KEY) !== '0') {
+        // A user preference always takes precedence.
+        var preference = readStorage(STORAGE_KEY);
+        if (preference === '1' || (preference === null && serverDefaultEnabled())) {
             enable();
         }
     }

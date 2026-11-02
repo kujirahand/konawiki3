@@ -49,6 +49,7 @@ return [
         'md_underscore_emphasis' => ['desc' => 'If true, __text__ is shown as emphasis in Markdown. Set false if things like __main__ become bold unexpectedly.'],
         'editor_shortcut_temp_save' => ['desc' => 'Key to save the page temporarily in the editor.'],
         'editor_shortcut_new' => ['desc' => 'Key to create a new page in the editor.'],
+        'editor_highlight_default' => ['desc' => 'If true, syntax highlighting in the editor is on by default. A choice made by each user in Tools > Settings takes precedence.'],
         'image_pattern' => ['desc' => 'Regular expression of file extensions treated as images.'],
         'allow_upload' => ['desc' => 'If true, logged-in users can attach files.'],
         'allow_upload_ext' => ['desc' => 'File extensions allowed for upload, separated by semicolons. Never add executable types such as php.'],

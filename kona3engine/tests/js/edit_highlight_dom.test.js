@@ -88,6 +88,7 @@ Object.defineProperty(FakeTextArea.prototype, 'value', {
 const store = {};
 let rafQueue = [];
 let current = null;
+let serverDefaultInput = null;
 
 function makeEditor(initialText) {
     const editor = new FakeElement('div');
@@ -107,6 +108,7 @@ documentStub.getElementById = function (id) {
     if (!current) { return null; }
     if (id === 'edit_txt') { return current.ta; }
     if (id === 'page_mode') { return current.modeSelect; }
+    if (id === 'editor_highlight_default') { return serverDefaultInput; }
     return null;
 };
 documentStub.createElement = function (tag) { return new FakeElement(tag); };
@@ -255,6 +257,42 @@ current = makeEditor('あ'.repeat(200001));
 const hl4c = loadLayer();
 assert.strictEqual(hl4c.isEnabled(), false, 'initially oversized document is not enabled');
 assert.strictEqual(current.ta.parentNode, current.editor, 'never wrapped when oversized');
+
+// --- Phase F: server-side default (kona3conf editor_highlight_default) -----
+// No stored preference + server default OFF: stays off, but the user
+// can still turn it on from the drawer switch.
+delete store['kona3_edit_highlight'];
+serverDefaultInput = { value: '0' };
+current = makeEditor();
+const hlF = loadLayer();
+assert.strictEqual(hlF.isEnabled(), false, 'server default OFF keeps it off');
+assert.strictEqual(current.ta.parentNode, current.editor, 'not wrapped with server default OFF');
+hlF.enable();
+assert.strictEqual(hlF.isEnabled(), true, 'user can enable despite server default OFF');
+assert.strictEqual(store['kona3_edit_highlight'], '1', 'enabling persists the opt-in');
+hlF.disable();
+
+// A stored preference wins over the server default, both ways.
+store['kona3_edit_highlight'] = '1';
+serverDefaultInput = { value: '0' };
+current = makeEditor();
+const hlG = loadLayer();
+assert.strictEqual(hlG.isEnabled(), true, 'stored opt-in beats server default OFF');
+hlG.disable();
+
+store['kona3_edit_highlight'] = '0';
+serverDefaultInput = { value: '1' };
+current = makeEditor();
+const hlH = loadLayer();
+assert.strictEqual(hlH.isEnabled(), false, 'stored opt-out beats server default ON');
+
+// Missing input (custom templates): the historical default ON applies.
+delete store['kona3_edit_highlight'];
+serverDefaultInput = null;
+current = makeEditor();
+const hlI = loadLayer();
+assert.strictEqual(hlI.isEnabled(), true, 'missing server-default input keeps it ON');
+hlI.disable();
 
 // --- Phase E: misalignment self-check (two consecutive failures) ------------
 async function phaseE() {
