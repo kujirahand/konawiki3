@@ -270,6 +270,20 @@ body.dark-theme #wikimessage h3 {
   color: var(--k3d-msg-h3-color);
 }
 
+/* admin settings (issue #368): the template's cards must follow the dark palette */
+body.dark-theme #wikimessage .conf-item {
+  background-color: var(--k3d-bg);
+  border-color: var(--k3d-msg-border);
+  border-left-color: var(--k3d-link);
+}
+body.dark-theme #wikimessage .conf-item:hover {
+  background-color: var(--k3d-msg-h-bg);
+}
+body.dark-theme #wikimessage .conf-desc,
+body.dark-theme #wikimessage .conf-note {
+  color: var(--k3d-sub-fg);
+}
+
 body.dark-theme #wikimessage a:link,
 body.dark-theme #wikimessage a:active,
 body.dark-theme #wikimessage a:visited {
