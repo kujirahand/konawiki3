@@ -94,7 +94,7 @@ test_assert(__LINE__, strpos($css_content, '.menu-separator') !== false, "drawer
 test_assert(__LINE__, strpos($header_content, '<input type="range" id="font_size_range"') !== false, "parts_header.html contains font_size_range slider");
 test_assert(__LINE__, strpos($header_content, '<input type="range" id="line_height_range"') !== false, "parts_header.html contains line_height_range slider");
 test_assert(__LINE__, strpos($header_content, 'min="0.7" max="2.0" step="0.1"') !== false, "font size slider has 0.7-2.0 step 0.1");
-test_assert(__LINE__, strpos($header_content, 'min="1.2" max="2.5" step="0.1"') !== false, "line height slider has 1.2-2.5 step 0.1");
+test_assert(__LINE__, strpos($header_content, 'min="1.2" max="2.5" step="0.05"') !== false, "line height slider has 1.2-2.5 step 0.05 (#347)");
 // ラベルと値表示の関連付け、プレビュー、標準の目印
 test_assert(__LINE__, strpos($header_content, '<label for="font_size_range">') !== false, "font size slider has a label");
 test_assert(__LINE__, strpos($header_content, '<label for="line_height_range">') !== false, "line height slider has a label");
