@@ -1515,7 +1515,8 @@ function aiOnClick() {
 
 function aiSpellCheckOnClick() {
   if (!qs('#ai_actions')) { return }
-  openToolPanel('#ai_div')
+  // aiPost() force-shows the AI panel; opening it here first with the
+  // toggling openToolPanel() would hide it again on a second press.
   aiRunAction('proofread')
 }
 
@@ -1663,8 +1664,13 @@ function aiPost(params, ctx) {
     'ai_model': ai_model_el ? ai_model_el.value : ''
   }
   Object.keys(params).forEach(function (k) { post[k] = params[k] })
-  // make the result area visible even when the panel is not open yet
-  if (!ctx.direct) { openToolPanel('#ai_div') }
+  // Make the result area visible even when the panel is not open yet.
+  // Force-show the panel: openToolPanel() would toggle it off when it
+  // is already visible, hiding the result the user is waiting for.
+  if (!ctx.direct) {
+    openEditDrawer()
+    showOnlyPanel('#ai_div', true)
+  }
   aiButtonEnabeld(false)
   qq().post(qq(form).attr('action'), post)
     .done(function (obj) {
