@@ -87,16 +87,47 @@ qq(function(){
 
   // 文字サイズと行間の初期化・制御 (#330: スライダーで調整)
   const DEFAULT_FONT_SIZE = 1.0;
-  const DEFAULT_LINE_HEIGHT = 1.7;
+  let DEFAULT_LINE_HEIGHT = 1.7;
   const FONT_SIZE_MIN = 0.7;
   const FONT_SIZE_MAX = 2.0;
   const FONT_SIZE_STEP = 0.1;
   const LINE_HEIGHT_MIN = 1.2;
   const LINE_HEIGHT_MAX = 2.5;
-  const LINE_HEIGHT_STEP = 0.1;
+  const LINE_HEIGHT_STEP = 0.05;
 
   // 0.1刻みの計算で出る浮動小数点の誤差 (1.2000000002など) を取り除く
   function roundStep(v) { return Math.round(v * 10) / 10; }
+  // 行間用: 0.05刻みに丸める
+  function roundStep005(v) { return Math.round(v * 20) / 20; }
+
+  // 行間は 0.05 刻みのため、末尾の 0 だけを落として表示する (1.85 → "1.85", 1.8 → "1.8")
+  function formatLineHeight(v) { return (Math.round(v * 20) / 20).toFixed(2).replace(/0$/, ''); }
+
+  // 本文の実際の行間 (倍率) を実測する (#347)。
+  // 保存済み設定の上書き (#kona3-text-style-override) が効いていると実測が汚染されるため、一時的に無効化して測る。
+  function detectDefaultLineHeight() {
+    try {
+      const target = document.querySelector('#kona3_layout_show, #wikibody, .edit_preview_body');
+      if (!target) return DEFAULT_LINE_HEIGHT;
+      const override = document.getElementById('kona3-text-style-override');
+      if (override) { override.disabled = true; }
+      let result = DEFAULT_LINE_HEIGHT;
+      try {
+        const cs = window.getComputedStyle(target);
+        const lh = parseFloat(cs.lineHeight);
+        const fs = parseFloat(cs.fontSize);
+        if (!isNaN(lh) && !isNaN(fs) && fs > 0) {
+          result = Math.min(LINE_HEIGHT_MAX, Math.max(LINE_HEIGHT_MIN, roundStep005(lh / fs)));
+        }
+      } finally {
+        if (override) { override.disabled = false; }
+      }
+      return result;
+    } catch (err) {
+      return DEFAULT_LINE_HEIGHT;
+    }
+  }
+  DEFAULT_LINE_HEIGHT = detectDefaultLineHeight();
 
   // 現在の設定値を取得（localStorageまたはデフォルト）
   let currentFontSize = DEFAULT_FONT_SIZE;
@@ -119,7 +150,7 @@ qq(function(){
     if (savedLineHeight) {
       var val = parseFloat(savedLineHeight);
       if (!isNaN(val)) {
-        currentLineHeight = Math.min(2.5, Math.max(1.2, val));
+        currentLineHeight = roundStep005(Math.min(2.5, Math.max(1.2, val)));
       }
     }
   } catch (err) {
@@ -147,7 +178,7 @@ qq(function(){
   // ダイアログ内の現在の設定値表示を更新する (#330)
   function updateTextStyleDisplay() {
     const fontText = Math.round(currentFontSize * 100) + '%';
-    const lineText = currentLineHeight.toFixed(1);
+    const lineText = formatLineHeight(currentLineHeight);
     const fontVal = document.getElementById('font_size_value');
     if (fontVal) {
       fontVal.textContent = fontText;
@@ -164,7 +195,7 @@ qq(function(){
     const preview = document.getElementById('text_style_preview');
     if (preview) {
       preview.style.fontSize = currentFontSize.toFixed(1) + 'rem';
-      preview.style.lineHeight = currentLineHeight.toFixed(1);
+      preview.style.lineHeight = formatLineHeight(currentLineHeight);
     }
     const eps = 0.001;
     setStepAriaDisabled('font_size_minus', currentFontSize <= FONT_SIZE_MIN + eps);
@@ -195,9 +226,9 @@ qq(function(){
     }
     
     if (Math.abs(currentLineHeight - DEFAULT_LINE_HEIGHT) > 0.01) {
-      css += '#kona3_layout_show, #wikibody, .edit_preview_body { line-height: ' + currentLineHeight.toFixed(1) + ' !important; }\n';
+      css += '#kona3_layout_show, #wikibody, .edit_preview_body { line-height: ' + formatLineHeight(currentLineHeight) + ' !important; }\n';
       try {
-        localStorage.setItem('kona3_line_height', currentLineHeight.toFixed(1));
+        localStorage.setItem('kona3_line_height', formatLineHeight(currentLineHeight));
       } catch (err) {
         console.warn("Storage write failed for line_height:", err);
       }
@@ -253,7 +284,7 @@ qq(function(){
     btnLinePlus.click(function(e) {
       if (e) { e.preventDefault(); }
       if (isStepDisabled('line_height_plus')) return;
-      currentLineHeight = roundStep(Math.min(LINE_HEIGHT_MAX, currentLineHeight + LINE_HEIGHT_STEP));
+      currentLineHeight = roundStep005(Math.min(LINE_HEIGHT_MAX, currentLineHeight + LINE_HEIGHT_STEP));
       updateTextStyle();
     });
   }
@@ -261,19 +292,19 @@ qq(function(){
     btnLineMinus.click(function(e) {
       if (e) { e.preventDefault(); }
       if (isStepDisabled('line_height_minus')) return;
-      currentLineHeight = roundStep(Math.max(LINE_HEIGHT_MIN, currentLineHeight - LINE_HEIGHT_STEP));
+      currentLineHeight = roundStep005(Math.max(LINE_HEIGHT_MIN, currentLineHeight - LINE_HEIGHT_STEP));
       updateTextStyle();
     });
   }
 
   // スライダー: 動かした瞬間に反映・保存する (inputイベント)
-  function bindTextStyleRange(id, apply) {
+  function bindTextStyleRange(id, apply, round) {
     const range = document.getElementById(id);
     if (!range) return;
     range.addEventListener('input', function() {
       const v = parseFloat(range.value);
       if (isNaN(v)) return;
-      apply(roundStep(v));
+      apply((round || roundStep)(v));
       updateTextStyle();
     });
   }
@@ -282,7 +313,7 @@ qq(function(){
   });
   bindTextStyleRange('line_height_range', function(v) {
     currentLineHeight = Math.min(LINE_HEIGHT_MAX, Math.max(LINE_HEIGHT_MIN, v));
-  });
+  }, roundStep005);
 
   // 「標準」の目印をデフォルト値の位置に置く
   function placeDefaultMark(rangeId, def, min, max) {
