@@ -135,3 +135,9 @@ test_assert(__LINE__, $tpl_link > $tpl_body && $tpl_link < $tpl_chips, 'edit-tem
 // ドロワーから「AIチェック」ボタンを削除 (#378)。Ctrl+Shift+J のショートカットは維持する。
 test_assert(__LINE__, strpos($edit_html, 'onclick="aiSpellCheckOnClick()"') === false, 'drawer no longer has the AI check button (#378)');
 test_assert(__LINE__, strpos($edit_js, 'function aiSpellCheckOnClick(') !== false, 'AI proofread shortcut handler is kept (#378)');
+
+// 言い換えプリセットの追加 (#378)
+foreach (['conclusion first' => '結論を最初に', 'funnier' => 'もっと面白く', 'trivia' => '豆知識を加えて'] as $key => $label) {
+    test_assert(__LINE__, strpos($edit_html, "AI preset {$key}") !== false, "preset list has '{$key}' (#378)");
+    test_assert(__LINE__, strpos($lang_ja, $label) !== false, "ja: preset label {$label} (#378)");
+}
