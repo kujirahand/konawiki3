@@ -1205,20 +1205,26 @@ function kona3getCtrlMenuArray($type)
     }
     // ページ一覧 (#314): 設定で許可されているときだけ表示する
     $show_page_list = kona3getConf('show_page_list');
+    // ログインボタンを隠す (#332)
+    $hide_login_button = kona3getConf('hide_login_button');
     if (!kona3isLogin()) {
         if ($type == "bar") {
             $list[] = array(lang('Search'), $search_uri);
             if ($show_page_list) {
                 $list[] = array(lang('Page List'), $pagelist_uri);
             }
-            $list[] = array(lang('Login'), $login_uri);
+            if (!$hide_login_button) {
+                $list[] = array(lang('Login'), $login_uri);
+            }
         } else {
             $list[] = array($FrontPage_label, $FrontPage_uri);
             $list[] = array(lang('Search'), $search_uri);
             if ($show_page_list) {
                 $list[] = array(lang('Page List'), $pagelist_uri);
             }
-            $list[] = array(lang('Login'), $login_uri);
+            if (!$hide_login_button) {
+                $list[] = array(lang('Login'), $login_uri);
+            }
         }
     } else {
         $loginInfo = kona3getLoginInfo();

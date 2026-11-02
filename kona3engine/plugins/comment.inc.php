@@ -221,6 +221,10 @@ EOS;
 }
 
 function _renderCommentLoginRequired($page) {
+  // ログインボタンを隠す設定 (#332): 案内文もボタンも出さない
+  if (kona3getConf('hide_login_button')) {
+    return '';
+  }
   $script = _todo_script();
   $edit_token = htmlspecialchars(kona3_getEditToken('edit_token'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
   $login_url = htmlspecialchars(
