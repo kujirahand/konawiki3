@@ -358,6 +358,13 @@ textarea#edit_txt:focus {
   margin-bottom: 18px;
 }
 
+#edit_drawer .edit_drawer_format {
+  margin-top: -6px;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--k3-color-border, #e4e7eb);
+}
+
 #edit_drawer .edit_drawer_nav button {
   border-color: var(--k3-color-border, #e4e7eb);
   border-radius: 8px;

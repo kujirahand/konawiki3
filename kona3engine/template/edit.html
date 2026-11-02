@@ -80,6 +80,13 @@
         <button onclick="helpOnClick()">?</button>
         <button type="button" id="preview_btn" onclick="togglePreview()">プレビュー並行表示</button>
       </nav>
+      <div class="edit_setting_row edit_drawer_format">
+        <span><label for="page_mode">Format:</label></span>
+        <select name="page_mode" id="page_mode" class="info" form="edit_form" style="padding:2px;">
+          <option value="KonaNotation"{{ if $page_mode == 'KonaNotation' }} selected {{ endif }}>KonaNotation</option>
+          <option value="Markdown"{{ if $page_mode == 'Markdown' }} selected {{ endif }}>Markdown</option>
+        </select>
+      </div>
 
       <div id="help_div" class="block2" style="display: none;">
         <div>
@@ -178,13 +185,6 @@
         <div class="edit_setting_row">
           <span><label for="autosave">Auto save</label></span>
           <input type="checkbox" id="autosave" class="info" style="width:2em;" name="autosave" value="yes" checked>
-        </div>
-        <div class="edit_setting_row">
-          <span><label for="page_mode">Format:</label></span>
-          <select name="page_mode" id="page_mode" class="info" form="edit_form" style="padding:2px;">
-            <option value="KonaNotation"{{ if $page_mode == 'KonaNotation' }} selected {{ endif }}>KonaNotation</option>
-            <option value="Markdown"{{ if $page_mode == 'Markdown' }} selected {{ endif }}>Markdown</option>
-          </select>
         </div>
       </div>
 
