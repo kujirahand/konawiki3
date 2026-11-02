@@ -168,7 +168,6 @@ $lang_data = [
     'Replace Text' => 'テキストを置換',
     'The page "%s" has been updated.' => 'ページ『%s』が更新されました。',
     'Select actions' => 'アクションを選択',
-    'AI Spell Checker' => 'AIチェック',
     'Not found' => '申し訳ありませんが見つかりませんでした。',
     'Find' => '探す',
     'Cancel' => '取り消す',

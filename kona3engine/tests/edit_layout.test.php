@@ -131,3 +131,7 @@ $tpl_chips = strpos($edit_html, 'id="ai_user_actions"');
 $tpl_head = strpos($edit_html, 'class="ai_pane_head"');
 $tpl_body = strpos($edit_html, 'class="ai_pane_body"');
 test_assert(__LINE__, $tpl_link > $tpl_body && $tpl_link < $tpl_chips, 'edit-template link is in the user-template section, not the pane header (#378)');
+
+// ドロワーから「AIチェック」ボタンを削除 (#378)。Ctrl+Shift+J のショートカットは維持する。
+test_assert(__LINE__, strpos($edit_html, 'onclick="aiSpellCheckOnClick()"') === false, 'drawer no longer has the AI check button (#378)');
+test_assert(__LINE__, strpos($edit_js, 'function aiSpellCheckOnClick(') !== false, 'AI proofread shortcut handler is kept (#378)');
