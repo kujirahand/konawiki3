@@ -84,7 +84,7 @@ test_assert(__LINE__, strpos($edit_template, '{{$ai_edit_conf_url}}') !== FALSE,
 test_assert(__LINE__, strpos($edit_template, '{{\'Edit AI Config\' | lang}}') !== FALSE, "AI編集画面: AI設定編集リンクの文言が翻訳キーを使う");
 test_assert(__LINE__, strpos($edit_template, 'https://kujirahand.com/konawiki3/index.php?AI') !== FALSE, "AI編集画面: AIヘルプリンクが表示される");
 test_assert(__LINE__, strpos($edit_template, 'target="_blank"') !== FALSE, "AI編集画面: AIヘルプリンクは新規ウィンドウで開く");
-test_assert(__LINE__, strpos($edit_template, '>？</a>') !== FALSE, "AI編集画面: AIヘルプリンクは疑問符で表示される");
+test_assert(__LINE__, strpos($edit_template, '>?</a>') !== FALSE, "AI編集画面: AIヘルプリンクは疑問符で表示される");
 test_assert(__LINE__, strpos($edit_template, 'id="editor_shortcut_temp_save"') !== FALSE, "編集画面: 一時保存ショートカット設定をJSへ渡す");
 test_assert(__LINE__, strpos($edit_template, 'id="editor_shortcut_new"') !== FALSE, "編集画面: 新規ショートカット設定をJSへ渡す");
 test_assert(__LINE__, strpos($edit_template, '{{$editor_shortcut_temp_save}}') !== FALSE, "編集画面: 一時保存ショートカットをヘルプに表示する");
@@ -122,7 +122,8 @@ $ai_post_start = strpos($edit_js, 'function aiPost');
 $ai_post_end = strpos($edit_js, 'function aiInsertDirect');
 $ai_post_body = ($ai_post_start !== FALSE && $ai_post_end !== FALSE) ? substr($edit_js, $ai_post_start, $ai_post_end - $ai_post_start) : '';
 test_assert(__LINE__, $ai_post_body !== '', "AI実行: aiPost関数の範囲を取得できる (#364)");
-test_assert(__LINE__, strpos($ai_post_body, "showOnlyPanel('#ai_div', true)") !== FALSE, "AI実行: 結果表示時にAIパネルを強制表示する (#364)");
+test_assert(__LINE__, strpos($ai_post_body, "aiPaneSet(true, true)") !== FALSE, "AI実行: 結果表示時にAIパネルを強制表示する (#364, #378)");
+test_assert(__LINE__, strpos($ai_post_body, "closeEditDrawer()") !== FALSE, "AI実行: ドロワーを閉じて本文を見えるようにする (#378)");
 test_assert(__LINE__, strpos($ai_post_body, "openToolPanel('#ai_div')") === FALSE, "AI実行: トグル動作のopenToolPanelでパネルを閉じない (#364)");
 
 if ($old_provider === null) {

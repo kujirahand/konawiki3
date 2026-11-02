@@ -458,132 +458,6 @@ textarea#edit_txt:focus {
   font-size: 12px;
 }
 
-#ai_actions,
-#ai_user_actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-#ai_rephrase_opts {
-  margin-bottom: 8px;
-}
-
-#ai_rephrase_instruction {
-  box-sizing: border-box;
-  width: 100%;
-  padding: 6px 8px;
-  border: 1px solid var(--k3-color-border-strong, #cbd2d9);
-  border-radius: 8px;
-  background: var(--k3-color-bg, #ffffff);
-  color: var(--k3-color-text, #1f2933);
-  caret-color: var(--k3-color-accent, #1f5fbf);
-  font-size: 0.9em;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-#ai_rephrase_instruction:focus {
-  border-color: var(--k3-color-accent, #1f5fbf);
-  outline: none;
-  box-shadow: 0 0 0 2px var(--k3-color-accent-subtle, #e8f0fb);
-}
-
-.ai_links {
-  margin-bottom: 8px;
-}
-
-.ai_links a {
-  margin-right: 0.6em;
-}
-
-#ai_undo_btn:disabled {
-  opacity: 0.5;
-}
-
-.ai_result {
-  margin-bottom: 1em;
-}
-
-.ai_result_head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  padding: 0.3em 0.3em 0;
-  color: var(--k3-color-text-muted, #616e7c);
-  font-size: 0.9em;
-}
-
-.ai_result_head .ai_result_title {
-  font-weight: bold;
-  color: var(--k3-color-text, #1f2933);
-}
-
-.ai_result_head .ai_apply_all {
-  margin-left: auto;
-}
-
-.ai_quality_score {
-  font-size: 2em;
-  font-weight: bold;
-  color: var(--k3-color-accent, #1f5fbf);
-}
-
-.ai_quality_list {
-  margin: 0.3em 0;
-  padding-left: 1.4em;
-}
-
-#ai_output_area .ai_block.not_found {
-  opacity: 0.6;
-  outline: 1px dashed var(--k3-color-danger-text, #9b1c1c);
-}
-
-#ai_output_area {
-  margin-top: 1em;
-  margin-bottom: 1em;
-  padding: 0.5em;
-  border: 1px solid var(--k3-color-border, #e4e7eb);
-  border-radius: 12px;
-  background-color: var(--k3-color-bg, #ffffff);
-}
-
-#ai_output_area button {
-  margin-right: 0.3em;
-}
-
-#ai_output_area .ai_block {
-  margin: 0.5em 0.3em 0.3em;
-  padding: 0.5em;
-  border: none;
-  border-radius: 8px;
-  background-color: var(--k3-color-bg-subtle, #f5f7fa);
-  color: var(--k3-color-text, #1f2933);
-  font-size: 1.1em;
-  line-height: 1.8em;
-}
-
-#ai_loader {
-  font-size: 1em;
-}
-
-.aiReplaceButtons {
-  padding-top: 1em;
-  border-top: 1px solid var(--k3-color-border, #e4e7eb);
-  text-align: right;
-}
-
-.ai-ng {
-  color: var(--k3-color-danger-text, #9b1c1c);
-  font-weight: bold;
-}
-
-.ai-ok {
-  color: var(--k3-color-success-text, #146c2e);
-  font-weight: bold;
-}
-
 @media (max-width: 640px) {
   #wikiedit {
     margin: 0;
@@ -977,4 +851,460 @@ textarea#edit_txt:focus {
 .k3hl-switch input:focus-visible + .k3hl-slider {
   outline: 2px solid var(--k3-color-accent, #1f5fbf);
   outline-offset: 2px;
+}
+
+/* =================================================================
+   AI支援パネル: エディタ右側の縦分割ペイン (#378)
+   ================================================================= */
+#wikiedit:has(#edit_main.ai-open) {
+  max-width: none;
+}
+
+#edit_main.ai-open {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: stretch;
+}
+
+#edit_main.ai-open .editor {
+  flex: 1 1 50%;
+  min-width: 0;
+}
+
+#edit_main.ai-open #edit_preview {
+  flex: 1 1 30%;
+  min-width: 0;
+  overflow: auto;
+}
+
+.ai_pane {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 clamp(320px, 38%, 560px);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--k3-color-border, #e4e7eb);
+  border-radius: 12px;
+  background: var(--k3-color-bg, #ffffff);
+  color: var(--k3-color-text, #1f2933);
+  font-size: 0.95em;
+}
+
+/* --- ヘッダー: タイトル + ひな形/設定/ヘルプ/閉じる --- */
+.ai_pane_head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 8px 8px 8px 14px;
+  border-bottom: 1px solid var(--k3-color-border, #e4e7eb);
+  background: var(--k3-color-bg-subtle, #f5f7fa);
+}
+
+.ai_pane_title {
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.ai_links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+
+#wikiedit .ai_tool_btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 32px;
+  height: 32px;
+  box-sizing: border-box;
+  justify-content: center;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--k3-color-text-muted, #616e7c);
+  font-size: 0.85em;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+#wikiedit .ai_tool_btn:hover {
+  border-color: var(--k3-color-border, #e4e7eb);
+  background: var(--k3-color-bg, #ffffff);
+  color: var(--k3-color-text, #1f2933);
+}
+
+#wikiedit #ai_close_btn {
+  font-size: 1.3em;
+}
+
+/* --- 本体 (スクロール領域) --- */
+.ai_pane_body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px 14px 16px;
+}
+
+.ai_section {
+  margin-bottom: 14px;
+}
+
+.ai_section_title {
+  margin: 0 0 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--k3-color-text-muted, #616e7c);
+  font-size: 0.75em;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+}
+
+.ai_section_head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ai_section_head .ai_section_title {
+  margin-bottom: 6px;
+}
+
+#wikiedit a.ai_text_btn {
+  padding: 2px 6px;
+  color: var(--k3-color-text-muted, #616e7c);
+  font-size: 0.8em;
+  text-decoration: none;
+}
+
+#wikiedit a.ai_text_btn:hover {
+  color: var(--k3-color-accent, #1f5fbf);
+  text-decoration: underline;
+}
+
+.ai_action_grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+#wikiedit .ai_action_btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: bold;
+}
+
+#wikiedit .ai_action_btn:hover {
+  border-color: var(--k3-color-accent, #1f5fbf);
+  background: var(--k3-color-accent-subtle, #e8f0fb);
+}
+
+.ai_action_btn::before {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--k3-color-accent-subtle, #e8f0fb);
+  color: var(--k3-color-accent, #1f5fbf);
+  font-size: 0.9em;
+}
+
+.ai_action_btn[data-ai-action="proofread"]::before { content: "✓"; }
+.ai_action_btn[data-ai-action="append"]::before { content: "＋"; }
+.ai_action_btn[data-ai-action="quality"]::before { content: "★"; }
+.ai_action_btn[data-ai-action="improve"]::before { content: "💡"; }
+.ai_action_btn[data-ai-action="rephrase"]::before { content: "⇄"; }
+
+#ai_rephrase_opts {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+  margin-bottom: 6px;
+}
+
+#ai_rephrase_instruction {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--k3-color-border-strong, #cbd2d9);
+  border-radius: 8px;
+  background: var(--k3-color-bg, #ffffff);
+  color: var(--k3-color-text, #1f2933);
+  caret-color: var(--k3-color-accent, #1f5fbf);
+  font-size: 0.95em;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+#ai_rephrase_instruction:focus {
+  border-color: var(--k3-color-accent, #1f5fbf);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--k3-color-accent-subtle, #e8f0fb);
+}
+
+#wikiedit #ai_preset_btn {
+  flex: 0 0 auto;
+  width: 40px;
+  padding: 0;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+}
+
+#ai_user_actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+#wikiedit .ai_chip {
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.85em;
+}
+
+/* --- 実行状態・元に戻す --- */
+.ai_status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  margin-bottom: 10px;
+  color: var(--k3-color-text-muted, #616e7c);
+  font-size: 0.85em;
+}
+
+#ai_loader {
+  color: var(--k3-color-accent, #1f5fbf);
+  font-weight: bold;
+}
+
+.ai_spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 6px;
+  vertical-align: -1px;
+  border: 2px solid var(--k3-color-accent-subtle, #e8f0fb);
+  border-top-color: var(--k3-color-accent, #1f5fbf);
+  border-radius: 50%;
+  animation: ai_spin 0.8s linear infinite;
+}
+
+@keyframes ai_spin {
+  to { transform: rotate(360deg); }
+}
+
+#wikiedit #ai_undo_btn {
+  margin-left: auto;
+  padding: 5px 10px;
+  font-size: 0.95em;
+}
+
+/* --- 結果 --- */
+.ai_results_head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid var(--k3-color-border, #e4e7eb);
+}
+
+#wikiedit .ai_text_btn {
+  padding: 2px 6px;
+  border: none;
+  background: none;
+  color: var(--k3-color-text-muted, #616e7c);
+  font-size: 0.8em;
+}
+
+#wikiedit .ai_text_btn:hover {
+  color: var(--k3-color-accent, #1f5fbf);
+  text-decoration: underline;
+}
+
+#ai_output:empty::before {
+  content: attr(data-empty);
+  display: block;
+  padding: 24px 12px;
+  border: 1px dashed var(--k3-color-border, #e4e7eb);
+  border-radius: 10px;
+  color: var(--k3-color-text-muted, #616e7c);
+  font-size: 0.9em;
+  text-align: center;
+}
+
+.ai_result {
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid var(--k3-color-border, #e4e7eb);
+  border-radius: 10px;
+}
+
+.ai_result_head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  color: var(--k3-color-text-muted, #616e7c);
+  font-size: 0.85em;
+}
+
+.ai_result_head .ai_result_title {
+  font-weight: bold;
+  color: var(--k3-color-text, #1f2933);
+}
+
+#wikiedit .ai_result_head .ai_apply_all {
+  margin-left: auto;
+  padding: 4px 10px;
+  border-color: var(--k3-color-accent, #1f5fbf);
+  background: var(--k3-color-accent, #1f5fbf);
+  color: var(--k3-color-on-accent, #ffffff);
+  font-size: 0.95em;
+}
+
+#ai_output_area .ai_block {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background-color: var(--k3-color-bg-subtle, #f5f7fa);
+  color: var(--k3-color-text, #1f2933);
+  line-height: 1.7;
+}
+
+#ai_output_area .ai_block.not_found {
+  opacity: 0.6;
+  outline: 1px dashed var(--k3-color-danger-text, #9b1c1c);
+}
+
+.aiReplaceButtons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+#wikiedit .aiReplaceButtons button {
+  padding: 3px 10px;
+  font-size: 0.8em;
+}
+
+.ai-ng {
+  color: var(--k3-color-danger-text, #9b1c1c);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.ai-ok {
+  color: var(--k3-color-success-text, #146c2e);
+  font-weight: bold;
+}
+
+/* 校正・改善提案: 修正前(取り消し線) → 修正後 */
+.ai_diff {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  margin-bottom: 2px;
+}
+
+.ai_diff .ai-ok::before {
+  content: "→";
+  margin-right: 8px;
+  color: var(--k3-color-text-muted, #616e7c);
+  font-weight: normal;
+}
+
+.ai_quality_score {
+  font-size: 2em;
+  font-weight: bold;
+  color: var(--k3-color-accent, #1f5fbf);
+}
+
+.ai_quality_list {
+  margin: 0.3em 0;
+  padding-left: 1.4em;
+}
+
+/* --- 言い換え方の一覧ダイアログ --- */
+#ai_preset_dialog {
+  width: min(360px, 90vw);
+  padding: 0;
+  border: 1px solid var(--k3-color-border, #e4e7eb);
+  border-radius: 12px;
+  background: var(--k3-color-bg, #ffffff);
+  color: var(--k3-color-text, #1f2933);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+#ai_preset_dialog::backdrop {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.ai_dialog_head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 8px 8px 16px;
+  border-bottom: 1px solid var(--k3-color-border, #e4e7eb);
+}
+
+#ai_preset_list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+}
+
+#wikiedit #ai_preset_list button {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  font-size: 0.95em;
+}
+
+#wikiedit #ai_preset_list button:hover,
+#wikiedit #ai_preset_list button:focus-visible {
+  background: var(--k3-color-accent-subtle, #e8f0fb);
+  color: var(--k3-color-accent, #1f5fbf);
+  box-shadow: none;
+}
+
+/* 狭い画面では上下分割にフォールバックする */
+@media (max-width: 800px) {
+  #edit_main.ai-open {
+    flex-direction: column;
+  }
+  #edit_main.ai-open .editor {
+    flex: 1 1 45%;
+  }
+  .ai_pane {
+    flex: 1 1 55%;
+  }
+  .ai_tool_label {
+    display: none;
+  }
 }

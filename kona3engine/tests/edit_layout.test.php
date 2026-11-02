@@ -34,10 +34,21 @@ test_assert(__LINE__, strpos($edit_html, 'id="edit_drawer"') !== false, 'edit.ht
 test_assert(__LINE__, strpos($edit_html, 'id="edit_drawer_scrim"') !== false, 'edit.html has #edit_drawer_scrim (#153)');
 test_assert(__LINE__, strpos($edit_html, 'id="edit_statusbar"') !== false, 'edit.html has #edit_statusbar (#153)');
 $drawer_pos = strpos($edit_html, 'id="edit_drawer"');
-foreach (['help_div', 'tags_div', 'replace_div', 'history_div', 'misc_div', 'ai_div'] as $panel) {
+foreach (['help_div', 'tags_div', 'replace_div', 'history_div', 'misc_div'] as $panel) {
     $pos = strpos($edit_html, 'id="' . $panel . '"');
     test_assert(__LINE__, $pos !== false && $pos > $drawer_pos, "panel #{$panel} is inside the drawer (#153)");
 }
+// AIパネルはドロワーの外、#edit_main 内のサイドペイン (#378)
+$main_pos = strpos($edit_html, 'id="edit_main"');
+$ai_pos = strpos($edit_html, 'id="ai_div"');
+test_assert(__LINE__, $ai_pos !== false && $ai_pos > $main_pos && $ai_pos < $drawer_pos, 'panel #ai_div is inside #edit_main, outside the drawer (#378)');
+test_assert(__LINE__, strpos($edit_html, 'id="ai_close_btn"') !== false, 'AI pane has a close button (#378)');
+test_assert(__LINE__, strpos($edit_html, '<button type="button" id="ai_output_clear_btn"') !== false, 'AI clear button does not submit the form (#378)');
+test_assert(__LINE__, strpos($edit_css, '#edit_main.ai-open') !== false, 'edit.css has the AI split layout (#378)');
+test_assert(__LINE__, strpos($edit_css, '.ai_pane') !== false, 'edit.css styles .ai_pane (#378)');
+test_assert(__LINE__, strpos($edit_js, "'#ai_div'") !== false && strpos($edit_js, "'#misc_div', '#ai_div'") === false, 'AI pane is not a toggled drawer panel (#378)');
+test_assert(__LINE__, strpos($edit_js, 'function aiPaneSet(') !== false, 'edit.js has aiPaneSet() (#378)');
+test_assert(__LINE__, strpos($edit_js, 'kona3_ai_pane_open') !== false, 'AI pane open state is remembered (#378)');
 test_assert(__LINE__, strpos($edit_html, 'id="outline_div"') === false, 'edit.html no longer has #outline_div (#153)');
 
 // --- edit_screen フラグ ---
@@ -73,7 +84,7 @@ test_assert(__LINE__, strpos($edit_js, 'function openToolPanel(') !== false, 'ed
 test_assert(__LINE__, strpos($edit_js, 'function showOnlyPanel(selector, forceShow)') !== false, 'showOnlyPanel takes forceShow (#341 review)');
 test_assert(__LINE__, strpos($edit_js, 'isVisible && !forceShow') !== false, 'showOnlyPanel skips the toggle when forced (#341 review)');
 test_assert(__LINE__, strpos($edit_js, "openToolPanel('#help_div')") !== false, 'help uses openToolPanel (#341 review)');
-test_assert(__LINE__, strpos($edit_js, "openToolPanel('#ai_div')") !== false, 'ai uses openToolPanel (#341 review)');
+test_assert(__LINE__, strpos($edit_js, "openToolPanel('#ai_div')") === false, 'ai no longer uses the drawer panel (#378)');
 // Esc は IME 変換中を無視する
 test_assert(__LINE__, strpos($edit_js, 'e.isComposing') !== false, 'Esc handler checks isComposing (#341 review)');
 // ハンバーガーのない画面でも drawer.js が落ちない
@@ -91,3 +102,42 @@ test_assert(__LINE__, strpos($dark_css, '#outline_btn') === false, 'dark mode ha
 // 保存状態は上部バーの edit_save_state のみで表示する (下部の重複表示は廃止)
 test_assert(__LINE__, strpos($edit_html, 'id="change-info"') === false, 'change-info is removed; the top bar shows the save state (#360)');
 test_assert(__LINE__, strpos($edit_html, 'id="edit_save_state"') !== false, 'edit_save_state still shows the save state in the top bar (#360)');
+
+// --- AI言い換え指示のプリセット選択ダイアログ (#378) ---
+$lang_ja = file_get_contents($root . '/lang/ja.inc.php');
+test_assert(__LINE__, strpos($edit_html, 'id="ai_preset_btn"') !== false, 'AI pane has the [...] preset button (#378)');
+test_assert(__LINE__, strpos($edit_html, '<dialog id="ai_preset_dialog">') !== false, 'AI pane has the preset dialog (#378)');
+test_assert(__LINE__, strpos($edit_html, '<datalist') === false, 'datalist replaced by the dialog (#378)');
+test_assert(__LINE__, strpos($edit_html, "AI preset readable") !== false, 'preset list has the readable entry (#378)');
+test_assert(__LINE__, strpos($lang_ja, '箇条書きをやめて読みやすく') !== false, 'ja: readable preset label (#378)');
+test_assert(__LINE__, strpos($edit_js, 'function aiPresetOpen(') !== false, 'edit.js has aiPresetOpen() (#378)');
+test_assert(__LINE__, strpos($edit_html, 'class="ai_links"') < strpos($edit_html, 'id="ai_actions"'), 'template/config edit links are at the top of the AI pane (#378)');
+
+// --- AI支援パネルのレイアウト整理 (#378) ---
+$edit_src = file_get_contents($root . '/action/edit.inc.php');
+test_assert(__LINE__, strpos($edit_src, '"ai_actions_doc" => $ai_actions_doc') !== false, 'edit.inc.php passes document-scope AI actions (#378)');
+test_assert(__LINE__, strpos($edit_src, '"ai_actions_sel" => $ai_actions_sel') !== false, 'edit.inc.php passes selection-scope AI actions (#378)');
+test_assert(__LINE__, strpos($edit_html, 'class="ai_pane_head"') !== false && strpos($edit_html, 'class="ai_pane_body"') !== false, 'AI pane has a fixed header and a scrollable body (#378)');
+$sel_pos = strpos($edit_html, '{{ for $ai_actions_sel as $a }}');
+test_assert(__LINE__, $sel_pos !== false && $sel_pos > strpos($edit_html, 'id="ai_rephrase_opts"'), 'rephrase button sits under its instruction field (#378)');
+test_assert(__LINE__, strpos($edit_html, 'class="ai_spinner"') !== false, 'AI loader uses a CSS spinner (#378)');
+test_assert(__LINE__, strpos($edit_html, 'data-empty=') !== false && strpos($edit_css, '#ai_output:empty::before') !== false, 'AI results show an empty state (#378)');
+test_assert(__LINE__, strpos($edit_js, '[?] ') === false && strpos($edit_js, 'class="ai_diff"') !== false, 'AI diff shows before -> after instead of [?]/[v] (#378)');
+test_assert(__LINE__, strpos($edit_js, "abcdeABCDE") === false, 'old text loader animation removed (#378)');
+
+// 「ひな形を編集」はユーザーひな形ボタンの近く(同じセクション)に置く (#378)
+$tpl_link = strpos($edit_html, '{{$ai_edit_template_url}}');
+$tpl_chips = strpos($edit_html, 'id="ai_user_actions"');
+$tpl_head = strpos($edit_html, 'class="ai_pane_head"');
+$tpl_body = strpos($edit_html, 'class="ai_pane_body"');
+test_assert(__LINE__, $tpl_link > $tpl_body && $tpl_link < $tpl_chips, 'edit-template link is in the user-template section, not the pane header (#378)');
+
+// ドロワーから「AIチェック」ボタンを削除 (#378)。Ctrl+Shift+J のショートカットは維持する。
+test_assert(__LINE__, strpos($edit_html, 'onclick="aiSpellCheckOnClick()"') === false, 'drawer no longer has the AI check button (#378)');
+test_assert(__LINE__, strpos($edit_js, 'function aiSpellCheckOnClick(') !== false, 'AI proofread shortcut handler is kept (#378)');
+
+// 言い換えプリセットの追加 (#378)
+foreach (['conclusion first' => '結論を最初に', 'funnier' => 'もっと面白く', 'trivia' => '豆知識を加えて'] as $key => $label) {
+    test_assert(__LINE__, strpos($edit_html, "AI preset {$key}") !== false, "preset list has '{$key}' (#378)");
+    test_assert(__LINE__, strpos($lang_ja, $label) !== false, "ja: preset label {$label} (#378)");
+}

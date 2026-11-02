@@ -1106,7 +1106,7 @@ function showOnlyPanel(selector, forceShow) {
     return null
   }
   const isVisible = target.style.display !== 'none'
-  const panels = ['#help_div', '#tags_div', '#replace_div', '#history_div', '#misc_div', '#ai_div', '#search_div', '#conflict_div', '#settings_div']
+  const panels = ['#help_div', '#tags_div', '#replace_div', '#history_div', '#misc_div', '#search_div', '#conflict_div', '#settings_div']
   panels.forEach(function (panelSelector) {
     if (qs(panelSelector)) {
       qq(panelSelector).hide()
@@ -1509,8 +1509,33 @@ function tagsOnClick() {
   openToolPanel('#tags_div')
 }
 
+// The AI panel is a side pane of the editor (issue #378), not a drawer
+// panel: it stays open while the user checks the body text.
+const LS_KEY_AI_PANE = 'kona3_ai_pane_open'
+
+function aiPaneIsOpen() {
+  const pane = qs('#ai_div')
+  return !!pane && pane.style.display !== 'none'
+}
+
+function aiPaneSet(open, remember) {
+  const pane = qs('#ai_div')
+  const main = qs('#edit_main')
+  if (!pane || !main) { return }
+  pane.style.display = open ? '' : 'none'
+  main.classList.toggle('ai-open', !!open)
+  if (remember) {
+    try { localStorage.setItem(LS_KEY_AI_PANE, open ? '1' : '0') } catch (e) { /* ignore */ }
+  }
+}
+
+function aiPaneClose() {
+  aiPaneSet(false, true)
+}
+
 function aiOnClick() {
-  openToolPanel('#ai_div')
+  closeEditDrawer()
+  aiPaneSet(!aiPaneIsOpen(), true)
 }
 
 function aiSpellCheckOnClick() {
@@ -1535,14 +1560,6 @@ function aiButtonEnabeld(enbaled) {
     if (loaderTimerId > 0) {
       clearInterval(loaderTimerId)
     }
-    loaderCount = 0
-    loaderTimerId = setInterval(() => {
-      loaderCount++
-      const tmp = '=========='
-      let s = tmp.substring(0, loaderCount % 10) + 'abcdeABCDE'
-      s = s.substring(0, 10)
-      qq('#ai_loader').text(s)
-    }, 100)
   } else {
     qq('#ai_loader').hide()
     if (loaderTimerId > 0) {
@@ -1568,7 +1585,23 @@ function aiLangN(id, n) {
   return lang(id).replace('{n}', '' + n)
 }
 
+// Preset list dialog for the rephrase instruction (issue #378)
+function aiPresetOpen() {
+  const dlg = qs('#ai_preset_dialog')
+  if (!dlg) { return }
+  if (typeof dlg.showModal === 'function') { dlg.showModal() } else { dlg.setAttribute('open', '') }
+}
+
+function aiPresetClose() {
+  const dlg = qs('#ai_preset_dialog')
+  if (!dlg) { return }
+  if (typeof dlg.close === 'function') { dlg.close() } else { dlg.removeAttribute('open') }
+}
+
 function aiInitPanel() {
+  try {
+    if (localStorage.getItem(LS_KEY_AI_PANE) === '1') { aiPaneSet(true, false) }
+  } catch (e) { /* ignore */ }
   const clearBtn = qs('#ai_output_clear_btn')
   if (clearBtn) {
     qq(clearBtn).click(() => {
@@ -1584,6 +1617,18 @@ function aiInitPanel() {
     try {
       instruction.value = localStorage.getItem(LS_KEY_AI_REPHRASE) || ''
     } catch (e) { /* storage unavailable */ }
+    const presetList = qs('#ai_preset_list')
+    if (presetList) {
+      presetList.addEventListener('click', (e) => {
+        const b = e.target.closest ? e.target.closest('button[data-preset]') : null
+        if (!b) { return }
+        instruction.value = b.getAttribute('data-preset')
+        try {
+          localStorage.setItem(LS_KEY_AI_REPHRASE, instruction.value)
+        } catch (err) { /* storage unavailable */ }
+        aiPresetClose()
+      })
+    }
     instruction.addEventListener('change', () => {
       try {
         localStorage.setItem(LS_KEY_AI_REPHRASE, instruction.value)
@@ -1668,8 +1713,8 @@ function aiPost(params, ctx) {
   // Force-show the panel: openToolPanel() would toggle it off when it
   // is already visible, hiding the result the user is waiting for.
   if (!ctx.direct) {
-    openEditDrawer()
-    showOnlyPanel('#ai_div', true)
+    closeEditDrawer()
+    aiPaneSet(true, true)
   }
   aiButtonEnabeld(false)
   qq().post(qq(form).attr('action'), post)
@@ -1826,16 +1871,16 @@ function aiItemBlock(row, type, ctx) {
     html = '<div><b>' + text2html('' + (row && row['point'] ? row['point'] : '')) + '</b></div>' +
       '<div>' + text2html('' + (row && row['detail'] ? row['detail'] : '')).replace(/\n/g, '<br>') + '</div>'
     if (ng !== '' && ok !== '' && ng !== ok) {
-      html += '<div><span class="ai-ng">[?] ' + text2html(ng) + '</span><br>' +
-        '<span class="ai-ok">[v] ' + text2html(ok) + '</span></div>'
+      html += '<div class="ai_diff"><span class="ai-ng">' + text2html(ng) + '</span>' +
+        '<span class="ai-ok">' + text2html(ok) + '</span></div>'
     }
   } else {
     const data = aiNormalizeJsonRow(row)
     if (!data) { return '' }
     ng = data['ng']
     ok = data['ok']
-    html = '<div><span class="ai-ng">[?] ' + text2html(ng) + '</span><br>' +
-      '<span class="ai-ok">[v] ' + text2html(ok) + '</span></div>' +
+    html = '<div class="ai_diff"><span class="ai-ng">' + text2html(ng) + '</span>' +
+      '<span class="ai-ok">' + text2html(ok) + '</span></div>' +
       '<div>' + text2html(data['desc']) + '</div>'
   }
   aiBlockItems[id] = { kind: 'replace', ng: ng, ok: ok, group: ctx.group, done: false }
