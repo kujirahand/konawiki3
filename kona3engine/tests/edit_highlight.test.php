@@ -68,6 +68,17 @@ foreach (['.k3hl-backdrop', '#edit_txt.k3hl-on', '.k3hl-mark', '.k3hl-strong', '
 }
 test_assert(__LINE__, file_exists($root . '/tests/js/edit_highlight_dom.test.js'), 'highlight: DOM test exists (#360 PR2)');
 
+// --- PR4: server-side default via kona3conf (#360) ---
+$conf_src = file_get_contents($root . '/kona3conf.inc.php');
+test_assert(__LINE__, strpos($conf_src, "'editor_highlight_default' => ['label' => 'Editor Syntax Highlight Default', 'default' => TRUE, 'type' => 'bool']") !== false, 'highlight: editor_highlight_default is defined as a bool config item (#360 PR4)');
+$conf_ja_src = file_get_contents($root . '/lang/conf.ja.inc.php');
+test_assert(__LINE__, strpos($conf_ja_src, "'editor_highlight_default'") !== false, 'highlight: ja lang has editor_highlight_default (#360 PR4)');
+$conf_en_src = file_get_contents($root . '/lang/conf.en.inc.php');
+test_assert(__LINE__, strpos($conf_en_src, "'editor_highlight_default'") !== false, 'highlight: en lang has editor_highlight_default (#360 PR4)');
+test_assert(__LINE__, strpos($edit_inc, '"editor_highlight_default"') !== false, 'highlight: edit action passes editor_highlight_default to the template (#360 PR4)');
+test_assert(__LINE__, strpos($edit_html, 'id="editor_highlight_default"') !== false, 'highlight: edit.html has the editor_highlight_default hidden input (#360 PR4)');
+test_assert(__LINE__, strpos($layer_src, 'serverDefaultEnabled') !== false && strpos($layer_src, 'editor_highlight_default') !== false, 'highlight: layer reads the server-side default (#360 PR4)');
+
 // Run the behaviour tests when Node.js is available (this also covers
 // the long-standing TODO of running JS tests from `just test`, #153).
 $node = trim((string) shell_exec('command -v node 2>/dev/null'));

@@ -213,6 +213,8 @@ test_eq(__LINE__, $flat_items['openrouter_model']['default'], '', "設定項目�
 test_assert(__LINE__, isset($config_items['Editor']['editor_shortcut_temp_save']), "設定項目定義: Editorに一時保存ショートカットがある");
 test_eq(__LINE__, $flat_items['editor_shortcut_temp_save']['default'], 'Ctrl+S', "設定項目定義: 一時保存ショートカット");
 test_eq(__LINE__, $flat_items['editor_shortcut_new']['default'], 'Ctrl+Alt+N', "設定項目定義: 新規ショートカット");
+test_assert(__LINE__, isset($config_items['Editor']['editor_highlight_default']), "設定項目定義: Editorにシンタックスハイライト既定値がある");
+test_eq(__LINE__, $flat_items['editor_highlight_default']['default'], TRUE, "設定項目定義: シンタックスハイライト既定値");
 test_eq(__LINE__, $flat_items['ai_shortcut_complete']['default'], 'Ctrl+Shift+H', "設定項目定義: AI文章補完ショートカット");
 test_eq(__LINE__, $flat_items['ai_shortcut_spellcheck']['default'], 'Ctrl+Shift+J', "設定項目定義: AI誤字脱字修正ショートカット");
 test_eq(__LINE__, $flat_items['ai_shortcut_user_prompt1']['default'], 'Ctrl+Alt+1', "設定項目定義: AI USER_PROMPT1ショートカット");
