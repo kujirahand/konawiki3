@@ -13,22 +13,45 @@ function chatgpt_messages_init($system_message, $user_message) {
     ];
 }
 
+// 環境変数を取得 (getenv → $_SERVER → $_ENV の順)
+function kona3ai_get_env($name) {
+    $v = getenv($name);
+    if (is_string($v) && $v !== '') { return $v; }
+    if (isset($_SERVER[$name]) && is_string($_SERVER[$name]) && $_SERVER[$name] !== '') {
+        return $_SERVER[$name];
+    }
+    if (isset($_ENV[$name]) && is_string($_ENV[$name]) && $_ENV[$name] !== '') {
+        return $_ENV[$name];
+    }
+    return '';
+}
+
+// APIキーを解決 (@ENV:NAME / @NAME / 直接指定 / プロバイダー既定の環境変数)
+function kona3ai_resolve_apikey($apikey, $provider = "OpenAI") {
+    $resolved = '';
+    if (is_string($apikey) && $apikey !== '') {
+        if (preg_match('/^\@ENV\:(.+)$/', $apikey, $m)) {
+            $resolved = kona3ai_get_env($m[1]);
+        } else if (preg_match('/^\@([a-zA-Z0-9_]+)$/', $apikey, $m)) {
+            $resolved = kona3ai_get_env($m[1]);
+        } else {
+            return $apikey;
+        }
+    }
+    if ($resolved !== '') {
+        return $resolved;
+    }
+    // 未指定、または @NAME が未設定のときはプロバイダー既定の環境変数へ (従来挙動)
+    $envKey = ($provider === "OpenRouter") ? "OPENROUTER_API_KEY" : "OPENAI_API_KEY";
+    return kona3ai_get_env($envKey);
+}
+
 function chatgpt_ask($chatgpt_messages, $apikey=null, $model= "gpt-6-luna", $temperature=0, $opt=[], $provider="OpenAI", $timeout=20) {
     $errMessage = "Error: Unable to get response from AI.";
     // check api key (ENV)
-    if (is_string($apikey)) {
-        if (preg_match('/^\@ENV\:(.+)$/', $apikey, $m)) {
-            $apikey = getenv($m[1]);
-        } else if (preg_match('/^\@([a-zA-Z0-9_]+)$/', $apikey, $m)) {
-            $apikey = getenv($m[1]);
-        }
-    }
-    if ($apikey == null || $apikey == '') { // check apikey
-        $envKey = ($provider === "OpenRouter") ? "OPENROUTER_API_KEY" : "OPENAI_API_KEY";
-        $apikey = getenv($envKey);
-        if ($apikey == null || $apikey == '') {
-            return ["Error: API Key is not set.", 0];
-        }
+    $apikey = kona3ai_resolve_apikey($apikey, $provider);
+    if ($apikey === '') {
+        return ["Error: API Key is not set.", 0];
     }
     $url = "https://api.openai.com/v1/chat/completions";
     $headers = array(
