@@ -13,7 +13,7 @@ function chatgpt_messages_init($system_message, $user_message) {
     ];
 }
 
-function chatgpt_ask($chatgpt_messages, $apikey=null, $model= "gpt-6-luna", $temperature=0, $opt=[], $provider="OpenAI") {
+function chatgpt_ask($chatgpt_messages, $apikey=null, $model= "gpt-6-luna", $temperature=0, $opt=[], $provider="OpenAI", $timeout=20) {
     $errMessage = "Error: Unable to get response from AI.";
     // check api key (ENV)
     if (is_string($apikey)) {
@@ -57,7 +57,7 @@ function chatgpt_ask($chatgpt_messages, $apikey=null, $model= "gpt-6-luna", $tem
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
 
         $response = curl_exec($ch);
         if ($response === false) {
