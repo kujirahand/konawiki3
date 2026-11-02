@@ -90,6 +90,7 @@ function kona3conf_getConfigItems()
             'plugin_disallow' => ['label' => 'Disabled Plugins', 'default' => 'html,htmlshow,filelist', 'type' => 'string', 'note' => "delimiter=','"],
             'show_counter' => ['label' => 'Show Counter', 'default' => FALSE, 'type' => 'bool'],
             'show_page_list' => ['label' => 'Show Page List', 'default' => FALSE, 'type' => 'bool'],
+            'hide_login_button' => ['label' => 'Hide Login Button', 'default' => FALSE, 'type' => 'bool'],
             'show_data_dir' => ['label' => 'Show Data Directory', 'default' => FALSE, 'type' => 'bool'],
             'data_dir_allow_pattern' => [
                 'label' => 'Data Directory Allow Pattern',

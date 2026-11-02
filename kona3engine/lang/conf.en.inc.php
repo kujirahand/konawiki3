@@ -31,6 +31,7 @@ return [
         'plugin_disallow' => ['desc' => 'Plugins you do not want to allow, separated by commas.'],
         'show_counter' => ['desc' => 'If true, show an access counter at the bottom of each page.'],
         'show_page_list' => ['desc' => 'If true, a "Page List" item appears in the hamburger menu and visitors can open pages from a folder tree view.'],
+        'hide_login_button' => ['desc' => 'If true, the "Login" button and menu item shown to visitors are hidden, and the login prompt in the comment form is not shown either. Useful when publishing the wiki as a public homepage. The login page itself can still be opened directly by URL; note that on a private wiki this becomes the only way to log in.'],
         'show_data_dir' => ['desc' => 'If true, list the files in the page\'s folder below the page.'],
         'data_dir_allow_pattern' => ['desc' => 'Regular expression of file extensions to list in the data folder listing.'],
         'noanchor' => ['desc' => 'If true, do not show the anchor link next to headings.'],
