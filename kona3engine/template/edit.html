@@ -54,7 +54,6 @@
           <div class="ai_pane_head">
             <span class="ai_pane_title">✨ {{'AI Assitant' | lang}}</span>
             <div class="ai_links">
-              <a class="ai_tool_btn" href="{{$ai_edit_template_url}}" target="_new" title="{{'Edit AI Template' | lang}}">📝<span class="ai_tool_label">{{'Edit AI Template' | lang}}</span></a>
               <a class="ai_tool_btn" href="{{$ai_edit_conf_url}}" target="_new" title="{{'Edit AI Config' | lang}}">⚙️<span class="ai_tool_label">{{'AI Config short' | lang}}</span></a>
               <a class="ai_tool_btn" href="https://kujirahand.com/konawiki3/index.php?AI" target="_blank" rel="noopener" title="{{'Help' | lang}}">?</a>
               <button type="button" id="ai_close_btn" class="ai_tool_btn" onclick="aiPaneClose()" title="{{'Close' | lang}}" aria-label="{{'Close' | lang}}">×</button>
@@ -83,16 +82,19 @@
                 {{ endfor }}
               </section>
             </div>
-            {{ if $ai_user_prompts }}
             <section class="ai_section">
-              <h4 class="ai_section_title">{{'AI user prompts' | lang}}</h4>
+              <div class="ai_section_head">
+                <h4 class="ai_section_title">{{'AI user prompts' | lang}}</h4>
+                <a class="ai_text_btn" href="{{$ai_edit_template_url}}" target="_new">📝 {{'Edit AI Template' | lang}}</a>
+              </div>
+              {{ if $ai_user_prompts }}
               <div id="ai_user_actions">
                 {{ for $ai_user_prompts as $name }}
                 <button type="button" class="ai_chip" data-name="{{$name}}" onclick="aiRunUserPrompt(this.dataset.name)">{{$name}}</button>
                 {{ endfor }}
               </div>
+              {{ endif }}
             </section>
-            {{ endif }}
             <div class="ai_status">
               <span id="ai_loader" style="display: none;"><span class="ai_spinner"></span>{{'AI running' | lang}}</span>
               <span id="ai_ask_cost"></span>

@@ -598,7 +598,8 @@ body.dark-theme #wikiedit .ai_tool_btn:hover {
 body.dark-theme .ai_section_title,
 body.dark-theme .ai_status,
 body.dark-theme #wikiedit .ai_tool_btn,
-body.dark-theme #wikiedit .ai_text_btn {
+body.dark-theme #wikiedit .ai_text_btn,
+body.dark-theme #wikiedit a.ai_text_btn {
   color: var(--k3d-sub-fg);
 }
 

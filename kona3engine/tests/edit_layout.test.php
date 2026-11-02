@@ -124,3 +124,10 @@ test_assert(__LINE__, strpos($edit_html, 'class="ai_spinner"') !== false, 'AI lo
 test_assert(__LINE__, strpos($edit_html, 'data-empty=') !== false && strpos($edit_css, '#ai_output:empty::before') !== false, 'AI results show an empty state (#378)');
 test_assert(__LINE__, strpos($edit_js, '[?] ') === false && strpos($edit_js, 'class="ai_diff"') !== false, 'AI diff shows before -> after instead of [?]/[v] (#378)');
 test_assert(__LINE__, strpos($edit_js, "abcdeABCDE") === false, 'old text loader animation removed (#378)');
+
+// 「ひな形を編集」はユーザーひな形ボタンの近く(同じセクション)に置く (#378)
+$tpl_link = strpos($edit_html, '{{$ai_edit_template_url}}');
+$tpl_chips = strpos($edit_html, 'id="ai_user_actions"');
+$tpl_head = strpos($edit_html, 'class="ai_pane_head"');
+$tpl_body = strpos($edit_html, 'class="ai_pane_body"');
+test_assert(__LINE__, $tpl_link > $tpl_body && $tpl_link < $tpl_chips, 'edit-template link is in the user-template section, not the pane header (#378)');
