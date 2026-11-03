@@ -47,7 +47,7 @@ test_assert(__LINE__, strpos($edit_js, 'search_stale') !== false && strpos($edit
 foreach (['searchLiveLater', 'searchLiveRun', 'searchListClear'] as $fn) {
     test_assert(__LINE__, strpos($edit_js, 'function ' . $fn . '(') !== false, "search: edit.js has {$fn}() (#381 live)");
 }
-test_assert(__LINE__, strpos($edit_js, "addEventListener('input', searchLiveLater)") !== false, 'search: typing triggers the live search (#381 live)');
+test_assert(__LINE__, strpos($edit_js, "search_key_el.addEventListener('input', (e) => {") !== false && substr_count($edit_js, 'searchLiveLater()') >= 3, 'search: typing triggers the live search (#381 live)');
 test_assert(__LINE__, strpos($edit_js, 'SEARCH_LIVE_DELAY = 300') !== false && strpos($edit_js, 'setTimeout(searchLiveRun, SEARCH_LIVE_DELAY)') !== false, 'search: live search is debounced (#381 live)');
 test_assert(__LINE__, strpos($edit_js, 'SEARCH_LIVE_MIN_LEN = 2') !== false, 'search: live search needs 2+ characters (#381 live)');
 test_assert(__LINE__, strpos($edit_js, 'SEARCH_LIVE_LIMIT = 30') !== false && strpos($edit_js, 'stopAtLimit: searchListLive') !== false, 'search: live search stops after 30 matches (#381 live)');
