@@ -61,35 +61,52 @@ function replaceFindMatches(text, query, useRegExp, max) {
     var s = lines[n]
     var m
     while ((m = re.exec(s)) !== null) {
-      if (m[0].length === 0) {
-        // an empty match replaces nothing useful; step over it
-        re.lastIndex++
-        if (re.lastIndex > s.length) { break }
-        continue
-      }
       if (max > 0 && matches.length >= max) { more = true; break }
       matches.push({ pos: offset + m.index, len: m[0].length, line: n + 1, groups: m })
+      if (m[0].length === 0) {
+        // A zero-length match (^, $, x* ...) is a real match, like in
+        // String.prototype.replace: keep it and step over it so the scan
+        // moves on.
+        re.lastIndex++
+        if (re.lastIndex > s.length) { break }
+      }
     }
     offset += s.length + 1
   }
   return { matches: matches, more: more }
 }
 
-// Replacement text of one match. In RegExp mode $&, $1-$99, $<name> and
-// $$ are expanded like String.prototype.replace does.
+// Replacement text of one match. In RegExp mode $$, $&, $`, $', $n, $nn
+// and $<name> are expanded exactly like String.prototype.replace does
+// (the former replace form used it), including its rules for digits:
+// "$10" is group 10 only when there are 10 groups, otherwise group 1
+// followed by "0"; "$0" and out-of-range groups stay literal. $` and $'
+// refer to the line, because RegExp mode works line by line.
 function replaceExpand(val, match, useRegExp) {
   if (!useRegExp || !match.groups) { return val }
   var m = match.groups
-  return val.replace(/\$(\$|&|\d{1,2}|<[^>]*>)/g, function (all, t) {
+  var count = m.length - 1
+  return val.replace(/\$(\$|&|`|'|<[^>]*>|\d{1,2})/g, function (all, t) {
     if (t === '$') { return '$' }
     if (t === '&') { return m[0] }
+    if (t === '`') { return m.input.substring(0, m.index) }
+    if (t === "'") { return m.input.substring(m.index + m[0].length) }
     if (t.charAt(0) === '<') {
-      var g = m.groups && m.groups[t.slice(1, -1)]
+      // without named groups "$<" is literal text
+      if (m.groups === undefined) { return all }
+      var g = m.groups[t.slice(1, -1)]
       return g === undefined ? '' : g
     }
-    var idx = parseInt(t, 10)
-    if (idx >= 1 && idx < m.length) { return m[idx] === undefined ? '' : m[idx] }
-    return all
+    var group = function (i) { return m[i] === undefined ? '' : m[i] }
+    if (t.length === 2) {
+      var nn = parseInt(t, 10)
+      if (nn >= 1 && nn <= count) { return group(nn) }
+      var d = parseInt(t.charAt(0), 10)
+      if (d >= 1 && d <= count) { return group(d) + t.charAt(1) }
+      return all
+    }
+    var n = parseInt(t, 10)
+    return n >= 1 && n <= count ? group(n) : all
   })
 }
 

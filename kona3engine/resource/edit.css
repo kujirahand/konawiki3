@@ -1480,3 +1480,9 @@ textarea#edit_txt:focus {
   align-items: center;
   gap: 4px;
 }
+
+/* 長さゼロの一致 (^ や $ など): 置換される位置を ∅ で示す */
+#replace_results del.replace_zero::before {
+  content: '∅';
+  text-decoration: none;
+}

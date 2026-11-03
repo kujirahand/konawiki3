@@ -31,8 +31,8 @@ const {
   // ^ and $ work per line; a pattern does not span lines
   assert.strictEqual(replaceAllText('a\na', '^a$', 'X', true).text, 'X\nX');
   assert.strictEqual(replaceFindMatches('a\nb', 'a\\sb', true, 0).matches.length, 0);
-  // empty matches are skipped, not looped on
-  assert.strictEqual(replaceFindMatches('abc', 'x*', true, 0).matches.length, 0);
+  // zero-length matches are real matches (same as String.prototype.replace)
+  assert.strictEqual(replaceFindMatches('abc', 'x*', true, 0).matches.length, 4);
 }
 
 // --- replacement expansion in RegExp mode only ---
@@ -126,6 +126,52 @@ const {
   assert.strictEqual(r.items[0].before, 'え');
   assert.strictEqual(r.items[0].after, 'き');
   assert.strictEqual(replaceAllText('a\r\nb', 'b', 'c', false).text, 'a\r\nc');
+}
+
+// --- PR #382 review: zero-length matches (line start / end) ---
+{
+  assert.strictEqual(replaceAllText('abc\ndef', '^', '>', true).text, '>abc\n>def');
+  assert.strictEqual(replaceAllText('abc\ndef', '^', '>', true).count, 2);
+  assert.strictEqual(replaceAllText('abc\ndef', '$', ';', true).text, 'abc;\ndef;');
+  assert.strictEqual(replaceAllText('a\n\nb', '^', '#', true).text, '#a\n#\n#b'); // empty lines too
+  assert.strictEqual(replaceAllText('', '^', '>', true).text, '>');
+  // the preview lists them as well (limit and cut-off still work)
+  const pre = buildReplaceResults('abc\ndef', '^', '>', true);
+  assert.deepStrictEqual(pre.items.map(i => [i.line, i.match, i.repl]), [[1, '', '>'], [2, '', '>']]);
+  assert.strictEqual(buildReplaceResults('a\n'.repeat(100), '^', '>', true, { limit: 30, stopAtLimit: true }).items.length, 30);
+  // "replace next" walks through the line starts without getting stuck
+  let t = 'abc\ndef';
+  let r = replaceNextText(t, '^', '>', true, 0);
+  assert.strictEqual(r.text, '>abc\ndef');
+  r = replaceNextText(r.text, '^', '>', true, r.end);
+  assert.strictEqual(r.text, '>abc\n>def');
+}
+
+// --- PR #382 review: back references behave like String.prototype.replace ---
+{
+  assert.strictEqual(replaceAllText('ab', '(a)', '$10', true).text, 'a0b'); // $1 + "0"
+  assert.strictEqual(replaceAllText('ab', '(a)', '$01', true).text, 'ab');   // $01 = group 1
+  assert.strictEqual(replaceAllText('ab', '(a)', '$0', true).text, '$0b');   // $0 is literal
+  assert.strictEqual(replaceAllText('ab', '(a)', '$2', true).text, '$2b');   // no group 2
+  assert.strictEqual(replaceAllText('ab', 'a', '$<x>', true).text, '$<x>b'); // no named groups: literal
+  assert.strictEqual(replaceAllText('ab', '(?<x>a)', '[$<x>][$<y>]', true).text, '[a][]b');
+  assert.strictEqual(replaceAllText('xaby', 'a', "[$`|$']", true).text, 'x[x|by]by');
+}
+
+// --- differential test against String.prototype.replace (the former
+// implementation): every combination must give the same text ---
+{
+  const texts = ['', 'abc', 'abc\ndef', 'a\n\nb', 'foo bar foo', '2026-11-03\nx', 'aaa', 'ab\r\ncd', 'あいう\nえお'];
+  const patterns = ['^', '$', '^.', '.$', 'x*', 'a*', '\\b', '(a)', '(a)|(b)', '(?<x>[a-c])', '\\d+', '(\\d+)-(\\d+)', 'o+', '^\\s*', 'foo|bar', '(.)(.)(.)'];
+  const vals = ['', 'X', '>', '$&$&', '$1', '$2', '$10', '$01', '$0', '$00', '$$', '$<x>', "[$`|$']", '<$1-$2>', '$3$2$1', 'a$', '$'];
+  let checked = 0;
+  for (const t of texts) for (const p of patterns) for (const v of vals) {
+    const expected = t.split('\n').map(l => l.replace(new RegExp(p, 'g'), v)).join('\n');
+    const got = replaceAllText(t, p, v, true).text;
+    assert.strictEqual(got, expected, JSON.stringify({ t, p, v, got, expected }));
+    checked++;
+  }
+  assert.ok(checked > 2000);
 }
 
 console.log('edit_replace_core.test.js: all tests passed');

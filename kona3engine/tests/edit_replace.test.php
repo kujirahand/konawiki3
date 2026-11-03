@@ -48,6 +48,10 @@ test_assert(__LINE__, preg_match('/function replaceResultsClick\(.*?replaceListI
 test_assert(__LINE__, strpos($edit_js, 'replaceAtText(edit_txt.value') !== false, 'replace: a row replaces only its own match (#381)');
 // 元に戻す
 test_assert(__LINE__, strpos($edit_js, 'replaceUndoBuffer = edit_txt.value') !== false, 'replace: undo buffer is kept before each replacement (#381)');
+// 長さゼロの一致 (^ $) の表示 (#382 review)
+test_assert(__LINE__, strpos($edit_js, "del.className = 'replace_zero'") !== false && strpos($edit_css, 'del.replace_zero::before') !== false, 'replace: a zero-length match is marked in the table (#382 review)');
+test_assert(__LINE__, strpos($core, 'A zero-length match') !== false && strpos($core, 'if (m[0].length === 0) {\n        // an empty match') === false, 'replace: zero-length matches are not skipped (#382 review)');
+test_assert(__LINE__, strpos($core, "m.input.substring(0, m.index)") !== false, 'replace: $` and $\' are expanded like String.replace (#382 review)');
 // 結果の表示は textContent で組み立てる (XSS対策)
 $run_src = substr($edit_js, strpos($edit_js, 'function replaceRun('), 3200);
 test_assert(__LINE__, strpos($run_src, 'innerHTML') === false, 'replace: the table is built without innerHTML (#381)');

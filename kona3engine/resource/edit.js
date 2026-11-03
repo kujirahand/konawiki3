@@ -2424,6 +2424,8 @@ function replaceRun(live) {
     td.className = 'search_ctx'
     const del = document.createElement('del')
     del.textContent = it.match
+    // a zero-length match (^, $ ...) has nothing to strike through
+    if (it.match === '') { del.className = 'replace_zero' }
     const ins = document.createElement('ins')
     ins.textContent = it.repl === '' ? '(削除)' : it.repl
     td.appendChild(document.createTextNode(it.before))
