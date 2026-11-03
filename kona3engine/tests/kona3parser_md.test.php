@@ -554,3 +554,14 @@ test_assert(__LINE__, strpos($html, 'continuation') === false && strpos($html, '
 $html = kona3markdown_parser_convert("- Item `code <!-- not a comment\nstill visible line", false);
 test_assert(__LINE__, strpos($html, '<code>code &lt;!-- not a comment</code>') !== false, "Markdown comment(#312+#315): 未終了コードスパン内の <!-- はコメントにしない");
 test_assert(__LINE__, strpos($html, 'still visible line') !== false, "Markdown comment(#312+#315): 未終了コードスパンの次の行を表示する");
+
+// 22. Issue #77: バッククォートをコード内に書く方法(長いバッククォート列で囲む)と、
+// コードスパン内ではバックスラッシュがエスケープにならない(Markdown仕様どおり)ことを確認
+$html = kona3markdown_parser_convert("``a ` b``", false);
+test_assert(__LINE__, strpos($html, '<code>a ` b</code>') !== false, "Markdown code(#77): 二連バッククォートで囲めば ` をコード内に書ける");
+$html = kona3markdown_parser_convert("`` ` ``", false);
+test_assert(__LINE__, strpos($html, '<code>`</code>') !== false, "Markdown code(#77): `` ` `` でバッククォート単体をコード表示");
+$html = kona3markdown_parser_convert("`a\\nb`", false);
+test_assert(__LINE__, strpos($html, '<code>a\\nb</code>') !== false, "Markdown code(#77): コードスパン内のバックスラッシュはそのまま表示");
+$html = kona3markdown_parser_convert("````\n```\ncode\n```\n````", false);
+test_assert(__LINE__, strpos($html, 'code') !== false && substr_count($html, '```') >= 2, "Markdown code(#77): 長いフェンスで囲めば ``` をコードブロック内に書ける");
