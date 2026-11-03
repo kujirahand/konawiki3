@@ -1308,3 +1308,181 @@ textarea#edit_txt:focus {
     display: none;
   }
 }
+
+/* =================================================================
+   検索ペイン: AI支援ペインと同じ位置に表示する (#381)
+   ================================================================= */
+.search_form {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.search_form #search_key {
+  flex: 1 1 auto;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.search_nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+#search_results_note,
+#replace_results_note {
+  margin: 4px 0;
+  min-height: 1.2em;
+}
+
+#search_results,
+#replace_results {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 0.9em;
+}
+
+#search_results th,
+#replace_results th {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--k3-color-border, #e4e7eb);
+  background: var(--k3-color-bg-subtle, #f5f7fa);
+  color: var(--k3-color-text-muted, #616e7c);
+  font-weight: normal;
+  text-align: left;
+}
+
+#search_results .search_line,
+#replace_results .search_line {
+  width: 3.5em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--k3-color-text-muted, #616e7c);
+}
+
+#search_results td,
+#replace_results td {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--k3-color-border, #e4e7eb);
+  vertical-align: top;
+}
+
+#search_results td.search_ctx,
+#replace_results td.search_ctx {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+#search_results tbody tr,
+#replace_results tbody tr {
+  cursor: pointer;
+}
+
+#search_results tbody tr:hover,
+#search_results tbody tr:focus-visible,
+#replace_results tbody tr:hover,
+#replace_results tbody tr:focus-visible {
+  background: var(--k3-color-accent-subtle, #e8f0fb);
+  outline: none;
+}
+
+#search_results mark,
+#replace_results mark {
+  padding: 0 1px;
+  border-radius: 3px;
+  background: #ffe58a;
+  color: #1f2933;
+}
+
+/* =================================================================
+   行番号 (#381)
+   ================================================================= */
+#edit_main .editor.k3ln-on {
+  flex-direction: row;
+}
+
+.k3ln-gutter {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  /* 行数が多くても高さは本文側(テキストエリア)に合わせ、はみ出しは隠す */
+  contain: size;
+  overflow: hidden;
+  padding-left: 0;
+  padding-right: 8px;
+  border: 1px solid var(--k3-color-border-strong, #cbd2d9);
+  border-right: none;
+  border-radius: 8px 0 0 8px;
+  background: var(--k3-color-bg-subtle, #f5f7fa);
+  color: var(--k3-color-text-muted, #616e7c);
+  text-align: right;
+  font-family: monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.k3ln-num {
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.editor.k3ln-on > textarea#edit_txt,
+.editor.k3ln-on > .k3hl-wrap {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+}
+
+.editor.k3ln-on textarea#edit_txt,
+.editor.k3ln-on .k3hl-backdrop {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* 本文や検索語が変わり、まだ再検索されていない結果 */
+#search_results.search_stale,
+#replace_results.search_stale {
+  opacity: 0.5;
+}
+
+/* 置換ペイン (#381): 変更前 → 変更後のプレビューと、行ごとの置換ボタン */
+#replace_results del {
+  padding: 0 1px;
+  border-radius: 3px;
+  background: #ffd5d5;
+  color: #7a1f1f;
+  text-decoration: line-through;
+}
+
+#replace_results ins {
+  padding: 0 1px;
+  border-radius: 3px;
+  background: #cdeccd;
+  color: #1c4d1c;
+  text-decoration: none;
+}
+
+#replace_results .replace_act {
+  width: 4.5em;
+  text-align: right;
+}
+
+#replace_results td.replace_act button {
+  padding: 2px 8px;
+  font-size: 0.9em;
+}
+
+.replace_regexp_label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 長さゼロの一致 (^ や $ など): 置換される位置を ∅ で示す */
+#replace_results del.replace_zero::before {
+  content: '∅';
+  text-decoration: none;
+}

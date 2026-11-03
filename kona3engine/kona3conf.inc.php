@@ -124,6 +124,7 @@ function kona3conf_getConfigItems()
             'editor_shortcut_temp_save' => ['label' => 'Shortcut: Temp Save', 'default' => 'Ctrl+S', 'type' => 'string'],
             'editor_shortcut_new' => ['label' => 'Shortcut: New Page', 'default' => 'Ctrl+Alt+N', 'type' => 'string'],
             'editor_highlight_default' => ['label' => 'Editor Syntax Highlight Default', 'default' => TRUE, 'type' => 'bool'],
+            'editor_line_number_default' => ['label' => 'Editor Line Numbers Default', 'default' => TRUE, 'type' => 'bool'],
         ],
         'Uploader' => [
             'image_pattern' => ['label' => 'Image Pattern', 'default' => '(png|jpg|jpeg|gif|bmp|ico|svg|webp)', 'type' => 'string'],

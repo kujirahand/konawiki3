@@ -34,10 +34,14 @@ test_assert(__LINE__, strpos($edit_html, 'id="edit_drawer"') !== false, 'edit.ht
 test_assert(__LINE__, strpos($edit_html, 'id="edit_drawer_scrim"') !== false, 'edit.html has #edit_drawer_scrim (#153)');
 test_assert(__LINE__, strpos($edit_html, 'id="edit_statusbar"') !== false, 'edit.html has #edit_statusbar (#153)');
 $drawer_pos = strpos($edit_html, 'id="edit_drawer"');
-foreach (['help_div', 'tags_div', 'replace_div', 'history_div', 'misc_div'] as $panel) {
+foreach (['help_div', 'tags_div', 'history_div', 'misc_div'] as $panel) {
     $pos = strpos($edit_html, 'id="' . $panel . '"');
     test_assert(__LINE__, $pos !== false && $pos > $drawer_pos, "panel #{$panel} is inside the drawer (#153)");
 }
+// 置換パネルは検索・AIと同じく #edit_main 内のサイドペイン (#381)
+$replace_pos = strpos($edit_html, 'id="replace_div"');
+$main_pos_r = strpos($edit_html, 'id="edit_main"');
+test_assert(__LINE__, $replace_pos !== false && $replace_pos > $main_pos_r && $replace_pos < $drawer_pos, 'panel #replace_div is inside #edit_main, outside the drawer (#381)');
 // AIパネルはドロワーの外、#edit_main 内のサイドペイン (#378)
 $main_pos = strpos($edit_html, 'id="edit_main"');
 $ai_pos = strpos($edit_html, 'id="ai_div"');

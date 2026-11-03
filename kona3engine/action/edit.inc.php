@@ -131,6 +131,9 @@ function kona3_action_edit()
     // include script (highlight core/layer must load before edit.js)
     $kona3conf['js'][] = kona3getResourceURL('edit_highlight_core.js', TRUE);
     $kona3conf['js'][] = kona3getResourceURL('edit_highlight.js', TRUE);
+    $kona3conf['js'][] = kona3getResourceURL('edit_linenum.js', TRUE);
+    $kona3conf['js'][] = kona3getResourceURL('edit_search_core.js', TRUE);
+    $kona3conf['js'][] = kona3getResourceURL('edit_replace_core.js', TRUE);
     $kona3conf['js'][] = kona3getResourceURL('edit_ai_core.js', TRUE);
     $kona3conf['js'][] = kona3getResourceURL('edit.js', TRUE);
     $kona3conf['css'][] = kona3getResourceURL('edit.css', TRUE);
@@ -223,6 +226,7 @@ function kona3_action_edit()
         "editor_shortcut_temp_save" => kona3getConf('editor_shortcut_temp_save', 'Ctrl+S'),
         "editor_shortcut_new" => kona3getConf('editor_shortcut_new', 'Ctrl+Alt+N'),
         "editor_highlight_default" => kona3getConf('editor_highlight_default', TRUE) ? '1' : '0',
+        "editor_line_number_default" => kona3getConf('editor_line_number_default', TRUE) ? '1' : '0',
         "ai_shortcut_complete" => kona3getConf('ai_shortcut_complete', 'Ctrl+Shift+H'),
         "ai_shortcut_spellcheck" => kona3getConf('ai_shortcut_spellcheck', 'Ctrl+Shift+J'),
         "ai_shortcut_user_prompt1" => kona3getConf('ai_shortcut_user_prompt1', 'Ctrl+Alt+1'),

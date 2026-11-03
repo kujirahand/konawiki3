@@ -74,6 +74,16 @@ function edit_init() {
       }
     })
   }
+  const k3ln_toggle = qs('#k3ln_toggle')
+  if (k3ln_toggle) {
+    const ln_api = window.kona3EditLineNumber
+    k3ln_toggle.checked = !!(ln_api && ln_api.isEnabled())
+    k3ln_toggle.addEventListener('change', () => {
+      const api = window.kona3EditLineNumber
+      if (!api) { return }
+      if (k3ln_toggle.checked) { api.enable() } else { api.disable() }
+    })
+  }
   const page_mode_el = qs('#page_mode')
   if (page_mode_el) {
     page_mode_el.addEventListener('change', () => {
@@ -83,39 +93,53 @@ function edit_init() {
   const search_key_el = qs('#search_key')
   if (search_key_el) {
     search_key_el.addEventListener('input', updateSearchCount)
+    // Do not search while an IME composition is in progress: the typed
+    // reading (e.g. "かん") is not the keyword yet. The search runs when
+    // the composition is committed.
+    search_key_el.addEventListener('input', (e) => {
+      if (e.isComposing || e.inputType === 'insertCompositionText') {
+        searchComposing = true
+        return
+      }
+      searchComposing = false
+      searchLiveLater()
+    })
+    search_key_el.addEventListener('compositionstart', () => { searchComposing = true })
+    search_key_el.addEventListener('compositionend', () => {
+      searchComposing = false
+      searchLiveLater()
+    })
+    // A composition that is cancelled by leaving the field never commits
+    search_key_el.addEventListener('blur', () => { searchComposing = false })
     search_key_el.addEventListener('keydown', (e) => {
       // Enter that commits an IME composition must not trigger a search
       if (e.isComposing || e.keyCode === 229) { return }
       if (e.key === 'Enter') {
         e.preventDefault()
-        if (e.shiftKey) { searchPrev() } else { searchNext() }
+        if (e.shiftKey) { searchPrev(); return }
+        // First Enter builds the result table, further Enters walk the matches
+        if (searchListIsCurrent()) { searchNext() } else { searchRun() }
+      }
+    })
+  }
+  initReplacePane()
+  const search_results_el = qs('#search_results')
+  if (search_results_el) {
+    search_results_el.addEventListener('click', searchResultsClick)
+    search_results_el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const tr = e.target.closest ? e.target.closest('tr[data-pos]') : null
+        if (tr) { e.preventDefault(); searchJumpRow(tr) }
       }
     })
   }
   // Keep the match count in sync while the text is edited (issue #153)
   edit_txt.addEventListener('input', updateSearchCount)
+  edit_txt.addEventListener('input', searchListRefreshLater)
+  edit_txt.addEventListener('input', replaceListRefreshLater)
   // Keep an open conflict diff in sync while the text is edited (#153)
   edit_txt.addEventListener('input', refreshConflictDiffIfOpen)
-  // Ctrl+F / Cmd+F opens the drawer search panel (issue #153). Guards
-  // (review follow-up for PR #345): no Shift/Alt combos, no IME
-  // composition, Cmd only on Mac (Ctrl+F is forward-char there) and
-  // Ctrl only elsewhere, and never steal a key the user bound to an
-  // editor/AI shortcut.
-  document.addEventListener('keydown', (e) => {
-    if (e.isComposing || e.shiftKey || e.altKey) { return }
-    if (e.key !== 'f' && e.key !== 'F') { return }
-    const isMac = /Mac|iPhone|iPad/.test(navigator.platform || '')
-    const modOk = isMac ? (e.metaKey && !e.ctrlKey) : (e.ctrlKey && !e.metaKey)
-    if (!modOk) { return }
-    const shortcutIds = ['editor_shortcut_temp_save', 'editor_shortcut_new',
-      'ai_shortcut_complete', 'ai_shortcut_spellcheck',
-      'ai_shortcut_user_prompt1', 'ai_shortcut_user_prompt2']
-    for (const id of shortcutIds) {
-      if (matchesShortcut(e, getShortcutValue(id))) { return }
-    }
-    e.preventDefault()
-    searchOnClick(true)
-  })
+  // Ctrl+F / Cmd+F is left to the browser's own search (issue #381).
   if (qs('#ai_actions')) {
     aiInitPanel()
   }
@@ -1106,7 +1130,7 @@ function showOnlyPanel(selector, forceShow) {
     return null
   }
   const isVisible = target.style.display !== 'none'
-  const panels = ['#help_div', '#tags_div', '#replace_div', '#history_div', '#misc_div', '#search_div', '#conflict_div', '#settings_div']
+  const panels = ['#help_div', '#tags_div', '#history_div', '#misc_div', '#conflict_div', '#settings_div']
   panels.forEach(function (panelSelector) {
     if (qs(panelSelector)) {
       qq(panelSelector).hide()
@@ -1122,37 +1146,25 @@ function showOnlyPanel(selector, forceShow) {
 // Open the drawer and show the given tool panel. When the drawer was
 // closed, the panel is always shown: a panel left visible inside the
 // closed drawer must not be toggled off (Copilot review on PR #341).
-// In-editor text search (issue #153)
+// In-editor text search (issue #153, #381)
+// The search UI is a side pane that shares its slot with the AI pane.
+// computeSearchMatches(), findSearchTarget() and buildSearchResults() live
+// in edit_search_core.js.
 let searchIndex = -1
 let searchQuery = ''
 let searchText = null
-
-// All match offsets of query in text (case-insensitive, non-overlapping).
-function computeSearchMatches(text, query) {
-  const matches = []
-  if (!query) {
-    return matches
-  }
-  let hay = text.toLowerCase()
-  let needle = query.toLowerCase()
-  // toLowerCase() can change the string length for a few characters
-  // (e.g. 'İ'), which would shift every offset. Fall back to a
-  // case-sensitive search in that case (review follow-up for PR #345).
-  if (hay.length !== text.length || needle.length !== query.length) {
-    hay = text
-    needle = query
-  }
-  let pos = 0
-  while (true) {
-    const i = hay.indexOf(needle, pos)
-    if (i < 0) {
-      break
-    }
-    matches.push(i)
-    pos = i + Math.max(1, needle.length)
-  }
-  return matches
-}
+// query/text the result table was built for
+let searchListQuery = null
+let searchListText = null
+let searchListTimer = 0
+// live search (issue #381): debounce, minimum length, result cap
+const SEARCH_LIVE_DELAY = 300
+const SEARCH_LIVE_MIN_LEN = 2
+const SEARCH_LIVE_LIMIT = 30
+const SEARCH_MANUAL_LIMIT = 200
+let searchLiveTimer = 0
+let searchComposing = false
+let searchListLive = false
 
 // Reset the remembered position when the query or the text changed, so
 // navigation always starts from the current caret/selection.
@@ -1164,29 +1176,6 @@ function searchSyncState(query) {
   }
 }
 
-// Index of the match to jump to from currentPos: the first match at or
-// after currentPos for dir=1, the last match before currentPos for
-// dir=-1, wrapping around. -1 when there are no matches.
-function findSearchTarget(matches, currentPos, dir) {
-  if (matches.length === 0) {
-    return -1
-  }
-  if (dir > 0) {
-    for (let i = 0; i < matches.length; i++) {
-      if (matches[i] >= currentPos) {
-        return i
-      }
-    }
-    return 0
-  }
-  for (let i = matches.length - 1; i >= 0; i--) {
-    if (matches[i] < currentPos) {
-      return i
-    }
-  }
-  return matches.length - 1
-}
-
 function updateSearchCount() {
   const input = qs('#search_key')
   const countEl = qs('#search_count')
@@ -1195,6 +1184,7 @@ function updateSearchCount() {
   }
   const query = input.value
   searchSyncState(query)
+  searchMarkStale()
   const matches = computeSearchMatches(edit_txt.value, query)
   if (!query) {
     countEl.textContent = ''
@@ -1251,29 +1241,202 @@ function searchPrev() {
   searchMove(-1)
 }
 
-// Scroll the textarea so that the given offset is roughly in view.
+// Scroll the textarea so that the given offset is roughly in view. The
+// position is measured on a mirror element, so wrapped lines are handled.
 function scrollEditorToPos(pos) {
-  const before = edit_txt.value.substring(0, pos)
-  const lines = before.split('\n').length - 1
-  const style = window.getComputedStyle(edit_txt)
-  const lineHeight = parseInt(style.lineHeight, 10) || 20
-  edit_txt.scrollTop = Math.max(0, lines * lineHeight - edit_txt.clientHeight / 3)
+  const metrics = window.kona3EditorMetrics
+  let top
+  if (metrics) {
+    top = metrics.caretTop(edit_txt, pos)
+  } else {
+    const lines = edit_txt.value.substring(0, pos).split('\n').length - 1
+    const lineHeight = parseInt(window.getComputedStyle(edit_txt).lineHeight, 10) || 20
+    top = lines * lineHeight
+  }
+  edit_txt.scrollTop = Math.max(0, top - edit_txt.clientHeight / 3)
 }
 
-function searchOnClick(forceShow) {
-  if (forceShow) {
-    // The Ctrl+F shortcut must always open the panel, never toggle it
-    // shut (review follow-up for PR #345).
-    openEditDrawer()
-    showOnlyPanel('#search_div', true)
-  } else {
-    openToolPanel('#search_div')
+// --- search side pane (issue #381) ---
+function searchPaneIsOpen() {
+  const pane = qs('#search_div')
+  return !!pane && pane.style.display !== 'none'
+}
+
+// The editor shrinks to make room whenever either side pane is open.
+function sidePaneSync() {
+  const main = qs('#edit_main')
+  if (main) { main.classList.toggle('ai-open', aiPaneIsOpen() || searchPaneIsOpen() || replacePaneIsOpen()) }
+}
+
+function searchPaneSet(open) {
+  const pane = qs('#search_div')
+  if (!pane) { return }
+  pane.style.display = open ? '' : 'none'
+  if (open) {
+    // shares the slot with the AI and replace panes (the remembered AI
+    // state is kept)
+    const ai = qs('#ai_div')
+    if (ai) { ai.style.display = 'none' }
+    const rp = qs('#replace_div')
+    if (rp) { rp.style.display = 'none' }
   }
+  sidePaneSync()
+}
+
+function searchPaneClose() {
+  searchPaneSet(false)
+  edit_txt.focus()
+}
+
+function searchOnClick() {
+  closeEditDrawer()
+  searchPaneSet(true)
   const input = qs('#search_key')
-  if (input) {
-    input.focus()
-    input.select()
+  if (!input) { return }
+  // Start from the selected word, as browsers' find bars do.
+  const sel = edit_txt.value.substring(edit_txt.selectionStart || 0, edit_txt.selectionEnd || 0)
+  if (sel && sel.indexOf('\n') < 0 && sel.length <= 100) {
+    input.value = sel
+    updateSearchCount()
   }
+  input.focus()
+  input.select()
+  if (searchListQuery !== null && !searchListIsCurrent()) { searchRun(searchListLive) }
+}
+
+// Dim the table while it no longer matches the text/keyword.
+function searchMarkStale() {
+  const box = qs('#search_results')
+  if (box) { box.classList.toggle('search_stale', searchListQuery !== null && !searchListIsCurrent()) }
+}
+
+function searchListIsCurrent() {
+  const input = qs('#search_key')
+  return !!input && searchListQuery === input.value && searchListText === edit_txt.value
+}
+
+// Build the result table: line number + context around each match.
+// Run the search while the keyword is being typed. Waits for the typing
+// to settle (debounce) and for the IME to commit; short keywords clear
+// the table instead of listing a flood of matches.
+function searchLiveLater() {
+  clearTimeout(searchLiveTimer)
+  searchLiveTimer = setTimeout(searchLiveRun, SEARCH_LIVE_DELAY)
+}
+
+function searchLiveRun() {
+  const input = qs('#search_key')
+  if (!input || searchComposing) { return }  // still converting: wait for the commit
+  // Already listed for this keyword and text (e.g. by Enter): keep it.
+  if (searchListIsCurrent()) { return }
+  if (input.value.length < SEARCH_LIVE_MIN_LEN) {
+    searchListClear()
+    return
+  }
+  searchRun(true)
+}
+
+function searchListClear() {
+  const box = qs('#search_results')
+  const note = qs('#search_results_note')
+  if (box) {
+    box.style.display = 'none'
+    box.classList.remove('search_stale')
+    const tbody = box.querySelector('tbody')
+    if (tbody) { tbody.textContent = '' }
+  }
+  if (note) { note.textContent = '' }
+  searchListQuery = null
+  searchListText = null
+}
+
+function searchRun(live) {
+  const input = qs('#search_key')
+  const box = qs('#search_results')
+  if (!input || !box) { return }
+  const query = input.value
+  const tbody = box.querySelector('tbody')
+  const note = qs('#search_results_note')
+  tbody.textContent = ''
+  searchListQuery = query
+  searchListText = edit_txt.value
+  searchListLive = live === true
+  updateSearchCount()
+  searchMarkStale()
+  if (!query) {
+    box.style.display = 'none'
+    if (note) { note.textContent = '' }
+    return
+  }
+  const res = buildSearchResults(edit_txt.value, query, {
+    context: 24,
+    limit: searchListLive ? SEARCH_LIVE_LIMIT : SEARCH_MANUAL_LIMIT,
+    stopAtLimit: searchListLive
+  })
+  if (res.total === 0) {
+    box.style.display = 'none'
+    if (note) { note.textContent = '見つかりません' }
+    return
+  }
+  box.style.display = ''
+  const frag = document.createDocumentFragment()
+  res.items.forEach(function (it) {
+    const tr = document.createElement('tr')
+    tr.setAttribute('data-pos', String(it.pos))
+    tr.setAttribute('data-len', String(it.len))
+    tr.tabIndex = 0
+    const th = document.createElement('td')
+    th.className = 'search_line'
+    th.textContent = String(it.line)
+    const td = document.createElement('td')
+    td.className = 'search_ctx'
+    const mark = document.createElement('mark')
+    mark.textContent = it.match
+    td.appendChild(document.createTextNode(it.before))
+    td.appendChild(mark)
+    td.appendChild(document.createTextNode(it.after))
+    tr.appendChild(th)
+    tr.appendChild(td)
+    frag.appendChild(tr)
+  })
+  tbody.appendChild(frag)
+  if (note) {
+    if (searchListLive) {
+      note.textContent = res.truncated ? res.items.length + ' 件以上 (先頭の ' + res.items.length + ' 件を表示)' : res.total + ' 件'
+    } else {
+      note.textContent = res.truncated
+        ? res.total + ' 件中、先頭の ' + res.items.length + ' 件を表示'
+        : res.total + ' 件'
+    }
+  }
+}
+
+// Keep an already shown table in sync while the text is edited.
+function searchListRefreshLater() {
+  if (searchListQuery === null) { return }
+  clearTimeout(searchListTimer)
+  searchListTimer = setTimeout(() => searchRun(searchListLive), 300)
+}
+
+function searchResultsClick(e) {
+  const tr = e.target.closest ? e.target.closest('tr[data-pos]') : null
+  if (tr) { searchJumpRow(tr) }
+}
+
+// Select the match of a table row in the editor and show it.
+function searchJumpRow(tr) {
+  const pos = parseInt(tr.getAttribute('data-pos'), 10)
+  const len = parseInt(tr.getAttribute('data-len'), 10)
+  if (isNaN(pos) || isNaN(len) || pos > edit_txt.value.length) { return }
+  // The table may be older than the text or the keyword (e.g. edited while
+  // the pane was closed): never jump to a stale offset, search again.
+  if (!searchListIsCurrent()) {
+    searchRun(searchListLive)
+    return
+  }
+  edit_txt.focus()
+  edit_txt.setSelectionRange(pos, pos + len)
+  scrollEditorToPos(pos)
 }
 
 // Edit conflict handling (issue #153, phase 4). The server answers a
@@ -1520,10 +1683,16 @@ function aiPaneIsOpen() {
 
 function aiPaneSet(open, remember) {
   const pane = qs('#ai_div')
-  const main = qs('#edit_main')
-  if (!pane || !main) { return }
+  if (!pane) { return }
   pane.style.display = open ? '' : 'none'
-  main.classList.toggle('ai-open', !!open)
+  if (open) {
+    // shares the slot with the search and replace panes
+    const sp = qs('#search_div')
+    if (sp) { sp.style.display = 'none' }
+    const rp = qs('#replace_div')
+    if (rp) { rp.style.display = 'none' }
+  }
+  sidePaneSync()
   if (remember) {
     try { localStorage.setItem(LS_KEY_AI_PANE, open ? '1' : '0') } catch (e) { /* ignore */ }
   }
@@ -2074,10 +2243,6 @@ function copyToClipboard(text) {
   }
 }
 
-function replaceOnClick() {
-  openToolPanel('#replace_div')
-}
-
 function miscOnClick() {
   openToolPanel('#misc_div')
 }
@@ -2102,106 +2267,315 @@ function convertToMarkdownClick() {
   edit_txt.val(convertToMarkdown(edit_txt.val()))
 }
 
-function replace1() {
-  const useRegExp = qq('#replace_regexp').val()
-  const key = qq('#replace_key').val()
-  const val = qq('#replace_val').val()
-  const selstart = qq('#edit_txt').prop('selectionStart')
-  if (key === '') { return }
+// ---------------------------------------------------------------
+// Replace side pane (issue #381). It shares the slot with the search and
+// AI panes. The preview table lists the matches as "before -> after"
+// while typing (debounced, 2+ characters, IME-safe, cut off at 30); the
+// pure logic lives in edit_replace_core.js so the preview and the real
+// replacement always agree.
+// ---------------------------------------------------------------
+const REPLACE_LIVE_DELAY = 300
+const REPLACE_LIVE_MIN_LEN = 2
+const REPLACE_LIVE_LIMIT = 30
+const REPLACE_MANUAL_LIMIT = 200
+// keyword / replacement / RegExp flag / text the table was built for
+let replaceListState = null
+let replaceListLive = false
+let replaceLiveTimer = 0
+let replaceListTimer = 0
+let replaceComposing = false
 
-  let index = selstart
-  let text = qq('#edit_txt').val()
-  replaceUndoBuffer = text
-  let textPre = text.substring(0, selstart)
-  text = text.substring(selstart)
-
-  // try to replace
-  let success = false
-  if (useRegExp) {
-    // regexp
-    const re = new RegExp(key, '')
-    const lines = text.split("\n")
-    const result_lines = []
-    let ii = 0
-    for (let line of lines) {
-      if (success) { // already replaced
-        result_lines.push(line)
-        continue
-      }
-      const m = line.match(re)
-      if (m) {
-        success = true
-        line = line.replace(re, val)
-        index += (ii + m.index + val.length)
-        console.log("@", m)
-        result_lines.push(line)
-      } else {
-        ii += line.length + 1 // line + LF
-        result_lines.push(line)
-      }
-    }
-    text = result_lines.join("\n")
-  } else {
-    // normal replace
-    const i = text.indexOf(key)
-    if (i >= 0) {
-      success = true
-      index += (i + val.length)
-      text = text.replace(key, val)
-    }
+function replaceInputs() {
+  const regexp = qs('#replace_regexp')
+  return {
+    key: qs('#replace_key') ? qs('#replace_key').value : '',
+    val: qs('#replace_val') ? qs('#replace_val').value : '',
+    re: !!(regexp && regexp.checked)
   }
-  if (!success) {
-    // move cursor to top
-    qq('#edit_txt').prop('selectionStart', 0).prop('selectionEnd', 0).focus()
-    console.log('replace1.failed', key, val, selstart)
+}
+
+function replacePaneIsOpen() {
+  const pane = qs('#replace_div')
+  return !!pane && pane.style.display !== 'none'
+}
+
+function replacePaneSet(open) {
+  const pane = qs('#replace_div')
+  if (!pane) { return }
+  pane.style.display = open ? '' : 'none'
+  if (open) {
+    const ai = qs('#ai_div')
+    if (ai) { ai.style.display = 'none' }
+    const sp = qs('#search_div')
+    if (sp) { sp.style.display = 'none' }
+  }
+  sidePaneSync()
+}
+
+function replacePaneClose() {
+  replacePaneSet(false)
+  edit_txt.focus()
+}
+
+function replaceOnClick() {
+  closeEditDrawer()
+  replacePaneSet(true)
+  const keyEl = qs('#replace_key')
+  if (!keyEl) { return }
+  // Start from the selected word, as the search pane does.
+  const sel = edit_txt.value.substring(edit_txt.selectionStart || 0, edit_txt.selectionEnd || 0)
+  if (sel && sel.indexOf('\n') < 0 && sel.length <= 100) {
+    keyEl.value = sel
+  }
+  keyEl.focus()
+  keyEl.select()
+  if (!replaceListIsCurrent()) { replaceLiveRun() }
+}
+
+function replaceListIsCurrent() {
+  const st = replaceListState
+  if (!st) { return false }
+  const cur = replaceInputs()
+  return st.key === cur.key && st.val === cur.val && st.re === cur.re && st.text === edit_txt.value
+}
+
+// Dim the table while it no longer matches the inputs / the text.
+function replaceMarkStale() {
+  const box = qs('#replace_results')
+  if (box) { box.classList.toggle('search_stale', !!replaceListState && !replaceListIsCurrent()) }
+}
+
+function replaceListClear() {
+  const box = qs('#replace_results')
+  if (box) {
+    box.style.display = 'none'
+    box.classList.remove('search_stale')
+    const tbody = box.querySelector('tbody')
+    if (tbody) { tbody.textContent = '' }
+  }
+  replaceSetNote('', '')
+  replaceListState = null
+}
+
+function replaceSetNote(count, note) {
+  const c = qs('#replace_count')
+  const n = qs('#replace_results_note')
+  if (c) { c.textContent = count }
+  if (n) { n.textContent = note }
+}
+
+function replaceLiveLater() {
+  clearTimeout(replaceLiveTimer)
+  replaceLiveTimer = setTimeout(replaceLiveRun, REPLACE_LIVE_DELAY)
+  replaceMarkStale()
+}
+
+function replaceLiveRun() {
+  if (replaceComposing) { return }  // still converting: wait for the commit
+  // Already listed for these inputs (e.g. by a button): keep it.
+  if (replaceListIsCurrent()) { return }
+  if (replaceInputs().key.length < REPLACE_LIVE_MIN_LEN) {
+    replaceListClear()
     return
   }
-  qq('#edit_txt').val(textPre + text)
-  qq('#edit_txt').prop('selectionStart', index).prop('selectionEnd', index).focus()
-  console.log('replace1.success', useRegExp, key, val, selstart)
+  replaceRun(true)
+}
+
+// Build the preview table.
+function replaceRun(live) {
+  const box = qs('#replace_results')
+  if (!box) { return }
+  const cur = replaceInputs()
+  const tbody = box.querySelector('tbody')
+  tbody.textContent = ''
+  replaceListLive = live === true
+  replaceListState = { key: cur.key, val: cur.val, re: cur.re, text: edit_txt.value }
+  replaceMarkStale()
+  if (!cur.key) {
+    replaceListClear()
+    return
+  }
+  const res = buildReplaceResults(edit_txt.value, cur.key, cur.val, cur.re, {
+    context: 24,
+    limit: replaceListLive ? REPLACE_LIVE_LIMIT : REPLACE_MANUAL_LIMIT,
+    stopAtLimit: replaceListLive
+  })
+  if (res.error) {
+    box.style.display = 'none'
+    replaceSetNote('', '正規表現が正しくありません')
+    return
+  }
+  if (res.items.length === 0) {
+    box.style.display = 'none'
+    replaceSetNote('', '見つかりません')
+    return
+  }
+  box.style.display = ''
+  const frag = document.createDocumentFragment()
+  res.items.forEach(function (it) {
+    const tr = document.createElement('tr')
+    tr.setAttribute('data-pos', String(it.pos))
+    tr.setAttribute('data-len', String(it.len))
+    tr.tabIndex = 0
+    const tdLine = document.createElement('td')
+    tdLine.className = 'search_line'
+    tdLine.textContent = String(it.line)
+    const td = document.createElement('td')
+    td.className = 'search_ctx'
+    const del = document.createElement('del')
+    del.textContent = it.match
+    // a zero-length match (^, $ ...) has nothing to strike through
+    if (it.match === '') { del.className = 'replace_zero' }
+    const ins = document.createElement('ins')
+    ins.textContent = it.repl === '' ? '(削除)' : it.repl
+    td.appendChild(document.createTextNode(it.before))
+    td.appendChild(del)
+    td.appendChild(ins)
+    td.appendChild(document.createTextNode(it.after))
+    const tdAct = document.createElement('td')
+    tdAct.className = 'replace_act'
+    const btn = document.createElement('button')
+    btn.type = 'button'
+    btn.className = 'replace_row_btn'
+    btn.textContent = '置換'
+    tdAct.appendChild(btn)
+    tr.appendChild(tdLine)
+    tr.appendChild(td)
+    tr.appendChild(tdAct)
+    frag.appendChild(tr)
+  })
+  tbody.appendChild(frag)
+  if (replaceListLive) {
+    replaceSetNote(res.truncated ? res.items.length + ' 件以上' : res.total + ' 件',
+      res.truncated ? '先頭の ' + res.items.length + ' 件を表示' : '')
+  } else {
+    replaceSetNote(res.total + ' 件',
+      res.truncated ? res.total + ' 件中、先頭の ' + res.items.length + ' 件を表示' : '')
+  }
+}
+
+// Keep an already shown table in sync while the text is edited.
+function replaceListRefreshLater() {
+  if (!replaceListState) { return }
+  replaceMarkStale()
+  clearTimeout(replaceListTimer)
+  replaceListTimer = setTimeout(() => {
+    if (replaceListState && !replaceComposing) { replaceRun(replaceListLive) }
+  }, 300)
+}
+
+// Write the new text. The text before the replacement is kept for
+// replaceUndo(). The table is rebuilt when one is showing.
+function replaceCommit(newText, selStart, selEnd) {
+  replaceUndoBuffer = edit_txt.value
+  aiWriteEditor(newText, 'replace', selStart, selEnd)
+  scrollEditorToPos(selStart)
+  if (replaceListState) { replaceRun(replaceListLive) }
+}
+
+function replaceFail(r) {
+  if (r.error) { replaceSetNote('', '正規表現が正しくありません') } else { replaceSetNote('', '見つかりません') }
+}
+
+function replaceResultsClick(e) {
+  const tr = e.target.closest ? e.target.closest('tr[data-pos]') : null
+  if (!tr) { return }
+  // The table may be older than the text or the inputs: never act on a
+  // stale offset, build the table again instead.
+  if (!replaceListIsCurrent()) {
+    replaceRun(replaceListLive)
+    return
+  }
+  const pos = parseInt(tr.getAttribute('data-pos'), 10)
+  const len = parseInt(tr.getAttribute('data-len'), 10)
+  if (isNaN(pos) || isNaN(len)) { return }
+  if (e.target.closest('button.replace_row_btn')) {
+    replaceRow(pos, len)
+  } else {
+    edit_txt.focus()
+    edit_txt.setSelectionRange(pos, pos + len)
+    scrollEditorToPos(pos)
+  }
+}
+
+// Replace only the clicked row's match.
+function replaceRow(pos, len) {
+  const cur = replaceInputs()
+  const r = replaceAtText(edit_txt.value, cur.key, cur.val, cur.re, pos, len)
+  if (r.error || r.count === 0) {
+    replaceRun(replaceListLive)
+    return
+  }
+  replaceCommit(r.text, r.pos, r.end)
+}
+
+// Replace the next match from the caret (wraps around to the top).
+function replace1() {
+  const cur = replaceInputs()
+  if (cur.key === '') { return }
+  const r = replaceNextText(edit_txt.value, cur.key, cur.val, cur.re, edit_txt.selectionStart || 0)
+  if (r.error || r.count === 0) {
+    replaceFail(r)
+    return
+  }
+  // caret after the replacement, so the next press continues from there
+  replaceCommit(r.text, r.end, r.end)
 }
 
 function replaceAll() {
-  const useRegExp = qq('#replace_regexp').val()
-  const key = qq('#replace_key').val()
-  const val = qq('#replace_val').val()
-  let text = qq('#edit_txt').val()
-  replaceUndoBuffer = text
-  let selstart = qq('#edit_txt').prop('selectionStart')
-  if (useRegExp) {
-    const re = new RegExp(key, 'g')
-    const lines = text.split("\n")
-    const result_lines = []
-    for (let line of lines) {
-      line = line.replace(re, val)
-      result_lines.push(line)
-    }
-    text = result_lines.join("\n")
-    // find cursor pos
-    const m = text.match(new RegExp(key))
-    if (m && m.index > 0) {
-      selstart = m.index + val.length
-    }
-  } else {
-    text = text.split(key).join(val)
-    // find cursor pos
-    const i = text.indexOf(key)
-    if (i > 0) {
-      selstart = i + val.length - 1
-    }
+  const cur = replaceInputs()
+  if (cur.key === '') { return }
+  const caret = edit_txt.selectionStart || 0
+  const r = replaceAllText(edit_txt.value, cur.key, cur.val, cur.re)
+  if (r.error || r.count === 0) {
+    replaceFail(r)
+    return
   }
-  qq('#edit_txt').val(text)
-  // recover cursor pos
-  setTimeout(() => {
-    qq('#edit_txt').prop('selectionStart', selstart).prop('selectionEnd', selstart).focus()
-  }, 100)
+  replaceCommit(r.text, Math.min(caret, r.text.length), Math.min(caret, r.text.length))
+  replaceSetNote(replaceListState ? qs('#replace_count').textContent : '', r.count + ' 件を置換しました')
 }
 
 function replaceUndo() {
-  if (replaceUndoBuffer != '') {
-    let text = qq('#edit_txt').val()
-    qq('#edit_txt').val(replaceUndoBuffer)
-    replaceUndoBuffer = text
+  if (replaceUndoBuffer === '') { return }
+  const text = edit_txt.value
+  aiWriteEditor(replaceUndoBuffer, 'replace_undo')
+  replaceUndoBuffer = text
+  if (replaceListState) { replaceRun(replaceListLive) }
+}
+
+function initReplacePane() {
+  const key = qs('#replace_key')
+  const val = qs('#replace_val')
+  const regexp = qs('#replace_regexp')
+  if (!key || !val) { return }
+  // Do not search while an IME composition is in progress: the typed
+  // reading is not the keyword yet. The search runs on commit.
+  ;[key, val].forEach((el) => {
+    el.addEventListener('input', (e) => {
+      if (e.isComposing || e.inputType === 'insertCompositionText') {
+        replaceComposing = true
+        return
+      }
+      replaceComposing = false
+      replaceLiveLater()
+    })
+    el.addEventListener('compositionstart', () => { replaceComposing = true })
+    el.addEventListener('compositionend', () => {
+      replaceComposing = false
+      replaceLiveLater()
+    })
+    el.addEventListener('blur', () => { replaceComposing = false })
+  })
+  if (regexp) { regexp.addEventListener('change', replaceLiveLater) }
+  const table = qs('#replace_results')
+  if (table) {
+    table.addEventListener('click', replaceResultsClick)
+    table.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.tagName === 'TR') {
+        e.preventDefault()
+        replaceResultsClick(e)
+      }
+    })
   }
 }
 
