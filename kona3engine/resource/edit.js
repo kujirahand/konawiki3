@@ -93,6 +93,13 @@ function edit_init() {
   const search_key_el = qs('#search_key')
   if (search_key_el) {
     search_key_el.addEventListener('input', updateSearchCount)
+    search_key_el.addEventListener('input', searchLiveLater)
+    // Do not search while an IME composition is in progress
+    search_key_el.addEventListener('compositionstart', () => { searchComposing = true })
+    search_key_el.addEventListener('compositionend', () => {
+      searchComposing = false
+      searchLiveLater()
+    })
     search_key_el.addEventListener('keydown', (e) => {
       // Enter that commits an IME composition must not trigger a search
       if (e.isComposing || e.keyCode === 229) { return }
@@ -1137,6 +1144,14 @@ let searchText = null
 let searchListQuery = null
 let searchListText = null
 let searchListTimer = 0
+// live search (issue #381): debounce, minimum length, result cap
+const SEARCH_LIVE_DELAY = 300
+const SEARCH_LIVE_MIN_LEN = 2
+const SEARCH_LIVE_LIMIT = 30
+const SEARCH_MANUAL_LIMIT = 200
+let searchLiveTimer = 0
+let searchComposing = false
+let searchListLive = false
 
 // Reset the remembered position when the query or the text changed, so
 // navigation always starts from the current caret/selection.
@@ -1270,7 +1285,7 @@ function searchOnClick() {
   }
   input.focus()
   input.select()
-  if (searchListQuery !== null && !searchListIsCurrent()) { searchRun() }
+  if (searchListQuery !== null && !searchListIsCurrent()) { searchRun(searchListLive) }
 }
 
 // Dim the table while it no longer matches the text/keyword.
@@ -1285,7 +1300,41 @@ function searchListIsCurrent() {
 }
 
 // Build the result table: line number + context around each match.
-function searchRun() {
+// Run the search while the keyword is being typed. Waits for the typing
+// to settle (debounce) and for the IME to commit; short keywords clear
+// the table instead of listing a flood of matches.
+function searchLiveLater() {
+  clearTimeout(searchLiveTimer)
+  searchLiveTimer = setTimeout(searchLiveRun, SEARCH_LIVE_DELAY)
+}
+
+function searchLiveRun() {
+  const input = qs('#search_key')
+  if (!input || searchComposing) { return }
+  // Already listed for this keyword and text (e.g. by Enter): keep it.
+  if (searchListIsCurrent()) { return }
+  if (input.value.length < SEARCH_LIVE_MIN_LEN) {
+    searchListClear()
+    return
+  }
+  searchRun(true)
+}
+
+function searchListClear() {
+  const box = qs('#search_results')
+  const note = qs('#search_results_note')
+  if (box) {
+    box.style.display = 'none'
+    box.classList.remove('search_stale')
+    const tbody = box.querySelector('tbody')
+    if (tbody) { tbody.textContent = '' }
+  }
+  if (note) { note.textContent = '' }
+  searchListQuery = null
+  searchListText = null
+}
+
+function searchRun(live) {
   const input = qs('#search_key')
   const box = qs('#search_results')
   if (!input || !box) { return }
@@ -1295,6 +1344,7 @@ function searchRun() {
   tbody.textContent = ''
   searchListQuery = query
   searchListText = edit_txt.value
+  searchListLive = live === true
   updateSearchCount()
   searchMarkStale()
   if (!query) {
@@ -1302,7 +1352,11 @@ function searchRun() {
     if (note) { note.textContent = '' }
     return
   }
-  const res = buildSearchResults(edit_txt.value, query, { context: 24, limit: 200 })
+  const res = buildSearchResults(edit_txt.value, query, {
+    context: 24,
+    limit: searchListLive ? SEARCH_LIVE_LIMIT : SEARCH_MANUAL_LIMIT,
+    stopAtLimit: searchListLive
+  })
   if (res.total === 0) {
     box.style.display = 'none'
     if (note) { note.textContent = '見つかりません' }
@@ -1331,9 +1385,13 @@ function searchRun() {
   })
   tbody.appendChild(frag)
   if (note) {
-    note.textContent = res.truncated
-      ? res.total + ' 件中、先頭の ' + res.items.length + ' 件を表示'
-      : res.total + ' 件'
+    if (searchListLive) {
+      note.textContent = res.truncated ? res.items.length + ' 件以上 (先頭の ' + res.items.length + ' 件を表示)' : res.total + ' 件'
+    } else {
+      note.textContent = res.truncated
+        ? res.total + ' 件中、先頭の ' + res.items.length + ' 件を表示'
+        : res.total + ' 件'
+    }
   }
 }
 
@@ -1341,7 +1399,7 @@ function searchRun() {
 function searchListRefreshLater() {
   if (searchListQuery === null) { return }
   clearTimeout(searchListTimer)
-  searchListTimer = setTimeout(searchRun, 300)
+  searchListTimer = setTimeout(() => searchRun(searchListLive), 300)
 }
 
 function searchResultsClick(e) {
@@ -1357,7 +1415,7 @@ function searchJumpRow(tr) {
   // The table may be older than the text or the keyword (e.g. edited while
   // the pane was closed): never jump to a stale offset, search again.
   if (!searchListIsCurrent()) {
-    searchRun()
+    searchRun(searchListLive)
     return
   }
   edit_txt.focus()

@@ -2,7 +2,8 @@
 // Loaded before edit.js; also required from the Node tests.
 
 // All match offsets of query in text (case-insensitive, non-overlapping).
-function computeSearchMatches(text, query) {
+// With max > 0 the scan stops as soon as max matches have been found.
+function computeSearchMatches(text, query, max) {
   var matches = []
   if (!query) {
     return matches
@@ -23,6 +24,9 @@ function computeSearchMatches(text, query) {
       break
     }
     matches.push(i)
+    if (max > 0 && matches.length >= max) {
+      break
+    }
     pos = i + Math.max(1, needle.length)
   }
   return matches
@@ -57,11 +61,14 @@ function findSearchTarget(matches, currentPos, dir) {
 // after}] }. `line` is the 1-based logical line number; before/after are
 // the text around the match on the same line, at most opts.context
 // characters each (default 24), cut with an ellipsis.
+// With opts.stopAtLimit the scan is cut off once more than opts.limit
+// matches exist (live search): total is then limit + 1 and truncated is
+// true, which means "more than limit".
 function buildSearchResults(text, query, opts) {
   opts = opts || {}
   var context = opts.context > 0 ? opts.context : 24
   var limit = opts.limit > 0 ? opts.limit : 200
-  var matches = computeSearchMatches(text, query)
+  var matches = computeSearchMatches(text, query, opts.stopAtLimit ? limit + 1 : 0)
   var items = []
   var line = 1
   var scanned = 0

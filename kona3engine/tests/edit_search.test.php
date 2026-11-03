@@ -41,8 +41,17 @@ test_assert(__LINE__, strpos($edit_html, 'id="search_results"') !== false, 'sear
 test_assert(__LINE__, strpos($edit_js, "'tr[data-pos]'") !== false, 'search: clicking a row jumps to the match (#381)');
 // 古い結果で移動しない (PR #382 review)
 test_assert(__LINE__, strpos($edit_js, 'function searchMarkStale(') !== false, 'search: stale results are marked (#382 review)');
-test_assert(__LINE__, preg_match('/function searchJumpRow\\(.*?searchListIsCurrent\\(\\).*?searchRun\\(\\)/s', $edit_js) === 1, 'search: a row click re-checks the text/keyword before jumping (#382 review)');
+test_assert(__LINE__, preg_match('/function searchJumpRow\\(.*?searchListIsCurrent\\(\\).*?searchRun\\(searchListLive\\)/s', $edit_js) === 1, 'search: a row click re-checks the text/keyword before jumping (#382 review)');
 test_assert(__LINE__, strpos($edit_js, 'search_stale') !== false && strpos($edit_css, '#search_results.search_stale') !== false, 'search: stale table is dimmed (#382 review)');
+// リアルタイム検索 (#381): 遅延・IME・2文字以上・30件で打ち切り
+foreach (['searchLiveLater', 'searchLiveRun', 'searchListClear'] as $fn) {
+    test_assert(__LINE__, strpos($edit_js, 'function ' . $fn . '(') !== false, "search: edit.js has {$fn}() (#381 live)");
+}
+test_assert(__LINE__, strpos($edit_js, "addEventListener('input', searchLiveLater)") !== false, 'search: typing triggers the live search (#381 live)');
+test_assert(__LINE__, strpos($edit_js, 'SEARCH_LIVE_DELAY = 300') !== false && strpos($edit_js, 'setTimeout(searchLiveRun, SEARCH_LIVE_DELAY)') !== false, 'search: live search is debounced (#381 live)');
+test_assert(__LINE__, strpos($edit_js, 'SEARCH_LIVE_MIN_LEN = 2') !== false, 'search: live search needs 2+ characters (#381 live)');
+test_assert(__LINE__, strpos($edit_js, 'SEARCH_LIVE_LIMIT = 30') !== false && strpos($edit_js, 'stopAtLimit: searchListLive') !== false, 'search: live search stops after 30 matches (#381 live)');
+test_assert(__LINE__, strpos($edit_js, "'compositionstart'") !== false && strpos($edit_js, "'compositionend'") !== false && strpos($edit_js, 'searchComposing') !== false, 'search: IME composition is respected (#381 live)');
 // 検索ペインとAI支援ペインは同じ位置を共有する
 test_assert(__LINE__, strpos($edit_js, "const sp = qs('#search_div')") !== false, 'search: opening the AI pane hides the search pane (#381)');
 $edit_action = file_get_contents($root . '/action/edit.inc.php');

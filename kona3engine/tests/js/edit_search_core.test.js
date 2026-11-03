@@ -67,4 +67,18 @@ assert.strictEqual(findSearchTarget([2, 5], 2, -1), 1);
   assert.strictEqual(r.items[0].after, 'くけこ');
 }
 
+// live search: the scan is cut off once the limit is exceeded
+{
+  const text = 'ab\n'.repeat(100);
+  assert.strictEqual(computeSearchMatches(text, 'ab', 5).length, 5);
+  assert.strictEqual(computeSearchMatches(text, 'ab').length, 100);
+  const r = buildSearchResults(text, 'ab', { limit: 30, stopAtLimit: true });
+  assert.strictEqual(r.items.length, 30);
+  assert.strictEqual(r.total, 31); // limit + 1 means "more than limit"
+  assert.strictEqual(r.truncated, true);
+  const few = buildSearchResults('ab ab', 'ab', { limit: 30, stopAtLimit: true });
+  assert.strictEqual(few.total, 2);
+  assert.strictEqual(few.truncated, false);
+}
+
 console.log('edit_search_core.test.js: all tests passed');
