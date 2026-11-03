@@ -1331,19 +1331,22 @@ textarea#edit_txt:focus {
   margin-bottom: 8px;
 }
 
-#search_results_note {
+#search_results_note,
+#replace_results_note {
   margin: 4px 0;
   min-height: 1.2em;
 }
 
-#search_results {
+#search_results,
+#replace_results {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
   font-size: 0.9em;
 }
 
-#search_results th {
+#search_results th,
+#replace_results th {
   padding: 4px 8px;
   border-bottom: 1px solid var(--k3-color-border, #e4e7eb);
   background: var(--k3-color-bg-subtle, #f5f7fa);
@@ -1352,35 +1355,42 @@ textarea#edit_txt:focus {
   text-align: left;
 }
 
-#search_results .search_line {
+#search_results .search_line,
+#replace_results .search_line {
   width: 3.5em;
   text-align: right;
   font-variant-numeric: tabular-nums;
   color: var(--k3-color-text-muted, #616e7c);
 }
 
-#search_results td {
+#search_results td,
+#replace_results td {
   padding: 4px 8px;
   border-bottom: 1px solid var(--k3-color-border, #e4e7eb);
   vertical-align: top;
 }
 
-#search_results td.search_ctx {
+#search_results td.search_ctx,
+#replace_results td.search_ctx {
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
 
-#search_results tbody tr {
+#search_results tbody tr,
+#replace_results tbody tr {
   cursor: pointer;
 }
 
 #search_results tbody tr:hover,
-#search_results tbody tr:focus-visible {
+#search_results tbody tr:focus-visible,
+#replace_results tbody tr:hover,
+#replace_results tbody tr:focus-visible {
   background: var(--k3-color-accent-subtle, #e8f0fb);
   outline: none;
 }
 
-#search_results mark {
+#search_results mark,
+#replace_results mark {
   padding: 0 1px;
   border-radius: 3px;
   background: #ffe58a;
@@ -1433,6 +1443,40 @@ textarea#edit_txt:focus {
 }
 
 /* 本文や検索語が変わり、まだ再検索されていない結果 */
-#search_results.search_stale {
+#search_results.search_stale,
+#replace_results.search_stale {
   opacity: 0.5;
+}
+
+/* 置換ペイン (#381): 変更前 → 変更後のプレビューと、行ごとの置換ボタン */
+#replace_results del {
+  padding: 0 1px;
+  border-radius: 3px;
+  background: #ffd5d5;
+  color: #7a1f1f;
+  text-decoration: line-through;
+}
+
+#replace_results ins {
+  padding: 0 1px;
+  border-radius: 3px;
+  background: #cdeccd;
+  color: #1c4d1c;
+  text-decoration: none;
+}
+
+#replace_results .replace_act {
+  width: 4.5em;
+  text-align: right;
+}
+
+#replace_results td.replace_act button {
+  padding: 2px 8px;
+  font-size: 0.9em;
+}
+
+.replace_regexp_label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }

@@ -133,6 +133,7 @@ function kona3_action_edit()
     $kona3conf['js'][] = kona3getResourceURL('edit_highlight.js', TRUE);
     $kona3conf['js'][] = kona3getResourceURL('edit_linenum.js', TRUE);
     $kona3conf['js'][] = kona3getResourceURL('edit_search_core.js', TRUE);
+    $kona3conf['js'][] = kona3getResourceURL('edit_replace_core.js', TRUE);
     $kona3conf['js'][] = kona3getResourceURL('edit_ai_core.js', TRUE);
     $kona3conf['js'][] = kona3getResourceURL('edit.js', TRUE);
     $kona3conf['css'][] = kona3getResourceURL('edit.css', TRUE);

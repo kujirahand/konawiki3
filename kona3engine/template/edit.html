@@ -50,6 +50,36 @@
         <div id="edit_preview" style="display:none;">
           <div class="edit_preview_body page_body"></div>
         </div>
+        <div id="replace_div" class="ai_pane search_pane replace_pane" style="display: none;" role="search">
+          <div class="ai_pane_head">
+            <span class="ai_pane_title">🔁 {{'Replace'|lang}}</span>
+            <div class="ai_links">
+              <button type="button" class="ai_tool_btn" onclick="replacePaneClose()" title="{{'Close' | lang}}" aria-label="{{'Close' | lang}}">×</button>
+            </div>
+          </div>
+          <div class="ai_pane_body">
+            <div class="search_form">
+              <input type="text" id="replace_key" class="info" value="" placeholder="Keyword" aria-label="Keyword">
+            </div>
+            <div class="search_form">
+              <input type="text" id="replace_val" class="info" value="" placeholder="Replace" aria-label="Replace">
+            </div>
+            <div class="search_nav">
+              <label class="replace_regexp_label"><input type="checkbox" id="replace_regexp" name="replace_regexp" value="yes"> {{ 'RegExp' | lang }}</label>
+              <span id="replace_count" class="info" aria-live="polite"></span>
+            </div>
+            <div class="search_nav">
+              <button id="replace1_btn" type="button" onclick="replace1()">{{'Replace'|lang}} x1</button>
+              <button id="replaceA_btn" type="button" onclick="replaceAll()">{{'Replace'|lang}} all</button>
+              <button id="replace_undo_btn" type="button" onclick="replaceUndo()">{{'Undo'|lang}}</button>
+            </div>
+            <div id="replace_results_note" class="info" aria-live="polite"></div>
+            <table id="replace_results" class="search_table" style="display: none;">
+              <thead><tr><th class="search_line">{{'Line'|lang}}</th><th>{{'Context'|lang}}</th><th class="replace_act"></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div><!-- end of #replace_div -->
         <div id="search_div" class="ai_pane search_pane" style="display: none;" role="search">
           <div class="ai_pane_head">
             <span class="ai_pane_title">🔍 {{'Search Text'|lang}}</span>
@@ -230,19 +260,6 @@
             <span class="conflict_swatch conflict_line_server"></span> {{'Server version'|lang}}</p>
             <div id="conflict_diff" class="conflict_diff"></div>
           </div>
-        </div>
-      </div>
-
-      <div id="replace_div" class="desc" class="block2" style="display: none;">
-        <div>
-          <b style="width:5em;">{{'Replace'|lang}}</b>:<br>
-          <input type="text" id="replace_key" class="info" style="width: 50%;" value="" placeholder="Keyword"><br>
-          <input type="text" id="replace_val" class="info" style="width: 50%;" value="" placeholder="Replace"><br>
-          <button id="replace1_btn" onclick="replace1()">{{'Replace'|lang}} x1</button>
-          <button id="replaceA_btn" onclick="replaceAll()">{{'Replace'|lang}} all</button>
-          <button id="replace_undo_btn" onclick="replaceUndo()">{{'Undo'|lang}}</button>
-          <input type="checkbox" id="replace_regexp" class="info" style="width:2em;" name="replace_regexp" value="yes">
-          <label for="replace_regexp">{{ 'RegExp' | lang }}</label>
         </div>
       </div>
 
