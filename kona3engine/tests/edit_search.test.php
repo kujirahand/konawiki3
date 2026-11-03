@@ -39,6 +39,10 @@ test_assert(__LINE__, strpos($edit_js, 'searchOnClick(true)') === false, 'search
 test_assert(__LINE__, strpos($edit_html, 'id="search_btn"') !== false, 'search: edit.html has a search button (#381)');
 test_assert(__LINE__, strpos($edit_html, 'id="search_results"') !== false, 'search: edit.html has the result table (#381)');
 test_assert(__LINE__, strpos($edit_js, "'tr[data-pos]'") !== false, 'search: clicking a row jumps to the match (#381)');
+// 古い結果で移動しない (PR #382 review)
+test_assert(__LINE__, strpos($edit_js, 'function searchMarkStale(') !== false, 'search: stale results are marked (#382 review)');
+test_assert(__LINE__, preg_match('/function searchJumpRow\\(.*?searchListIsCurrent\\(\\).*?searchRun\\(\\)/s', $edit_js) === 1, 'search: a row click re-checks the text/keyword before jumping (#382 review)');
+test_assert(__LINE__, strpos($edit_js, 'search_stale') !== false && strpos($edit_css, '#search_results.search_stale') !== false, 'search: stale table is dimmed (#382 review)');
 // 検索ペインとAI支援ペインは同じ位置を共有する
 test_assert(__LINE__, strpos($edit_js, "const sp = qs('#search_div')") !== false, 'search: opening the AI pane hides the search pane (#381)');
 $edit_action = file_get_contents($root . '/action/edit.inc.php');

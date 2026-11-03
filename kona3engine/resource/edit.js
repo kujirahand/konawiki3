@@ -1156,6 +1156,7 @@ function updateSearchCount() {
   }
   const query = input.value
   searchSyncState(query)
+  searchMarkStale()
   const matches = computeSearchMatches(edit_txt.value, query)
   if (!query) {
     countEl.textContent = ''
@@ -1269,6 +1270,13 @@ function searchOnClick() {
   }
   input.focus()
   input.select()
+  if (searchListQuery !== null && !searchListIsCurrent()) { searchRun() }
+}
+
+// Dim the table while it no longer matches the text/keyword.
+function searchMarkStale() {
+  const box = qs('#search_results')
+  if (box) { box.classList.toggle('search_stale', searchListQuery !== null && !searchListIsCurrent()) }
 }
 
 function searchListIsCurrent() {
@@ -1288,6 +1296,7 @@ function searchRun() {
   searchListQuery = query
   searchListText = edit_txt.value
   updateSearchCount()
+  searchMarkStale()
   if (!query) {
     box.style.display = 'none'
     if (note) { note.textContent = '' }
@@ -1330,7 +1339,7 @@ function searchRun() {
 
 // Keep an already shown table in sync while the text is edited.
 function searchListRefreshLater() {
-  if (searchListQuery === null || !searchPaneIsOpen()) { return }
+  if (searchListQuery === null) { return }
   clearTimeout(searchListTimer)
   searchListTimer = setTimeout(searchRun, 300)
 }
@@ -1345,6 +1354,12 @@ function searchJumpRow(tr) {
   const pos = parseInt(tr.getAttribute('data-pos'), 10)
   const len = parseInt(tr.getAttribute('data-len'), 10)
   if (isNaN(pos) || isNaN(len) || pos > edit_txt.value.length) { return }
+  // The table may be older than the text or the keyword (e.g. edited while
+  // the pane was closed): never jump to a stale offset, search again.
+  if (!searchListIsCurrent()) {
+    searchRun()
+    return
+  }
   edit_txt.focus()
   edit_txt.setSelectionRange(pos, pos + len)
   scrollEditorToPos(pos)
