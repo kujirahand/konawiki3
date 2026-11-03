@@ -160,7 +160,20 @@ foreach ($nav_order as $marker) {
     $prev_pos = ($pos === false) ? $prev_pos : $pos;
 }
 test_assert(__LINE__, strpos($nav_html, "{{'Help' | lang}}") !== false, 'help button uses the Help label, not "?" (#379)');
-test_assert(__LINE__, strpos($edit_css, 'flex-direction: column;') !== false, 'drawer nav stacks vertically (#379)');
-test_assert(__LINE__, strpos($edit_css, 'width: 100%;') !== false, 'drawer nav buttons fill the drawer width (#379)');
-test_assert(__LINE__, strpos($edit_css, 'min-height: 48px;') !== false, 'drawer nav buttons are tall enough to tap (#379)');
-test_assert(__LINE__, strpos($dark_css, 'body.dark-theme #edit_drawer .edit_drawer_nav button') !== false, 'dark mode covers the drawer nav buttons (#379)');
+// CSS の検証は対象ルールのブロック内に限定する (同名宣言の偽陽性防止, Codexレビュー #383)
+$css_rule_block = function ($css, $selector) {
+    $start = strpos($css, $selector);
+    if ($start === false) { return ''; }
+    $end = strpos($css, '}', $start);
+    return ($end === false) ? '' : substr($css, $start, $end - $start);
+};
+$nav_block = $css_rule_block($edit_css, '.edit_drawer_nav {');
+test_assert(__LINE__, strpos($nav_block, 'flex-direction: column;') !== false, 'drawer nav stacks vertically (#379)');
+$nav_btn_block = $css_rule_block($edit_css, '#edit_drawer .edit_drawer_nav button {');
+test_assert(__LINE__, strpos($nav_btn_block, 'width: 100%;') !== false, 'drawer nav buttons fill the drawer width (#379)');
+test_assert(__LINE__, strpos($nav_btn_block, 'min-height: 48px;') !== false, 'drawer nav buttons are tall enough to tap (#379)');
+$dark_nav_btn_block = $css_rule_block($dark_css, 'body.dark-theme #edit_drawer .edit_drawer_nav button {');
+test_assert(__LINE__, strpos($dark_nav_btn_block, 'background-color: var(--k3d-field-bg)') !== false, 'dark mode: drawer nav button background (#379)');
+test_assert(__LINE__, strpos($dark_nav_btn_block, 'border-color: var(--k3d-field-border)') !== false, 'dark mode: drawer nav button border (#379)');
+test_assert(__LINE__, strpos($dark_nav_btn_block, 'color: var(--k3d-text)') !== false, 'dark mode: drawer nav button text color (#379)');
+test_assert(__LINE__, strpos($dark_css, 'body.dark-theme #edit_drawer .edit_drawer_nav button:hover') !== false, 'dark mode: drawer nav button has a hover style (#379 review)');
