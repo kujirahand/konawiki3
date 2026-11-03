@@ -52,6 +52,8 @@ test_assert(__LINE__, strpos($edit_js, 'SEARCH_LIVE_DELAY = 300') !== false && s
 test_assert(__LINE__, strpos($edit_js, 'SEARCH_LIVE_MIN_LEN = 2') !== false, 'search: live search needs 2+ characters (#381 live)');
 test_assert(__LINE__, strpos($edit_js, 'SEARCH_LIVE_LIMIT = 30') !== false && strpos($edit_js, 'stopAtLimit: searchListLive') !== false, 'search: live search stops after 30 matches (#381 live)');
 test_assert(__LINE__, strpos($edit_js, "'compositionstart'") !== false && strpos($edit_js, "'compositionend'") !== false && strpos($edit_js, 'searchComposing') !== false, 'search: IME composition is respected (#381 live)');
+test_assert(__LINE__, strpos($edit_js, "e.inputType === 'insertCompositionText'") !== false, 'search: input events during composition are ignored (#381 live)');
+test_assert(__LINE__, strpos($edit_js, "addEventListener('blur', () => { searchComposing = false })") !== false, 'search: a cancelled composition does not block the search (#381 live)');
 // 検索ペインとAI支援ペインは同じ位置を共有する
 test_assert(__LINE__, strpos($edit_js, "const sp = qs('#search_div')") !== false, 'search: opening the AI pane hides the search pane (#381)');
 $edit_action = file_get_contents($root . '/action/edit.inc.php');

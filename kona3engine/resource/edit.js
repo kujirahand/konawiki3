@@ -93,13 +93,24 @@ function edit_init() {
   const search_key_el = qs('#search_key')
   if (search_key_el) {
     search_key_el.addEventListener('input', updateSearchCount)
-    search_key_el.addEventListener('input', searchLiveLater)
-    // Do not search while an IME composition is in progress
+    // Do not search while an IME composition is in progress: the typed
+    // reading (e.g. "かん") is not the keyword yet. The search runs when
+    // the composition is committed.
+    search_key_el.addEventListener('input', (e) => {
+      if (e.isComposing || e.inputType === 'insertCompositionText') {
+        searchComposing = true
+        return
+      }
+      searchComposing = false
+      searchLiveLater()
+    })
     search_key_el.addEventListener('compositionstart', () => { searchComposing = true })
     search_key_el.addEventListener('compositionend', () => {
       searchComposing = false
       searchLiveLater()
     })
+    // A composition that is cancelled by leaving the field never commits
+    search_key_el.addEventListener('blur', () => { searchComposing = false })
     search_key_el.addEventListener('keydown', (e) => {
       // Enter that commits an IME composition must not trigger a search
       if (e.isComposing || e.keyCode === 229) { return }
@@ -1310,7 +1321,7 @@ function searchLiveLater() {
 
 function searchLiveRun() {
   const input = qs('#search_key')
-  if (!input || searchComposing) { return }
+  if (!input || searchComposing) { return }  // still converting: wait for the commit
   // Already listed for this keyword and text (e.g. by Enter): keep it.
   if (searchListIsCurrent()) { return }
   if (input.value.length < SEARCH_LIVE_MIN_LEN) {
