@@ -16,6 +16,7 @@
       <input type="hidden" id="ai_shortcut_complete" value="{{ $ai_shortcut_complete }}">
       <input type="hidden" id="ai_shortcut_spellcheck" value="{{ $ai_shortcut_spellcheck }}">
       <input type="hidden" id="editor_highlight_default" value="{{ $editor_highlight_default }}">
+      <input type="hidden" id="editor_line_number_default" value="{{ $editor_line_number_default }}">
       <input type="hidden" id="ai_shortcut_user_prompt1" value="{{ $ai_shortcut_user_prompt1 }}">
       <input type="hidden" id="ai_shortcut_user_prompt2" value="{{ $ai_shortcut_user_prompt2 }}">
 
@@ -49,6 +50,30 @@
         <div id="edit_preview" style="display:none;">
           <div class="edit_preview_body page_body"></div>
         </div>
+        <div id="search_div" class="ai_pane search_pane" style="display: none;" role="search">
+          <div class="ai_pane_head">
+            <span class="ai_pane_title">🔍 {{'Search Text'|lang}}</span>
+            <div class="ai_links">
+              <button type="button" class="ai_tool_btn" onclick="searchPaneClose()" title="{{'Close' | lang}}" aria-label="{{'Close' | lang}}">×</button>
+            </div>
+          </div>
+          <div class="ai_pane_body">
+            <div class="search_form">
+              <input type="text" id="search_key" class="info" value="" placeholder="Keyword" aria-label="{{'Search'|lang}}">
+              <button type="button" id="search_btn" class="pure-button" onclick="searchRun()">{{'Search'|lang}}</button>
+            </div>
+            <div class="search_nav">
+              <button type="button" onclick="searchPrev()">{{'Prev'|lang}}</button>
+              <button type="button" onclick="searchNext()">{{'Next'|lang}}</button>
+              <span id="search_count" class="info" aria-live="polite"></span>
+            </div>
+            <div id="search_results_note" class="info" aria-live="polite"></div>
+            <table id="search_results" style="display: none;">
+              <thead><tr><th class="search_line">{{'Line'|lang}}</th><th>{{'Context'|lang}}</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div><!-- end of #search_div -->
         {{ if $ai_enabled }}
         <div id="ai_div" class="ai_pane" style="display: none;">
           <div class="ai_pane_head">
@@ -191,16 +216,6 @@
         </div>
       </div>
 
-      <div id="search_div" class="desc" style="display: none;">
-        <div>
-          <b>{{'Search'|lang}}</b>:<br>
-          <input type="text" id="search_key" class="info" style="width: 50%;" value="" placeholder="Keyword" aria-label="{{'Search'|lang}}">
-          <button type="button" onclick="searchPrev()">{{'Prev'|lang}}</button>
-          <button type="button" onclick="searchNext()">{{'Next'|lang}}</button>
-          <span id="search_count" class="info" aria-live="polite"></span>
-        </div>
-      </div>
-
       <div id="conflict_div" class="desc" style="display: none;">
         <div>
           <b>⚠ {{'Edit conflict'|lang}}</b>
@@ -260,6 +275,10 @@
         <div class="edit_setting_row">
           <span>シンタックスハイライト</span>
           <span class="k3hl-switch"><input type="checkbox" id="k3hl_toggle" role="switch" aria-label="シンタックスハイライト"><span class="k3hl-slider"></span></span>
+        </div>
+        <div class="edit_setting_row">
+          <span>行番号</span>
+          <span class="k3hl-switch"><input type="checkbox" id="k3ln_toggle" role="switch" aria-label="行番号"><span class="k3hl-slider"></span></span>
         </div>
         <div class="edit_setting_row">
           <span><label for="autosave">Auto save</label></span>

@@ -74,6 +74,16 @@ function edit_init() {
       }
     })
   }
+  const k3ln_toggle = qs('#k3ln_toggle')
+  if (k3ln_toggle) {
+    const ln_api = window.kona3EditLineNumber
+    k3ln_toggle.checked = !!(ln_api && ln_api.isEnabled())
+    k3ln_toggle.addEventListener('change', () => {
+      const api = window.kona3EditLineNumber
+      if (!api) { return }
+      if (k3ln_toggle.checked) { api.enable() } else { api.disable() }
+    })
+  }
   const page_mode_el = qs('#page_mode')
   if (page_mode_el) {
     page_mode_el.addEventListener('change', () => {
@@ -88,34 +98,28 @@ function edit_init() {
       if (e.isComposing || e.keyCode === 229) { return }
       if (e.key === 'Enter') {
         e.preventDefault()
-        if (e.shiftKey) { searchPrev() } else { searchNext() }
+        if (e.shiftKey) { searchPrev(); return }
+        // First Enter builds the result table, further Enters walk the matches
+        if (searchListIsCurrent()) { searchNext() } else { searchRun() }
+      }
+    })
+  }
+  const search_results_el = qs('#search_results')
+  if (search_results_el) {
+    search_results_el.addEventListener('click', searchResultsClick)
+    search_results_el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const tr = e.target.closest ? e.target.closest('tr[data-pos]') : null
+        if (tr) { e.preventDefault(); searchJumpRow(tr) }
       }
     })
   }
   // Keep the match count in sync while the text is edited (issue #153)
   edit_txt.addEventListener('input', updateSearchCount)
+  edit_txt.addEventListener('input', searchListRefreshLater)
   // Keep an open conflict diff in sync while the text is edited (#153)
   edit_txt.addEventListener('input', refreshConflictDiffIfOpen)
-  // Ctrl+F / Cmd+F opens the drawer search panel (issue #153). Guards
-  // (review follow-up for PR #345): no Shift/Alt combos, no IME
-  // composition, Cmd only on Mac (Ctrl+F is forward-char there) and
-  // Ctrl only elsewhere, and never steal a key the user bound to an
-  // editor/AI shortcut.
-  document.addEventListener('keydown', (e) => {
-    if (e.isComposing || e.shiftKey || e.altKey) { return }
-    if (e.key !== 'f' && e.key !== 'F') { return }
-    const isMac = /Mac|iPhone|iPad/.test(navigator.platform || '')
-    const modOk = isMac ? (e.metaKey && !e.ctrlKey) : (e.ctrlKey && !e.metaKey)
-    if (!modOk) { return }
-    const shortcutIds = ['editor_shortcut_temp_save', 'editor_shortcut_new',
-      'ai_shortcut_complete', 'ai_shortcut_spellcheck',
-      'ai_shortcut_user_prompt1', 'ai_shortcut_user_prompt2']
-    for (const id of shortcutIds) {
-      if (matchesShortcut(e, getShortcutValue(id))) { return }
-    }
-    e.preventDefault()
-    searchOnClick(true)
-  })
+  // Ctrl+F / Cmd+F is left to the browser's own search (issue #381).
   if (qs('#ai_actions')) {
     aiInitPanel()
   }
@@ -1106,7 +1110,7 @@ function showOnlyPanel(selector, forceShow) {
     return null
   }
   const isVisible = target.style.display !== 'none'
-  const panels = ['#help_div', '#tags_div', '#replace_div', '#history_div', '#misc_div', '#search_div', '#conflict_div', '#settings_div']
+  const panels = ['#help_div', '#tags_div', '#replace_div', '#history_div', '#misc_div', '#conflict_div', '#settings_div']
   panels.forEach(function (panelSelector) {
     if (qs(panelSelector)) {
       qq(panelSelector).hide()
@@ -1122,37 +1126,17 @@ function showOnlyPanel(selector, forceShow) {
 // Open the drawer and show the given tool panel. When the drawer was
 // closed, the panel is always shown: a panel left visible inside the
 // closed drawer must not be toggled off (Copilot review on PR #341).
-// In-editor text search (issue #153)
+// In-editor text search (issue #153, #381)
+// The search UI is a side pane that shares its slot with the AI pane.
+// computeSearchMatches(), findSearchTarget() and buildSearchResults() live
+// in edit_search_core.js.
 let searchIndex = -1
 let searchQuery = ''
 let searchText = null
-
-// All match offsets of query in text (case-insensitive, non-overlapping).
-function computeSearchMatches(text, query) {
-  const matches = []
-  if (!query) {
-    return matches
-  }
-  let hay = text.toLowerCase()
-  let needle = query.toLowerCase()
-  // toLowerCase() can change the string length for a few characters
-  // (e.g. 'İ'), which would shift every offset. Fall back to a
-  // case-sensitive search in that case (review follow-up for PR #345).
-  if (hay.length !== text.length || needle.length !== query.length) {
-    hay = text
-    needle = query
-  }
-  let pos = 0
-  while (true) {
-    const i = hay.indexOf(needle, pos)
-    if (i < 0) {
-      break
-    }
-    matches.push(i)
-    pos = i + Math.max(1, needle.length)
-  }
-  return matches
-}
+// query/text the result table was built for
+let searchListQuery = null
+let searchListText = null
+let searchListTimer = 0
 
 // Reset the remembered position when the query or the text changed, so
 // navigation always starts from the current caret/selection.
@@ -1162,29 +1146,6 @@ function searchSyncState(query) {
     searchText = edit_txt.value
     searchIndex = -1
   }
-}
-
-// Index of the match to jump to from currentPos: the first match at or
-// after currentPos for dir=1, the last match before currentPos for
-// dir=-1, wrapping around. -1 when there are no matches.
-function findSearchTarget(matches, currentPos, dir) {
-  if (matches.length === 0) {
-    return -1
-  }
-  if (dir > 0) {
-    for (let i = 0; i < matches.length; i++) {
-      if (matches[i] >= currentPos) {
-        return i
-      }
-    }
-    return 0
-  }
-  for (let i = matches.length - 1; i >= 0; i--) {
-    if (matches[i] < currentPos) {
-      return i
-    }
-  }
-  return matches.length - 1
 }
 
 function updateSearchCount() {
@@ -1251,29 +1212,142 @@ function searchPrev() {
   searchMove(-1)
 }
 
-// Scroll the textarea so that the given offset is roughly in view.
+// Scroll the textarea so that the given offset is roughly in view. The
+// position is measured on a mirror element, so wrapped lines are handled.
 function scrollEditorToPos(pos) {
-  const before = edit_txt.value.substring(0, pos)
-  const lines = before.split('\n').length - 1
-  const style = window.getComputedStyle(edit_txt)
-  const lineHeight = parseInt(style.lineHeight, 10) || 20
-  edit_txt.scrollTop = Math.max(0, lines * lineHeight - edit_txt.clientHeight / 3)
+  const metrics = window.kona3EditorMetrics
+  let top
+  if (metrics) {
+    top = metrics.caretTop(edit_txt, pos)
+  } else {
+    const lines = edit_txt.value.substring(0, pos).split('\n').length - 1
+    const lineHeight = parseInt(window.getComputedStyle(edit_txt).lineHeight, 10) || 20
+    top = lines * lineHeight
+  }
+  edit_txt.scrollTop = Math.max(0, top - edit_txt.clientHeight / 3)
 }
 
-function searchOnClick(forceShow) {
-  if (forceShow) {
-    // The Ctrl+F shortcut must always open the panel, never toggle it
-    // shut (review follow-up for PR #345).
-    openEditDrawer()
-    showOnlyPanel('#search_div', true)
-  } else {
-    openToolPanel('#search_div')
+// --- search side pane (issue #381) ---
+function searchPaneIsOpen() {
+  const pane = qs('#search_div')
+  return !!pane && pane.style.display !== 'none'
+}
+
+// The editor shrinks to make room whenever either side pane is open.
+function sidePaneSync() {
+  const main = qs('#edit_main')
+  if (main) { main.classList.toggle('ai-open', aiPaneIsOpen() || searchPaneIsOpen()) }
+}
+
+function searchPaneSet(open) {
+  const pane = qs('#search_div')
+  if (!pane) { return }
+  pane.style.display = open ? '' : 'none'
+  if (open) {
+    // shares the slot with the AI pane (its remembered state is kept)
+    const ai = qs('#ai_div')
+    if (ai) { ai.style.display = 'none' }
   }
+  sidePaneSync()
+}
+
+function searchPaneClose() {
+  searchPaneSet(false)
+  edit_txt.focus()
+}
+
+function searchOnClick() {
+  closeEditDrawer()
+  searchPaneSet(true)
   const input = qs('#search_key')
-  if (input) {
-    input.focus()
-    input.select()
+  if (!input) { return }
+  // Start from the selected word, as browsers' find bars do.
+  const sel = edit_txt.value.substring(edit_txt.selectionStart || 0, edit_txt.selectionEnd || 0)
+  if (sel && sel.indexOf('\n') < 0 && sel.length <= 100) {
+    input.value = sel
+    updateSearchCount()
   }
+  input.focus()
+  input.select()
+}
+
+function searchListIsCurrent() {
+  const input = qs('#search_key')
+  return !!input && searchListQuery === input.value && searchListText === edit_txt.value
+}
+
+// Build the result table: line number + context around each match.
+function searchRun() {
+  const input = qs('#search_key')
+  const box = qs('#search_results')
+  if (!input || !box) { return }
+  const query = input.value
+  const tbody = box.querySelector('tbody')
+  const note = qs('#search_results_note')
+  tbody.textContent = ''
+  searchListQuery = query
+  searchListText = edit_txt.value
+  updateSearchCount()
+  if (!query) {
+    box.style.display = 'none'
+    if (note) { note.textContent = '' }
+    return
+  }
+  const res = buildSearchResults(edit_txt.value, query, { context: 24, limit: 200 })
+  if (res.total === 0) {
+    box.style.display = 'none'
+    if (note) { note.textContent = '見つかりません' }
+    return
+  }
+  box.style.display = ''
+  const frag = document.createDocumentFragment()
+  res.items.forEach(function (it) {
+    const tr = document.createElement('tr')
+    tr.setAttribute('data-pos', String(it.pos))
+    tr.setAttribute('data-len', String(it.len))
+    tr.tabIndex = 0
+    const th = document.createElement('td')
+    th.className = 'search_line'
+    th.textContent = String(it.line)
+    const td = document.createElement('td')
+    td.className = 'search_ctx'
+    const mark = document.createElement('mark')
+    mark.textContent = it.match
+    td.appendChild(document.createTextNode(it.before))
+    td.appendChild(mark)
+    td.appendChild(document.createTextNode(it.after))
+    tr.appendChild(th)
+    tr.appendChild(td)
+    frag.appendChild(tr)
+  })
+  tbody.appendChild(frag)
+  if (note) {
+    note.textContent = res.truncated
+      ? res.total + ' 件中、先頭の ' + res.items.length + ' 件を表示'
+      : res.total + ' 件'
+  }
+}
+
+// Keep an already shown table in sync while the text is edited.
+function searchListRefreshLater() {
+  if (searchListQuery === null || !searchPaneIsOpen()) { return }
+  clearTimeout(searchListTimer)
+  searchListTimer = setTimeout(searchRun, 300)
+}
+
+function searchResultsClick(e) {
+  const tr = e.target.closest ? e.target.closest('tr[data-pos]') : null
+  if (tr) { searchJumpRow(tr) }
+}
+
+// Select the match of a table row in the editor and show it.
+function searchJumpRow(tr) {
+  const pos = parseInt(tr.getAttribute('data-pos'), 10)
+  const len = parseInt(tr.getAttribute('data-len'), 10)
+  if (isNaN(pos) || isNaN(len) || pos > edit_txt.value.length) { return }
+  edit_txt.focus()
+  edit_txt.setSelectionRange(pos, pos + len)
+  scrollEditorToPos(pos)
 }
 
 // Edit conflict handling (issue #153, phase 4). The server answers a
@@ -1520,10 +1594,14 @@ function aiPaneIsOpen() {
 
 function aiPaneSet(open, remember) {
   const pane = qs('#ai_div')
-  const main = qs('#edit_main')
-  if (!pane || !main) { return }
+  if (!pane) { return }
   pane.style.display = open ? '' : 'none'
-  main.classList.toggle('ai-open', !!open)
+  if (open) {
+    // shares the slot with the search pane
+    const sp = qs('#search_div')
+    if (sp) { sp.style.display = 'none' }
+  }
+  sidePaneSync()
   if (remember) {
     try { localStorage.setItem(LS_KEY_AI_PANE, open ? '1' : '0') } catch (e) { /* ignore */ }
   }
