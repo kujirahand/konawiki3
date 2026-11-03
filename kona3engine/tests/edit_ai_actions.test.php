@@ -182,3 +182,25 @@ $pos_edit = strpos($edit_action_src, "'edit.js'");
 test_assert(__LINE__, $pos_core !== false && $pos_edit !== false && $pos_core < $pos_edit, "edit_ai_core.js は edit.js より前に登録される");
 
 echo "edit_ai_actions.test.php: ALL OK\n";
+
+// --- chatgpt_ask_continue (途中で切れた応答の続きを取得) ---
+require_once dirname(__DIR__) . '/kona3ai.inc.php';
+$calls = [];
+$parts = [['AAA', 10, 'length'], ['BBB', 20, 'length'], ['CCC', 5, 'stop']];
+$once = function ($m) use (&$calls, &$parts) { $calls[] = $m; return array_shift($parts); };
+list($txt, $tk) = chatgpt_ask_continue([['role' => 'user', 'content' => 'q']], $once);
+test_eq(__LINE__, $txt, 'AAABBBCCC', "continue: 続きを連結する");
+test_eq(__LINE__, $tk, 35, "continue: トークンを合算する");
+test_eq(__LINE__, count($calls), 3, "continue: 3回呼ぶ");
+test_eq(__LINE__, $calls[1][1]['role'], 'assistant', "continue: 直前の応答を履歴に入れる");
+$n = 0;
+$endless = function ($m) use (&$n) { $n++; return ['x', 1, 'length']; };
+chatgpt_ask_continue([['role' => 'user', 'content' => 'q']], $endless, 2);
+test_eq(__LINE__, $n, 3, "continue: 最大回数で打ち切る");
+$errfirst = function ($m) { return ['Error: x', 0, '']; };
+list($txt) = chatgpt_ask_continue([['role' => 'user', 'content' => 'q']], $errfirst);
+test_eq(__LINE__, $txt, 'Error: x', "continue: 初回エラーはそのまま返す");
+$seq = [['AAA', 10, 'length'], ['Error: y', 0, '']];
+$mid = function ($m) use (&$seq) { return array_shift($seq); };
+list($txt) = chatgpt_ask_continue([['role' => 'user', 'content' => 'q']], $mid);
+test_eq(__LINE__, $txt, 'AAA', "continue: 続き取得失敗時は途中までを返す");
