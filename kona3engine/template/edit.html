@@ -202,17 +202,17 @@
         <button id="conflict_nav" type="button" onclick="conflictOnClick()" style="display: none;">⚠ {{'Edit conflict' | lang}}</button>
         <button onclick="searchOnClick()">{{'Search' | lang}}</button>
         <button onclick="replaceOnClick()">{{'Replace' | lang}}</button>
-        <button onclick="tagsOnClick()">{{'Tags' | lang}}</button>
-        <button onclick="historyOnClick()">{{'History' | lang}}</button>
-        <button onclick="miscOnClick()">{{'Misc' | lang}}</button>
-        <button onclick="settingsOnClick()">設定</button>
+        <button type="button" id="preview_btn" onclick="togglePreview()">プレビュー並行表示</button>
         {{ if $ai_enabled }}
         <span id="ai_buttons">
           <button onclick="aiOnClick()">{{'AI Assitant' | lang}}</button>
         </span>
         {{ endif }}
-        <button onclick="helpOnClick()">?</button>
-        <button type="button" id="preview_btn" onclick="togglePreview()">プレビュー並行表示</button>
+        <button onclick="tagsOnClick()">{{'Tags' | lang}}</button>
+        <button onclick="historyOnClick()">{{'History' | lang}}</button>
+        <button onclick="settingsOnClick()">設定</button>
+        <button onclick="helpOnClick()">{{'Help' | lang}}</button>
+        <button onclick="miscOnClick()">{{'Misc' | lang}}</button>
       </nav>
       <div class="edit_setting_row edit_drawer_format">
         <span><label for="page_mode">Format:</label></span>

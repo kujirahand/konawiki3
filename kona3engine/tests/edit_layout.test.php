@@ -145,3 +145,22 @@ foreach (['conclusion first' => '結論を最初に', 'funnier' => 'もっと面
     test_assert(__LINE__, strpos($edit_html, "AI preset {$key}") !== false, "preset list has '{$key}' (#378)");
     test_assert(__LINE__, strpos($lang_ja, $label) !== false, "ja: preset label {$label} (#378)");
 }
+
+// --- ドロワーのボタンを幅いっぱいの縦並びにする (#379) ---
+// ボタンの順序: 検索/置換/プレビュー/AI支援/タグ/履歴/設定/ヘルプ/Misc (競合ボタンは先頭)
+$nav_open = strpos($edit_html, 'class="edit_drawer_nav"');
+$nav_close = strpos($edit_html, '</nav>', $nav_open);
+$nav_html = substr($edit_html, $nav_open, $nav_close - $nav_open);
+$nav_order = ['conflictOnClick()', 'searchOnClick()', 'replaceOnClick()', 'id="preview_btn"',
+    'aiOnClick()', 'tagsOnClick()', 'historyOnClick()', 'settingsOnClick()', 'helpOnClick()', 'miscOnClick()'];
+$prev_pos = -1;
+foreach ($nav_order as $marker) {
+    $pos = strpos($nav_html, $marker);
+    test_assert(__LINE__, $pos !== false && $pos > $prev_pos, "drawer nav order has {$marker} in place (#379)");
+    $prev_pos = ($pos === false) ? $prev_pos : $pos;
+}
+test_assert(__LINE__, strpos($nav_html, "{{'Help' | lang}}") !== false, 'help button uses the Help label, not "?" (#379)');
+test_assert(__LINE__, strpos($edit_css, 'flex-direction: column;') !== false, 'drawer nav stacks vertically (#379)');
+test_assert(__LINE__, strpos($edit_css, 'width: 100%;') !== false, 'drawer nav buttons fill the drawer width (#379)');
+test_assert(__LINE__, strpos($edit_css, 'min-height: 48px;') !== false, 'drawer nav buttons are tall enough to tap (#379)');
+test_assert(__LINE__, strpos($dark_css, 'body.dark-theme #edit_drawer .edit_drawer_nav button') !== false, 'dark mode covers the drawer nav buttons (#379)');
