@@ -353,8 +353,8 @@ textarea#edit_txt:focus {
 
 .edit_drawer_nav {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  gap: 8px;
   margin-bottom: 18px;
 }
 
@@ -369,6 +369,12 @@ textarea#edit_txt:focus {
   border-color: var(--k3-color-border, #e4e7eb);
   border-radius: 8px;
   background: var(--k3-color-bg, #ffffff);
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 1em;
+  box-sizing: border-box;
 }
 
 #edit_drawer .edit_drawer_nav button:hover {

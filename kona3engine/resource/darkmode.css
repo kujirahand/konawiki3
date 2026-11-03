@@ -538,6 +538,12 @@ body.dark-theme #edit_drawer .edit_drawer_nav button {
   color: var(--k3d-text);
 }
 
+/* 上の通常色ルールが詳細度で勝ち、汎用の button:hover が効かないため専用に用意する (#379 review) */
+body.dark-theme #edit_drawer .edit_drawer_nav button:hover {
+  background-color: var(--k3d-button-hover-bg);
+  color: var(--k3d-button-hover-fg);
+}
+
 body.dark-theme #edit_drawer .block2,
 body.dark-theme #edit_drawer .tag_box,
 body.dark-theme #edit_drawer #replace_div,
