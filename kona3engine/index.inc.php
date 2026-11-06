@@ -16,6 +16,7 @@ require_once 'kona3lib.inc.php';
 require_once 'kona3parser.inc.php';
 require_once 'kona3db.inc.php';
 require_once 'kona3tags.inc.php';
+require_once 'kona3session.inc.php';
 require_once 'kona3static.inc.php';
 require_once 'kona3static_build.inc.php';
 
@@ -36,9 +37,8 @@ function kona3index_main()
     // Register default hooks
     require_once __DIR__ . '/kona3page_updated.inc.php';
 
-    // start session
-    $session_name = isset($kona3conf['session_name']) ? $kona3conf['session_name'] : 'kona3session';
-    session_start(['name' => $session_name]);
+    // start session (#386: 寿命と保存先は kona3session.inc.php で整合させる)
+    kona3session_start();
 
     // セッションに保存した古い権限を使う前に、現在のアカウント状態を反映する。
     kona3login_refreshSession();

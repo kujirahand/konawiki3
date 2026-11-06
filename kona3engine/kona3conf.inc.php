@@ -69,6 +69,9 @@ function kona3conf_getConfigItems()
         'Basic' => [
             'wiki_title' => ['label' => 'Wiki Title', 'default' => 'KonaWiki3', 'type' => 'string'],
             'session_name' => ['label' => 'Session Name', 'default' => 'kona3session', 'type' => 'string'],
+            'session_lifetime' => ['label' => 'Session Lifetime (sec)', 'default' => 86400, 'type' => 'number'],
+            'session_persistent_cookie' => ['label' => 'Session Cookie Persistent', 'default' => TRUE, 'type' => 'bool'],
+            'session_save_path' => ['label' => 'Session Save Path', 'default' => '', 'type' => 'string', 'note' => 'Empty: private/sessions, "php": use php.ini setting.'],
             'admin_email' => ['label' => 'Admin Email', 'default' => 'admin@example.com', 'type' => 'string'],
             'wiki_private' => ['label' => 'Wiki Private', 'default' => TRUE, 'type' => 'bool'],
             'lang' => ['label' => 'Language', 'default' => 'ja', 'type' => 'select', 'items' => ['ja', 'en']],

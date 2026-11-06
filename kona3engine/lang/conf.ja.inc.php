@@ -17,6 +17,9 @@ return [
     'items' => [
         'wiki_title' => ['label' => 'Wikiのタイトル', 'desc' => 'ヘッダーやブラウザのタイトルに表示されるWikiの名前です。'],
         'session_name' => ['label' => 'セッション名', 'desc' => 'ログイン状態を保持するCookieの名前です。同じサーバーで複数のWikiを動かすときは、別の名前にしてください。'],
+        'session_lifetime' => ['label' => 'セッションの保持期間(秒)', 'desc' => 'セッションを保持する期間(秒)です。サーバー側のデータとCookieの両方に適用されます。ログインや編集フォームのトークンは1日有効なので、86400以上にしてください。'],
+        'session_persistent_cookie' => ['label' => 'ブラウザを閉じてもセッションCookieを残す', 'desc' => 'trueにすると、ブラウザを閉じてもセッションの保持期間の間はCookieが残ります。falseにするとブラウザを閉じた時点でCookieが消えます。'],
+        'session_save_path' => ['label' => 'セッションの保存先', 'desc' => 'セッションファイルの保存先です。空の場合はWiki内の private/sessions を使います。"php" と書くと php.ini の保存先を使います。絶対パスでの指定もできます。'],
         'admin_email' => ['label' => '管理者のメールアドレス', 'desc' => '管理者のログインIDとして使われます。通知メールの送信元にも使われます。'],
         'wiki_private' => ['label' => 'Wikiを非公開にする', 'desc' => 'trueにすると、ログインしたユーザーだけがWikiを閲覧できます。公開する場合はfalseにします。'],
         'lang' => ['label' => '言語', 'desc' => '画面に表示するメッセージの言語です。'],
