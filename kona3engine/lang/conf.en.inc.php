@@ -16,7 +16,7 @@ return [
     ],
     'items' => [
         'wiki_title' => ['desc' => 'The name of this wiki, shown in the header and the browser title.'],
-        'session_name' => ['desc' => 'Name of the cookie that keeps users logged in. Use a different name for each wiki on the same server.'],
+        'session_name' => ['desc' => 'Name of the session cookie. With the default name (kona3session), a per-wiki suffix is added automatically, so multiple wikis on the same host do not collide. A name you set explicitly is used as is, so give each wiki a different name.'],
         'session_lifetime' => ['desc' => 'How long a session is kept, in seconds (server data and cookie). Login and edit form tokens are valid for one day, so keep this at 86400 or longer.'],
         'session_persistent_cookie' => ['desc' => 'If true, the session cookie stays after the browser is closed (for session_lifetime). If false, the cookie ends with the browser session.'],
         'session_save_path' => ['desc' => 'Where session files are stored. Empty uses private/sessions inside the wiki. Enter "php" to use the php.ini location, or an absolute path.'],

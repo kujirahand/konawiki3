@@ -21,6 +21,9 @@ if (!defined('KONA3_SESSION_GC_PROBABILITY')) {
 if (!defined('KONA3_SESSION_GC_DIVISOR')) {
     define('KONA3_SESSION_GC_DIVISOR', 100);
 }
+if (!defined('KONA3_SESSION_COOKIE_REFRESH_INTERVAL')) {
+    define('KONA3_SESSION_COOKIE_REFRESH_INTERVAL', 3600); // Cookie 再発行の最小間隔 (秒)
+}
 
 // $kona3conf の設定 (session_name / session_lifetime /
 // session_persistent_cookie / session_save_path) を読んでセッションを開始する。
@@ -49,18 +52,80 @@ function kona3session_start()
     $reason = NULL;
     $name = kona3session_resolveName($name, $privateDir);
     $savePath = kona3session_resolveSavePath($saveSetting, $privateDir, $reason);
-    if ($reason !== NULL && empty($_COOKIE[$name])) {
+    // handler_not_files は redis 等の正常な構成なので記録しない
+    if ($reason !== NULL && $reason !== 'handler_not_files' && empty($_COOKIE[$name])) {
         // 毎リクエストの記録を避けるため、新規セッションのときだけ記録する
         error_log("KonaWiki3 Session: save_path fallback (reason={$reason})");
     }
 
-    return session_start(kona3session_buildOptions(
+    $options = kona3session_buildOptions(
         $name,
         $lifetime,
         $persistent,
         kona3session_isHttps(),
         $savePath
-    ));
+    );
+    $started = session_start($options);
+    if ($started) {
+        kona3session_refreshCookie($name, $options['cookie_lifetime']);
+    }
+    return $started;
+}
+
+// 使用中のセッション Cookie の期限を延長する。
+// PHP は既存セッションの Cookie を再送しないため、何もしないと期限が
+// 発行時点から固定され、使い続けていても cookie_lifetime で切れてしまう。
+// 毎リクエストの Set-Cookie を避けるため、一定間隔でのみ再発行する。
+function kona3session_refreshCookie($name, $cookieLifetime)
+{
+    $cookieLifetime = intval($cookieLifetime);
+    if ($cookieLifetime <= 0) {
+        return FALSE; // ブラウザを閉じるまでの Cookie は延長不要
+    }
+    if (headers_sent()) {
+        return FALSE;
+    }
+    // ブラウザが送ってきた Cookie が現在のセッションと一致するときだけ対象
+    if (!isset($_COOKIE[$name]) || $_COOKIE[$name] !== session_id()) {
+        return FALSE;
+    }
+
+    $now = time();
+    $last = isset($_SESSION['kona3_cookie_refreshed'])
+        ? $_SESSION['kona3_cookie_refreshed']
+        : 0;
+    if (!kona3session_shouldRefreshCookie($last, $now)) {
+        return FALSE;
+    }
+
+    // session_start() が設定した属性をそのまま引き継ぐ (PHP 7.3 以降の配列形式)
+    $params = session_get_cookie_params();
+    $ok = setcookie(session_name(), session_id(), [
+        'expires' => $now + $cookieLifetime,
+        'path' => $params['path'],
+        'domain' => $params['domain'],
+        'secure' => $params['secure'],
+        'httponly' => $params['httponly'],
+        'samesite' => isset($params['samesite']) ? $params['samesite'] : 'Lax',
+    ]);
+    if ($ok) {
+        $_SESSION['kona3_cookie_refreshed'] = $now;
+    }
+    return $ok;
+}
+
+// Cookie を再発行すべきかを判定する純粋関数。
+// 未設定・非数値・未来の時刻 (時計の巻き戻り) は再発行する側に倒す。
+function kona3session_shouldRefreshCookie($last, $now)
+{
+    if (!is_numeric($last) || $last <= 0) {
+        return TRUE;
+    }
+    $elapsed = $now - $last;
+    if ($elapsed < 0) {
+        return TRUE;
+    }
+    return $elapsed >= KONA3_SESSION_COOKIE_REFRESH_INTERVAL;
 }
 
 // セッション名を決める。既定名のときだけ、複数 Wiki の同一ホスト設置で
@@ -81,13 +146,27 @@ function kona3session_resolveName($name, $privateDir)
     return $name . substr(sha1($base), 0, 8); // 英数字のみ
 }
 
+// 絶対パスか判定する (Unix の / 始まり、Windows の X:\ または X:/)。
+function kona3session_isAbsolutePath($path)
+{
+    return preg_match('#^(/|[A-Za-z]:[\\\\/])#', $path) === 1;
+}
+
 // 専用保存先のパスを返す。php.ini の設定に任せる場合は NULL を返す。
-// $reason にはフォールバックの理由 ('handler_not_files' / 'mkdir_failed' /
-// 'not_writable') が入る。理由がない場合は NULL のまま。
+// $reason にはフォールバックの理由 ('invalid_path' / 'handler_not_files' /
+// 'mkdir_failed' / 'not_writable') が入る。理由がない場合は NULL のまま。
 function kona3session_resolveSavePath($setting, $privateDir, &$reason)
 {
     $reason = NULL;
-    if ($setting === 'php') {
+
+    // 設定値を正規化する (前後の空白を除去、"PHP" や " php " も php として扱う)
+    $setting = is_string($setting) ? trim($setting) : '';
+    if (strtolower($setting) === 'php') {
+        return NULL;
+    }
+    if ($setting !== '' && !kona3session_isAbsolutePath($setting)) {
+        // 相対パスは実行時のカレントに依存して危険なので使わない
+        $reason = 'invalid_path';
         return NULL;
     }
     if (ini_get('session.save_handler') !== 'files') {
@@ -96,7 +175,7 @@ function kona3session_resolveSavePath($setting, $privateDir, &$reason)
         return NULL;
     }
 
-    $dir = (is_string($setting) && $setting !== '')
+    $dir = ($setting !== '')
         ? $setting
         : rtrim($privateDir, '/') . '/' . KONA3_SESSION_DIR_NAME;
     if (!is_dir($dir) && !@mkdir($dir, 0700, TRUE) && !is_dir($dir)) {
@@ -123,6 +202,13 @@ function kona3session_resolveSavePath($setting, $privateDir, &$reason)
 </IfModule>
 EOS;
         @file_put_contents($htaccess, $htaccessBody);
+    }
+
+    // .htaccess が効かない環境でも、一覧表示から sess_ ファイル名
+    // (= セッション ID) が見えないよう、空の index.html も置く
+    $indexHtml = $dir . '/index.html';
+    if (!file_exists($indexHtml)) {
+        @file_put_contents($indexHtml, '');
     }
 
     return $dir;

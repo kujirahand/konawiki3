@@ -86,3 +86,39 @@ test_assert(__LINE__, is_dir($customDir), 'session save path: absolute path dire
 @rmdir($customDir);
 @rmdir($privateDir);
 @rmdir($tmpDir);
+
+// --- レビュー指摘対応 (相対パスの拒否、php の正規化、index.html、Cookie再発行判定) ---
+$tmpDir2 = sys_get_temp_dir() . '/kona3session-test2-' . uniqid('', TRUE);
+$privateDir2 = $tmpDir2 . '/private';
+
+$reason = 'initial';
+test_eq(__LINE__, kona3session_resolveSavePath('sessions', $privateDir2, $reason), NULL, 'session save path: relative path is rejected');
+test_eq(__LINE__, $reason, 'invalid_path', 'session save path: relative path reason is invalid_path');
+
+foreach (['PHP', ' php '] as $v) {
+    $reason = 'initial';
+    test_eq(__LINE__, kona3session_resolveSavePath($v, $privateDir2, $reason), NULL, 'session save path: php variant keeps php.ini path');
+    test_eq(__LINE__, $reason, NULL, 'session save path: php variant has no fallback reason');
+}
+
+$reason = NULL;
+$savePath2 = kona3session_resolveSavePath('', $privateDir2, $reason);
+$sessionDir2 = $privateDir2 . '/' . KONA3_SESSION_DIR_NAME;
+test_assert(__LINE__, file_exists($sessionDir2 . '/index.html'), 'session save path: index.html is created');
+$ht = @file_get_contents($sessionDir2 . '/.htaccess');
+test_assert(__LINE__, is_string($ht) && strpos($ht, 'Require all denied') !== FALSE, 'session save path: htaccess denies all access');
+
+file_put_contents($sessionDir2 . '/index.html', 'KEEP');
+kona3session_resolveSavePath('', $privateDir2, $reason);
+test_eq(__LINE__, file_get_contents($sessionDir2 . '/index.html'), 'KEEP', 'session save path: existing index.html is kept');
+
+$now = 1000000;
+test_assert(__LINE__, kona3session_shouldRefreshCookie(0, $now) === TRUE, 'cookie refresh: unset last time refreshes');
+test_assert(__LINE__, kona3session_shouldRefreshCookie($now - 10, $now) === FALSE, 'cookie refresh: within interval does not refresh');
+test_assert(__LINE__, kona3session_shouldRefreshCookie($now - KONA3_SESSION_COOKIE_REFRESH_INTERVAL - 1, $now) === TRUE, 'cookie refresh: past interval refreshes');
+
+@unlink($sessionDir2 . '/.htaccess');
+@unlink($sessionDir2 . '/index.html');
+@rmdir($sessionDir2);
+@rmdir($privateDir2);
+@rmdir($tmpDir2);
