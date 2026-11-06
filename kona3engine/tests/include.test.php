@@ -78,6 +78,7 @@ $kona3conf['page'] = $dir387 . '/Deep2/Main2';
 test_assert(__LINE__, strpos(kona3plugins_include_execute(['../Sibling']), 'Sibling 387') !== false, "include should resolve ../Sibling within data dir");
 
 // data 直下と相対先の両方に同名がある場合は data 直下が優先されること
+$kona3conf['page'] = $dir387 . '/Main';
 $both387 = 'IncludeBoth387_' . $uniq387;
 $mk387($both387 . '.md', "# Root Both 387\n\nroot");
 $mk387($dir387 . '/' . $both387 . '.md', "# Sub Both 387\n\nsub");
@@ -97,8 +98,56 @@ test_assert(__LINE__, strpos($esc_html, 'is not found') !== false, "include shou
 $missing_md_html = kona3plugins_include_execute(['NoSuch387_' . $uniq387 . '.md']);
 test_assert(__LINE__, strpos($missing_md_html, 'is not found') !== false, "include should report missing .md file as not found");
 
+// .md/.txt 以外のファイルは data 内でも取り込めないこと (Sonnet検証の指摘)
+$mk387('.meta/Json387_' . $uniq387 . '.json', '{"marker":"JSON_SECRET_387"}');
+$json_html = kona3plugins_include_execute(['.meta/Json387_' . $uniq387 . '.json']);
+test_assert(__LINE__, strpos($json_html, 'JSON_SECRET_387') === false, "include should not read .meta/*.json files");
+$mk387('Attach387_' . $uniq387 . '.html', 'HTML_SECRET_387');
+$htmlfile_html = kona3plugins_include_execute(['Attach387_' . $uniq387 . '.html']);
+test_assert(__LINE__, strpos($htmlfile_html, 'HTML_SECRET_387') === false, "include should not read .html files in data dir");
+
+// symlink 経由で data の外は取り込めないこと
+$secret387 = KONA3_DIR_PRIVATE . '/secret387_' . $uniq387 . '.txt';
+file_put_contents($secret387, 'SYMLINK_SECRET_387');
+$link387 = KONA3_DIR_DATA . '/Link387_' . $uniq387 . '.txt';
+if (@symlink($secret387, $link387)) {
+    $link_html = kona3plugins_include_execute(['Link387_' . $uniq387 . '.txt']);
+    test_assert(__LINE__, strpos($link_html, 'SYMLINK_SECRET_387') === false, "include should not read outside file via symlink");
+    @unlink($link387);
+}
+@unlink($secret387);
+
+// 絶対パス指定でも data の外は取り込めないこと
+$abs_html = kona3plugins_include_execute(['/etc/passwd']);
+test_assert(__LINE__, strpos($abs_html, 'is not found') !== false, "include should treat leading-slash path as data-relative");
+
+// ドットを含むページ名
+$dot387 = 'Dot.Name_' . $uniq387;
+$mk387($dot387 . '.md', "# Dotted 387\n\ndotted body");
+$dot_html = kona3plugins_include_execute([$dot387]);
+test_assert(__LINE__, strpos($dot_html, 'Dotted 387') !== false, "include should render page name containing dots");
+
+// 現在ページが空でも data 直下からは取り込めること
+$kona3conf['page'] = '';
+$nopage_html = kona3plugins_include_execute([$dot387]);
+test_assert(__LINE__, strpos($nopage_html, 'Dotted 387') !== false, "include should work when current page is not set");
+
+// enc_pagename 有効時の入れ子相対解決 (スタックの基準が二重エンコードされないこと)
+$saved_enc387 = isset($kona3conf['enc_pagename']) ? $kona3conf['enc_pagename'] : null;
+$jpdir387 = '日本語フォルダ_' . $uniq387;
+$encdir387 = urlencode($jpdir387);
+$mk387($encdir387 . '/Mid.txt', "* MidEnc 387\n\n#include(Leaf)\n");
+$mk387($encdir387 . '/Leaf.txt', "* LeafEnc 387\n\nleaf enc body");
+$kona3conf['enc_pagename'] = true;
+$kona3conf['page'] = 'FrontPage';
+$enc_html = kona3plugins_include_execute([$jpdir387 . '/Mid']);
+test_assert(__LINE__, strpos($enc_html, 'LeafEnc 387') !== false, "include should resolve nested relative path with enc_pagename");
+if ($saved_enc387 === null) { unset($kona3conf['enc_pagename']); } else { $kona3conf['enc_pagename'] = $saved_enc387; }
+
 if ($saved_page387 === null) { unset($kona3conf['page']); } else { $kona3conf['page'] = $saved_page387; }
 foreach ($files387 as $f) { @unlink($f); }
+@rmdir(KONA3_DIR_DATA . '/.meta');
+@rmdir(KONA3_DIR_DATA . '/' . $encdir387);
 @rmdir(KONA3_DIR_DATA . '/' . $dir387 . '/Inner');
 @rmdir(KONA3_DIR_DATA . '/' . $dir387 . '/Deep2');
 @rmdir(KONA3_DIR_DATA . '/' . $dir387);

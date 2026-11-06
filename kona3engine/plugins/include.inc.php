@@ -80,7 +80,13 @@ function kona3plugins_include_get_relative_dir() {
     if ($data !== false && $real !== false) {
       $data = rtrim($data, '/\\') . DIRECTORY_SEPARATOR;
       if (strpos($real, $data) === 0) {
-        return dirname(substr($real, strlen($data)));
+        $dir = dirname(str_replace('\\', '/', substr($real, strlen($data))));
+        // enc_pagename 有効時はディスク上のフォルダ名がエンコード済みなので、
+        // ページ名の形式 (未エンコード) に戻してから使う (後段で再エンコードされる)
+        if (!empty($kona3conf['enc_pagename']) && $dir !== '.') {
+          $dir = implode('/', array_map('urldecode', explode('/', $dir)));
+        }
+        return $dir;
       }
     }
   }
@@ -94,9 +100,17 @@ function kona3plugins_include_get_relative_dir() {
 function kona3plugins_include_find_wiki_file($name) {
   if ($name === '' || $name === false) return false;
 
-  // 1. 名前そのままのパス (拡張子付きで指定された場合はそのファイル自体)
+  // "." 始まりの要素 (.meta / .git / .htaccess 等) は取り込み対象にしない
+  foreach (explode('/', $name) as $seg) {
+    if ($seg !== '' && $seg[0] === '.') return false;
+  }
+
+  // 1. 名前そのままのパス (拡張子付きで指定された場合はそのファイル自体。
+  //    ただし取り込めるのは Wiki 本文の .md/.txt のみで、data 内の任意ファイル
+  //    (.meta/*.json や添付ファイル等) は読まない)
   $fname = kona3getWikiFile($name, false);
-  if (file_exists($fname) && kona3plugins_include_inDataDir($fname)) {
+  if (file_exists($fname) && kona3isEditableExt(kona3getFileExt($fname)) &&
+      kona3plugins_include_inDataDir($fname)) {
     return $fname;
   }
 
