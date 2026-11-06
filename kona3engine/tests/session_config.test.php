@@ -81,7 +81,9 @@ test_assert(__LINE__, is_dir($customDir), 'session save path: absolute path dire
 
 // 一時ディレクトリを削除する
 @unlink($defaultSessionDir . '/.htaccess');
+@unlink($defaultSessionDir . '/index.html');
 @unlink($customDir . '/.htaccess');
+@unlink($customDir . '/index.html');
 @rmdir($defaultSessionDir);
 @rmdir($customDir);
 @rmdir($privateDir);
@@ -113,9 +115,15 @@ kona3session_resolveSavePath('', $privateDir2, $reason);
 test_eq(__LINE__, file_get_contents($sessionDir2 . '/index.html'), 'KEEP', 'session save path: existing index.html is kept');
 
 $now = 1000000;
-test_assert(__LINE__, kona3session_shouldRefreshCookie(0, $now) === TRUE, 'cookie refresh: unset last time refreshes');
-test_assert(__LINE__, kona3session_shouldRefreshCookie($now - 10, $now) === FALSE, 'cookie refresh: within interval does not refresh');
-test_assert(__LINE__, kona3session_shouldRefreshCookie($now - KONA3_SESSION_COOKIE_REFRESH_INTERVAL - 1, $now) === TRUE, 'cookie refresh: past interval refreshes');
+$refreshInterval = KONA3_SESSION_COOKIE_REFRESH_INTERVAL;
+test_assert(__LINE__, kona3session_shouldRefreshCookie(0, $now, $refreshInterval) === TRUE, 'cookie refresh: unset last time refreshes');
+test_assert(__LINE__, kona3session_shouldRefreshCookie($now - 10, $now, $refreshInterval) === FALSE, 'cookie refresh: within interval does not refresh');
+test_assert(__LINE__, kona3session_shouldRefreshCookie($now - $refreshInterval - 1, $now, $refreshInterval) === TRUE, 'cookie refresh: past interval refreshes');
+test_assert(__LINE__, kona3session_shouldRefreshCookie('abc', $now, $refreshInterval) === TRUE, 'cookie refresh: non-numeric last time refreshes');
+test_assert(__LINE__, kona3session_shouldRefreshCookie($now + 100, $now, $refreshInterval) === TRUE, 'cookie refresh: future last time refreshes');
+// 寿命1800秒を想定 (間隔 = 1800 / 2 = 900)
+test_assert(__LINE__, kona3session_shouldRefreshCookie($now - 901, $now, 900) === TRUE, 'cookie refresh: short lifetime, 901 sec ago refreshes');
+test_assert(__LINE__, kona3session_shouldRefreshCookie($now - 100, $now, 900) === FALSE, 'cookie refresh: short lifetime, 100 sec ago does not refresh');
 
 @unlink($sessionDir2 . '/.htaccess');
 @unlink($sessionDir2 . '/index.html');

@@ -94,7 +94,9 @@ function kona3session_refreshCookie($name, $cookieLifetime)
     $last = isset($_SESSION['kona3_cookie_refreshed'])
         ? $_SESSION['kona3_cookie_refreshed']
         : 0;
-    if (!kona3session_shouldRefreshCookie($last, $now)) {
+    // 再発行間隔は Cookie 寿命の半分を上限にする (短い寿命でも切れる前に延長できるように)
+    $interval = min(KONA3_SESSION_COOKIE_REFRESH_INTERVAL, max(1, intdiv($cookieLifetime, 2)));
+    if (!kona3session_shouldRefreshCookie($last, $now, $interval)) {
         return FALSE;
     }
 
@@ -116,8 +118,12 @@ function kona3session_refreshCookie($name, $cookieLifetime)
 
 // Cookie を再発行すべきかを判定する純粋関数。
 // 未設定・非数値・未来の時刻 (時計の巻き戻り) は再発行する側に倒す。
-function kona3session_shouldRefreshCookie($last, $now)
+function kona3session_shouldRefreshCookie($last, $now, $interval = KONA3_SESSION_COOKIE_REFRESH_INTERVAL)
 {
+    $interval = intval($interval);
+    if ($interval <= 0) {
+        $interval = KONA3_SESSION_COOKIE_REFRESH_INTERVAL;
+    }
     if (!is_numeric($last) || $last <= 0) {
         return TRUE;
     }
@@ -125,7 +131,7 @@ function kona3session_shouldRefreshCookie($last, $now)
     if ($elapsed < 0) {
         return TRUE;
     }
-    return $elapsed >= KONA3_SESSION_COOKIE_REFRESH_INTERVAL;
+    return $elapsed >= $interval;
 }
 
 // セッション名を決める。既定名のときだけ、複数 Wiki の同一ホスト設置で
