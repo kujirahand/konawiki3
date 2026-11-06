@@ -49,9 +49,14 @@ function kona3plugins_file_execute($args) {
   }
   $txt = file_get_contents($fname);
   $kona3_include_depth++;
+  // #include の相対パス解決の基準を取り込み中のファイルにする (#387)
+  global $kona3_include_file_stack;
+  if (!isset($kona3_include_file_stack)) $kona3_include_file_stack = array();
+  $kona3_include_file_stack[] = $fname;
   try {
     $htm = konawiki_parser_convert($txt);
   } finally {
+    array_pop($kona3_include_file_stack);
     $kona3_include_depth--;
   }
   return "<div>".$htm."</div>";
