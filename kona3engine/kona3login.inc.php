@@ -40,7 +40,7 @@ function kona3remember_random()
 
 function kona3remember_cookie_secure()
 {
-  return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+  return kona3lib_requestScheme() === 'https';
 }
 
 function kona3remember_setCookie($selector, $token, $expires)
