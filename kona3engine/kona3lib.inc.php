@@ -23,21 +23,6 @@ if (!defined('KONA3_PAGE_NAME_MAX_SEGMENT_BYTES')) {
 // --------------------------------------------------------------
 require_once __DIR__ . '/kona3login.inc.php';
 // --------------------------------------------------------------
-// A TLS-terminating reverse proxy may forward the original protocol.
-function kona3lib_requestScheme()
-{
-    if ((!empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off') ||
-        (isset($_SERVER['REQUEST_SCHEME']) && strtolower($_SERVER['REQUEST_SCHEME']) === 'https')) {
-        return 'https';
-    }
-    // Only accept an exact HTTPS value; never let a forwarded header downgrade TLS.
-    if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) &&
-        strtolower(trim($_SERVER['HTTP_X_FORWARDED_PROTO'])) === 'https') {
-        return 'https';
-    }
-    return 'http';
-}
-
 // param
 function kona3param($key, $def = NULL)
 {
