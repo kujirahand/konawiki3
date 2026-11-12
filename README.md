@@ -35,6 +35,12 @@ Konawiki3 lets you configure many settings through the admin page. You do not ne
 These settings include site appearance, user management, and plugin enablement.
 After logging in as an administrator, open the configuration page to customize how the site works.
 
+### HTTPS reverse proxies
+
+When a reverse proxy terminates TLS, KonaWiki3 uses `X-Forwarded-Proto: https` to generate HTTPS URLs only if the connection comes from an address in the `Trusted Proxy IPs` setting. The default, `127.0.0.1,::1`, supports local proxies such as Tailscale Serve. Specify comma-separated IPv4 or IPv6 addresses or CIDR ranges (for example, `172.16.0.0/12`); an empty value disables trust. IPv4-mapped IPv6 addresses are treated as IPv4. Trust only the smallest ranges containing your proxies, and configure each proxy to overwrite the incoming header. Other local processes can also spoof headers over loopback, so consider who can connect directly to the application.
+
+Only a single `https` value is accepted. For multiple proxy hops that produce a value such as `https,http`, configure the last trusted proxy to normalize it to one protocol. The `Forwarded` header is not supported.
+
 ## AI Writing Assistance
 
 Konawiki3 includes AI writing assistance features. These include text summarization, proofreading, sentence rephrasing, and automatic continuation of writing.

@@ -72,6 +72,7 @@ function kona3conf_getConfigItems()
             'session_lifetime' => ['label' => 'Session Lifetime (sec)', 'default' => 86400, 'type' => 'number'],
             'session_persistent_cookie' => ['label' => 'Session Cookie Persistent', 'default' => TRUE, 'type' => 'bool'],
             'session_save_path' => ['label' => 'Session Save Path', 'default' => '', 'type' => 'string', 'note' => 'Empty: private/sessions, "php": use php.ini setting.'],
+            'trusted_proxy_ips' => ['label' => 'Trusted Proxy IPs', 'default' => '127.0.0.1,::1', 'type' => 'string', 'note' => 'Comma-separated IP addresses or CIDR ranges; empty disables forwarded headers.'],
             'admin_email' => ['label' => 'Admin Email', 'default' => 'admin@example.com', 'type' => 'string'],
             'wiki_private' => ['label' => 'Wiki Private', 'default' => TRUE, 'type' => 'bool'],
             'lang' => ['label' => 'Language', 'default' => 'ja', 'type' => 'select', 'items' => ['ja', 'en']],
@@ -372,7 +373,7 @@ function kona3conf_setURI()
     $baseurl = ".";
 
     // URL
-    $scheme = isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http';
+    $scheme = kona3request_scheme();
     $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
     $script = isset($_SERVER['SCRIPT_NAME']) ? $_SERVER['SCRIPT_NAME'] : '/index.php';
 

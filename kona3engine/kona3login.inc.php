@@ -4,6 +4,7 @@
 // セッション管理、管理者・一般ユーザーの認証、パスワードハッシュ生成などを担当します。
 
 require_once __DIR__.'/jsonphp.lib.php';
+require_once __DIR__.'/kona3request.inc.php';
 
 // セッションでログイン情報を保存する際のキー名
 // $_SESSION[KONA3_SESSKEY_LOGIN] に配列でユーザー情報を格納
@@ -40,7 +41,7 @@ function kona3remember_random()
 
 function kona3remember_cookie_secure()
 {
-  return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+  return kona3request_scheme() === 'https';
 }
 
 function kona3remember_setCookie($selector, $token, $expires)

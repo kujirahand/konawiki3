@@ -20,6 +20,7 @@ return [
         'session_lifetime' => ['desc' => 'How long a session is kept, in seconds (server data and cookie). Login and edit form tokens are valid for one day, so keep this at 86400 or longer.'],
         'session_persistent_cookie' => ['desc' => 'If true, the session cookie stays after the browser is closed (for session_lifetime). If false, the cookie ends with the browser session.'],
         'session_save_path' => ['desc' => 'Where session files are stored. Empty uses private/sessions inside the wiki. Enter "php" to use the php.ini location, or an absolute path.'],
+        'trusted_proxy_ips' => ['desc' => 'Comma-separated IP addresses or CIDR ranges of proxies trusted to forward the protocol. Empty disables trust.'],
         'admin_email' => ['desc' => 'The administrator\'s login ID. Also used as the sender of notification mails.'],
         'wiki_private' => ['desc' => 'If true, only logged-in users can read the wiki. Set false to make it public.'],
         'lang' => ['desc' => 'Language of the messages shown on screen.'],
