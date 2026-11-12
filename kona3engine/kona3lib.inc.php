@@ -114,7 +114,7 @@ function kona3lib_parseURI()
     $script_dir = preg_replace("#/{$script}$#", "", $script_path);
     $kona3conf['baseurl'] = sprintf(
         "%s://%s%s",
-        kona3lib_requestScheme(),
+        kona3request_scheme(),
         $host,
         $script_dir
     );
