@@ -2176,13 +2176,21 @@ function aiBlockFind(id) {
   const it = aiBlockItems[id]
   if (!it || !it.ng) { return }
   const edit_txt = qs('#edit_txt')
-  const start = edit_txt.value.indexOf(it.ng)
-  edit_txt.focus()
-  if (start >= 0) {
-    edit_txt.setSelectionRange(start, start + it.ng.length)
-  } else {
-    aiMarkNotFound(id)
+  // Repeated presses cycle through the occurrences (like the editor
+  // search): when the current selection already is this target, look
+  // for the next one, wrapping around to the first.
+  const selected = edit_txt.value.slice(edit_txt.selectionStart, edit_txt.selectionEnd)
+  let start = edit_txt.value.indexOf(it.ng, selected === it.ng ? edit_txt.selectionEnd : 0)
+  if (start < 0 && selected === it.ng) {
+    start = edit_txt.value.indexOf(it.ng)
   }
+  if (start < 0) {
+    aiMarkNotFound(id)
+    return
+  }
+  edit_txt.focus()
+  edit_txt.setSelectionRange(start, start + it.ng.length)
+  scrollEditorToPos(start)
 }
 
 function aiMarkNotFound(id) {
