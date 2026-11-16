@@ -37,6 +37,7 @@ $lang_data = [
     'PDF' => '📃 PDF',
     'Attach' => '📂 添付',
     'Upload' => '⬆ アップロード',
+    'Image Upload' => '🖼 画像をアップロード',
     'Print' => '🖨 印刷',
     'Filename' => 'ファイル名',
     'Optional' => '省略可',

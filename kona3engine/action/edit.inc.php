@@ -50,6 +50,9 @@ function kona3_action_edit()
     } else if ($q == 'preview') {
         // プレビュー並行表示用に本文を描画する (issue #153)
         return kona3edit_preview_ajax($page);
+    } else if ($q == 'upload') {
+        // 編集画面からの画像アップロード (issue #393)
+        return kona3edit_upload_ajax($page);
     }
 
     // generate edit_token
@@ -216,6 +219,7 @@ function kona3_action_edit()
         "tags" => $tags,
         "new_btn_url" => $new_btn_url,
         "ai_enabled" => $ai_enabled,
+        "upload_enabled" => (!empty($kona3conf['allow_upload']) && kona3isLogin()),
         "ai_provider" => $ai_provider,
         "ai_edit_template_url" => $ai_edit_template_url,
         "ai_edit_conf_url" => $ai_edit_conf_url,
@@ -985,6 +989,152 @@ function kona3edit_preview_ajax($page)
     kona3setConf('page_ext', $page_mode === 'Markdown' ? '.md' : '.txt');
     $html = kona3edit_render_preview($txt, $page_mode);
     echo json_encode(array('result' => 'ok', 'html' => $html));
+}
+
+function kona3edit_upload_ajax($page)
+{
+    if (!kona3edit_checkEditToken($page, 'ajax')) {
+        return;
+    }
+    header('Content-Type: application/json; charset=utf-8');
+    global $kona3conf;
+    $ng = function ($msg) {
+        echo json_encode(array('result' => 'ng', 'message' => $msg));
+    };
+    if (empty($kona3conf['allow_upload'])) {
+        $ng('Upload is not allowed by the site settings.');
+        return;
+    }
+    if (empty($_FILES['file']) || !is_array($_FILES['file']) ||
+        !isset($_FILES['file']['tmp_name']) || !isset($_FILES['file']['name']) ||
+        !is_string($_FILES['file']['tmp_name']) || !is_string($_FILES['file']['name']) ||
+        !is_uploaded_file($_FILES['file']['tmp_name'])) {
+        $ng('No file was uploaded.');
+        return;
+    }
+    $file = $_FILES['file'];
+    if ($file['error'] === UPLOAD_ERR_INI_SIZE || $file['error'] === UPLOAD_ERR_FORM_SIZE) {
+        $ng('The file is too large.');
+        return;
+    }
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        $ng('Upload failed (error ' . $file['error'] . ').');
+        return;
+    }
+    $max_file_size = kona3getConf('upload_max_file_size', 1024 * 1024 * 10);
+    if ($max_file_size > 0 && $file['size'] > $max_file_size) {
+        $ng('The file is too large.');
+        return;
+    }
+    // 添付先はページファイルと同じフォルダ (attach アクションと同じ)。
+    // ページが未保存だと添付できないので、その旨を返す。
+    $page_ext = '';
+    $page_file = kona3getEditFile($page, $page_ext);
+    if (!file_exists($page_file)) {
+        $ng('Save the page before uploading images.');
+        return;
+    }
+    $name = kona3edit_upload_sanitize_name(isset($file['name']) ? $file['name'] : '');
+    if ($name === '') {
+        $ng('The file name is empty.');
+        return;
+    }
+    $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+    if (!kona3edit_upload_is_allowed_image($ext)) {
+        $ng('This file type is not allowed.');
+        return;
+    }
+    // 画像と名乗る別形式の混入を防ぐ (SVG は getimagesize で判定できないので、
+    // <script> 等の混入を別途検査する)
+    if ($ext === 'svg') {
+        if (!kona3edit_upload_svg_is_safe($file['tmp_name'])) {
+            $ng('The file is not an image.');
+            return;
+        }
+    } else if (@getimagesize($file['tmp_name']) === false) {
+        $ng('The file is not an image.');
+        return;
+    }
+    $savefile = kona3edit_upload_unique_path(dirname($page_file), $name);
+    if ($savefile === '') {
+        $ng('Too many files with the same name.');
+        return;
+    }
+    if (!move_uploaded_file($file['tmp_name'], $savefile)) {
+        $ng('Failed to save the uploaded file.');
+        return;
+    }
+    echo json_encode(array('result' => 'ok', 'name' => basename($savefile)));
+}
+
+// attach アクションと同じファイル名サニタイズ
+function kona3edit_upload_sanitize_name($name)
+{
+    $name = basename(trim((string) $name));
+    $name = preg_replace('#[\'\"\<\>\\/\:\;\*\?\|\=\s]#', '_', $name);
+    // 挿入する #ref(...) 記法の引数区切りと衝突する文字も置換する
+    $name = str_replace(array('(', ')', ','), '_', $name);
+    return $name;
+}
+
+// SVG は getimagesize で判定できないため、スクリプト等の混入を検査する
+function kona3edit_upload_svg_is_safe($tmp_name)
+{
+    $svg = @file_get_contents($tmp_name);
+    if ($svg === false) {
+        return false;
+    }
+    if (stripos($svg, '<svg') === false) {
+        return false;
+    }
+    $unsafe_patterns = array(
+        '<script',
+        '<foreignobject',
+        '<iframe',
+        '<embed',
+        '<object',
+        'javascript:',
+    );
+    foreach ($unsafe_patterns as $pattern) {
+        if (stripos($svg, $pattern) !== false) {
+            return false;
+        }
+    }
+    if (preg_match('/\son[a-z]+\s*=/i', $svg)) {
+        return false;
+    }
+    return true;
+}
+
+// 画像拡張子かつ設定 allow_upload_ext で許可されているものだけ通す
+function kona3edit_upload_is_allowed_image($ext)
+{
+    global $kona3conf;
+    $image_exts = array('png', 'jpg', 'jpeg', 'gif', 'bmp', 'ico', 'svg', 'webp', 'avif');
+    if (!in_array($ext, $image_exts, true)) {
+        return false;
+    }
+    $allow = isset($kona3conf['allow_upload_ext']) ? explode(';', strtolower($kona3conf['allow_upload_ext'])) : array();
+    return in_array($ext, $allow, true);
+}
+
+// 同名ファイルがあれば _1, _2 ... と連番を付けた保存先を返す (attach と同じ規則)
+function kona3edit_upload_unique_path($dir, $name)
+{
+    $savefile = $dir . '/' . $name;
+    if (!file_exists($savefile)) {
+        return $savefile;
+    }
+    $ext = pathinfo($name, PATHINFO_EXTENSION);
+    $base = ($ext === '') ? $name : substr($name, 0, strlen($name) - strlen($ext) - 1);
+    $suffix = ($ext === '') ? '' : '.' . $ext;
+    for ($i = 1; $i < 200; $i++) {
+        $cand = $dir . '/' . $base . '_' . $i . $suffix;
+        if (!file_exists($cand)) {
+            return $cand;
+        }
+    }
+    return '';
 }
 
 function kona3edit_ai_ajax($page)
