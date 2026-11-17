@@ -1005,9 +1005,16 @@ function kona3edit_upload_ajax($page)
         $ng('Upload is not allowed by the site settings.');
         return;
     }
+    // 編集アクション側でも確認しているが、ハンドラ単体でもログインを必須にする
+    if (!kona3isLogin()) {
+        $ng('Login is required.');
+        return;
+    }
     if (empty($_FILES['file']) || !is_array($_FILES['file']) ||
         !isset($_FILES['file']['tmp_name']) || !isset($_FILES['file']['name']) ||
+        !isset($_FILES['file']['error']) || !isset($_FILES['file']['size']) ||
         !is_string($_FILES['file']['tmp_name']) || !is_string($_FILES['file']['name']) ||
+        !is_int($_FILES['file']['error']) || !is_numeric($_FILES['file']['size']) ||
         !is_uploaded_file($_FILES['file']['tmp_name'])) {
         $ng('No file was uploaded.');
         return;
@@ -1087,7 +1094,16 @@ function kona3edit_upload_svg_is_safe($tmp_name)
     if ($svg === false) {
         return false;
     }
-    if (stripos($svg, '<svg') === false) {
+    // XML として読めてルート要素が svg であることまで確認する
+    if (function_exists('simplexml_load_string')) {
+        $use_internal_errors = libxml_use_internal_errors(true);
+        $xml = simplexml_load_string($svg, 'SimpleXMLElement', LIBXML_NONET);
+        libxml_clear_errors();
+        libxml_use_internal_errors($use_internal_errors);
+        if ($xml === false || $xml->getName() !== 'svg') {
+            return false;
+        }
+    } else if (stripos($svg, '<svg') === false) {
         return false;
     }
     $unsafe_patterns = array(
@@ -1098,13 +1114,17 @@ function kona3edit_upload_svg_is_safe($tmp_name)
         '<object',
         'javascript:',
     );
-    foreach ($unsafe_patterns as $pattern) {
-        if (stripos($svg, $pattern) !== false) {
+    // 文字参照で難読化された危険な文字列も検出できるよう、デコードした文字列も検査する
+    $svg_decoded = html_entity_decode($svg, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    foreach (array($svg, $svg_decoded) as $svg_text) {
+        foreach ($unsafe_patterns as $pattern) {
+            if (stripos($svg_text, $pattern) !== false) {
+                return false;
+            }
+        }
+        if (preg_match('/\son[a-z]+\s*=/i', $svg_text)) {
             return false;
         }
-    }
-    if (preg_match('/\son[a-z]+\s*=/i', $svg)) {
-        return false;
     }
     return true;
 }

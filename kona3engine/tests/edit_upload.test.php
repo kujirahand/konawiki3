@@ -28,6 +28,18 @@ $svg_event_file = tempnam(sys_get_temp_dir(), 'kona3edit_svg_');
 file_put_contents($svg_event_file, '<svg onload="alert(1)"></svg>');
 test_assert(__LINE__, !kona3edit_upload_svg_is_safe($svg_event_file), 'svg: event handler rejected');
 @unlink($svg_event_file);
+$svg_entity_file = tempnam(sys_get_temp_dir(), 'kona3edit_svg_');
+file_put_contents($svg_entity_file, '<svg xmlns="http://www.w3.org/2000/svg"><a href="java&#115;cript:alert(1)"><rect width="10" height="10"/></a></svg>');
+test_assert(__LINE__, !kona3edit_upload_svg_is_safe($svg_entity_file), 'svg: entity-encoded javascript URI rejected');
+@unlink($svg_entity_file);
+$svg_notxml_file = tempnam(sys_get_temp_dir(), 'kona3edit_svg_');
+file_put_contents($svg_notxml_file, 'this is not xml');
+test_assert(__LINE__, !kona3edit_upload_svg_is_safe($svg_notxml_file), 'svg: non-XML rejected');
+@unlink($svg_notxml_file);
+$svg_root_file = tempnam(sys_get_temp_dir(), 'kona3edit_svg_');
+file_put_contents($svg_root_file, '<html><body>x</body></html>');
+test_assert(__LINE__, !kona3edit_upload_svg_is_safe($svg_root_file), 'svg: non-svg root rejected');
+@unlink($svg_root_file);
 
 // --- kona3edit_upload_is_allowed
 $kona3conf['allow_upload_ext'] = 'txt;md;pdf;csv;wav;mid;mp3;mp4;ogg;zip;gz;bz2;jpg;jpeg;png;gif;webp;svg;xml;json;ini;doc;docx;xls;xlsx;ppt;pptx';
@@ -61,6 +73,7 @@ $src_js = file_get_contents($engine . '/resource/edit.js');
 test_assert(__LINE__, strpos($src_php, "\$q == 'upload'") !== false, 'static: upload dispatch exists');
 test_assert(__LINE__, strpos($src_php, 'kona3edit_upload_ajax') !== false, 'static: upload handler exists');
 test_assert(__LINE__, strpos($src_php, 'kona3edit_upload_is_allowed(') !== false, 'static: handler checks kona3edit_upload_is_allowed');
+test_assert(__LINE__, strpos($src_php, "'Login is required.'") !== false, 'static: handler requires login');
 test_assert(__LINE__, strpos($src_html, 'id="file_upload_btn"') !== false, 'static: upload button in template');
 test_assert(__LINE__, strpos($src_html, "'File Upload' | lang") !== false, 'static: upload button label');
 test_assert(__LINE__, strpos($src_html, 'id="file_upload_file"') !== false, 'static: file input in template');
