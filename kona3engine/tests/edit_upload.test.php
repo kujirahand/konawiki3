@@ -29,13 +29,18 @@ file_put_contents($svg_event_file, '<svg onload="alert(1)"></svg>');
 test_assert(__LINE__, !kona3edit_upload_svg_is_safe($svg_event_file), 'svg: event handler rejected');
 @unlink($svg_event_file);
 
-// --- kona3edit_upload_is_allowed_image
+// --- kona3edit_upload_is_allowed
 $kona3conf['allow_upload_ext'] = 'txt;md;pdf;csv;wav;mid;mp3;mp4;ogg;zip;gz;bz2;jpg;jpeg;png;gif;webp;svg;xml;json;ini;doc;docx;xls;xlsx;ppt;pptx';
-test_assert(__LINE__, kona3edit_upload_is_allowed_image('png') === true, 'allowed: png');
-test_assert(__LINE__, kona3edit_upload_is_allowed_image('jpg') === true, 'allowed: jpg');
-test_assert(__LINE__, kona3edit_upload_is_allowed_image('txt') === false, 'allowed: txt is not an image');
-test_assert(__LINE__, kona3edit_upload_is_allowed_image('php') === false, 'allowed: php rejected');
-test_assert(__LINE__, kona3edit_upload_is_allowed_image('bmp') === false, 'allowed: bmp not in allow list');
+test_assert(__LINE__, kona3edit_upload_is_allowed('pdf') === true, 'allowed: pdf');
+test_assert(__LINE__, kona3edit_upload_is_allowed('csv') === true, 'allowed: csv');
+test_assert(__LINE__, kona3edit_upload_is_allowed('xlsx') === true, 'allowed: xlsx');
+test_assert(__LINE__, kona3edit_upload_is_allowed('png') === true, 'allowed: png');
+test_assert(__LINE__, kona3edit_upload_is_allowed('php') === false, 'allowed: php rejected');
+test_assert(__LINE__, kona3edit_upload_is_allowed('exe') === false, 'allowed: exe rejected');
+
+// --- kona3edit_upload_is_allowed_image
+test_assert(__LINE__, kona3edit_upload_is_allowed_image('png') === true, 'image: png');
+test_assert(__LINE__, kona3edit_upload_is_allowed_image('pdf') === false, 'image: pdf is not an image');
 
 // --- kona3edit_upload_unique_path
 $tmpdir = sys_get_temp_dir() . '/kona3_upload_test_' . getmypid() . '_' . mt_rand();
@@ -55,11 +60,15 @@ $src_html = file_get_contents($engine . '/template/edit.html');
 $src_js = file_get_contents($engine . '/resource/edit.js');
 test_assert(__LINE__, strpos($src_php, "\$q == 'upload'") !== false, 'static: upload dispatch exists');
 test_assert(__LINE__, strpos($src_php, 'kona3edit_upload_ajax') !== false, 'static: upload handler exists');
-test_assert(__LINE__, strpos($src_html, 'id="image_upload_btn"') !== false, 'static: upload button in template');
-test_assert(__LINE__, strpos($src_html, 'id="image_upload_file"') !== false, 'static: file input in template');
+test_assert(__LINE__, strpos($src_php, 'kona3edit_upload_is_allowed(') !== false, 'static: handler checks kona3edit_upload_is_allowed');
+test_assert(__LINE__, strpos($src_html, 'id="file_upload_btn"') !== false, 'static: upload button in template');
+test_assert(__LINE__, strpos($src_html, "'File Upload' | lang") !== false, 'static: upload button label');
+test_assert(__LINE__, strpos($src_html, 'id="file_upload_file"') !== false, 'static: file input in template');
 test_assert(__LINE__, strpos($src_html, '$upload_enabled') !== false, 'static: template uses upload_enabled');
-test_assert(__LINE__, strpos($src_js, 'imageUploadOnClick') !== false, 'static: js imageUploadOnClick');
-test_assert(__LINE__, strpos($src_js, 'insertImageRef') !== false, 'static: js insertImageRef');
+test_assert(__LINE__, strpos($src_js, 'fileUploadOnClick') !== false, 'static: js fileUploadOnClick');
+test_assert(__LINE__, strpos($src_js, '#file_upload_file') !== false, 'static: js binds #file_upload_file');
+test_assert(__LINE__, strpos($src_js, 'insertFileRef(') !== false, 'static: js insertFileRef');
+test_assert(__LINE__, strpos($src_js, "q: 'upload'") !== false || strpos($src_js, "'q', 'upload'") !== false, 'static: js posts q=upload');
 test_assert(__LINE__, strpos($src_js, '!!ref(') !== false, 'static: js markdown ref markup');
 
 // --- render check
@@ -89,6 +98,6 @@ function test_render_edit_upload($upload_enabled)
 }
 
 $html_on = test_render_edit_upload(true);
-test_assert(__LINE__, strpos($html_on, 'id="image_upload_btn"') !== false, 'render: upload_enabled=true shows the button');
+test_assert(__LINE__, strpos($html_on, 'id="file_upload_btn"') !== false,'render: upload_enabled=true shows the button');
 $html_off = test_render_edit_upload(false);
-test_assert(__LINE__, strpos($html_off, 'id="image_upload_btn"') === false, 'render: upload_enabled=false hides the button');
+test_assert(__LINE__, strpos($html_off, 'id="file_upload_btn"') === false,'render: upload_enabled=false hides the button');

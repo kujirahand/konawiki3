@@ -204,7 +204,7 @@
         <button onclick="replaceOnClick()">{{'Replace' | lang}}</button>
         <button type="button" id="preview_btn" onclick="togglePreview()">プレビュー並行表示</button>
         {{ if $upload_enabled }}
-        <button type="button" id="image_upload_btn" onclick="imageUploadOnClick()">{{'Image Upload' | lang}}</button>
+        <button type="button" id="file_upload_btn" onclick="fileUploadOnClick()">{{'File Upload' | lang}}</button>
         {{ endif }}
         {{ if $ai_enabled }}
         <span id="ai_buttons">
@@ -218,7 +218,7 @@
         <button onclick="miscOnClick()">{{'Misc' | lang}}</button>
       </nav>
       {{ if $upload_enabled }}
-      <input type="file" id="image_upload_file" accept="image/*" style="display: none;">
+      <input type="file" id="file_upload_file" style="display: none;">
       {{ endif }}
       <div class="edit_setting_row edit_drawer_format">
         <span><label for="page_mode">Format:</label></span>

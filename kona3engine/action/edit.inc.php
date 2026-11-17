@@ -51,7 +51,7 @@ function kona3_action_edit()
         // プレビュー並行表示用に本文を描画する (issue #153)
         return kona3edit_preview_ajax($page);
     } else if ($q == 'upload') {
-        // 編集画面からの画像アップロード (issue #393)
+        // 編集画面からのファイルアップロード (issue #393)
         return kona3edit_upload_ajax($page);
     }
 
@@ -1031,7 +1031,7 @@ function kona3edit_upload_ajax($page)
     $page_ext = '';
     $page_file = kona3getEditFile($page, $page_ext);
     if (!file_exists($page_file)) {
-        $ng('Save the page before uploading images.');
+        $ng('Save the page before uploading files.');
         return;
     }
     $name = kona3edit_upload_sanitize_name(isset($file['name']) ? $file['name'] : '');
@@ -1040,20 +1040,23 @@ function kona3edit_upload_ajax($page)
         return;
     }
     $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-    if (!kona3edit_upload_is_allowed_image($ext)) {
+    if ($ext === '' || !kona3edit_upload_is_allowed($ext)) {
         $ng('This file type is not allowed.');
         return;
     }
+    // 画像拡張子のときだけ内容を検証する (画像以外は attach と同じ拡張子ベース)。
     // 画像と名乗る別形式の混入を防ぐ (SVG は getimagesize で判定できないので、
     // <script> 等の混入を別途検査する)
-    if ($ext === 'svg') {
-        if (!kona3edit_upload_svg_is_safe($file['tmp_name'])) {
+    if (kona3edit_upload_is_allowed_image($ext)) {
+        if ($ext === 'svg') {
+            if (!kona3edit_upload_svg_is_safe($file['tmp_name'])) {
+                $ng('The file is not an image.');
+                return;
+            }
+        } else if (@getimagesize($file['tmp_name']) === false) {
             $ng('The file is not an image.');
             return;
         }
-    } else if (@getimagesize($file['tmp_name']) === false) {
-        $ng('The file is not an image.');
-        return;
     }
     $savefile = kona3edit_upload_unique_path(dirname($page_file), $name);
     if ($savefile === '') {
@@ -1104,6 +1107,13 @@ function kona3edit_upload_svg_is_safe($tmp_name)
         return false;
     }
     return true;
+}
+
+// 設定 allow_upload_ext (セミコロン区切り) で許可されている拡張子か (小文字化済みの拡張子を渡す)
+function kona3edit_upload_is_allowed($ext)
+{
+    $allow = explode(';', strtolower(kona3getConf('allow_upload_ext', '')));
+    return in_array($ext, $allow, true);
 }
 
 // 画像拡張子かつ設定 allow_upload_ext で許可されているものだけ通す

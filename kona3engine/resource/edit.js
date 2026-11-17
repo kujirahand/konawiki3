@@ -74,9 +74,9 @@ function edit_init() {
       }
     })
   }
-  const image_upload_file = qs('#image_upload_file')
-  if (image_upload_file) {
-    image_upload_file.addEventListener('change', uploadImageFile)
+  const file_upload_file = qs('#file_upload_file')
+  if (file_upload_file) {
+    file_upload_file.addEventListener('change', uploadFile)
   }
   const k3ln_toggle = qs('#k3ln_toggle')
   if (k3ln_toggle) {
@@ -1706,13 +1706,13 @@ function aiPaneClose() {
   aiPaneSet(false, true)
 }
 
-function imageUploadOnClick() {
-  const input = qs('#image_upload_file')
+function fileUploadOnClick() {
+  const input = qs('#file_upload_file')
   if (input) { input.click() }
 }
 
-function uploadImageFile() {
-  const input = qs('#image_upload_file')
+function uploadFile() {
+  const input = qs('#file_upload_file')
   if (!input || !input.files || input.files.length === 0) { return }
   const file = input.files[0]
   input.value = ''
@@ -1729,7 +1729,7 @@ function uploadImageFile() {
     .then(function (r) { return r.json() })
     .then(function (obj) {
       if (obj && obj.result === 'ok') {
-        insertImageRef(obj.name)
+        insertFileRef(obj.name)
         qq('#edit_info').text('Uploaded: ' + obj.name)
       } else {
         qq('#edit_info').text(obj && obj.message ? obj.message : 'Upload failed.')
@@ -1740,10 +1740,10 @@ function uploadImageFile() {
     })
 }
 
-// Insert the image markup on its own line at the cursor and notify
+// Insert the file markup on its own line at the cursor and notify
 // the change handlers, like aiWriteEditor does (without touching the
 // AI undo buffer).
-function insertImageRef(name) {
+function insertFileRef(name) {
   const edit_txt = qs('#edit_txt')
   if (!edit_txt) { return }
   const mode = qs('#page_mode')
@@ -1763,7 +1763,7 @@ function insertImageRef(name) {
   const api = window.kona3EditHighlight
   if (api && api.renderNow) { api.renderNow() }
   updateSearchCount()
-  handleChange(true, 'image_upload')
+  handleChange(true, 'file_upload')
 }
 
 function aiOnClick() {
