@@ -74,6 +74,10 @@ function edit_init() {
       }
     })
   }
+  const file_upload_file = qs('#file_upload_file')
+  if (file_upload_file) {
+    file_upload_file.addEventListener('change', uploadFile)
+  }
   const k3ln_toggle = qs('#k3ln_toggle')
   if (k3ln_toggle) {
     const ln_api = window.kona3EditLineNumber
@@ -1700,6 +1704,66 @@ function aiPaneSet(open, remember) {
 
 function aiPaneClose() {
   aiPaneSet(false, true)
+}
+
+function fileUploadOnClick() {
+  const input = qs('#file_upload_file')
+  if (input) { input.click() }
+}
+
+function uploadFile() {
+  const input = qs('#file_upload_file')
+  if (!input || !input.files || input.files.length === 0) { return }
+  const file = input.files[0]
+  input.value = ''
+  const form = qs('#wikiedit form')
+  if (!form) { return }
+  const data = new FormData()
+  data.append('file', file)
+  data.append('i_mode', 'ajax')
+  data.append('q', 'upload')
+  data.append('edit_token', qq('#edit_token').val())
+  data.append('a_hash', qq('#a_hash').val())
+  qq('#edit_info').text('Uploading: ' + file.name)
+  fetch(qq(form).attr('action'), { method: 'POST', body: data, credentials: 'same-origin' })
+    .then(function (r) { return r.json() })
+    .then(function (obj) {
+      if (obj && obj.result === 'ok') {
+        insertFileRef(obj.name)
+        qq('#edit_info').text('Uploaded: ' + obj.name)
+      } else {
+        qq('#edit_info').text(obj && obj.message ? obj.message : 'Upload failed.')
+      }
+    })
+    .catch(function () {
+      qq('#edit_info').text('Upload failed.')
+    })
+}
+
+// Insert the file markup on its own line at the cursor and notify
+// the change handlers, like aiWriteEditor does (without touching the
+// AI undo buffer).
+function insertFileRef(name) {
+  const edit_txt = qs('#edit_txt')
+  if (!edit_txt) { return }
+  const mode = qs('#page_mode')
+  const markup = (mode && mode.value === 'Markdown') ? '!!ref(' + name + ')' : '#ref(' + name + ')'
+  const body = edit_txt.value
+  const start = edit_txt.selectionStart || 0
+  const end = edit_txt.selectionEnd || 0
+  const before = body.substring(0, start)
+  const after = body.substring(end)
+  let insert = markup
+  if (before !== '' && before.charAt(before.length - 1) !== '\n') { insert = '\n' + insert }
+  if (after === '' || after.charAt(0) !== '\n') { insert += '\n' }
+  const caret = before.length + insert.length
+  edit_txt.value = before + insert + after
+  edit_txt.focus()
+  edit_txt.setSelectionRange(caret, caret)
+  const api = window.kona3EditHighlight
+  if (api && api.renderNow) { api.renderNow() }
+  updateSearchCount()
+  handleChange(true, 'file_upload')
 }
 
 function aiOnClick() {
