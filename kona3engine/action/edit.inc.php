@@ -1051,16 +1051,15 @@ function kona3edit_upload_ajax($page)
         $ng('This file type is not allowed.');
         return;
     }
+    // SVG はスクリプトを埋め込めるため、内容の安全を保証できる検査が難しい。
+    // 編集画面からは受け付けない (attach からは従来どおりアップロード可能)。
+    if ($ext === 'svg') {
+        $ng('SVG files cannot be uploaded from the editor.');
+        return;
+    }
     // 画像拡張子のときだけ内容を検証する (画像以外は attach と同じ拡張子ベース)。
-    // 画像と名乗る別形式の混入を防ぐ (SVG は getimagesize で判定できないので、
-    // <script> 等の混入を別途検査する)
     if (kona3edit_upload_is_allowed_image($ext)) {
-        if ($ext === 'svg') {
-            if (!kona3edit_upload_svg_is_safe($file['tmp_name'])) {
-                $ng('The file is not an image.');
-                return;
-            }
-        } else if (@getimagesize($file['tmp_name']) === false) {
+        if (@getimagesize($file['tmp_name']) === false) {
             $ng('The file is not an image.');
             return;
         }
@@ -1085,48 +1084,6 @@ function kona3edit_upload_sanitize_name($name)
     // 挿入する #ref(...) 記法の引数区切りと衝突する文字も置換する
     $name = str_replace(array('(', ')', ','), '_', $name);
     return $name;
-}
-
-// SVG は getimagesize で判定できないため、スクリプト等の混入を検査する
-function kona3edit_upload_svg_is_safe($tmp_name)
-{
-    $svg = @file_get_contents($tmp_name);
-    if ($svg === false) {
-        return false;
-    }
-    // XML として読めてルート要素が svg であることまで確認する
-    if (function_exists('simplexml_load_string')) {
-        $use_internal_errors = libxml_use_internal_errors(true);
-        $xml = simplexml_load_string($svg, 'SimpleXMLElement', LIBXML_NONET);
-        libxml_clear_errors();
-        libxml_use_internal_errors($use_internal_errors);
-        if ($xml === false || $xml->getName() !== 'svg') {
-            return false;
-        }
-    } else if (stripos($svg, '<svg') === false) {
-        return false;
-    }
-    $unsafe_patterns = array(
-        '<script',
-        '<foreignobject',
-        '<iframe',
-        '<embed',
-        '<object',
-        'javascript:',
-    );
-    // 文字参照で難読化された危険な文字列も検出できるよう、デコードした文字列も検査する
-    $svg_decoded = html_entity_decode($svg, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-    foreach (array($svg, $svg_decoded) as $svg_text) {
-        foreach ($unsafe_patterns as $pattern) {
-            if (stripos($svg_text, $pattern) !== false) {
-                return false;
-            }
-        }
-        if (preg_match('/\son[a-z]+\s*=/i', $svg_text)) {
-            return false;
-        }
-    }
-    return true;
 }
 
 // 設定 allow_upload_ext (セミコロン区切り) で許可されている拡張子か (小文字化済みの拡張子を渡す)
