@@ -1812,6 +1812,8 @@ function insertFileRef(name) {
   edit_txt.value = before + insert + after
   edit_txt.focus()
   edit_txt.setSelectionRange(caret, caret)
+  // Scroll the caret position into view, like the search jump does
+  scrollEditorToPos(caret)
   const api = window.kona3EditHighlight
   if (api && api.renderNow) { api.renderNow() }
   updateSearchCount()

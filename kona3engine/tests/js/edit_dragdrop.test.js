@@ -34,6 +34,8 @@ const editTxt = {
   value: 'line1\nline2',
   selectionStart: 5,
   selectionEnd: 5,
+  scrollTop: 0,
+  clientHeight: 300,
   focused: false,
   classList: makeClassList(),
   focus() { this.focused = true },
@@ -68,7 +70,8 @@ global.qq = (selOrEl) => {
   }
   return { attr: () => 'index.php?FrontPage&edit' }
 }
-global.window = { kona3EditHighlight: null }
+global.window = { kona3EditHighlight: null, getComputedStyle: () => ({ lineHeight: '20px' }) }
+global.edit_txt = editTxt // scrollEditorToPos uses the named global
 global.updateSearchCount = () => {}
 global.handleChange = () => {}
 
@@ -81,6 +84,7 @@ global.fetch = (url, opts) => {
 }
 
 // load the functions under test
+eval(extractFn('scrollEditorToPos'))
 eval(extractFn('insertFileRef'))
 eval(extractFn('uploadOneFile'))
 eval(extractFn('uploadFile'))
@@ -97,6 +101,24 @@ async function main() {
   editTxt.value = 'line1\nline2'; editTxt.selectionStart = editTxt.selectionEnd = 5
   insertFileRef('doc.zip')
   assert(editTxt.value.includes('\n#ref(doc.zip,*doc.zip)\n'), 'kona markup inserted: ' + editTxt.value)
+
+  // --- after insertion the caret is focused and scrolled into view (#393) ---
+  // Long body, caret in the middle, view left at the very end: the upload
+  // must bring the view back to the inserted position.
+  pageMode.value = 'Markdown'
+  const lines = []
+  for (let i = 0; i < 100; i++) lines.push('line ' + i)
+  editTxt.value = lines.join('\n')
+  const mid = editTxt.value.indexOf('line 50')
+  editTxt.selectionStart = editTxt.selectionEnd = mid
+  editTxt.scrollTop = 100 * 20 // scrolled to the end
+  insertFileRef('photo.png')
+  const caret = editTxt.selectionStart
+  assert(editTxt.value.substring(0, caret).includes('![photo.png](photo.png)'), 'caret is right after the inserted markup')
+  const caretLine = editTxt.value.substring(0, caret).split('\n').length - 1
+  const caretTop = caretLine * 20
+  assert(editTxt.scrollTop <= caretTop && caretTop < editTxt.scrollTop + editTxt.clientHeight,
+    'caret line is in view: scrollTop=' + editTxt.scrollTop + ' caretTop=' + caretTop)
 
   // --- drop flow: two files upload in order and insert markup ---
   pageMode.value = 'Markdown'
