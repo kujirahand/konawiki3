@@ -57,7 +57,9 @@ test_assert(__LINE__, strpos($src_js, 'fileUploadOnClick') !== false, 'static: j
 test_assert(__LINE__, strpos($src_js, '#file_upload_file') !== false, 'static: js binds #file_upload_file');
 test_assert(__LINE__, strpos($src_js, 'insertFileRef(') !== false, 'static: js insertFileRef');
 test_assert(__LINE__, strpos($src_js, "q: 'upload'") !== false || strpos($src_js, "'q', 'upload'") !== false, 'static: js posts q=upload');
-test_assert(__LINE__, strpos($src_js, '!!ref(') !== false, 'static: js markdown ref markup');
+test_assert(__LINE__, strpos($src_js, "'![' + name + '](' + name + ')'") !== false, 'static: js markdown image markup (#397)');
+test_assert(__LINE__, strpos($src_js, "'#ref(' + name + ',*' + name + ')'") !== false, 'static: js kona ref markup (#397)');
+test_assert(__LINE__, strpos($src_js, 'initFileDropUpload') !== false, 'static: js drag & drop upload (#397)');
 
 // --- render check
 function test_render_edit_upload($upload_enabled)
