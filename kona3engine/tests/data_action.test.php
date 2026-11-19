@@ -42,4 +42,31 @@ test_eq(__LINE__, kona3_action_data_imageExt('a.jpg'), '', 'data: custom image p
 if ($saved_allow === null) { unset($kona3conf['data_dir_allow_pattern']); } else { $kona3conf['data_dir_allow_pattern'] = $saved_allow; }
 if ($saved_image === null) { unset($kona3conf['image_pattern']); } else { $kona3conf['image_pattern'] = $saved_image; }
 
+// --- full-width characters and Japanese file names (#395) ---
+// normalized extension
+test_eq(__LINE__, kona3_action_data_ext('aaa.zip'), 'zip', 'data ext: zip');
+test_eq(__LINE__, kona3_action_data_ext('aaa.ｚｉｐ'), 'zip', 'data ext: full-width ｚｉｐ becomes zip');
+test_eq(__LINE__, kona3_action_data_ext('bbb．zip'), 'zip', 'data ext: full-width dot is a separator');
+test_eq(__LINE__, kona3_action_data_ext('a.tar.GZ'), 'gz', 'data ext: last extension wins, lowercased');
+test_eq(__LINE__, kona3_action_data_ext('noext'), '', 'data ext: no extension');
+test_eq(__LINE__, kona3_action_data_ext('写真.JPG'), 'jpg', 'data ext: Japanese name with JPG');
+// image / allowed with full-width extensions
+test_eq(__LINE__, kona3_action_data_imageExt('画像.ＰＮＧ'), 'png', 'data: full-width ＰＮＧ is an image');
+test_assert(__LINE__, kona3_action_data_isAllowed('aaa.ｚｉｐ'), 'data: full-width ｚｉｐ is allowed');
+test_assert(__LINE__, kona3_action_data_isAllowed('bbb．zip'), 'data: full-width dot zip is allowed');
+test_assert(__LINE__, kona3_action_data_isAllowed('日本語ファイル.zip'), 'data: Japanese name zip is allowed');
+test_assert(__LINE__, !kona3_action_data_isAllowed('悪意.ｐｈｐ'), 'data: full-width ｐｈｐ is not allowed');
+test_assert(__LINE__, !kona3_action_data_isAllowed('日本語.php'), 'data: Japanese name php is not allowed');
+// file name validation: multibyte names pass, dangerous names fail
+test_assert(__LINE__, kona3_action_data_isValidName('hoge/fuga/aaa.zip'), 'data name: plain path is valid');
+test_assert(__LINE__, kona3_action_data_isValidName('日本語.zip'), 'data name: Japanese name is valid');
+test_assert(__LINE__, kona3_action_data_isValidName('hoge/日本語ファイル.ZIP'), 'data name: Japanese path is valid');
+test_assert(__LINE__, kona3_action_data_isValidName('my file.zip'), 'data name: space is valid');
+test_assert(__LINE__, !kona3_action_data_isValidName(''), 'data name: empty is invalid');
+test_assert(__LINE__, !kona3_action_data_isValidName('.hidden.zip'), 'data name: dot file is invalid');
+test_assert(__LINE__, !kona3_action_data_isValidName('hoge/.git/config'), 'data name: dot segment is invalid');
+test_assert(__LINE__, !kona3_action_data_isValidName('hoge/../secret.zip'), 'data name: .. segment is invalid');
+test_assert(__LINE__, !kona3_action_data_isValidName('hoge\\fuga.zip'), 'data name: backslash is invalid');
+test_assert(__LINE__, !kona3_action_data_isValidName("a\x01b.zip"), 'data name: control char is invalid');
+
 echo "data_action.test.php: ALL OK\n";

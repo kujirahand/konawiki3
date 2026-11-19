@@ -295,7 +295,8 @@ function kona3static_decodeFileSegment($seg)
 function kona3static_isAttachable($filename)
 {
     global $kona3conf;
-    $name = strtolower($filename);
+    // 全角英数字の拡張子 (例: aaa.ｚｉｐ) も半角に直して判定する (#395)
+    $name = strtolower(mb_convert_kana($filename, 'a'));
     $parts = explode('.', $name);
     if (count($parts) < 2) {
         return false;

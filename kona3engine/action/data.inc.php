@@ -10,8 +10,9 @@ function kona3_action_data() {
   if (kona3show_check_private($fname)) {
     return;
   } 
-  // check filename
-  if (!preg_match('#^[a-zA-Z0-9\_\%][a-zA-Z0-9\_\.\-\%\/]+$#', $fname)) {
+  // check filename (日本語などマルチバイト文字のファイル名も許可する #395。
+  // data フォルダの外へ出ないことは、この後の realpath チェックで保証する #324)
+  if (!kona3_action_data_isValidName($fname)) {
     header('HTTP/1.0 404 Not Found');
     echo $fileNotFound;
     exit;
@@ -57,7 +58,7 @@ function kona3_action_data() {
   // ファイルの中身からMIMEを判定すると、HTMLやSVGを書いた .csv / .xml が
   // text/html や image/svg+xml として配信され、Wikiのオリジンでスクリプトが
   // 動いてしまう。拡張子から固定のMIMEを決め、スニッフィングも禁止する (#324)。
-  $ext = strtolower(pathinfo($fname, PATHINFO_EXTENSION));
+  $ext = kona3_action_data_ext($fname);
   $mime = kona3_action_data_getContentType($ext);
   header("Content-Type: $mime");
   header("Content-Length: ".filesize($fullpath));
@@ -74,21 +75,53 @@ function kona3_action_data() {
   echo file_get_contents($fullpath);
 }
 
-/** 画像ファイルなら小文字化した拡張子を返す (大文字小文字を区別しない, #395) */
+/** 拡張子を正規化して返す (全角英数字→半角・全角ドット対応・小文字化, #395) */
+function kona3_action_data_ext($fname) {
+  if (!is_string($fname)) {
+    return '';
+  }
+  if (!preg_match('#[.．]([^.．]*)$#u', $fname, $m)) {
+    return '';
+  }
+  if ($m[1] === '') {
+    return '';
+  }
+  return strtolower(mb_convert_kana($m[1], 'a'));
+}
+
+/** 画像ファイルなら正規化した拡張子を返す (大文字小文字・全角を区別しない, #395) */
 function kona3_action_data_imageExt($fname) {
+  $ext = kona3_action_data_ext($fname);
   $image_type = kona3getConf("image_pattern", "(jpg|jpeg|png|gif|ico|svg|webp)");
-  if (preg_match("#\.($image_type)$#i", $fname, $m)) {
-    return strtolower($m[1]);
+  if (preg_match("#^($image_type)$#i", $ext)) {
+    return $ext;
   }
   return '';
 }
 
-/** data_dir_allow_pattern で配信が許可されたファイルか (大文字小文字を区別しない, #395) */
+/** data_dir_allow_pattern で配信が許可されたファイルか (大文字小文字・全角を区別しない, #395) */
 function kona3_action_data_isAllowed($fname) {
+  $ext = kona3_action_data_ext($fname);
   $allow_pattern = kona3getConf(
     "data_dir_allow_pattern",
     "(csv|json|xml|doc|docx|xls|xlsx|ppt|pptx|pdf|zip|gz|bz2|wav|mid|mp3|mp4|ogg|mmd|mermaid|drawio)");
-  return preg_match("#\.($allow_pattern)$#i", $fname) === 1;
+  return preg_match("#^($allow_pattern)$#i", $ext) === 1;
+}
+
+/** 配信してよいファイル名か (制御文字・バックスラッシュ・ドット始まりの要素を禁じる, #395) */
+function kona3_action_data_isValidName($fname) {
+  if (!is_string($fname) || $fname === '') {
+    return FALSE;
+  }
+  if (preg_match('/[\x00-\x1F\x7F]/', $fname) || strpos($fname, '\\') !== FALSE) {
+    return FALSE;
+  }
+  foreach (explode('/', $fname) as $segment) {
+    if (strpos($segment, '.') === 0) {
+      return FALSE;
+    }
+  }
+  return TRUE;
 }
 
 /** dataフォルダのファイルを配信するときのContent-Type (拡張子から固定で決める, #324) */
