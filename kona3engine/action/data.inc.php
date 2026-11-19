@@ -29,18 +29,17 @@ function kona3_action_data() {
     exit;
   }
   $fullpath = $real;
-  // image
-  $image_type = kona3getConf("image_pattern", "(jpg|jpeg|png|gif|ico|svg|webp)");
-  $pattern = "#\.($image_type)$#";
-  if (preg_match($pattern, $fname, $m)) {
-    $ctype = "image/".$m[1];
-    if ($ctype == 'image/svg') {
+  // image (拡張子の大文字小文字は区別しない: refプラグインやMarkdown側は小文字化して判定している)
+  $image_ext = kona3_action_data_imageExt($fname);
+  if ($image_ext !== '') {
+    $ctype = "image/".$image_ext;
+    if ($image_ext === 'svg') {
       $ctype = 'image/svg+xml';
     }
     header("Content-Type: $ctype");
     header("Content-Length: ".filesize($fullpath));
     header("X-Content-Type-Options: nosniff");
-    if (strtolower($m[1]) === 'svg') {
+    if ($image_ext === 'svg') {
       // SVGはスクリプトを持てるため、トップレベル文書として開かれても
       // Wikiのオリジンで実行されないよう sandbox を付ける (#324)。
       header("Content-Security-Policy: sandbox");
@@ -48,12 +47,8 @@ function kona3_action_data() {
     echo file_get_contents($fullpath);
     exit;
   }
-  // data_dir_allow_pattern
-  $allow_pattern = kona3getConf(
-    "data_dir_allow_pattern",
-    "(csv|json|xml|doc|docx|xls|xlsx|ppt|pptx|pdf|zip|gz|bz2|wav|mid|mp3|mp4|ogg|mmd|mermaid|drawio)");
-  $pattern = "#\.($allow_pattern)$#";
-  if (!preg_match($pattern, $fname)) {
+  // data_dir_allow_pattern (拡張子の大文字小文字は区別しない)
+  if (!kona3_action_data_isAllowed($fname)) {
     header('HTTP/1.0 415 Unsupported Media Type');
     echo $fileNotAllowed;
     exit;
@@ -77,6 +72,23 @@ function kona3_action_data() {
     header("Content-Security-Policy: sandbox");
   }
   echo file_get_contents($fullpath);
+}
+
+/** 画像ファイルなら小文字化した拡張子を返す (大文字小文字を区別しない, #395) */
+function kona3_action_data_imageExt($fname) {
+  $image_type = kona3getConf("image_pattern", "(jpg|jpeg|png|gif|ico|svg|webp)");
+  if (preg_match("#\.($image_type)$#i", $fname, $m)) {
+    return strtolower($m[1]);
+  }
+  return '';
+}
+
+/** data_dir_allow_pattern で配信が許可されたファイルか (大文字小文字を区別しない, #395) */
+function kona3_action_data_isAllowed($fname) {
+  $allow_pattern = kona3getConf(
+    "data_dir_allow_pattern",
+    "(csv|json|xml|doc|docx|xls|xlsx|ppt|pptx|pdf|zip|gz|bz2|wav|mid|mp3|mp4|ogg|mmd|mermaid|drawio)");
+  return preg_match("#\.($allow_pattern)$#i", $fname) === 1;
 }
 
 /** dataフォルダのファイルを配信するときのContent-Type (拡張子から固定で決める, #324) */
