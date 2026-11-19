@@ -77,6 +77,7 @@ function edit_init() {
   const file_upload_file = qs('#file_upload_file')
   if (file_upload_file) {
     file_upload_file.addEventListener('change', uploadFile)
+    initFileDropUpload()
   }
   const k3ln_toggle = qs('#k3ln_toggle')
   if (k3ln_toggle) {
@@ -1716,8 +1717,13 @@ function uploadFile() {
   if (!input || !input.files || input.files.length === 0) { return }
   const file = input.files[0]
   input.value = ''
+  uploadOneFile(file)
+}
+
+// Upload a single file. Returns a promise that always resolves.
+function uploadOneFile(file) {
   const form = qs('#wikiedit form')
-  if (!form) { return }
+  if (!form) { return Promise.resolve() }
   const data = new FormData()
   data.append('file', file)
   data.append('i_mode', 'ajax')
@@ -1725,7 +1731,7 @@ function uploadFile() {
   data.append('edit_token', qq('#edit_token').val())
   data.append('a_hash', qq('#a_hash').val())
   qq('#edit_info').text('Uploading: ' + file.name)
-  fetch(qq(form).attr('action'), { method: 'POST', body: data, credentials: 'same-origin' })
+  return fetch(qq(form).attr('action'), { method: 'POST', body: data, credentials: 'same-origin' })
     .then(function (r) { return r.json() })
     .then(function (obj) {
       if (obj && obj.result === 'ok') {
@@ -1740,6 +1746,52 @@ function uploadFile() {
     })
 }
 
+// Drag & drop upload: drop files onto the edit form to upload them
+// one by one (in drop order) and insert their markup.
+function initFileDropUpload() {
+  if (!qs('#file_upload_file')) { return }
+  const target = qs('#wikiedit form') || qs('#edit_txt')
+  const edit_txt = qs('#edit_txt')
+  if (!target || !edit_txt) { return }
+  const activeClass = 'kona3-drop-active'
+  let counter = 0
+  const hasFiles = function (e) {
+    const dt = e.dataTransfer
+    if (!dt) { return false }
+    if (dt.types) {
+      return Array.prototype.indexOf.call(dt.types, 'Files') >= 0
+    }
+    return !!(dt.files && dt.files.length > 0)
+  }
+  const reset = function () {
+    counter = 0
+    edit_txt.classList.remove(activeClass)
+  }
+  const onEnterOver = function (e) {
+    if (!hasFiles(e)) { return }
+    e.preventDefault()
+    if (e.type === 'dragenter') { counter++ }
+    edit_txt.classList.add(activeClass)
+  }
+  target.addEventListener('dragenter', onEnterOver)
+  target.addEventListener('dragover', onEnterOver)
+  target.addEventListener('dragleave', function (e) {
+    if (!hasFiles(e)) { return }
+    counter--
+    if (counter <= 0) { reset() }
+  })
+  target.addEventListener('drop', function (e) {
+    if (!hasFiles(e)) { return }
+    e.preventDefault()
+    reset()
+    const files = Array.prototype.slice.call(e.dataTransfer.files || [])
+    let chain = Promise.resolve()
+    files.forEach(function (file) {
+      chain = chain.then(function () { return uploadOneFile(file) })
+    })
+  })
+}
+
 // Insert the file markup on its own line at the cursor and notify
 // the change handlers, like aiWriteEditor does (without touching the
 // AI undo buffer).
@@ -1747,7 +1799,7 @@ function insertFileRef(name) {
   const edit_txt = qs('#edit_txt')
   if (!edit_txt) { return }
   const mode = qs('#page_mode')
-  const markup = (mode && mode.value === 'Markdown') ? '!!ref(' + name + ')' : '#ref(' + name + ')'
+  const markup = (mode && mode.value === 'Markdown') ? '![' + name + '](' + name + ')' : '#ref(' + name + ',*' + name + ')'
   const body = edit_txt.value
   const start = edit_txt.selectionStart || 0
   const end = edit_txt.selectionEnd || 0
